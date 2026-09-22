@@ -42,8 +42,30 @@ game channels, so anyone who knows a game URL can subscribe; this is not an
 authorization boundary for production.
 
 Run every SQL file in [supabase/migrations](supabase/migrations) in filename
-order using the Supabase SQL Editor. The migrations create RLS-protected tables
-and server-only RPCs used for atomic version-checked game updates.
+order using the Supabase SQL Editor, or let the GitHub integration below push
+them for you. The migrations create RLS-protected tables and server-only RPCs
+used for atomic version-checked game updates.
+
+## Automatic Production Migrations
+
+Migrations deploy via Supabase's native GitHub integration rather than a
+custom CI workflow. One-time setup in the Supabase dashboard:
+
+1. `supabase/config.toml` must exist and be committed (created once via
+   `supabase init`; it holds local config only, not your project ref).
+2. Project Settings -> Integrations -> GitHub -> Authorize GitHub -> connect
+   this repository, and set the working directory to `.`.
+3. Set `main` as the production branch and enable the **Deploy to
+   production** option so pushes/merges to `main` apply new migrations.
+
+After that, any push to `main` that adds files under `supabase/migrations/`
+is applied to production automatically — no GitHub secrets or `supabase
+link` required (that command only caches credentials locally in the
+gitignored `supabase/.temp/`).
+
+Preview/per-branch databases (Supabase Branching) were intentionally skipped
+for this demo since it's a paid, per-branch-hour add-on; previews reuse the
+same `.env` values configured in Vercel.
 
 ## Development
 
