@@ -6,8 +6,15 @@ import {
   getPublicGame,
   stepTypesafeAction,
   startNextHand,
+  submitHumanAction,
 } from "./game-service";
 import { createDeterministicDeck, pokerEngineAdapter } from "./adapter";
+import type {
+  PersistAIActionInput,
+  PersistedGame,
+  PersistHumanActionInput,
+} from "@/lib/supabase/queries";
+import type { SystemOneRequest } from "@/lib/typesafe/types";
 
 describe("createDemoGame", () => {
   it("creates and persists a shuffled heads-up starting hand", async () => {
@@ -355,5 +362,141 @@ describe("startNextHand", () => {
     expect(startNextHandWriter).toHaveBeenCalledWith(
       expect.objectContaining({ handNumber: 2, expectedVersion: 1 }),
     );
+  });
+});
+
+describe("deterministic persisted hand harness", () => {
+  it("completes a full heads-up showdown through human and TypeSafe service turns", async () => {
+    const startedState = pokerEngineAdapter.startHand(
+      pokerEngineAdapter.createGame({
+        smallBlind: 50,
+        bigBlind: 100,
+        players: [
+          {
+            id: "human",
+            name: "You",
+            controller: "human",
+            seat: 0,
+            stack: 10_000,
+          },
+          {
+            id: "typesafe-ai",
+            name: "TypeSafe AI",
+            controller: "typesafe_ai",
+            seat: 1,
+            stack: 10_000,
+          },
+        ],
+      }),
+      createDeterministicDeck(),
+    );
+    let storedGame: PersistedGame = {
+      id: "game-1",
+      status: "playing",
+      currentState: startedState,
+      stateSchemaVersion: 1,
+      handNumber: 1,
+      version: 0,
+    };
+    const persistedActions: Array<
+      PersistHumanActionInput | PersistAIActionInput
+    > = [];
+
+    function persist(
+      input: PersistHumanActionInput | PersistAIActionInput,
+    ): PersistedGame {
+      expect(input.expectedVersion).toBe(storedGame.version);
+      persistedActions.push(input);
+      storedGame = {
+        ...storedGame,
+        status: input.status,
+        currentState: input.currentState,
+        stateSchemaVersion: input.stateSchemaVersion,
+        handNumber: input.handNumber,
+        version: storedGame.version + 1,
+      };
+      return storedGame;
+    }
+
+    const repository = {
+      getGame: async () => storedGame,
+      persistHumanAction: async (input: PersistHumanActionInput) =>
+        persist(input),
+      persistAIAction: async (input: PersistAIActionInput) => persist(input),
+    };
+    const passiveTypesafeClient = {
+      evaluate: async (request: SystemOneRequest) => {
+        const actionQuestion = request.questions.action;
+        if (!actionQuestion) {
+          throw new Error("Expected a TypeSafe action question");
+        }
+        const options = Object.keys(actionQuestion.criteria);
+        const choice = options.includes("check") ? "check" : "call";
+        return {
+          answers: {
+            action: {
+              type: "choice",
+              choice,
+              probabilities: Object.fromEntries(
+                options.map((option) => [option, option === choice ? 1 : 0]),
+              ),
+              confidence: 1,
+            },
+            sizing: {
+              type: "choice",
+              choice: "small",
+              probabilities: { small: 1, medium: 0, large: 0, all_in: 0 },
+              confidence: 1,
+            },
+          },
+        };
+      },
+    };
+
+    for (let actionCount = 0; actionCount < 20; actionCount += 1) {
+      const game = await getPublicGame(repository, "game-1");
+      if (game.poker.street === "complete") {
+        expect(game.poker.completionReason).toBe("showdown");
+        expect(game.poker.communityCards).toHaveLength(5);
+        expect(game.poker.winnerIds.length).toBeGreaterThan(0);
+        break;
+      }
+
+      if (game.poker.currentActorId === "human") {
+        const action =
+          game.poker.legalActions.find(
+            (candidate) => candidate.type === "check",
+          ) ??
+          game.poker.legalActions.find(
+            (candidate) => candidate.type === "call",
+          );
+        if (!action || (action.type !== "check" && action.type !== "call")) {
+          throw new Error("Expected a legal passive human action");
+        }
+        await submitHumanAction(repository, "game-1", {
+          expectedVersion: game.version,
+          playerId: "human",
+          action,
+        });
+      } else {
+        await stepTypesafeAction(repository, passiveTypesafeClient, "game-1");
+      }
+    }
+
+    expect(
+      pokerEngineAdapter.snapshot(
+        storedGame.currentState as Parameters<
+          typeof pokerEngineAdapter.restore
+        >[0],
+      ),
+    ).toMatchObject({
+      street: "complete",
+      completionReason: "showdown",
+    });
+    expect(persistedActions.length).toBeGreaterThan(0);
+    expect(new Set(persistedActions.map((action) => action.street))).toEqual(
+      new Set(["preflop", "flop", "turn", "river"]),
+    );
+    expect(persistedActions.some((action) => "aiState" in action)).toBe(true);
   });
 });
