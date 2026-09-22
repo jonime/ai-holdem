@@ -248,12 +248,17 @@ export const pokerEngineAdapter = {
 
   publicProjection(
     state: PokerGameState,
-    viewerPlayerId: string,
+    viewerPlayerId: string | null,
   ): PublicPokerGame {
     const table = engineStateFrom(state);
+    const effectiveViewerId =
+      viewerPlayerId &&
+      state.config.players.some((player) => player.id === viewerPlayerId)
+        ? viewerPlayerId
+        : null;
     const projectedTable = projectTable(table, {
-      kind: "player",
-      playerId: viewerPlayerId,
+      kind: effectiveViewerId === null ? "spectator" : "player",
+      playerId: effectiveViewerId ?? "",
     });
     const snapshot = this.snapshot(state);
 
@@ -265,7 +270,8 @@ export const pokerEngineAdapter = {
       ...snapshot,
       seatCount,
       legalActions:
-        snapshot.currentActorId === viewerPlayerId
+        effectiveViewerId !== null &&
+        snapshot.currentActorId === effectiveViewerId
           ? this.getLegalActions(state)
           : [],
       players:
@@ -281,6 +287,9 @@ export const pokerEngineAdapter = {
             );
           }
 
+          const isViewer =
+            effectiveViewerId !== null && player.playerId === effectiveViewerId;
+
           return {
             id: player.playerId,
             name: config.name,
@@ -294,7 +303,9 @@ export const pokerEngineAdapter = {
             stack: seat.stack,
             folded: player.folded,
             allIn: player.allIn,
-            holeCards: player.holeCards?.map(cardToString) ?? null,
+            holeCards: isViewer
+              ? (player.holeCards?.map(cardToString) ?? null)
+              : null,
           };
         }) ?? [],
     };

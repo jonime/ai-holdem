@@ -12,9 +12,14 @@ interface GameRouteContext {
 
 export async function GET(request: Request, context: GameRouteContext) {
   const { gameId } = await context.params;
+  const playerToken = getOrCreatePlayerToken(request);
 
   try {
-    const game = await getPublicGame(createSupabaseGameRepository(), gameId);
+    const game = await getPublicGame(
+      createSupabaseGameRepository(),
+      gameId,
+      playerToken,
+    );
     const response = NextResponse.json({ game });
     getOrCreatePlayerToken(request, response);
     return response;

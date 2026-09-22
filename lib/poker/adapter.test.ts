@@ -102,6 +102,16 @@ describe("pokerEngineAdapter", () => {
     expect(projection).not.toHaveProperty("engineState");
   });
 
+  it("hides all hole cards for an unseated spectator", () => {
+    const state = startHand();
+    const projection = pokerEngineAdapter.publicProjection(state, null);
+
+    expect(
+      projection.players.every((player) => player.holeCards === null),
+    ).toBe(true);
+    expect(projection.legalActions).toEqual([]);
+  });
+
   it("preserves the viewer's private cards after JSON restoration", () => {
     const state = startHand();
     const restoredState = pokerEngineAdapter.restore(

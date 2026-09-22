@@ -16,6 +16,7 @@ interface Player {
   readonly name: string;
   readonly controller: "human" | "typesafe_ai";
   readonly seat: number;
+  readonly playerToken: string | null;
   readonly stack: number;
   readonly folded: boolean;
   readonly allIn: boolean;
@@ -301,6 +302,25 @@ function ActionHistory({
   );
 }
 
+function getClientPlayerToken(): string | null {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  const cookie = document.cookie
+    .split(";")
+    .map((entry) => entry.trim())
+    .find((entry) => entry.startsWith("ai-holdem-player-id="));
+
+  if (!cookie) {
+    return null;
+  }
+
+  return (
+    decodeURIComponent(cookie.slice("ai-holdem-player-id=".length)) || null
+  );
+}
+
 export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const [game, setGame] = useState<Game | null>(null);
   const [decision, setDecision] = useState<AIDecision | null>(null);
@@ -513,12 +533,28 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     }
   }
 
-  const human = game?.poker.players.find((player) => player.id === "human");
-  const ai = game?.poker.players.find((player) => player.id === "typesafe-ai");
+  const viewerToken = getClientPlayerToken();
+  const viewerPlayer =
+    game?.poker.players.find(
+      (player) =>
+        player.playerToken !== null && player.playerToken === viewerToken,
+    ) ?? null;
+  const human =
+    viewerPlayer && viewerPlayer.controller === "human"
+      ? viewerPlayer
+      : (game?.poker.players.find((player) => player.controller === "human") ??
+        null);
+  const ai =
+    game?.poker.players.find((player) => player.controller === "typesafe_ai") ??
+    null;
   const sizedAction = game?.poker.legalActions.find(
     (action) => action.type === "bet" || action.type === "raise",
   );
-  const isHumanTurn = game?.poker.currentActorId === "human";
+  const isHumanTurn =
+    viewerPlayer !== null &&
+    viewerPlayer.controller === "human" &&
+    game?.poker.currentActorId === viewerPlayer.id;
+  const isSpectator = viewerPlayer === null && Boolean(game);
   const displayedHistoryHand = selectedHistoryHand ?? game?.poker.handNumber;
   const currentHistory =
     history && history.handNumber === displayedHistoryHand
@@ -614,59 +650,74 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             </div>
             <section className="action-tray">
               <div className="action-caption">
-                {isHumanTurn
-                  ? "Your legal actions"
-                  : game.poker.currentActorId === "typesafe-ai"
-                    ? "TypeSafe AI is deciding"
-                    : "Hand complete"}
+                {isSpectator
+                  ? "Spectating"
+                  : isHumanTurn
+                    ? "Your legal actions"
+                    : game.poker.currentActorId === "typesafe-ai"
+                      ? "TypeSafe AI is deciding"
+                      : "Hand complete"}
               </div>
-              <div className="action-controls">
-                {game.poker.legalActions.map((action) => (
-                  <button
-                    key={action.type}
-                    disabled={!isHumanTurn || loading}
-                    onClick={() => void submitAction(action)}
-                  >
-                    {action.type === "call"
-                      ? `Call ${formatChips(action.amount)}`
-                      : action.type === "bet" || action.type === "raise"
-                        ? `${action.type[0].toUpperCase()}${action.type.slice(1)}`
-                        : action.type[0].toUpperCase() + action.type.slice(1)}
+              {isSpectator ? (
+                <div className="action-controls">
+                  <button type="button" disabled={loading}>
+                    {loading ? "Preparing" : "Sit here"}
                   </button>
-                ))}
-                {game.poker.currentActorId === "typesafe-ai" ? (
-                  <button
-                    disabled={loading}
-                    onClick={() => void continueAiTurn()}
-                  >
-                    {loading ? "TypeSafe is thinking" : "Continue AI"}
-                  </button>
-                ) : null}
-                {game.poker.street === "complete" ? (
-                  <button
-                    disabled={loading}
-                    onClick={() => void beginNextHand()}
-                  >
-                    {loading ? "Preparing" : "Next Hand"}
-                  </button>
-                ) : null}
-              </div>
-              {sizedAction && isHumanTurn ? (
-                <label className="amount-control">
-                  <span>{sizedAction.type} to</span>
-                  <input
-                    type="number"
-                    min={sizedAction.minAmount}
-                    max={sizedAction.maxAmount}
-                    value={amount ?? sizedAction.minAmount}
-                    onChange={(event) => setAmount(Number(event.target.value))}
-                  />
-                  <small>
-                    {formatChips(sizedAction.minAmount)} -{" "}
-                    {formatChips(sizedAction.maxAmount)}
-                  </small>
-                </label>
-              ) : null}
+                </div>
+              ) : (
+                <>
+                  <div className="action-controls">
+                    {game.poker.legalActions.map((action) => (
+                      <button
+                        key={action.type}
+                        disabled={!isHumanTurn || loading}
+                        onClick={() => void submitAction(action)}
+                      >
+                        {action.type === "call"
+                          ? `Call ${formatChips(action.amount)}`
+                          : action.type === "bet" || action.type === "raise"
+                            ? `${action.type[0].toUpperCase()}${action.type.slice(1)}`
+                            : action.type[0].toUpperCase() +
+                              action.type.slice(1)}
+                      </button>
+                    ))}
+                    {game.poker.currentActorId === "typesafe-ai" ? (
+                      <button
+                        disabled={loading}
+                        onClick={() => void continueAiTurn()}
+                      >
+                        {loading ? "TypeSafe is thinking" : "Continue AI"}
+                      </button>
+                    ) : null}
+                    {game.poker.street === "complete" ? (
+                      <button
+                        disabled={loading}
+                        onClick={() => void beginNextHand()}
+                      >
+                        {loading ? "Preparing" : "Next Hand"}
+                      </button>
+                    ) : null}
+                  </div>
+                  {sizedAction && isHumanTurn ? (
+                    <label className="amount-control">
+                      <span>{sizedAction.type} to</span>
+                      <input
+                        type="number"
+                        min={sizedAction.minAmount}
+                        max={sizedAction.maxAmount}
+                        value={amount ?? sizedAction.minAmount}
+                        onChange={(event) =>
+                          setAmount(Number(event.target.value))
+                        }
+                      />
+                      <small>
+                        {formatChips(sizedAction.minAmount)} -{" "}
+                        {formatChips(sizedAction.maxAmount)}
+                      </small>
+                    </label>
+                  ) : null}
+                </>
+              )}
             </section>
           </section>
           <aside>

@@ -107,6 +107,7 @@ describe("getPublicGame", () => {
             controller: "human",
             seat: 0,
             stack: 10_000,
+            playerToken: "viewer-token",
           },
           {
             id: "typesafe-ai",
@@ -119,7 +120,7 @@ describe("getPublicGame", () => {
       }),
       createDeterministicDeck(),
     );
-    const game = await getPublicGame(
+    const seatedGame = await getPublicGame(
       {
         getGame: vi.fn().mockResolvedValue({
           id: "game-1",
@@ -131,15 +132,34 @@ describe("getPublicGame", () => {
         }),
       },
       "game-1",
+      "viewer-token",
+    );
+    const spectatorGame = await getPublicGame(
+      {
+        getGame: vi.fn().mockResolvedValue({
+          id: "game-1",
+          status: "playing",
+          currentState: state,
+          stateSchemaVersion: 1,
+          handNumber: 1,
+          version: 0,
+        }),
+      },
+      "game-1",
+      "other-token",
     );
 
     expect(
-      game.poker.players.find((player) => player.id === "human")?.holeCards,
+      seatedGame.poker.players.find((player) => player.id === "human")
+        ?.holeCards,
     ).toHaveLength(2);
     expect(
-      game.poker.players.find((player) => player.id === "typesafe-ai")
+      seatedGame.poker.players.find((player) => player.id === "typesafe-ai")
         ?.holeCards,
     ).toBeNull();
+    expect(
+      spectatorGame.poker.players.every((player) => player.holeCards === null),
+    ).toBe(true);
   });
 
   it("rejects unknown games", async () => {

@@ -47,6 +47,18 @@ function createClient(options: {
             }),
           }),
         }),
+        update: () => ({
+          eq: () => ({
+            eq: () => ({
+              select: () => ({
+                single: async () => ({
+                  data: options.updateResult ?? persistedGame,
+                  error: null,
+                }),
+              }),
+            }),
+          }),
+        }),
       }),
       rpc,
     },

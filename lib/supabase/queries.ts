@@ -54,6 +54,7 @@ export interface PersistAIActionInput extends PersistHumanActionInput {
 export type SeatStatus = "open" | "claimed" | "bot";
 
 export interface GamePlayerSeatAssignment {
+  readonly gameId: string;
   readonly seat: number;
   readonly status: SeatStatus;
   readonly controller: "human" | "typesafe_ai";
@@ -106,6 +107,11 @@ interface DatabaseResult {
   readonly error: { readonly message: string } | null;
 }
 
+interface MaybeSingleQueryResult extends DatabaseResult {
+  readonly data: unknown;
+  readonly error: { readonly message: string } | null;
+}
+
 export interface GameDatabaseClient {
   from(table: "games" | "game_players"): {
     insert(values: Record<string, unknown>): {
@@ -115,20 +121,20 @@ export interface GameDatabaseClient {
     };
     select(): {
       eq(
-        column: "id",
-        value: string,
+        column: string,
+        value: string | number,
       ): {
-        maybeSingle(): PromiseLike<DatabaseResult>;
+        maybeSingle(): PromiseLike<MaybeSingleQueryResult>;
       };
     };
     update(values: Record<string, unknown>): {
       eq(
-        column: "game_id" | "seat",
+        column: string,
         value: string | number,
       ): {
         eq(
-          column: "seat",
-          value: number,
+          column: string,
+          value: string | number,
         ): {
           select(): {
             single(): PromiseLike<DatabaseResult>;
@@ -298,20 +304,23 @@ export class SupabaseGameRepository {
   async getSeatAssignments(
     gameId: string,
   ): Promise<readonly GamePlayerSeatAssignment[]> {
-    const { data, error } = await this.client
+    const result = await this.client
       .from("game_players")
       .select()
-      .eq("game_id", gameId);
+      .eq("game_id", gameId)
+      .maybeSingle();
 
-    if (error) {
-      throw new Error(`Unable to load seat assignments: ${error.message}`);
+    if (result.error) {
+      throw new Error(
+        `Unable to load seat assignments: ${result.error.message}`,
+      );
     }
 
-    if (!Array.isArray(data)) {
+    if (!Array.isArray(result.data)) {
       return [];
     }
 
-    return data.map((row) => {
+    return result.data.map((row) => {
       if (!isRecord(row)) {
         throw new Error("Supabase returned an invalid seat assignment");
       }
@@ -325,6 +334,7 @@ export class SupabaseGameRepository {
       }
 
       return {
+        gameId,
         seat: requiredNonNegativeInteger(row, "seat"),
         status,
         controller,

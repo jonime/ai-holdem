@@ -290,6 +290,7 @@ export async function releaseSeat(
 export async function getPublicGame(
   repository: GameReader,
   gameId: string,
+  viewerPlayerToken?: string | null,
 ): Promise<PublicGame> {
   const game = await repository.getGame(gameId);
   if (!game) {
@@ -297,12 +298,19 @@ export async function getPublicGame(
   }
 
   const state = pokerEngineAdapter.restore(game.currentState as PokerGameState);
+  const viewerPlayerId =
+    typeof viewerPlayerToken === "string"
+      ? (state.config.players.find(
+          (player) => player.playerToken === viewerPlayerToken,
+        )?.id ?? null)
+      : (state.config.players.find((player) => player.controller === "human")
+          ?.id ?? null);
 
   return {
     id: game.id,
     status: game.status,
     version: game.version,
-    poker: pokerEngineAdapter.publicProjection(state, "human"),
+    poker: pokerEngineAdapter.publicProjection(state, viewerPlayerId),
   };
 }
 
