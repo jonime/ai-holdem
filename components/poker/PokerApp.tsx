@@ -232,7 +232,9 @@ function ActionHistory({ history }: { readonly history: HandHistory | null }) {
             return (
               <li
                 key={action.sequence}
-                className={action.controller === "typesafe_ai" ? "ai-history" : ""}
+                className={
+                  action.controller === "typesafe_ai" ? "ai-history" : ""
+                }
               >
                 {inspection ? (
                   <details className="history-inspection">
@@ -485,7 +487,8 @@ export default function PokerApp() {
       : null;
   const winnerNames = game?.poker.winnerIds
     .map(
-      (winnerId) => game.poker.players.find((player) => player.id === winnerId)?.name,
+      (winnerId) =>
+        game.poker.players.find((player) => player.id === winnerId)?.name,
     )
     .filter((name): name is string => Boolean(name));
   const handResult =
