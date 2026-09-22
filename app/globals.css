@@ -318,8 +318,7 @@ aside {
   gap: 16px;
 }
 .decision-panel,
-.history-panel,
-.rules-note {
+.history-panel {
   padding: 18px;
   border: 1px solid #a9c1b7;
   background: #f8f7f0;
@@ -481,11 +480,6 @@ aside {
     monospace;
   white-space: pre-wrap;
   word-break: break-word;
-}
-.rules-note p:last-child {
-  margin: 0;
-  color: #4a625c;
-  line-height: 1.45;
 }
 .empty-state {
   max-width: 600px;
