@@ -24,6 +24,17 @@ import {
 export interface CreateDemoGameOptions {
   readonly seatCount?: number;
   readonly hostToken?: string;
+  readonly hostName?: string;
+}
+
+const maxPlayerNameLength = 30;
+
+function sanitizePlayerName(
+  raw: string | null | undefined,
+  fallback: string,
+): string {
+  const trimmed = (raw ?? "").trim();
+  return trimmed ? trimmed.slice(0, maxPlayerNameLength) : fallback;
 }
 
 export function createDemoGameConfig(
@@ -39,7 +50,7 @@ export function createDemoGameConfig(
       {
         id: "human",
         seat: 0,
-        name: "You",
+        name: sanitizePlayerName(options.hostName, "You"),
         controller: "human",
         stack: 10_000,
         status: "claimed",
@@ -65,6 +76,7 @@ export type SeatStatus = "open" | "claimed" | "bot";
 export interface SeatAssignment {
   readonly gameId: string;
   readonly seat: number;
+  readonly name?: string;
   readonly status: SeatStatus;
   readonly controller: "human" | "typesafe_ai";
   readonly playerToken: string | null;
@@ -79,6 +91,7 @@ export interface SeatAssignmentRepository {
     readonly gameId: string;
     readonly seat: number;
     readonly status: SeatStatus;
+    readonly name?: string;
     readonly controller?: "human" | "typesafe_ai";
     readonly playerToken?: string | null;
     readonly isHost?: boolean;
@@ -197,9 +210,10 @@ function playerConfigForAssignment(
     id: enginePlayerIdForAssignment(gameId, assignment),
     seat: assignment.seat,
     name:
-      assignment.status === "bot"
+      assignment.name ??
+      (assignment.status === "bot"
         ? "TypeSafe AI"
-        : `Player ${assignment.seat + 1}`,
+        : `Player ${assignment.seat + 1}`),
     controller: assignment.controller,
     stack: 10_000,
     status: assignment.status,
@@ -411,6 +425,7 @@ export async function claimSeat(
   gameId: string,
   seat: number,
   playerToken: string,
+  playerName?: string,
 ): Promise<SeatAssignment> {
   const seatAssignments = await repository.getSeatAssignments(gameId);
   const assignment = seatAssignments.find((entry) => entry.seat === seat);
@@ -422,10 +437,13 @@ export async function claimSeat(
     throw new Error("Seat is not open");
   }
 
+  const name = sanitizePlayerName(playerName, `Player ${seat + 1}`);
+
   const updatedAssignment: SeatAssignment = {
     ...assignment,
     status: "claimed",
     controller: "human",
+    name,
     playerToken,
     isHost: false,
     enginePlayerId: assignment.enginePlayerId ?? `seat-${gameId}-${seat}`,
@@ -436,6 +454,7 @@ export async function claimSeat(
     seat,
     status: "claimed",
     controller: "human",
+    name,
     playerToken,
     isHost: false,
     enginePlayerId: updatedAssignment.enginePlayerId,
@@ -467,10 +486,16 @@ export async function assignBotToSeat(
     throw new Error("Seat is not open");
   }
 
+  const existingBotCount = seatAssignments.filter(
+    (entry) => entry.status === "bot",
+  ).length;
+  const name = `TypeSafe AI #${existingBotCount + 1}`;
+
   const updatedAssignment: SeatAssignment = {
     ...assignment,
     status: "bot",
     controller: "typesafe_ai",
+    name,
     playerToken: null,
     isHost: false,
     enginePlayerId: assignment.enginePlayerId ?? `bot-${gameId}-${seat}`,
@@ -481,6 +506,7 @@ export async function assignBotToSeat(
     seat,
     status: "bot",
     controller: "typesafe_ai",
+    name,
     playerToken: null,
     isHost: false,
     enginePlayerId: updatedAssignment.enginePlayerId,

@@ -64,6 +64,7 @@ export type SeatStatus = "open" | "claimed" | "bot";
 export interface GamePlayerSeatAssignment {
   readonly gameId: string;
   readonly seat: number;
+  readonly name: string;
   readonly status: SeatStatus;
   readonly controller: "human" | "typesafe_ai";
   readonly playerToken: string | null;
@@ -347,6 +348,7 @@ export class SupabaseGameRepository {
       return {
         gameId,
         seat: requiredNonNegativeInteger(row, "seat"),
+        name: requiredString(row, "name"),
         status,
         controller,
         playerToken:
@@ -365,6 +367,7 @@ export class SupabaseGameRepository {
     readonly gameId: string;
     readonly seat: number;
     readonly status: SeatStatus;
+    readonly name?: string;
     readonly controller?: "human" | "typesafe_ai";
     readonly playerToken?: string | null;
     readonly isHost?: boolean;
@@ -375,6 +378,7 @@ export class SupabaseGameRepository {
       .from("game_players")
       .update({
         status: input.status,
+        name: input.name,
         controller: input.controller,
         player_token: input.playerToken ?? null,
         is_host: input.isHost ?? false,

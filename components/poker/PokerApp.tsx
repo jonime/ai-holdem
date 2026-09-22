@@ -87,6 +87,7 @@ interface HandHistory {
 }
 
 const gameStorageKey = "ai-holdem-game-id";
+const playerNameStorageKey = "ai-holdem-player-name";
 
 function formatChips(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
@@ -184,9 +185,7 @@ function Seat({
       className={`seat ${isAi ? "ai-seat" : "human-seat"} ${active ? "active-seat" : ""}`}
     >
       <div className="seat-heading">
-        <span className="seat-label">
-          {isAi ? "TYPESAFE AI" : player.name.toUpperCase()}
-        </span>
+        <span className="seat-label">{player.name.toUpperCase()}</span>
         {active ? (
           <span className="turn-dot" aria-label="Current turn" />
         ) : null}
@@ -406,6 +405,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
+  const [playerName, setPlayerName] = useState(() =>
+    typeof window === "undefined"
+      ? ""
+      : (window.localStorage.getItem(playerNameStorageKey) ?? ""),
+  );
   const router = useRouter();
 
   async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -505,12 +509,21 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     }
   }
 
-  async function postSeatAction(path: string) {
+  async function postSeatAction(path: string, body?: unknown) {
     if (!game) return;
     setLoading(true);
     setError(null);
     try {
-      await requestJson(path, { method: "POST" });
+      await requestJson(
+        path,
+        body === undefined
+          ? { method: "POST" }
+          : {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(body),
+            },
+      );
       await loadGame(game.id);
     } catch (requestError) {
       setError(
@@ -523,14 +536,20 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     }
   }
 
+  async function claimSeatAt(seat: number) {
+    const trimmedName = playerName.trim();
+    window.localStorage.setItem(playerNameStorageKey, trimmedName);
+    await postSeatAction(`/api/games/${game?.id}/seats/${seat}/claim`, {
+      ...(trimmedName ? { name: trimmedName } : {}),
+    });
+  }
+
   async function claimFirstOpenSeat() {
     const openSeat = game?.poker.players.find(
       (player) => player.status === "open",
     );
     if (openSeat) {
-      await postSeatAction(
-        `/api/games/${game?.id}/seats/${openSeat.seat}/claim`,
-      );
+      await claimSeatAt(openSeat.seat);
     }
   }
 
@@ -764,6 +783,16 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           <div className="panel-kicker">WAITING ROOM</div>
           <h2>Choose your table</h2>
           <p>Fill at least two seats, then start the hand.</p>
+          <label className="player-name-field">
+            Your name
+            <input
+              type="text"
+              value={playerName}
+              maxLength={30}
+              placeholder="Anonymous"
+              onChange={(event) => setPlayerName(event.target.value)}
+            />
+          </label>
           {(() => {
             const isHost = game.poker.players.some(
               (player) => player.isHost && player.playerToken === viewerToken,
@@ -818,11 +847,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                       <button
                         type="button"
                         disabled={loading}
-                        onClick={() =>
-                          void postSeatAction(
-                            `/api/games/${game.id}/seats/${seat}/claim`,
-                          )
-                        }
+                        onClick={() => void claimSeatAt(seat)}
                       >
                         Sit here
                       </button>

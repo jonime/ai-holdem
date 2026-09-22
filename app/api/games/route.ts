@@ -27,11 +27,16 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    const hostName =
+      typeof requestBody.hostName === "string"
+        ? requestBody.hostName
+        : undefined;
     const hostToken = getOrCreatePlayerToken(request);
 
     const game = await createDemoGame(createSupabaseGameRepository(), {
       seatCount,
       hostToken,
+      hostName,
     });
     const response = NextResponse.json(
       { gameId: game.gameId },

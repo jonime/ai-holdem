@@ -23,6 +23,13 @@ export async function POST(request: Request, context: ClaimSeatRouteContext) {
 
   const response = NextResponse.json({ ok: true });
   const playerToken = getOrCreatePlayerToken(request, response);
+  const body: unknown = await request.json().catch(() => null);
+  const playerName =
+    body &&
+    typeof body === "object" &&
+    typeof (body as { name?: unknown }).name === "string"
+      ? (body as { name: string }).name
+      : undefined;
 
   try {
     const assignment = await claimSeat(
@@ -30,6 +37,7 @@ export async function POST(request: Request, context: ClaimSeatRouteContext) {
       gameId,
       seat,
       playerToken,
+      playerName,
     );
     void publishSeatEvent(gameId, "seat_claimed", assignment);
     const result = NextResponse.json({ seat: assignment }, { status: 200 });
