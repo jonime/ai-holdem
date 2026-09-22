@@ -536,8 +536,7 @@ export default function PokerApp() {
     <main className="poker-app">
       <header className="app-header">
         <div>
-          <p className="eyebrow">TYPE SAFE AI / DECISION DEMO</p>
-          <h1>Texas Hold&apos;em</h1>
+          <h1>AI Hold&apos;em</h1>
         </div>
         <div className="header-actions">
           <a
