@@ -17,7 +17,7 @@ Repository: [github.com/jonime/ai-holdem](https://github.com/jonime/ai-holdem)
 
 ## Local Setup
 
-Use Node.js 22 or newer and npm.
+Use Node.js 24 or newer and npm.
 
 ```sh
 npm install
