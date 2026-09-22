@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { GitFork } from "lucide-react";
 
 type LegalAction =
   | { type: "fold" }
@@ -538,13 +539,25 @@ export default function PokerApp() {
           <p className="eyebrow">TYPE SAFE AI / DECISION DEMO</p>
           <h1>Texas Hold&apos;em</h1>
         </div>
-        <button
-          className="new-game"
-          onClick={() => void createGame()}
-          disabled={loading}
-        >
-          {loading ? "Working" : "New Game"}
-        </button>
+        <div className="header-actions">
+          <a
+            className="github-link"
+            href="https://github.com/jonime/ai-holdem"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Open the GitHub repository"
+            title="Open the GitHub repository"
+          >
+            <GitFork aria-hidden="true" size={20} strokeWidth={1.8} />
+          </a>
+          <button
+            className="new-game"
+            onClick={() => void createGame()}
+            disabled={loading}
+          >
+            {loading ? "Working" : "New Game"}
+          </button>
+        </div>
       </header>
       {error ? (
         <p className="error-banner" role="alert">

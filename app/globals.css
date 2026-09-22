@@ -47,6 +47,27 @@ button:disabled {
   gap: 20px;
   align-items: end;
 }
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.github-link {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid #6d8980;
+  border-radius: 4px;
+  color: #193e37;
+  background: #f8f7f0;
+  box-shadow: 2px 2px 0 rgba(30, 78, 68, 0.18);
+}
+.github-link:hover {
+  color: #f8f7f0;
+  border-color: #0e5a4d;
+  background: #0e5a4d;
+}
 .eyebrow,
 .panel-kicker {
   margin: 0 0 7px;
