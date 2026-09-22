@@ -51,6 +51,31 @@ interface AIDecision {
   } | null;
 }
 
+interface HandActionHistoryItem {
+  readonly sequence: number;
+  readonly street: string;
+  readonly action: string;
+  readonly amount: number | null;
+  readonly player: string;
+  readonly controller: "human" | "typesafe_ai";
+}
+
+interface CompletedAIDecisionInspection {
+  readonly actionSequence: number;
+  readonly state: unknown;
+  readonly legalActions: unknown;
+  readonly choice: string;
+  readonly probabilities: unknown;
+  readonly confidence: number;
+  readonly rawResponse: unknown;
+}
+
+interface HandHistory {
+  readonly status: "playing" | "complete" | "error";
+  readonly actions: readonly HandActionHistoryItem[];
+  readonly aiDecisions: readonly CompletedAIDecisionInspection[];
+}
+
 const gameStorageKey = "ai-holdem-game-id";
 
 function formatChips(value: number): string {
@@ -178,9 +203,76 @@ function DecisionPanel({ decision }: { readonly decision: AIDecision | null }) {
   );
 }
 
+function ActionHistory({ history }: { readonly history: HandHistory | null }) {
+  if (!history) {
+    return (
+      <section className="history-panel muted-panel">
+        <p>Hand history loads with the table.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="history-panel">
+      <div className="panel-kicker">PERSISTED HAND</div>
+      <h2>Action History</h2>
+      {history.actions.length === 0 ? (
+        <p className="empty-history">No actions yet.</p>
+      ) : (
+        <ol className="history-list">
+          {history.actions.map((action) => (
+            <li
+              key={action.sequence}
+              className={
+                action.controller === "typesafe_ai" ? "ai-history" : ""
+              }
+            >
+              <span>{action.player}</span>
+              <b>
+                {action.action}
+                {action.amount !== null ? ` ${formatChips(action.amount)}` : ""}
+              </b>
+              <small>{action.street}</small>
+            </li>
+          ))}
+        </ol>
+      )}
+      {history.status === "complete" && history.aiDecisions.length > 0 ? (
+        <details className="inspection">
+          <summary>Inspect TypeSafe input and result</summary>
+          {history.aiDecisions.map((decision) => (
+            <div key={decision.actionSequence} className="inspection-entry">
+              <strong>
+                {decision.choice.toUpperCase()} /{" "}
+                {Math.round(decision.confidence * 100)}%
+              </strong>
+              <pre>
+                {JSON.stringify(
+                  {
+                    state: decision.state,
+                    legalActions: decision.legalActions,
+                    probabilities: decision.probabilities,
+                    rawResponse: decision.rawResponse,
+                  },
+                  null,
+                  2,
+                )}
+              </pre>
+            </div>
+          ))}
+        </details>
+      ) : null}
+    </section>
+  );
+}
+
 export default function PokerApp() {
   const [game, setGame] = useState<Game | null>(null);
   const [decision, setDecision] = useState<AIDecision | null>(null);
+  const [history, setHistory] = useState<{
+    readonly handNumber: number;
+    readonly value: HandHistory;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
@@ -225,6 +317,27 @@ export default function PokerApp() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!game) return;
+    let cancelled = false;
+    void fetch(`/api/games/${game.id}/history?hand=${game.poker.handNumber}`)
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Hand history is unavailable");
+        return (await response.json()) as { history: HandHistory };
+      })
+      .then((body) => {
+        if (!cancelled)
+          setHistory({
+            handNumber: game.poker.handNumber,
+            value: body.history,
+          });
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [game]);
 
   async function createGame() {
     setLoading(true);
@@ -356,6 +469,10 @@ export default function PokerApp() {
     (action) => action.type === "bet" || action.type === "raise",
   );
   const isHumanTurn = game?.poker.currentActorId === "human";
+  const currentHistory =
+    history && history.handNumber === game?.poker.handNumber
+      ? history.value
+      : null;
 
   return (
     <main className="poker-app">
@@ -441,7 +558,10 @@ export default function PokerApp() {
                   </button>
                 ))}
                 {game.poker.currentActorId === "typesafe-ai" ? (
-                  <button disabled={loading} onClick={() => void continueAiTurn()}>
+                  <button
+                    disabled={loading}
+                    onClick={() => void continueAiTurn()}
+                  >
                     {loading ? "TypeSafe is thinking" : "Continue AI"}
                   </button>
                 ) : null}
@@ -474,6 +594,7 @@ export default function PokerApp() {
           </section>
           <aside>
             <DecisionPanel decision={decision} />
+            <ActionHistory history={currentHistory} />
             <section className="rules-note">
               <p className="panel-kicker">AUTHORITATIVE RULES</p>
               <p>

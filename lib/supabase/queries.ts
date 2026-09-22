@@ -61,6 +61,33 @@ export interface CreateGameSessionInput extends CreateGameInput {
   }[];
 }
 
+export interface HandActionHistoryItem {
+  readonly sequence: number;
+  readonly street: "preflop" | "flop" | "turn" | "river";
+  readonly action: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
+  readonly amount: number | null;
+  readonly player: string;
+  readonly controller: "human" | "typesafe_ai";
+}
+
+export interface CompletedAIDecisionInspection {
+  readonly actionSequence: number;
+  readonly state: unknown;
+  readonly legalActions: unknown;
+  readonly choice: string;
+  readonly probabilities: unknown;
+  readonly confidence: number;
+  readonly raiseSizeChoice: string | null;
+  readonly raiseSizeProbabilities: unknown;
+  readonly rawResponse: unknown;
+}
+
+export interface HandHistory {
+  readonly status: "playing" | "complete" | "error";
+  readonly actions: readonly HandActionHistoryItem[];
+  readonly aiDecisions: readonly CompletedAIDecisionInspection[];
+}
+
 interface DatabaseResult {
   readonly data: unknown;
   readonly error: { readonly message: string } | null;
@@ -87,6 +114,7 @@ export interface GameDatabaseClient {
       | "apply_human_action_if_version"
       | "apply_ai_action_if_version"
       | "create_game_session"
+      | "get_hand_history"
       | "start_next_hand_if_version"
       | "update_game_state_if_version",
     arguments_: Record<string, unknown>,
@@ -153,6 +181,89 @@ function toPersistedGame(value: unknown): PersistedGame {
   };
 }
 
+function requiredInteger(record: Record<string, unknown>, key: string): number {
+  const value = record[key];
+  if (typeof value !== "number" || !Number.isSafeInteger(value)) {
+    throw new Error(`Supabase returned an invalid hand history ${key}`);
+  }
+  return value;
+}
+
+function toHandHistory(value: unknown): HandHistory | null {
+  if (value === null) return null;
+  if (!isRecord(value))
+    throw new Error("Supabase returned an invalid hand history");
+  const status = requiredString(value, "status");
+  if (status !== "playing" && status !== "complete" && status !== "error") {
+    throw new Error("Supabase returned an invalid hand status");
+  }
+  if (!Array.isArray(value.actions)) {
+    throw new Error("Supabase returned invalid hand actions");
+  }
+  const actions = value.actions.map((item) => {
+    if (!isRecord(item))
+      throw new Error("Supabase returned an invalid hand action");
+    const street = requiredString(item, "street");
+    const action = requiredString(item, "action");
+    const controller = requiredString(item, "controller");
+    if (
+      !["preflop", "flop", "turn", "river"].includes(street) ||
+      !["fold", "check", "call", "bet", "raise", "all_in"].includes(action) ||
+      (controller !== "human" && controller !== "typesafe_ai")
+    ) {
+      throw new Error("Supabase returned an invalid hand action domain value");
+    }
+    const amount = item.amount;
+    if (
+      amount !== null &&
+      (typeof amount !== "number" ||
+        !Number.isSafeInteger(amount) ||
+        amount < 0)
+    ) {
+      throw new Error("Supabase returned an invalid hand action amount");
+    }
+    return {
+      sequence: requiredInteger(item, "sequence"),
+      street,
+      action,
+      amount,
+      player: requiredString(item, "player"),
+      controller,
+    } as HandActionHistoryItem;
+  });
+
+  if (status !== "complete") {
+    return { status, actions, aiDecisions: [] };
+  }
+  if (!Array.isArray(value.aiDecisions)) {
+    throw new Error("Supabase returned invalid AI decision history");
+  }
+  const aiDecisions = value.aiDecisions.map((item) => {
+    if (!isRecord(item))
+      throw new Error("Supabase returned an invalid AI decision");
+    const raiseSizeChoice = item.raiseSizeChoice;
+    if (raiseSizeChoice !== null && typeof raiseSizeChoice !== "string") {
+      throw new Error("Supabase returned an invalid AI sizing choice");
+    }
+    const confidence = item.confidence;
+    if (typeof confidence !== "number" || confidence < 0 || confidence > 1) {
+      throw new Error("Supabase returned an invalid AI confidence");
+    }
+    return {
+      actionSequence: requiredInteger(item, "actionSequence"),
+      state: item.state,
+      legalActions: item.legalActions,
+      choice: requiredString(item, "choice"),
+      probabilities: item.probabilities,
+      confidence,
+      raiseSizeChoice,
+      raiseSizeProbabilities: item.raiseSizeProbabilities,
+      rawResponse: item.rawResponse,
+    };
+  });
+  return { status, actions, aiDecisions };
+}
+
 export class SupabaseGameRepository {
   constructor(private readonly client: GameDatabaseClient) {}
 
@@ -215,6 +326,20 @@ export class SupabaseGameRepository {
     }
 
     return data === null ? null : toPersistedGame(data);
+  }
+
+  async getHandHistory(
+    gameId: string,
+    handNumber: number,
+  ): Promise<HandHistory | null> {
+    const { data, error } = await this.client.rpc("get_hand_history", {
+      p_game_id: gameId,
+      p_hand_number: handNumber,
+    });
+    if (error) {
+      throw new Error(`Unable to load hand history: ${error.message}`);
+    }
+    return toHandHistory(data);
   }
 
   async compareAndSwapGame(

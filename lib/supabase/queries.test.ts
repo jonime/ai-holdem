@@ -123,6 +123,45 @@ describe("SupabaseGameRepository", () => {
     });
   });
 
+  it("withholds AI inspection data for an active hand", async () => {
+    const activeHistory = {
+      status: "playing",
+      actions: [
+        {
+          sequence: 1,
+          street: "preflop",
+          action: "call",
+          amount: 50,
+          player: "You",
+          controller: "human",
+        },
+      ],
+      aiDecisions: [
+        {
+          actionSequence: 2,
+          state: { private: true },
+          legalActions: [],
+          choice: "check",
+          probabilities: {},
+          confidence: 1,
+          raiseSizeChoice: null,
+          raiseSizeProbabilities: null,
+          rawResponse: { private: true },
+        },
+      ],
+    };
+    const { client } = createClient({ updateResult: activeHistory });
+    const repository = new SupabaseGameRepository(client);
+
+    const history = await repository.getHandHistory("game-1", 1);
+
+    expect(history).toMatchObject({
+      status: "playing",
+      actions: [expect.objectContaining({ action: "call" })],
+    });
+    expect(history?.aiDecisions).toEqual([]);
+  });
+
   it("updates a game once through the version-checked RPC", async () => {
     const updatedGame = { ...persistedGame, version: 5 };
     const { client, rpc } = createClient({ updateResult: [updatedGame] });
