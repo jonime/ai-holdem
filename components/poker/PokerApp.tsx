@@ -266,6 +266,23 @@ export default function PokerApp() {
     }
   }
 
+  async function continueAiTurn() {
+    if (!game) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await advanceAiTurns(game);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to advance TypeSafe AI",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function submitAction(action: LegalAction) {
     if (!game) return;
     const selectedAmount =
@@ -321,6 +338,7 @@ export default function PokerApp() {
         },
       );
       setGame(body.game);
+      await advanceAiTurns(body.game);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -422,6 +440,11 @@ export default function PokerApp() {
                         : action.type[0].toUpperCase() + action.type.slice(1)}
                   </button>
                 ))}
+                {game.poker.currentActorId === "typesafe-ai" ? (
+                  <button disabled={loading} onClick={() => void continueAiTurn()}>
+                    {loading ? "TypeSafe is thinking" : "Continue AI"}
+                  </button>
+                ) : null}
                 {game.poker.street === "complete" ? (
                   <button
                     disabled={loading}
