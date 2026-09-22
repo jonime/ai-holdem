@@ -32,6 +32,17 @@ export interface PersistHumanActionInput extends CompareAndSwapGameInput {
   readonly handComplete: boolean;
 }
 
+export interface PersistAIActionInput extends PersistHumanActionInput {
+  readonly aiState: unknown;
+  readonly legalActions: unknown;
+  readonly choice: string;
+  readonly probabilities: Readonly<Record<string, number>>;
+  readonly confidence: number;
+  readonly raiseSizeChoice: string | null;
+  readonly raiseSizeProbabilities: Readonly<Record<string, number>> | null;
+  readonly rawResponse: unknown;
+}
+
 export interface CreateGameSessionInput extends CreateGameInput {
   readonly players: readonly {
     readonly enginePlayerId: string;
@@ -66,6 +77,7 @@ export interface GameDatabaseClient {
   rpc(
     functionName:
       | "apply_human_action_if_version"
+      | "apply_ai_action_if_version"
       | "create_game_session"
       | "update_game_state_if_version",
     arguments_: Record<string, unknown>,
@@ -246,6 +258,45 @@ export class SupabaseGameRepository {
 
     if (error) {
       throw new Error(`Unable to persist human action: ${error.message}`);
+    }
+
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new GameConflictError(input.gameId, input.expectedVersion);
+    }
+
+    return toPersistedGame(data[0]);
+  }
+
+  async persistAIAction(input: PersistAIActionInput): Promise<PersistedGame> {
+    const { data, error } = await this.client.rpc(
+      "apply_ai_action_if_version",
+      {
+        p_game_id: input.gameId,
+        p_expected_version: input.expectedVersion,
+        p_player_engine_id: input.playerEngineId,
+        p_current_state: input.currentState,
+        p_status: input.status,
+        p_hand_number: input.handNumber,
+        p_state_schema_version: input.stateSchemaVersion,
+        p_street: input.street,
+        p_action: input.action,
+        p_amount: input.amount,
+        p_state_before: input.stateBefore,
+        p_state_after: input.currentState,
+        p_hand_complete: input.handComplete,
+        p_ai_state: input.aiState,
+        p_legal_actions: input.legalActions,
+        p_choice: input.choice,
+        p_probabilities: input.probabilities,
+        p_confidence: input.confidence,
+        p_raise_size_choice: input.raiseSizeChoice,
+        p_raise_size_probabilities: input.raiseSizeProbabilities,
+        p_raw_response: input.rawResponse,
+      },
+    );
+
+    if (error) {
+      throw new Error(`Unable to persist AI action: ${error.message}`);
     }
 
     if (!Array.isArray(data) || data.length === 0) {

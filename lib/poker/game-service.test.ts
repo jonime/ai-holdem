@@ -4,6 +4,7 @@ import {
   createDemoGame,
   GameNotFoundError,
   getPublicGame,
+  stepTypesafeAction,
 } from "./game-service";
 import { createDeterministicDeck, pokerEngineAdapter } from "./adapter";
 
@@ -164,5 +165,130 @@ describe("submitHumanAction", () => {
         expectedVersion: 0,
       }),
     );
+  });
+});
+
+describe("stepTypesafeAction", () => {
+  it("applies and persists one validated AI action", async () => {
+    const started = pokerEngineAdapter.startHand(
+      pokerEngineAdapter.createGame({
+        smallBlind: 50,
+        bigBlind: 100,
+        players: [
+          {
+            id: "human",
+            name: "You",
+            controller: "human",
+            seat: 0,
+            stack: 10_000,
+          },
+          {
+            id: "typesafe-ai",
+            name: "TypeSafe AI",
+            controller: "typesafe_ai",
+            seat: 1,
+            stack: 10_000,
+          },
+        ],
+      }),
+      createDeterministicDeck(),
+    );
+    const aiTurn = pokerEngineAdapter.applyAction(started, "human", {
+      type: "call",
+      amount: 50,
+    });
+    const persistAIAction = vi.fn().mockResolvedValue({
+      id: "game-1",
+      status: "playing",
+      currentState: {},
+      stateSchemaVersion: 1,
+      handNumber: 1,
+      version: 2,
+    });
+
+    const game = await stepTypesafeAction(
+      {
+        getGame: vi.fn().mockResolvedValue({
+          id: "game-1",
+          status: "playing",
+          currentState: aiTurn,
+          stateSchemaVersion: 1,
+          handNumber: 1,
+          version: 1,
+        }),
+        persistAIAction,
+      },
+      {
+        evaluate: async () => ({
+          answers: {
+            action: {
+              type: "choice",
+              choice: "check",
+              probabilities: { fold: 0, check: 1, raise: 0 },
+              confidence: 1,
+            },
+            sizing: {
+              type: "choice",
+              choice: "small",
+              probabilities: { small: 1, medium: 0, large: 0, all_in: 0 },
+              confidence: 1,
+            },
+          },
+        }),
+      },
+      "game-1",
+    );
+
+    expect(game.game.version).toBe(2);
+    expect(game.game.poker.currentActorId).toBe("typesafe-ai");
+    expect(game.aiDecision.action).toBe("check");
+    expect(persistAIAction).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "check", choice: "check" }),
+    );
+  });
+
+  it("rejects attempts to step a human turn", async () => {
+    const humanTurn = pokerEngineAdapter.startHand(
+      pokerEngineAdapter.createGame({
+        smallBlind: 50,
+        bigBlind: 100,
+        players: [
+          {
+            id: "human",
+            name: "You",
+            controller: "human",
+            seat: 0,
+            stack: 10_000,
+          },
+          {
+            id: "typesafe-ai",
+            name: "TypeSafe AI",
+            controller: "typesafe_ai",
+            seat: 1,
+            stack: 10_000,
+          },
+        ],
+      }),
+      createDeterministicDeck(),
+    );
+    await expect(
+      stepTypesafeAction(
+        {
+          getGame: vi
+            .fn()
+            .mockResolvedValue({
+              id: "game-1",
+              status: "playing",
+              currentState: humanTurn,
+              stateSchemaVersion: 1,
+              handNumber: 1,
+              version: 0,
+            }),
+          persistAIAction: vi.fn(),
+        },
+        { evaluate: vi.fn() },
+        "game-1",
+      ),
+    ).rejects.toThrow("not a TypeSafe AI turn");
   });
 });

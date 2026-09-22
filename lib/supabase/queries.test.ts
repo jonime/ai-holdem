@@ -185,6 +185,46 @@ describe("SupabaseGameRepository", () => {
     });
   });
 
+  it("persists an AI action and auditable decision through one RPC", async () => {
+    const { client, rpc } = createClient({
+      updateResult: [{ ...persistedGame, version: 5 }],
+    });
+    const repository = new SupabaseGameRepository(client);
+
+    await repository.persistAIAction({
+      gameId: "game-1",
+      expectedVersion: 4,
+      playerEngineId: "typesafe-ai",
+      currentState: { after: true },
+      stateSchemaVersion: 1,
+      handNumber: 1,
+      status: "playing",
+      street: "preflop",
+      action: "check",
+      amount: null,
+      stateBefore: { before: true },
+      handComplete: false,
+      aiState: { hero: { holeCards: ["As", "Kd"] } },
+      legalActions: [{ type: "check" }],
+      choice: "check",
+      probabilities: { check: 1 },
+      confidence: 1,
+      raiseSizeChoice: null,
+      raiseSizeProbabilities: null,
+      rawResponse: { answers: {} },
+    });
+
+    expect(rpc).toHaveBeenCalledWith(
+      "apply_ai_action_if_version",
+      expect.objectContaining({
+        p_player_engine_id: "typesafe-ai",
+        p_choice: "check",
+        p_confidence: 1,
+        p_ai_state: { hero: { holeCards: ["As", "Kd"] } },
+      }),
+    );
+  });
+
   it("rejects a stale version when the RPC updates no row", async () => {
     const { client } = createClient({ updateResult: [] });
     const repository = new SupabaseGameRepository(client);

@@ -1,11 +1,17 @@
 import { pokerEngineAdapter } from "./adapter";
+import { createPokerAIState } from "./ai-state";
 import { applyHumanAction, type HumanActionSubmission } from "./human-actions";
 import type { GameConfig, PokerGameState, PublicPokerGame } from "./types";
 import type {
   CreateGameSessionInput,
+  PersistAIActionInput,
   PersistHumanActionInput,
   PersistedGame,
 } from "@/lib/supabase/queries";
+import {
+  decidePokerAction,
+  type TypesafeDecisionClient,
+} from "@/lib/typesafe/decision";
 
 export const demoGameConfig: GameConfig = {
   smallBlind: 50,
@@ -40,6 +46,10 @@ export interface HumanActionWriter {
   persistHumanAction(input: PersistHumanActionInput): Promise<PersistedGame>;
 }
 
+export interface AIActionWriter {
+  persistAIAction(input: PersistAIActionInput): Promise<PersistedGame>;
+}
+
 export interface CreatedGame {
   readonly gameId: string;
   readonly state: PokerGameState;
@@ -51,6 +61,23 @@ export interface PublicGame {
   readonly status: PersistedGame["status"];
   readonly version: number;
   readonly poker: PublicPokerGame;
+}
+
+export interface PublicAIDecision {
+  readonly action: "fold" | "check" | "call" | "bet" | "raise";
+  readonly amount: number | null;
+  readonly probabilities: Readonly<Record<string, number>>;
+  readonly confidence: number;
+  readonly sizing: {
+    readonly choice: "small" | "medium" | "large" | "all_in";
+    readonly probabilities: Readonly<Record<string, number>>;
+    readonly confidence: number;
+  } | null;
+}
+
+export interface TypesafeStepResult {
+  readonly game: PublicGame;
+  readonly aiDecision: PublicAIDecision;
 }
 
 export class GameNotFoundError extends Error {
@@ -150,5 +177,79 @@ export async function submitHumanAction(
     status: persistedGame.status,
     version: persistedGame.version,
     poker: pokerEngineAdapter.publicProjection(stateAfter, "human"),
+  };
+}
+
+export async function stepTypesafeAction(
+  repository: GameReader & AIActionWriter,
+  client: TypesafeDecisionClient,
+  gameId: string,
+): Promise<TypesafeStepResult> {
+  const game = await repository.getGame(gameId);
+  if (!game) {
+    throw new GameNotFoundError(gameId);
+  }
+
+  const stateBefore = pokerEngineAdapter.restore(
+    game.currentState as PokerGameState,
+  );
+  const snapshotBefore = pokerEngineAdapter.snapshot(stateBefore);
+  const aiPlayer = stateBefore.config.players.find(
+    (player) => player.id === snapshotBefore.currentActorId,
+  );
+  if (!aiPlayer || aiPlayer.controller !== "typesafe_ai") {
+    throw new Error("It is not a TypeSafe AI turn");
+  }
+  if (!snapshotBefore.street || snapshotBefore.street === "complete") {
+    throw new Error("The current hand is not accepting actions");
+  }
+
+  const aiState = createPokerAIState(stateBefore, aiPlayer.id);
+  const decision = await decidePokerAction(client, aiState);
+  const stateAfter = pokerEngineAdapter.applyAction(
+    stateBefore,
+    aiPlayer.id,
+    decision.action,
+  );
+  const snapshotAfter = pokerEngineAdapter.snapshot(stateAfter);
+  const persistedGame = await repository.persistAIAction({
+    gameId,
+    expectedVersion: game.version,
+    playerEngineId: aiPlayer.id,
+    currentState: stateAfter,
+    stateSchemaVersion: stateAfter.stateSchemaVersion,
+    handNumber: snapshotAfter.handNumber,
+    status: snapshotAfter.street === "complete" ? "complete" : "playing",
+    street: snapshotBefore.street,
+    action: decision.action.type,
+    amount:
+      "amount" in decision.action ? (decision.action.amount ?? null) : null,
+    stateBefore,
+    handComplete: snapshotAfter.street === "complete",
+    aiState,
+    legalActions: aiState.legalActions,
+    choice: decision.action.type,
+    probabilities: decision.probabilities,
+    confidence: decision.confidence,
+    raiseSizeChoice: decision.sizing?.choice ?? null,
+    raiseSizeProbabilities: decision.sizing?.probabilities ?? null,
+    rawResponse: decision.rawResponse,
+  });
+
+  return {
+    game: {
+      id: persistedGame.id,
+      status: persistedGame.status,
+      version: persistedGame.version,
+      poker: pokerEngineAdapter.publicProjection(stateAfter, "human"),
+    },
+    aiDecision: {
+      action: decision.action.type,
+      amount:
+        "amount" in decision.action ? (decision.action.amount ?? null) : null,
+      probabilities: decision.probabilities,
+      confidence: decision.confidence,
+      sizing: decision.sizing ?? null,
+    },
   };
 }
