@@ -137,6 +137,27 @@ function PlayingCard({
   );
 }
 
+function arrangeSeats(
+  players: readonly Player[],
+  anchorId: string | null,
+): { readonly top: readonly Player[]; readonly bottom: readonly Player[] } {
+  const ordered = [...players].sort((a, b) => a.seat - b.seat);
+  const anchorIndex = ordered.findIndex((player) => player.id === anchorId);
+  const rotated =
+    anchorIndex > 0
+      ? [...ordered.slice(anchorIndex), ...ordered.slice(0, anchorIndex)]
+      : ordered;
+
+  if (rotated.length >= 5) {
+    return {
+      bottom: [rotated[rotated.length - 1], rotated[0], rotated[1]],
+      top: rotated.slice(2, rotated.length - 1).reverse(),
+    };
+  }
+
+  return { bottom: rotated.slice(0, 1), top: rotated.slice(1).reverse() };
+}
+
 function Seat({
   player,
   active,
@@ -185,14 +206,7 @@ function Seat({
   );
 }
 
-function DecisionPanel({ decision }: { readonly decision: AIDecision | null }) {
-  if (!decision) {
-    return (
-      <section className="decision-panel muted-panel">
-        <p>TypeSafe decision data appears after the AI acts.</p>
-      </section>
-    );
-  }
+function DecisionPanel({ decision }: { readonly decision: AIDecision }) {
   return (
     <section className="decision-panel">
       <div className="panel-kicker">TYPE SAFE SYSTEM ONE</div>
@@ -344,6 +358,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const [selectedHistoryHand, setSelectedHistoryHand] = useState<number | null>(
     null,
   );
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
@@ -630,6 +645,10 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     viewerPlayer.controller === "human" &&
     game?.poker.currentActorId === viewerPlayer.id;
   const isSpectator = viewerPlayer === null && Boolean(game);
+  const seatRows = arrangeSeats(
+    game?.poker.players ?? [],
+    (viewerPlayer ?? human)?.id ?? null,
+  );
   const displayedHistoryHand = selectedHistoryHand ?? game?.poker.handNumber;
   const currentHistory =
     history && history.handNumber === displayedHistoryHand
@@ -802,17 +821,24 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             <div className="table-meta">
               <span>HAND {game.poker.handNumber}</span>
               <span>{game.poker.street?.toUpperCase() ?? "WAITING"}</span>
+              <button
+                type="button"
+                className="history-toggle"
+                onClick={() => setHistoryOpen(true)}
+              >
+                History
+              </button>
             </div>
             <div className="felt">
-              {game.poker.players
-                .filter((player) => player.id !== human.id)
-                .map((player) => (
+              <div className="seat-row top-row">
+                {seatRows.top.map((player) => (
                   <Seat
                     key={player.id}
                     player={player}
                     active={game.poker.currentActorId === player.id}
                   />
                 ))}
+              </div>
               <div className="center-table">
                 <div className="pot">
                   POT <strong>{formatChips(game.poker.pot)}</strong>
@@ -834,7 +860,15 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                   <p className="hand-result">{handResult}</p>
                 ) : null}
               </div>
-              <Seat player={human} active={isHumanTurn} />
+              <div className="seat-row bottom-row">
+                {seatRows.bottom.map((player) => (
+                  <Seat
+                    key={player.id}
+                    player={player}
+                    active={game.poker.currentActorId === player.id}
+                  />
+                ))}
+              </div>
             </div>
             <section className="action-tray">
               <div className="action-caption">
@@ -938,17 +972,40 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               )}
             </section>
           </section>
-          <aside>
-            <DecisionPanel decision={decision} />
-            {displayedHistoryHand ? (
-              <ActionHistory
-                availableHands={availableHistoryHands}
-                handNumber={displayedHistoryHand}
-                history={currentHistory}
-                onSelectHand={setSelectedHistoryHand}
+          {decision ? (
+            <aside>
+              <DecisionPanel decision={decision} />
+            </aside>
+          ) : null}
+          {historyOpen && displayedHistoryHand ? (
+            <div
+              className="history-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Action history"
+            >
+              <div
+                className="history-backdrop"
+                onClick={() => setHistoryOpen(false)}
               />
-            ) : null}
-          </aside>
+              <div className="history-dialog">
+                <button
+                  type="button"
+                  className="history-close"
+                  onClick={() => setHistoryOpen(false)}
+                  aria-label="Close action history"
+                >
+                  ×
+                </button>
+                <ActionHistory
+                  availableHands={availableHistoryHands}
+                  handNumber={displayedHistoryHand}
+                  history={currentHistory}
+                  onSelectHand={setSelectedHistoryHand}
+                />
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
     </main>
