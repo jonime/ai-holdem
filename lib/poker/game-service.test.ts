@@ -357,6 +357,7 @@ describe("updateSeatCount", () => {
         getGame,
         getSeatAssignments,
         updateSeatCount: updateSeatCountWriter,
+        updateSeatAssignment: vi.fn(),
       },
       "game-1",
       0,
@@ -390,7 +391,12 @@ describe("updateSeatCount", () => {
 
     await expect(
       updateSeatCount(
-        { getGame, getSeatAssignments, updateSeatCount: vi.fn() },
+        {
+          getGame,
+          getSeatAssignments,
+          updateSeatCount: vi.fn(),
+          updateSeatAssignment: vi.fn(),
+        },
         "game-1",
         0,
         6,
@@ -408,7 +414,12 @@ describe("updateSeatCount", () => {
 
     await expect(
       updateSeatCount(
-        { getGame, getSeatAssignments, updateSeatCount: vi.fn() },
+        {
+          getGame,
+          getSeatAssignments,
+          updateSeatCount: vi.fn(),
+          updateSeatAssignment: vi.fn(),
+        },
         "game-1",
         0,
         2,
@@ -429,6 +440,7 @@ describe("updateSeatCount", () => {
           getGame,
           getSeatAssignments: vi.fn(),
           updateSeatCount: vi.fn(),
+          updateSeatAssignment: vi.fn(),
         },
         "game-1",
         0,
