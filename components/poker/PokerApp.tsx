@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 
 import { AppHeader } from "@/components/poker/AppHeader";
 import { useGameChannel } from "@/lib/realtime/useGameChannel";
@@ -405,6 +405,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
+  const automaticallyAdvancedVersions = useRef(new Set<number>());
   const [playerName, setPlayerName] = useState(() =>
     typeof window === "undefined"
       ? ""
@@ -629,12 +630,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     }
   }
 
-  async function continueAiTurn() {
-    if (!game) return;
+  const automaticallyAdvanceAiTurn = useEffectEvent(async (nextGame: Game) => {
     setLoading(true);
     setError(null);
     try {
-      await advanceAiTurns(game);
+      await advanceAiTurns(nextGame);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -644,7 +644,26 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     } finally {
       setLoading(false);
     }
-  }
+  });
+
+  useEffect(() => {
+    if (
+      !game ||
+      loading ||
+      game.status !== "playing" ||
+      automaticallyAdvancedVersions.current.has(game.version) ||
+      !game.poker.players.some(
+        (player) =>
+          player.id === game.poker.currentActorId &&
+          player.controller === "typesafe_ai",
+      )
+    ) {
+      return;
+    }
+
+    automaticallyAdvancedVersions.current.add(game.version);
+    void automaticallyAdvanceAiTurn(game);
+  }, [game, loading]);
 
   async function submitAction(action: LegalAction) {
     if (!game) return;
@@ -772,12 +791,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
         </p>
       ) : null}
       {!game ? (
-        <section className="empty-state">
-          <p>Start a heads-up hand against TypeSafe AI.</p>
-          <button onClick={() => void createGame()} disabled={loading}>
-            {loading ? "Preparing table" : "Deal a hand"}
-          </button>
-        </section>
+        <div className="route-loading" aria-label="Loading table" />
       ) : game.status === "waiting" ? (
         <section className="lobby-panel">
           <div className="panel-kicker">WAITING ROOM</div>
@@ -955,9 +969,9 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                     />
                   ))}
                 </div>
-                {game.poker.street === "complete" ? (
-                  <p className="hand-result">{handResult}</p>
-                ) : null}
+                <p className="hand-result" aria-live="polite">
+                  {handResult ?? "\u00a0"}
+                </p>
               </div>
               <div className="seat-row bottom-row">
                 {seatRows.bottom.map((player) => (
@@ -1032,14 +1046,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                               action.type.slice(1)}
                       </button>
                     ))}
-                    {currentActor?.controller === "typesafe_ai" ? (
-                      <button
-                        disabled={loading}
-                        onClick={() => void continueAiTurn()}
-                      >
-                        {loading ? "TypeSafe is thinking" : "Continue AI"}
-                      </button>
-                    ) : null}
                     {game.poker.street === "complete" ? (
                       <button
                         disabled={loading}

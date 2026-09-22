@@ -13,13 +13,15 @@ test("runs a two-player hand in a six-seat lobby", async ({
 }) => {
   test.setTimeout(60_000);
   await page.goto("/");
-  await page.getByLabel("Seats").selectOption("6");
   const createResponsePromise = page.waitForResponse(
     (response) =>
       response.url().endsWith("/api/games") &&
       response.request().method() === "POST",
   );
-  await page.getByRole("button", { name: "New Game" }).click();
+  await page
+    .getByRole("region", { name: "Start a new game" })
+    .getByRole("button", { name: "New Game" })
+    .click();
   const createResponse = await createResponsePromise;
   const createBody = await createResponse.text();
   expect(createResponse.ok(), createBody).toBe(true);
@@ -27,7 +29,11 @@ test("runs a two-player hand in a six-seat lobby", async ({
   const gameUrl = page.url();
 
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
-  await expect(page.getByText("SEAT 6")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Deal a hand" })).toHaveCount(
+    0,
+  );
+  await page.getByLabel("Seats").selectOption("6");
+  await expect(page.getByText("SEAT 6", { exact: true })).toBeVisible();
   await expect(page.getByText("Available").first()).toBeVisible();
 
   const secondBrowser = await browser.newContext();
@@ -43,8 +49,8 @@ test("runs a two-player hand in a six-seat lobby", async ({
   await page.getByRole("button", { name: "Start hand" }).click();
 
   await expect(page.getByText("PREFLOP")).toBeVisible();
-  await expect(page.getByText("PLAYER 6")).toHaveCount(1);
-  await expect(page.getByText("Waiting for next hand")).toHaveCount(4);
+  await expect(page.getByText("PLAYER 2")).toHaveCount(1);
+  await expect(page.getByText("Open seat")).toHaveCount(4);
 
   const callButton = await Promise.race([
     waitForPlayableHuman(page),
