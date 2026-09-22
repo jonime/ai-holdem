@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 
+import { AppHeader } from "@/components/poker/AppHeader";
+
 const gameStorageKey = "ai-holdem-game-id";
 
 export default function Home() {
@@ -25,21 +27,23 @@ export default function Home() {
 
   return (
     <main className="poker-app">
-      <header className="app-header">
-        <div>
-          <h1>AI Hold&apos;em</h1>
-        </div>
-        <div className="header-actions">
-          <button type="button" onClick={() => void createGame()}>
-            New Game
-          </button>
-        </div>
-      </header>
-      <section className="empty-state">
-        <p>
-          Start a table and share the URL. Empty seats stay available for
-          others.
-        </p>
+      <AppHeader onNewGame={() => void createGame()} />
+      <section
+        className="empty-state home-empty-state"
+        aria-label="Start a new game"
+      >
+        <span className="empty-state-mark" aria-hidden="true">
+          ♠
+        </span>
+        <h2>Deal yourself in</h2>
+        <p>Create a table, then invite someone to take an open seat.</p>
+        <button
+          className="new-game new-game-hero"
+          type="button"
+          onClick={() => void createGame()}
+        >
+          New Game
+        </button>
       </section>
     </main>
   );

@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FaGithub } from "react-icons/fa";
 
+import { AppHeader } from "@/components/poker/AppHeader";
 import { useGameChannel } from "@/lib/realtime/useGameChannel";
 
 type LegalAction =
@@ -715,30 +715,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
 
   return (
     <main className="poker-app">
-      <header className="app-header">
-        <div>
-          <h1>AI Hold&apos;em</h1>
-        </div>
-        <div className="header-actions">
-          <a
-            className="github-link"
-            href="https://github.com/jonime/ai-holdem"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Open the GitHub repository"
-            title="Open the GitHub repository"
-          >
-            <FaGithub aria-hidden="true" size={20} />
-          </a>
-          <button
-            className="new-game"
-            onClick={() => void createGame()}
-            disabled={loading}
-          >
-            {loading ? "Working" : "New Game"}
-          </button>
-        </div>
-      </header>
+      <AppHeader loading={loading} onNewGame={() => void createGame()} />
       {error ? (
         <p className="error-banner" role="alert">
           {error}

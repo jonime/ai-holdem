@@ -103,6 +103,50 @@ h2 {
   font-weight: 700;
   box-shadow: 3px 3px 0 #9b3e2a;
 }
+.new-game:hover,
+.new-game:focus-visible {
+  background: #e27b55;
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 #9b3e2a;
+}
+.new-game-hero {
+  padding: 15px 24px;
+  font-size: 18px;
+}
+.home-empty-state {
+  max-width: 1220px;
+  min-height: 430px;
+  margin: 0 auto;
+  padding: 58px 24px;
+  border: 1px solid #9db5aa;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.72),
+      rgba(240, 183, 77, 0.18)
+    ),
+    #f6f5ee;
+  box-shadow: 6px 7px 0 rgba(16, 59, 51, 0.18);
+  text-align: center;
+}
+.empty-state-mark {
+  display: block;
+  margin-bottom: 12px;
+  color: var(--coral);
+  font-size: 72px;
+  line-height: 0.8;
+  text-shadow: 4px 4px 0 rgba(240, 183, 77, 0.65);
+}
+.home-empty-state h2 {
+  margin-bottom: 10px;
+  font-size: clamp(28px, 5vw, 46px);
+}
+.home-empty-state p {
+  max-width: 360px;
+  margin: 0 auto 24px;
+  color: #56716b;
+  font-size: 17px;
+}
 .error-banner {
   max-width: 1220px;
   margin: 0 auto 18px;
