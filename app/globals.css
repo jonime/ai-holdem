@@ -399,7 +399,9 @@ aside {
   padding: 5px 7px;
   background: transparent;
   color: #47645d;
-  font: 700 10px/1 ui-monospace, monospace;
+  font:
+    700 10px/1 ui-monospace,
+    monospace;
   text-transform: uppercase;
 }
 .hand-selector button:hover,
