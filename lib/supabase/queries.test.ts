@@ -1,0 +1,203 @@
+import { describe, expect, it, vi } from "vitest";
+
+import {
+  GameConflictError,
+  type GameDatabaseClient,
+  SupabaseGameRepository,
+} from "./queries";
+
+const persistedGame = {
+  id: "game-1",
+  status: "playing",
+  current_state: { stateSchemaVersion: 1 },
+  state_schema_version: 1,
+  hand_number: 1,
+  version: 4,
+};
+
+function createClient(options: {
+  readonly createResult?: unknown;
+  readonly loadResult?: unknown;
+  readonly updateResult?: unknown;
+}): {
+  readonly client: GameDatabaseClient;
+  readonly rpc: ReturnType<typeof vi.fn>;
+} {
+  const rpc = vi.fn().mockResolvedValue({
+    data: options.updateResult ?? [persistedGame],
+    error: null,
+  });
+
+  return {
+    client: {
+      from: () => ({
+        insert: () => ({
+          select: () => ({
+            single: async () => ({
+              data: options.createResult ?? persistedGame,
+              error: null,
+            }),
+          }),
+        }),
+        select: () => ({
+          eq: () => ({
+            maybeSingle: async () => ({
+              data: options.loadResult ?? persistedGame,
+              error: null,
+            }),
+          }),
+        }),
+      }),
+      rpc,
+    },
+    rpc,
+  };
+}
+
+describe("SupabaseGameRepository", () => {
+  it("creates and reloads a game", async () => {
+    const { client } = createClient({});
+    const repository = new SupabaseGameRepository(client);
+
+    const created = await repository.createGame({
+      currentState: { stateSchemaVersion: 1 },
+      stateSchemaVersion: 1,
+      handNumber: 1,
+      status: "playing",
+    });
+    const loaded = await repository.getGame("game-1");
+
+    expect(created).toMatchObject({ id: "game-1", version: 4 });
+    expect(loaded).toEqual(created);
+  });
+
+  it("creates a game session with its player seats", async () => {
+    const { client, rpc } = createClient({ updateResult: [persistedGame] });
+    const repository = new SupabaseGameRepository(client);
+
+    const created = await repository.createGameSession({
+      currentState: { stateSchemaVersion: 1 },
+      stateSchemaVersion: 1,
+      handNumber: 1,
+      status: "playing",
+      players: [
+        {
+          enginePlayerId: "human",
+          seat: 0,
+          name: "You",
+          controller: "human",
+          stack: 10_000,
+        },
+        {
+          enginePlayerId: "ai",
+          seat: 1,
+          name: "TypeSafe AI",
+          controller: "typesafe_ai",
+          stack: 10_000,
+        },
+      ],
+    });
+
+    expect(created.id).toBe("game-1");
+    expect(rpc).toHaveBeenCalledWith("create_game_session", {
+      p_current_state: { stateSchemaVersion: 1 },
+      p_state_schema_version: 1,
+      p_hand_number: 1,
+      p_status: "playing",
+      p_players: [
+        {
+          engine_player_id: "human",
+          seat: 0,
+          name: "You",
+          controller: "human",
+          stack: 10_000,
+        },
+        {
+          engine_player_id: "ai",
+          seat: 1,
+          name: "TypeSafe AI",
+          controller: "typesafe_ai",
+          stack: 10_000,
+        },
+      ],
+    });
+  });
+
+  it("updates a game once through the version-checked RPC", async () => {
+    const updatedGame = { ...persistedGame, version: 5 };
+    const { client, rpc } = createClient({ updateResult: [updatedGame] });
+    const repository = new SupabaseGameRepository(client);
+
+    const updated = await repository.compareAndSwapGame({
+      gameId: "game-1",
+      expectedVersion: 4,
+      currentState: { stateSchemaVersion: 1, changed: true },
+      stateSchemaVersion: 1,
+      handNumber: 1,
+      status: "playing",
+    });
+
+    expect(updated.version).toBe(5);
+    expect(rpc).toHaveBeenCalledWith("update_game_state_if_version", {
+      p_game_id: "game-1",
+      p_expected_version: 4,
+      p_current_state: { stateSchemaVersion: 1, changed: true },
+      p_status: "playing",
+      p_hand_number: 1,
+      p_state_schema_version: 1,
+    });
+  });
+
+  it("persists a human action and state transition through one RPC", async () => {
+    const updatedGame = { ...persistedGame, version: 5 };
+    const { client, rpc } = createClient({ updateResult: [updatedGame] });
+    const repository = new SupabaseGameRepository(client);
+
+    await repository.persistHumanAction({
+      gameId: "game-1",
+      expectedVersion: 4,
+      playerEngineId: "human",
+      currentState: { after: true },
+      stateSchemaVersion: 1,
+      handNumber: 1,
+      status: "playing",
+      street: "preflop",
+      action: "call",
+      amount: 50,
+      stateBefore: { before: true },
+      handComplete: false,
+    });
+
+    expect(rpc).toHaveBeenCalledWith("apply_human_action_if_version", {
+      p_game_id: "game-1",
+      p_expected_version: 4,
+      p_player_engine_id: "human",
+      p_current_state: { after: true },
+      p_status: "playing",
+      p_hand_number: 1,
+      p_state_schema_version: 1,
+      p_street: "preflop",
+      p_action: "call",
+      p_amount: 50,
+      p_state_before: { before: true },
+      p_state_after: { after: true },
+      p_hand_complete: false,
+    });
+  });
+
+  it("rejects a stale version when the RPC updates no row", async () => {
+    const { client } = createClient({ updateResult: [] });
+    const repository = new SupabaseGameRepository(client);
+
+    await expect(
+      repository.compareAndSwapGame({
+        gameId: "game-1",
+        expectedVersion: 3,
+        currentState: {},
+        stateSchemaVersion: 1,
+        handNumber: 1,
+        status: "playing",
+      }),
+    ).rejects.toBeInstanceOf(GameConflictError);
+  });
+});
