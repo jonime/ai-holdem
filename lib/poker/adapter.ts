@@ -152,10 +152,14 @@ export const pokerEngineAdapter = {
       );
     }
 
+    const configuredSeatCount =
+      config.seatCount ??
+      Math.max(0, ...config.players.map((player) => player.seat + 1));
+
     let table = createTable({
       smallBlind: config.smallBlind,
       bigBlind: config.bigBlind,
-      maxSeats: Math.max(...config.players.map((player) => player.seat + 1)),
+      maxSeats: configuredSeatCount,
       minBuyIn: 1,
     });
 
@@ -253,8 +257,13 @@ export const pokerEngineAdapter = {
     });
     const snapshot = this.snapshot(state);
 
+    const seatCount =
+      state.config.seatCount ??
+      Math.max(0, ...state.config.players.map((player) => player.seat + 1));
+
     return {
       ...snapshot,
+      seatCount,
       legalActions:
         snapshot.currentActorId === viewerPlayerId
           ? this.getLegalActions(state)
@@ -277,6 +286,11 @@ export const pokerEngineAdapter = {
             name: config.name,
             controller: config.controller,
             seat: player.seat,
+            status:
+              config.status ??
+              (config.controller === "typesafe_ai" ? "bot" : "claimed"),
+            playerToken: config.playerToken ?? null,
+            isHost: config.isHost ?? false,
             stack: seat.stack,
             folded: player.folded,
             allIn: player.allIn,

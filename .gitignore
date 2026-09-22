@@ -1,5 +1,8 @@
-.env
+.env*
+!.env.example
 node_modules
 .next
 *.tsbuildinfo
 next-env.d.ts
+supabase/.branches/
+supabase/.temp

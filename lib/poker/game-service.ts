@@ -15,26 +15,46 @@ import {
   type TypesafeDecisionClient,
 } from "@/lib/typesafe/decision";
 
-export const demoGameConfig: GameConfig = {
-  smallBlind: 50,
-  bigBlind: 100,
-  players: [
-    {
-      id: "human",
-      seat: 0,
-      name: "You",
-      controller: "human",
-      stack: 10_000,
-    },
-    {
-      id: "typesafe-ai",
-      seat: 1,
-      name: "TypeSafe AI",
-      controller: "typesafe_ai",
-      stack: 10_000,
-    },
-  ],
-};
+export interface CreateDemoGameOptions {
+  readonly seatCount?: number;
+  readonly hostToken?: string;
+}
+
+export function createDemoGameConfig(
+  options: CreateDemoGameOptions = {},
+): GameConfig {
+  const seatCount = Math.max(2, options.seatCount ?? 2);
+
+  return {
+    smallBlind: 50,
+    bigBlind: 100,
+    seatCount,
+    players: [
+      {
+        id: "human",
+        seat: 0,
+        name: "You",
+        controller: "human",
+        stack: 10_000,
+        status: "claimed",
+        playerToken: options.hostToken ?? null,
+        isHost: true,
+      },
+      {
+        id: "typesafe-ai",
+        seat: 1,
+        name: "TypeSafe AI",
+        controller: "typesafe_ai",
+        stack: 10_000,
+        status: "bot",
+        playerToken: null,
+        isHost: false,
+      },
+    ],
+  };
+}
+
+export const demoGameConfig: GameConfig = createDemoGameConfig();
 
 export interface GameSessionWriter {
   createGameSession(input: CreateGameSessionInput): Promise<PersistedGame>;
@@ -95,9 +115,11 @@ export class GameNotFoundError extends Error {
 
 export async function createDemoGame(
   repository: GameSessionWriter,
+  options: CreateDemoGameOptions = {},
 ): Promise<CreatedGame> {
+  const config = createDemoGameConfig(options);
   const initialState = pokerEngineAdapter.startHand(
-    pokerEngineAdapter.createGame(demoGameConfig),
+    pokerEngineAdapter.createGame(config),
   );
   const persistedGame = await repository.createGameSession({
     currentState: initialState,
@@ -110,6 +132,9 @@ export async function createDemoGame(
       name: player.name,
       controller: player.controller,
       stack: player.stack,
+      status: player.status,
+      playerToken: player.playerToken ?? null,
+      isHost: player.isHost,
     })),
   });
 
@@ -279,6 +304,22 @@ export async function startNextHand(
   const completedSnapshot = pokerEngineAdapter.snapshot(completedState);
   if (completedSnapshot.street !== "complete") {
     throw new Error("The current hand has not completed");
+  }
+
+  const occupiedSeats = new Set(
+    completedState.config.players.map((player) => player.seat),
+  );
+  const seatCount =
+    completedState.config.seatCount ??
+    Math.max(
+      0,
+      ...completedState.config.players.map((player) => player.seat + 1),
+    );
+  const hasOpenSeat = Array.from({ length: seatCount }, (_, seat) => seat).some(
+    (seat) => !occupiedSeats.has(seat),
+  );
+  if (hasOpenSeat) {
+    throw new Error("Waiting for players");
   }
 
   const nextState = pokerEngineAdapter.startHand(completedState);

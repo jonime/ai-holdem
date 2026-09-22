@@ -51,6 +51,8 @@ export interface PersistAIActionInput extends PersistHumanActionInput {
   readonly rawResponse: unknown;
 }
 
+export type SeatStatus = "open" | "claimed" | "bot";
+
 export interface CreateGameSessionInput extends CreateGameInput {
   readonly players: readonly {
     readonly enginePlayerId: string;
@@ -58,6 +60,9 @@ export interface CreateGameSessionInput extends CreateGameInput {
     readonly name: string;
     readonly controller: "human" | "typesafe_ai";
     readonly stack: number;
+    readonly status?: SeatStatus;
+    readonly playerToken?: string | null;
+    readonly isHost?: boolean;
   }[];
 }
 
@@ -294,13 +299,27 @@ export class SupabaseGameRepository {
       p_state_schema_version: input.stateSchemaVersion,
       p_hand_number: input.handNumber,
       p_status: input.status,
-      p_players: input.players.map((player) => ({
-        engine_player_id: player.enginePlayerId,
-        seat: player.seat,
-        name: player.name,
-        controller: player.controller,
-        stack: player.stack,
-      })),
+      p_players: input.players.map((player) => {
+        const row: Record<string, unknown> = {
+          engine_player_id: player.enginePlayerId,
+          seat: player.seat,
+          name: player.name,
+          controller: player.controller,
+          stack: player.stack,
+        };
+
+        if (player.status !== undefined) {
+          row.status = player.status;
+        }
+        if (player.playerToken !== undefined) {
+          row.player_token = player.playerToken;
+        }
+        if (player.isHost !== undefined) {
+          row.is_host = player.isHost;
+        }
+
+        return row;
+      }),
     });
 
     if (error) {

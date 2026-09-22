@@ -52,6 +52,44 @@ describe("createDemoGame", () => {
       }),
     );
   });
+
+  it("supports custom seat counts while preserving the default host and bot setup", async () => {
+    const createGameSession = vi.fn().mockResolvedValue({
+      id: "game-1",
+      status: "playing",
+      currentState: {},
+      stateSchemaVersion: 1,
+      handNumber: 1,
+      version: 0,
+    });
+
+    await createDemoGame(
+      { createGameSession },
+      { seatCount: 3, hostToken: "host-token" },
+    );
+
+    expect(createGameSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        players: expect.arrayContaining([
+          expect.objectContaining({
+            enginePlayerId: "human",
+            seat: 0,
+            status: "claimed",
+            playerToken: "host-token",
+            isHost: true,
+          }),
+          expect.objectContaining({
+            enginePlayerId: "typesafe-ai",
+            seat: 1,
+            status: "bot",
+          }),
+        ]),
+      }),
+    );
+    expect(
+      createGameSession.mock.calls[0][0].currentState.config.seatCount,
+    ).toBe(3);
+  });
 });
 
 describe("getPublicGame", () => {
@@ -106,6 +144,57 @@ describe("getPublicGame", () => {
     await expect(
       getPublicGame({ getGame: vi.fn().mockResolvedValue(null) }, "missing"),
     ).rejects.toBeInstanceOf(GameNotFoundError);
+  });
+});
+
+describe("startNextHand", () => {
+  it("rejects starting a next hand when an open seat remains unfilled", async () => {
+    const completedState = pokerEngineAdapter.applyAction(
+      pokerEngineAdapter.startHand(
+        pokerEngineAdapter.createGame({
+          smallBlind: 50,
+          bigBlind: 100,
+          seatCount: 3,
+          players: [
+            {
+              id: "human",
+              name: "You",
+              controller: "human",
+              seat: 0,
+              stack: 10_000,
+            },
+            {
+              id: "typesafe-ai",
+              name: "TypeSafe AI",
+              controller: "typesafe_ai",
+              seat: 1,
+              stack: 10_000,
+            },
+          ],
+        }),
+        createDeterministicDeck(),
+      ),
+      "human",
+      { type: "fold" },
+    );
+
+    await expect(
+      startNextHand(
+        {
+          getGame: vi.fn().mockResolvedValue({
+            id: "game-1",
+            status: "complete",
+            currentState: completedState,
+            stateSchemaVersion: 1,
+            handNumber: 1,
+            version: 1,
+          }),
+          startNextHand: vi.fn(),
+        },
+        "game-1",
+        1,
+      ),
+    ).rejects.toThrow("Waiting for players");
   });
 });
 

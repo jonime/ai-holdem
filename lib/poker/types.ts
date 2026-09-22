@@ -1,4 +1,5 @@
 export type PlayerController = "human" | "typesafe_ai";
+export type SeatStatus = "open" | "claimed" | "bot";
 
 export interface PokerPlayerConfig {
   readonly id: string;
@@ -6,11 +7,15 @@ export interface PokerPlayerConfig {
   readonly name: string;
   readonly controller: PlayerController;
   readonly stack: number;
+  readonly status?: SeatStatus;
+  readonly playerToken?: string | null;
+  readonly isHost?: boolean;
 }
 
 export interface GameConfig {
   readonly smallBlind: number;
   readonly bigBlind: number;
+  readonly seatCount?: number;
   readonly players: readonly PokerPlayerConfig[];
 }
 
@@ -59,6 +64,9 @@ export interface PublicPokerPlayer {
   readonly name: string;
   readonly controller: PlayerController;
   readonly seat: number;
+  readonly status: SeatStatus;
+  readonly playerToken: string | null;
+  readonly isHost: boolean;
   readonly stack: number;
   readonly folded: boolean;
   readonly allIn: boolean;
@@ -67,6 +75,7 @@ export interface PublicPokerPlayer {
 
 export interface PublicPokerGame {
   readonly handNumber: number;
+  readonly seatCount: number;
   readonly street: PokerStreet | null;
   readonly currentActorId: string | null;
   readonly communityCards: readonly string[];

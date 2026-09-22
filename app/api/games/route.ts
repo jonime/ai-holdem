@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
+import {
+  getOrCreatePlayerToken,
+  setPlayerTokenCookie,
+} from "@/lib/identity/player-token";
 import { createDemoGame } from "@/lib/poker/game-service";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
@@ -8,12 +11,26 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   try {
-    const game = await createDemoGame(createSupabaseGameRepository());
+    const body: unknown = await request.json().catch(() => null);
+    const requestBody =
+      body && typeof body === "object" ? (body as Record<string, unknown>) : {};
+    const seatCount =
+      typeof requestBody.seatCount === "number" &&
+      Number.isInteger(requestBody.seatCount) &&
+      requestBody.seatCount >= 2
+        ? requestBody.seatCount
+        : undefined;
+    const hostToken = getOrCreatePlayerToken(request);
+
+    const game = await createDemoGame(createSupabaseGameRepository(), {
+      seatCount,
+      hostToken,
+    });
     const response = NextResponse.json(
       { gameId: game.gameId },
       { status: 201 },
     );
-    getOrCreatePlayerToken(request, response);
+    setPlayerTokenCookie(response, hostToken);
     response.cookies.set("last-visited-game-id", game.gameId, {
       path: "/",
       sameSite: "lax",
