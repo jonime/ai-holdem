@@ -387,6 +387,27 @@ aside {
   margin: 13px 0 0;
   color: #667b75;
 }
+.hand-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 4px;
+}
+.hand-selector button {
+  border: 1px solid #9cb9ad;
+  border-radius: 3px;
+  padding: 5px 7px;
+  background: transparent;
+  color: #47645d;
+  font: 700 10px/1 ui-monospace, monospace;
+  text-transform: uppercase;
+}
+.hand-selector button:hover,
+.hand-selector .selected-hand {
+  border-color: #0e5a4d;
+  background: #0e5a4d;
+  color: #f3f6eb;
+}
 .history-inspection {
   grid-column: 1 / -1;
 }

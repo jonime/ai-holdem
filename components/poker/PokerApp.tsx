@@ -203,7 +203,17 @@ function DecisionPanel({ decision }: { readonly decision: AIDecision | null }) {
   );
 }
 
-function ActionHistory({ history }: { readonly history: HandHistory | null }) {
+function ActionHistory({
+  history,
+  handNumber,
+  availableHands,
+  onSelectHand,
+}: {
+  readonly history: HandHistory | null;
+  readonly handNumber: number;
+  readonly availableHands: readonly number[];
+  readonly onSelectHand: (handNumber: number) => void;
+}) {
   if (!history) {
     return (
       <section className="history-panel muted-panel">
@@ -216,6 +226,17 @@ function ActionHistory({ history }: { readonly history: HandHistory | null }) {
     <section className="history-panel">
       <div className="panel-kicker">PERSISTED HAND</div>
       <h2>Action History</h2>
+      <div className="hand-selector" aria-label="Select hand history">
+        {availableHands.map((availableHand) => (
+          <button
+            className={availableHand === handNumber ? "selected-hand" : ""}
+            key={availableHand}
+            onClick={() => onSelectHand(availableHand)}
+          >
+            Hand {availableHand}
+          </button>
+        ))}
+      </div>
       {history.actions.length === 0 ? (
         <p className="empty-history">No actions yet.</p>
       ) : (
@@ -285,6 +306,9 @@ export default function PokerApp() {
     readonly handNumber: number;
     readonly value: HandHistory;
   } | null>(null);
+  const [selectedHistoryHand, setSelectedHistoryHand] = useState<number | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
@@ -333,7 +357,8 @@ export default function PokerApp() {
   useEffect(() => {
     if (!game) return;
     let cancelled = false;
-    void fetch(`/api/games/${game.id}/history?hand=${game.poker.handNumber}`)
+    const handNumber = selectedHistoryHand ?? game.poker.handNumber;
+    void fetch(`/api/games/${game.id}/history?hand=${handNumber}`)
       .then(async (response) => {
         if (!response.ok) throw new Error("Hand history is unavailable");
         return (await response.json()) as { history: HandHistory };
@@ -341,7 +366,7 @@ export default function PokerApp() {
       .then((body) => {
         if (!cancelled)
           setHistory({
-            handNumber: game.poker.handNumber,
+            handNumber,
             value: body.history,
           });
       })
@@ -349,12 +374,13 @@ export default function PokerApp() {
     return () => {
       cancelled = true;
     };
-  }, [game]);
+  }, [game, selectedHistoryHand]);
 
   async function createGame() {
     setLoading(true);
     setError(null);
     setDecision(null);
+    setSelectedHistoryHand(null);
     try {
       const body = await requestJson<{ gameId: string }>("/api/games", {
         method: "POST",
@@ -453,6 +479,7 @@ export default function PokerApp() {
     setLoading(true);
     setError(null);
     setDecision(null);
+    setSelectedHistoryHand(null);
     try {
       const body = await requestJson<{ game: Game }>(
         `/api/games/${game.id}/next-hand`,
@@ -481,10 +508,14 @@ export default function PokerApp() {
     (action) => action.type === "bet" || action.type === "raise",
   );
   const isHumanTurn = game?.poker.currentActorId === "human";
+  const displayedHistoryHand = selectedHistoryHand ?? game?.poker.handNumber;
   const currentHistory =
-    history && history.handNumber === game?.poker.handNumber
+    history && history.handNumber === displayedHistoryHand
       ? history.value
       : null;
+  const availableHistoryHands = game
+    ? Array.from({ length: game.poker.handNumber }, (_, index) => index + 1)
+    : [];
   const winnerNames = game?.poker.winnerIds
     .map(
       (winnerId) =>
@@ -618,7 +649,14 @@ export default function PokerApp() {
           </section>
           <aside>
             <DecisionPanel decision={decision} />
-            <ActionHistory history={currentHistory} />
+            {displayedHistoryHand ? (
+              <ActionHistory
+                availableHands={availableHistoryHands}
+                handNumber={displayedHistoryHand}
+                history={currentHistory}
+                onSelectHand={setSelectedHistoryHand}
+              />
+            ) : null}
             <section className="rules-note">
               <p className="panel-kicker">AUTHORITATIVE RULES</p>
               <p>
