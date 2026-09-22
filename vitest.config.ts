@@ -4,7 +4,8 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    exclude: ["test/e2e/**"],
+    include: ["**/*.test.{ts,tsx,js,jsx}"],
+    exclude: ["node_modules/**", "test/e2e/**", ".next/**", "dist/**"],
   },
   resolve: {
     alias: {
