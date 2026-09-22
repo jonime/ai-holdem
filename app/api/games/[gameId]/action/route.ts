@@ -5,6 +5,7 @@ import { HumanActionError } from "@/lib/poker/human-actions";
 import type { PokerAction } from "@/lib/poker/types";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
+import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
 
 export const runtime = "nodejs";
 
@@ -65,6 +66,14 @@ export async function POST(request: Request, context: ActionRouteContext) {
         expectedVersion,
         playerId: "human",
         action,
+      },
+    );
+    void publishGameEvent(
+      gameId,
+      game.poker.street === "complete" ? "hand_completed" : "player_action",
+      game.version,
+      {
+        game: toBroadcastGame(game),
       },
     );
     return NextResponse.json({ game });

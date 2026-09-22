@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
 import { assignBotToSeat } from "@/lib/poker/game-service";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
+import { publishSeatEvent } from "@/lib/realtime/publish";
 
 export const runtime = "nodejs";
 
@@ -26,6 +27,7 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
       seat,
       playerToken,
     );
+    void publishSeatEvent(gameId, "seat_bot_assigned", assignment);
     return NextResponse.json({ seat: assignment }, { status: 200 });
   } catch (error) {
     if (

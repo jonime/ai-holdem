@@ -36,6 +36,11 @@ TYPESAFE_API_KEY=
 `SUPABASE_SECRET_KEY` and `TYPESAFE_API_KEY` are server-only. Do not prefix
 them with `NEXT_PUBLIC_` and do not commit `.env`.
 
+Game updates use Supabase Realtime Broadcast as a refetch signal. No additional
+SQL migration is required for Broadcast. The demo intentionally uses public
+game channels, so anyone who knows a game URL can subscribe; this is not an
+authorization boundary for production.
+
 Run every SQL file in [supabase/migrations](supabase/migrations) in filename
 order using the Supabase SQL Editor. The migrations create RLS-protected tables
 and server-only RPCs used for atomic version-checked game updates.

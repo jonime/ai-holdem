@@ -9,6 +9,7 @@ import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { TypesafeSystemOneClient } from "@/lib/typesafe/client";
 import { TypesafeRequestError } from "@/lib/typesafe/client";
 import { TypesafeResponseError } from "@/lib/typesafe/types";
+import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
 
 export const runtime = "nodejs";
 
@@ -24,6 +25,17 @@ export async function POST(_request: Request, context: StepRouteContext) {
       createSupabaseGameRepository(),
       new TypesafeSystemOneClient(),
       gameId,
+    );
+    void publishGameEvent(
+      gameId,
+      result.game.poker.street === "complete"
+        ? "hand_completed"
+        : "ai_decision",
+      result.game.version,
+      {
+        game: toBroadcastGame(result.game),
+        aiDecision: result.aiDecision,
+      },
     );
     return NextResponse.json(result);
   } catch (error) {

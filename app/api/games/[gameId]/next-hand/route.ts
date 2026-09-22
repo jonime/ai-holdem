@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { GameNotFoundError, startNextHand } from "@/lib/poker/game-service";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
+import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
 
 export const runtime = "nodejs";
 
@@ -35,6 +36,9 @@ export async function POST(request: Request, context: NextHandRouteContext) {
       gameId,
       expectedVersion,
     );
+    void publishGameEvent(gameId, "hand_started", game.version, {
+      game: toBroadcastGame(game),
+    });
     return NextResponse.json({ game });
   } catch (error) {
     if (error instanceof GameNotFoundError) {

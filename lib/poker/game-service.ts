@@ -299,12 +299,14 @@ export async function getPublicGame(
 
   const state = pokerEngineAdapter.restore(game.currentState as PokerGameState);
   const viewerPlayerId =
-    typeof viewerPlayerToken === "string"
-      ? (state.config.players.find(
-          (player) => player.playerToken === viewerPlayerToken,
-        )?.id ?? null)
-      : (state.config.players.find((player) => player.controller === "human")
-          ?.id ?? null);
+    viewerPlayerToken === undefined
+      ? (state.config.players.find((player) => player.controller === "human")
+          ?.id ?? null)
+      : typeof viewerPlayerToken === "string"
+        ? (state.config.players.find(
+            (player) => player.playerToken === viewerPlayerToken,
+          )?.id ?? null)
+        : null;
 
   return {
     id: game.id,

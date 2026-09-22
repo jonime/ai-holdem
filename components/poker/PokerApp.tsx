@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaGithub } from "react-icons/fa";
 
+import { useGameChannel } from "@/lib/realtime/useGameChannel";
+
 type LegalAction =
   | { type: "fold" }
   | { type: "check" }
@@ -356,6 +358,10 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     const body = await requestJson<{ game: Game }>(`/api/games/${gameId}`);
     setGame(body.game);
   }
+
+  useGameChannel(gameId, game?.version ?? null, () => {
+    if (gameId) void loadGame(gameId);
+  });
 
   useEffect(() => {
     if (!gameId) {
