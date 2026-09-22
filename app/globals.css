@@ -718,6 +718,18 @@ h2 {
   gap: 8px;
   align-items: center;
 }
+.bot-assignment-controls {
+  display: flex;
+  gap: 6px;
+}
+.bot-assignment-controls select {
+  min-width: 82px;
+  border: 1px solid #8eaaa0;
+  border-radius: 3px;
+  padding: 7px;
+  background: #fffef9;
+  color: #173a34;
+}
 .lobby-actions button,
 .lobby-footer button {
   border: 1px solid #507a6d;

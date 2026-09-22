@@ -1,5 +1,7 @@
 import "server-only";
 
+import type { AIDifficulty } from "@/lib/poker/types";
+
 export type GameStatus = "waiting" | "playing" | "complete" | "error";
 
 export interface PersistedGame {
@@ -67,6 +69,7 @@ export interface GamePlayerSeatAssignment {
   readonly name: string;
   readonly status: SeatStatus;
   readonly controller: "human" | "typesafe_ai";
+  readonly aiDifficulty: AIDifficulty | null;
   readonly playerToken: string | null;
   readonly isHost: boolean;
   readonly leaving: boolean;
@@ -79,6 +82,7 @@ export interface CreateGameSessionInput extends CreateGameInput {
     readonly seat: number;
     readonly name: string;
     readonly controller: "human" | "typesafe_ai";
+    readonly aiDifficulty?: AIDifficulty | null;
     readonly stack: number;
     readonly status?: SeatStatus;
     readonly playerToken?: string | null;
@@ -179,6 +183,14 @@ export class GameConflictError extends Error {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function optionalAIDifficulty(value: unknown): AIDifficulty | null {
+  if (value === null || value === undefined) return null;
+  if (value === "easy" || value === "medium" || value === "hard") {
+    return value;
+  }
+  throw new Error("Supabase returned an invalid AI difficulty");
 }
 
 function requiredString(record: Record<string, unknown>, key: string): string {
@@ -351,6 +363,7 @@ export class SupabaseGameRepository {
         name: requiredString(row, "name"),
         status,
         controller,
+        aiDifficulty: optionalAIDifficulty(row.ai_difficulty),
         playerToken:
           typeof row.player_token === "string" ? row.player_token : null,
         isHost: Boolean(row.is_host),
@@ -369,22 +382,29 @@ export class SupabaseGameRepository {
     readonly status: SeatStatus;
     readonly name?: string;
     readonly controller?: "human" | "typesafe_ai";
+    readonly aiDifficulty?: AIDifficulty | null;
     readonly playerToken?: string | null;
     readonly isHost?: boolean;
     readonly leaving?: boolean;
     readonly enginePlayerId?: string | null;
   }): Promise<void> {
+    const values: Record<string, unknown> = { status: input.status };
+    if (input.name !== undefined) values.name = input.name;
+    if (input.controller !== undefined) values.controller = input.controller;
+    if (input.aiDifficulty !== undefined) {
+      values.ai_difficulty = input.aiDifficulty;
+    }
+    if (input.playerToken !== undefined) {
+      values.player_token = input.playerToken;
+    }
+    if (input.isHost !== undefined) values.is_host = input.isHost;
+    if (input.leaving !== undefined) values.leaving = input.leaving;
+    if (input.enginePlayerId !== undefined) {
+      values.engine_player_id = input.enginePlayerId;
+    }
     const { error } = await this.client
       .from("game_players")
-      .update({
-        status: input.status,
-        name: input.name,
-        controller: input.controller,
-        player_token: input.playerToken ?? null,
-        is_host: input.isHost ?? false,
-        leaving: input.leaving ?? false,
-        engine_player_id: input.enginePlayerId,
-      })
+      .update(values)
       .eq("game_id", input.gameId)
       .eq("seat", input.seat)
       .select()
@@ -433,6 +453,9 @@ export class SupabaseGameRepository {
 
         if (player.status !== undefined) {
           row.status = player.status;
+        }
+        if (player.aiDifficulty !== undefined) {
+          row.ai_difficulty = player.aiDifficulty;
         }
         if (player.playerToken !== undefined) {
           row.player_token = player.playerToken;

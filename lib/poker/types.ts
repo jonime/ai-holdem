@@ -1,11 +1,13 @@
 export type PlayerController = "human" | "typesafe_ai";
 export type SeatStatus = "open" | "claimed" | "bot";
+export type AIDifficulty = "easy" | "medium" | "hard";
 
 export interface PokerPlayerConfig {
   readonly id: string;
   readonly seat: number;
   readonly name: string;
   readonly controller: PlayerController;
+  readonly aiDifficulty?: AIDifficulty | null;
   readonly stack: number;
   readonly status?: SeatStatus;
   readonly playerToken?: string | null;
@@ -64,6 +66,7 @@ export interface PublicPokerPlayer {
   readonly id: string;
   readonly name: string;
   readonly controller: PlayerController;
+  readonly aiDifficulty: AIDifficulty | null;
   readonly seat: number;
   readonly status: SeatStatus;
   readonly playerToken: string | null;

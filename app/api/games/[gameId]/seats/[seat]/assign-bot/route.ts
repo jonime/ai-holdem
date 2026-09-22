@@ -4,6 +4,7 @@ import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
 import { assignBotToSeat } from "@/lib/poker/game-service";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { publishSeatEvent } from "@/lib/realtime/publish";
+import type { AIDifficulty } from "@/lib/poker/types";
 
 export const runtime = "nodejs";
 
@@ -19,6 +20,20 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
   }
 
   const playerToken = getOrCreatePlayerToken(request);
+  const body: unknown = await request.json().catch(() => null);
+  const requestedDifficulty =
+    body && typeof body === "object" && "difficulty" in body
+      ? (body as Record<string, unknown>).difficulty
+      : undefined;
+  if (
+    requestedDifficulty !== undefined &&
+    requestedDifficulty !== "easy" &&
+    requestedDifficulty !== "medium" &&
+    requestedDifficulty !== "hard"
+  ) {
+    return NextResponse.json({ error: "Invalid AI difficulty" }, { status: 400 });
+  }
+  const difficulty: AIDifficulty = requestedDifficulty ?? "medium";
 
   try {
     const assignment = await assignBotToSeat(
@@ -26,6 +41,7 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
       gameId,
       seat,
       playerToken,
+      difficulty,
     );
     void publishSeatEvent(gameId, "seat_bot_assigned", assignment);
     return NextResponse.json({ seat: assignment }, { status: 200 });

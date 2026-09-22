@@ -6,6 +6,7 @@ import {
   createDemoGame,
   GameNotFoundError,
   getPublicGame,
+  releaseSeat,
   stepTypesafeAction,
   startGame,
   startNextHand,
@@ -294,6 +295,7 @@ describe("assignBotToSeat", () => {
       "game-1",
       1,
       "host-token",
+      "hard",
     );
 
     expect(updateSeatAssignment).toHaveBeenCalledWith(
@@ -302,7 +304,47 @@ describe("assignBotToSeat", () => {
         seat: 1,
         status: "bot",
         controller: "typesafe_ai",
+        aiDifficulty: "hard",
         playerToken: null,
+      }),
+    );
+  });
+});
+
+describe("releaseSeat", () => {
+  it("clears difficulty when a host removes a bot between hands", async () => {
+    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
+    await releaseSeat(
+      {
+        getSeatAssignments: vi.fn().mockResolvedValue([
+          {
+            seat: 0,
+            status: "claimed",
+            controller: "human",
+            playerToken: "host-token",
+            isHost: true,
+          },
+          {
+            seat: 1,
+            status: "bot",
+            controller: "typesafe_ai",
+            aiDifficulty: "hard",
+            playerToken: null,
+            isHost: false,
+          },
+        ]),
+        updateSeatAssignment,
+      },
+      "game-1",
+      1,
+      "host-token",
+    );
+
+    expect(updateSeatAssignment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "open",
+        controller: "human",
+        aiDifficulty: null,
       }),
     );
   });
@@ -578,6 +620,20 @@ describe("stepTypesafeAction", () => {
             handNumber: 1,
             version: 1,
           }),
+          getHandHistory: vi.fn().mockResolvedValue({
+            status: "playing",
+            actions: [
+              {
+                sequence: 1,
+                street: "preflop",
+                action: "call",
+                amount: 50,
+                player: "You",
+                controller: "human",
+              },
+            ],
+            aiDecisions: [],
+          }),
           persistAIAction,
         },
         {
@@ -591,8 +647,8 @@ describe("stepTypesafeAction", () => {
               },
               sizing: {
                 type: "choice",
-                choice: "small",
-                probabilities: { small: 1, medium: 0, large: 0, all_in: 0 },
+                choice: "one_third_pot",
+                probabilities: { one_third_pot: 1 },
                 confidence: 1,
               },
             },
@@ -625,7 +681,13 @@ describe("stepTypesafeAction", () => {
       expect(game.game.poker.currentActorId).toBe("typesafe-ai");
       expect(game.aiDecision.action).toBe("check");
       expect(persistAIAction).toHaveBeenCalledWith(
-        expect.objectContaining({ action: "check", choice: "check" }),
+        expect.objectContaining({
+          action: "check",
+          choice: "check",
+          aiState: expect.objectContaining({
+            actionHistory: [expect.objectContaining({ action: "call" })],
+          }),
+        }),
       );
     },
   );
@@ -904,6 +966,7 @@ describe("deterministic persisted hand harness", () => {
           throw new Error("Expected a TypeSafe action question");
         }
         const options = Object.keys(actionQuestion.criteria);
+        const sizingOptions = Object.keys(request.questions.sizing.criteria);
         const choice = options.includes("check") ? "check" : "call";
         return {
           answers: {
@@ -917,8 +980,10 @@ describe("deterministic persisted hand harness", () => {
             },
             sizing: {
               type: "choice",
-              choice: "small",
-              probabilities: { small: 1, medium: 0, large: 0, all_in: 0 },
+              choice: sizingOptions[0],
+              probabilities: Object.fromEntries(
+                sizingOptions.map((option, index) => [option, index === 0 ? 1 : 0]),
+              ),
               confidence: 1,
             },
           },

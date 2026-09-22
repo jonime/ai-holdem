@@ -1,4 +1,5 @@
 import type { PokerAction } from "@/lib/poker/types";
+import type { SizingChoice } from "./questions";
 
 export interface ChoiceQuestion {
   readonly type: "choice";
@@ -17,7 +18,7 @@ export interface AIDecision {
   readonly probabilities: Readonly<Record<string, number>>;
   readonly confidence: number;
   readonly sizing?: {
-    readonly choice: "small" | "medium" | "large" | "all_in";
+    readonly choice: SizingChoice;
     readonly probabilities: Readonly<Record<string, number>>;
     readonly confidence: number;
   };
