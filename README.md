@@ -3,6 +3,8 @@
 A heads-up no-limit Texas Hold'em demo where TypeSafe System One proposes a
 constrained action and the poker engine remains authoritative for every rule.
 
+Repository: [github.com/jonime/ai-holdem](https://github.com/jonime/ai-holdem)
+
 ## What It Does
 
 - Persists games, hands, actions, and TypeSafe decision audits in Supabase.
