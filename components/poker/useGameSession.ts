@@ -14,6 +14,7 @@ import { useGameChannel } from "@/lib/realtime/useGameChannel";
 
 import type {
   AIDecision,
+  AIDifficulty,
   Game,
   HandHistory,
   LegalAction,
@@ -167,8 +168,10 @@ export function useGameSession(gameId?: string) {
   );
 
   const assignBot = useCallback(
-    async (seat: number) => {
-      await postSeatAction(`/api/games/${game?.id}/seats/${seat}/assign-bot`);
+    async (seat: number, difficulty: AIDifficulty) => {
+      await postSeatAction(`/api/games/${game?.id}/seats/${seat}/assign-bot`, {
+        difficulty,
+      });
     },
     [game, postSeatAction],
   );

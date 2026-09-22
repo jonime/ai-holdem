@@ -1,10 +1,12 @@
 import type {
+  AIDifficulty,
   LegalAction,
   PublicPokerGame,
   PublicPokerPlayer,
 } from "@/lib/poker/types";
 
 export type { LegalAction, PublicPokerGame, PublicPokerPlayer };
+export type { AIDifficulty };
 
 export interface Game {
   readonly id: string;

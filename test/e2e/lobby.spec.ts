@@ -64,3 +64,19 @@ test("runs a two-player hand in a six-seat lobby", async ({
 
   await secondBrowser.close();
 });
+
+test("persists a per-bot difficulty selected in the lobby", async ({ page }) => {
+  await page.goto("/");
+  await page
+    .getByRole("region", { name: "Start a new game" })
+    .getByRole("button", { name: "New Game" })
+    .click();
+  await expect(page.getByText("WAITING ROOM")).toBeVisible();
+
+  await page.getByLabel("Bot difficulty for seat 2").selectOption("hard");
+  await page.getByRole("button", { name: "Assign bot" }).first().click();
+  await expect(page.getByText("TypeSafe AI · hard")).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByText("TypeSafe AI · hard")).toBeVisible();
+});

@@ -8,7 +8,7 @@ import {
 import type { GameConfig } from "@/lib/poker/types";
 
 import { decidePokerAction } from "./decision";
-import { createPokerDecisionRequest } from "./questions";
+import { createPokerDecisionRequest, createSizingOptions } from "./questions";
 import { TypesafeResponseError } from "./types";
 
 const gameConfig: GameConfig = {
@@ -37,7 +37,7 @@ function aiTurnState() {
   });
 }
 
-function response(action: string, sizing = "medium"): unknown {
+function response(action: string, sizing = "one_third_pot"): unknown {
   return {
     model: "jev-latest",
     answers: {
@@ -50,7 +50,13 @@ function response(action: string, sizing = "medium"): unknown {
       sizing: {
         type: "choice",
         choice: sizing,
-        probabilities: { small: 0.1, medium: 0.6, large: 0.2, all_in: 0.1 },
+        probabilities: {
+          one_third_pot: 0.6,
+          one_half_pot: 0.2,
+          two_thirds_pot: 0.1,
+          full_pot: 0.05,
+          all_in: 0.05,
+        },
         confidence: 0.6,
       },
     },
@@ -59,7 +65,9 @@ function response(action: string, sizing = "medium"): unknown {
 
 describe("TypeSafe poker decision", () => {
   it("creates structured state without opponent hole cards", () => {
-    const state = createPokerAIState(aiTurnState(), "typesafe-ai");
+    const state = createPokerAIState(aiTurnState(), "typesafe-ai", {
+      difficulty: "hard",
+    });
 
     expect(state.hero.holeCards).toHaveLength(2);
     expect(state.opponents).toEqual([
@@ -75,21 +83,55 @@ describe("TypeSafe poker decision", () => {
   });
 
   it("asks only for current legal action criteria", () => {
-    const request = createPokerDecisionRequest(
-      createPokerAIState(aiTurnState(), "typesafe-ai"),
-    );
+    const state = createPokerAIState(aiTurnState(), "typesafe-ai", {
+      actionHistory: [
+        {
+          sequence: 1,
+          street: "preflop",
+          action: "call",
+          amount: 50,
+          player: "You",
+          controller: "human",
+        },
+      ],
+    });
+    const request = createPokerDecisionRequest(state);
 
     expect(request.questions.action.criteria).toEqual({
       check: expect.any(String),
       fold: expect.any(String),
       raise: expect.any(String),
     });
+    expect(state.actionHistory).toHaveLength(1);
+    expect(state.analysis.showdownEquity).toBeGreaterThan(0);
+    expect(JSON.stringify(state)).not.toContain("playerToken");
+  });
+
+  it("creates unique, legal, pot-relative sizing choices", () => {
+    const state = createPokerAIState(aiTurnState(), "typesafe-ai", {
+      equitySamples: 10,
+    });
+    const raise = state.legalActions.find((action) => action.type === "raise");
+    if (raise?.type !== "raise") throw new Error("Expected a legal raise");
+    const options = createSizingOptions(state);
+    const amounts = options.flatMap((option) =>
+      option.amount === null ? [] : [option.amount],
+    );
+
+    expect(new Set(amounts).size).toBe(amounts.length);
+    expect(amounts.every((amount) => amount >= raise.minAmount)).toBe(true);
+    expect(amounts.every((amount) => amount <= raise.maxAmount)).toBe(true);
+    expect(options.some((option) => option.description.includes("exactly"))).toBe(
+      true,
+    );
   });
 
   it("converts a valid raise choice into a legal engine action", async () => {
-    const state = createPokerAIState(aiTurnState(), "typesafe-ai");
+    const state = createPokerAIState(aiTurnState(), "typesafe-ai", {
+      difficulty: "hard",
+    });
     const decision = await decidePokerAction(
-      { evaluate: async () => response("raise", "medium") },
+      { evaluate: async () => response("raise", "one_third_pot") },
       state,
     );
 
@@ -103,7 +145,7 @@ describe("TypeSafe poker decision", () => {
     if (legalRaise?.type !== "raise") throw new Error("Expected legal raise");
     expect(decision.action.amount).toBeGreaterThanOrEqual(legalRaise.minAmount);
     expect(decision.action.amount).toBeLessThanOrEqual(legalRaise.maxAmount);
-    expect(decision.sizing?.choice).toBe("medium");
+    expect(decision.sizing?.choice).toBe("one_third_pot");
   });
 
   it("rejects unavailable actions and malformed responses", async () => {
@@ -115,5 +157,48 @@ describe("TypeSafe poker decision", () => {
     await expect(
       decidePokerAction({ evaluate: async () => ({ answers: {} }) }, state),
     ).rejects.toBeInstanceOf(TypesafeResponseError);
+  });
+
+  it("uses difficulty to control probability sampling", async () => {
+    const base = createPokerAIState(aiTurnState(), "typesafe-ai", {
+      equitySamples: 10,
+    });
+    const probabilisticResponse = {
+      answers: {
+        action: {
+          type: "choice",
+          choice: "check",
+          probabilities: { fold: 0, check: 0.25, raise: 0.75 },
+          confidence: 0.8,
+        },
+        sizing: {
+          type: "choice",
+          choice: "one_third_pot",
+          probabilities: { one_third_pot: 1 },
+          confidence: 1,
+        },
+      },
+    };
+    const client = { evaluate: async () => probabilisticResponse };
+
+    const hard = await decidePokerAction(
+      client,
+      { ...base, difficulty: "hard" },
+      { random: () => 0.99 },
+    );
+    const medium = await decidePokerAction(
+      client,
+      { ...base, difficulty: "medium" },
+      { random: () => 0.99 },
+    );
+    const easy = await decidePokerAction(
+      client,
+      { ...base, difficulty: "easy" },
+      { random: () => 0.01 },
+    );
+
+    expect(hard.action.type).toBe("check");
+    expect(medium.action.type).toBe("raise");
+    expect(easy.action.type).toBe("fold");
   });
 });

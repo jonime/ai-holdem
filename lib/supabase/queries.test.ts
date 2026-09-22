@@ -116,6 +116,7 @@ describe("SupabaseGameRepository", () => {
           seat: 1,
           name: "TypeSafe AI",
           controller: "typesafe_ai",
+          aiDifficulty: "hard",
           stack: 10_000,
         },
       ],
@@ -140,6 +141,7 @@ describe("SupabaseGameRepository", () => {
           seat: 1,
           name: "TypeSafe AI",
           controller: "typesafe_ai",
+          ai_difficulty: "hard",
           stack: 10_000,
         },
       ],
@@ -155,15 +157,39 @@ describe("SupabaseGameRepository", () => {
       seat: 1,
       status: "bot",
       controller: "typesafe_ai",
+      aiDifficulty: "easy",
       enginePlayerId: "bot-game-1-1",
     });
 
-    expect(update).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: "bot",
-        controller: "typesafe_ai",
-      }),
-    );
+    expect(update).toHaveBeenCalledWith({
+      status: "bot",
+      controller: "typesafe_ai",
+      ai_difficulty: "easy",
+      engine_player_id: "bot-game-1-1",
+    });
+  });
+
+  it("loads and validates a bot difficulty from seat assignments", async () => {
+    const { client } = createClient({
+      loadResult: [
+        {
+          seat: 1,
+          name: "TypeSafe AI",
+          status: "bot",
+          controller: "typesafe_ai",
+          ai_difficulty: "hard",
+          player_token: null,
+          is_host: false,
+          leaving: false,
+          engine_player_id: "ai",
+        },
+      ],
+    });
+    const repository = new SupabaseGameRepository(client);
+
+    await expect(repository.getSeatAssignments("game-1")).resolves.toEqual([
+      expect.objectContaining({ aiDifficulty: "hard" }),
+    ]);
   });
 
   it("withholds AI inspection data for an active hand", async () => {

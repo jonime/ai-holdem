@@ -2,6 +2,7 @@ import { pokerEngineAdapter } from "./adapter";
 import { createPokerAIState } from "./ai-state";
 import { applyHumanAction, type HumanActionSubmission } from "./human-actions";
 import type {
+  AIDifficulty,
   GameConfig,
   PokerGameState,
   PublicPokerGame,
@@ -79,6 +80,7 @@ export interface SeatAssignment {
   readonly name?: string;
   readonly status: SeatStatus;
   readonly controller: "human" | "typesafe_ai";
+  readonly aiDifficulty?: AIDifficulty | null;
   readonly playerToken: string | null;
   readonly isHost: boolean;
   readonly leaving?: boolean;
@@ -93,6 +95,7 @@ export interface SeatAssignmentRepository {
     readonly status: SeatStatus;
     readonly name?: string;
     readonly controller?: "human" | "typesafe_ai";
+    readonly aiDifficulty?: AIDifficulty | null;
     readonly playerToken?: string | null;
     readonly isHost?: boolean;
     readonly leaving?: boolean;
@@ -106,6 +109,13 @@ export interface HumanActionWriter {
 
 export interface AIActionWriter {
   persistAIAction(input: PersistAIActionInput): Promise<PersistedGame>;
+}
+
+export interface HandHistoryReader {
+  getHandHistory(
+    gameId: string,
+    handNumber: number,
+  ): Promise<import("@/lib/supabase/queries").HandHistory | null>;
 }
 
 export interface NextHandWriter {
@@ -139,7 +149,7 @@ export interface PublicAIDecision {
   readonly probabilities: Readonly<Record<string, number>>;
   readonly confidence: number;
   readonly sizing: {
-    readonly choice: "small" | "medium" | "large" | "all_in";
+    readonly choice: import("@/lib/typesafe/questions").SizingChoice;
     readonly probabilities: Readonly<Record<string, number>>;
     readonly confidence: number;
   } | null;
@@ -177,6 +187,7 @@ export async function createDemoGame(
         seat,
         name: player?.name ?? `Seat ${seat + 1}`,
         controller: player?.controller ?? "human",
+        aiDifficulty: player?.aiDifficulty ?? null,
         stack: player?.stack ?? 10_000,
         status: player?.status ?? "open",
         playerToken: player?.playerToken ?? null,
@@ -215,6 +226,10 @@ function playerConfigForAssignment(
         ? "TypeSafe AI"
         : `Player ${assignment.seat + 1}`),
     controller: assignment.controller,
+    aiDifficulty:
+      assignment.controller === "typesafe_ai"
+        ? (assignment.aiDifficulty ?? "medium")
+        : null,
     stack: 10_000,
     status: assignment.status,
     playerToken: assignment.playerToken,
@@ -237,7 +252,29 @@ async function withOpenSeatPlaceholders(
     if (configuredSeats.has(assignment.seat)) continue;
     players.push(playerConfigForAssignment(gameId, assignment));
   }
-  return { ...state, config: { ...state.config, players } };
+  const assignmentsById = new Map(
+    assignments
+      .filter((assignment) => assignment.enginePlayerId)
+      .map((assignment) => [assignment.enginePlayerId, assignment]),
+  );
+  return {
+    ...state,
+    config: {
+      ...state.config,
+      players: players.map((player) => {
+        const assignment = assignmentsById.get(player.id);
+        return assignment
+          ? {
+              ...player,
+              aiDifficulty:
+                assignment.controller === "typesafe_ai"
+                  ? (assignment.aiDifficulty ?? "medium")
+                  : null,
+            }
+          : player;
+      }),
+    },
+  };
 }
 
 async function reconcileState(
@@ -275,7 +312,32 @@ async function reconcileState(
       });
     }
   }
-  return nextState;
+  const assignmentsById = new Map(
+    filled.map((assignment) => [
+      enginePlayerIdForAssignment(gameId, assignment),
+      assignment,
+    ]),
+  );
+  return {
+    ...nextState,
+    config: {
+      ...nextState.config,
+      players: nextState.config.players.map((player) => {
+        const assignment = assignmentsById.get(player.id);
+        return assignment
+          ? {
+              ...player,
+              name: assignment.name ?? player.name,
+              controller: assignment.controller,
+              aiDifficulty:
+                assignment.controller === "typesafe_ai"
+                  ? (assignment.aiDifficulty ?? "medium")
+                  : null,
+            }
+          : player;
+      }),
+    },
+  };
 }
 
 function publicProjectionForViewer(
@@ -468,6 +530,7 @@ export async function assignBotToSeat(
   gameId: string,
   seat: number,
   hostToken: string,
+  difficulty: AIDifficulty = "medium",
 ): Promise<SeatAssignment> {
   const seatAssignments = await repository.getSeatAssignments(gameId);
   const hasHost = seatAssignments.some((entry) => entry.isHost);
@@ -495,6 +558,7 @@ export async function assignBotToSeat(
     ...assignment,
     status: "bot",
     controller: "typesafe_ai",
+    aiDifficulty: difficulty,
     name,
     playerToken: null,
     isHost: false,
@@ -506,6 +570,7 @@ export async function assignBotToSeat(
     seat,
     status: "bot",
     controller: "typesafe_ai",
+    aiDifficulty: difficulty,
     name,
     playerToken: null,
     isHost: false,
@@ -552,6 +617,7 @@ export async function releaseSeat(
     ...assignment,
     status: isHandInProgress ? assignment.status : "open",
     controller: isHandInProgress ? assignment.controller : "human",
+    aiDifficulty: isHandInProgress ? assignment.aiDifficulty : null,
     playerToken: isHandInProgress ? assignment.playerToken : null,
     isHost: false,
     leaving: isHandInProgress,
@@ -562,6 +628,7 @@ export async function releaseSeat(
     seat,
     status: updatedAssignment.status,
     controller: updatedAssignment.controller,
+    aiDifficulty: updatedAssignment.aiDifficulty,
     playerToken: updatedAssignment.playerToken,
     isHost: false,
     leaving: updatedAssignment.leaving,
@@ -674,7 +741,9 @@ export async function submitHumanAction(
 }
 
 export async function stepTypesafeAction(
-  repository: GameReader & AIActionWriter & Partial<SeatAssignmentRepository>,
+  repository: GameReader &
+    AIActionWriter &
+    Partial<SeatAssignmentRepository & HandHistoryReader>,
   client: TypesafeDecisionClient,
   gameId: string,
   viewerToken: string | null = null,
@@ -698,7 +767,13 @@ export async function stepTypesafeAction(
     throw new Error("The current hand is not accepting actions");
   }
 
-  const aiState = createPokerAIState(stateBefore, aiPlayer.id);
+  const history = repository.getHandHistory
+    ? await repository.getHandHistory(gameId, snapshotBefore.handNumber)
+    : null;
+  const aiState = createPokerAIState(stateBefore, aiPlayer.id, {
+    difficulty: aiPlayer.aiDifficulty ?? "medium",
+    actionHistory: history?.actions ?? [],
+  });
   const decision = await decidePokerAction(client, aiState);
   const stateAfter = pokerEngineAdapter.applyAction(
     stateBefore,

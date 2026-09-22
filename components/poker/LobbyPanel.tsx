@@ -1,4 +1,6 @@
-import type { Game } from "@/components/poker/types";
+import { useState } from "react";
+
+import type { AIDifficulty, Game } from "@/components/poker/types";
 import { canManageTable, filledSeatCount } from "@/components/poker/view-model";
 
 export function LobbyPanel({
@@ -19,12 +21,15 @@ export function LobbyPanel({
   readonly setPlayerName: (value: string) => void;
   readonly viewerToken: string | null;
   readonly onClaimSeatAt: (seat: number) => void;
-  readonly onAssignBot: (seat: number) => void;
+  readonly onAssignBot: (seat: number, difficulty: AIDifficulty) => void;
   readonly onReleaseSeat: (seat: number) => void;
   readonly onStartWaitingGame: () => void;
   readonly onUpdateSeatCount: (nextSeatCount: number) => void;
 }) {
   const canManage = canManageTable(game.poker.players, viewerToken);
+  const [botDifficulties, setBotDifficulties] = useState<
+    Readonly<Record<number, AIDifficulty>>
+  >({});
 
   return (
     <section className="lobby-panel">
@@ -72,7 +77,7 @@ export function LobbyPanel({
               <strong>{player?.name ?? "Open seat"}</strong>
               <span>
                 {player?.status === "bot"
-                  ? "TypeSafe AI"
+                  ? `TypeSafe AI · ${player.aiDifficulty ?? "medium"}`
                   : player?.status === "claimed"
                     ? "Human"
                     : "Available"}
@@ -87,13 +92,35 @@ export function LobbyPanel({
                     Sit here
                   </button>
                   {seatCanManage ? (
-                    <button
-                      type="button"
-                      disabled={loading}
-                      onClick={() => onAssignBot(seat)}
-                    >
-                      Assign bot
-                    </button>
+                    <div className="bot-assignment-controls">
+                      <select
+                        aria-label={`Bot difficulty for seat ${seat + 1}`}
+                        value={botDifficulties[seat] ?? "medium"}
+                        disabled={loading}
+                        onChange={(event) =>
+                          setBotDifficulties((current) => ({
+                            ...current,
+                            [seat]: event.target.value as AIDifficulty,
+                          }))
+                        }
+                      >
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                      </select>
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() =>
+                          onAssignBot(
+                            seat,
+                            botDifficulties[seat] ?? "medium",
+                          )
+                        }
+                      >
+                        Assign bot
+                      </button>
+                    </div>
                   ) : null}
                 </div>
               ) : null}

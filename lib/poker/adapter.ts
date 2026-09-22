@@ -320,6 +320,10 @@ export const pokerEngineAdapter = {
           id: config.id,
           name: config.name,
           controller: config.controller,
+          aiDifficulty:
+            config.controller === "typesafe_ai"
+              ? (config.aiDifficulty ?? "medium")
+              : null,
           seat: config.seat,
           status:
             config.status ??
