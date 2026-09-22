@@ -264,6 +264,17 @@ async function reconcileState(
   return nextState;
 }
 
+function publicProjectionForViewer(
+  state: PokerGameState,
+  viewerToken: string | null,
+): PublicPokerGame {
+  const viewerPlayerId = viewerToken
+    ? (state.config.players.find((player) => player.playerToken === viewerToken)
+        ?.id ?? null)
+    : null;
+  return pokerEngineAdapter.publicProjection(state, viewerPlayerId);
+}
+
 export async function startGame(
   repository: GameReader & SeatAssignmentRepository & StartGameWriter,
   gameId: string,
@@ -322,7 +333,7 @@ export async function startGame(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
-    poker: pokerEngineAdapter.publicProjection(projectedState, null),
+    poker: publicProjectionForViewer(projectedState, callerToken),
   };
 }
 
@@ -391,7 +402,7 @@ export async function updateSeatCount(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
-    poker: pokerEngineAdapter.publicProjection(projectedState, null),
+    poker: publicProjectionForViewer(projectedState, callerToken),
   };
 }
 
@@ -640,6 +651,7 @@ export async function stepTypesafeAction(
   repository: GameReader & AIActionWriter & Partial<SeatAssignmentRepository>,
   client: TypesafeDecisionClient,
   gameId: string,
+  viewerToken: string | null = null,
 ): Promise<TypesafeStepResult> {
   const game = await repository.getGame(gameId);
   if (!game) {
@@ -705,7 +717,7 @@ export async function stepTypesafeAction(
       id: persistedGame.id,
       status: persistedGame.status,
       version: persistedGame.version,
-      poker: pokerEngineAdapter.publicProjection(projectedState, null),
+      poker: publicProjectionForViewer(projectedState, viewerToken),
     },
     aiDecision: {
       action: decision.action.type,
@@ -722,6 +734,7 @@ export async function startNextHand(
   repository: GameReader & NextHandWriter & Partial<SeatAssignmentRepository>,
   gameId: string,
   expectedVersion: number,
+  viewerToken: string | null = null,
 ): Promise<PublicGame> {
   const game = await repository.getGame(gameId);
   if (!game) {
@@ -772,6 +785,6 @@ export async function startNextHand(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
-    poker: pokerEngineAdapter.publicProjection(projectedState, null),
+    poker: publicProjectionForViewer(projectedState, viewerToken),
   };
 }

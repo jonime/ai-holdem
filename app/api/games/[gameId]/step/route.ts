@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { getPlayerTokenFromRequest } from "@/lib/identity/player-token";
 import {
   GameNotFoundError,
   stepTypesafeAction,
@@ -17,7 +18,7 @@ interface StepRouteContext {
   readonly params: Promise<{ gameId: string }>;
 }
 
-export async function POST(_request: Request, context: StepRouteContext) {
+export async function POST(request: Request, context: StepRouteContext) {
   const { gameId } = await context.params;
 
   try {
@@ -25,6 +26,7 @@ export async function POST(_request: Request, context: StepRouteContext) {
       createSupabaseGameRepository(),
       new TypesafeSystemOneClient(),
       gameId,
+      getPlayerTokenFromRequest(request),
     );
     void publishGameEvent(
       gameId,

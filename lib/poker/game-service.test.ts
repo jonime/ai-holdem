@@ -7,6 +7,7 @@ import {
   GameNotFoundError,
   getPublicGame,
   stepTypesafeAction,
+  startGame,
   startNextHand,
   submitHumanAction,
   updateSeatCount,
@@ -380,6 +381,13 @@ describe("updateSeatCount", () => {
       ).currentState.config.seatCount,
     ).toBe(6);
     expect(game.poker.seatCount).toBe(6);
+    expect(
+      game.poker.players.find((player) => player.seat === 0),
+    ).toMatchObject({
+      playerToken: "host-token",
+      isHost: true,
+      status: "claimed",
+    });
   });
 
   it("rejects a non-host caller", async () => {
@@ -519,83 +527,108 @@ describe("submitHumanAction", () => {
 });
 
 describe("stepTypesafeAction", () => {
-  it("applies and persists one validated AI action", async () => {
-    const started = pokerEngineAdapter.startHand(
-      pokerEngineAdapter.createGame({
-        smallBlind: 50,
-        bigBlind: 100,
-        players: [
-          {
-            id: "human",
-            name: "You",
-            controller: "human",
-            seat: 0,
-            stack: 10_000,
-          },
-          {
-            id: "typesafe-ai",
-            name: "TypeSafe AI",
-            controller: "typesafe_ai",
-            seat: 1,
-            stack: 10_000,
-          },
-        ],
-      }),
-      createDeterministicDeck(),
-    );
-    const aiTurn = pokerEngineAdapter.applyAction(started, "human", {
-      type: "call",
-      amount: 50,
-    });
-    const persistAIAction = vi.fn().mockResolvedValue({
-      id: "game-1",
-      status: "playing",
-      currentState: {},
-      stateSchemaVersion: 1,
-      handNumber: 1,
-      version: 2,
-    });
-
-    const game = await stepTypesafeAction(
-      {
-        getGame: vi.fn().mockResolvedValue({
-          id: "game-1",
-          status: "playing",
-          currentState: aiTurn,
-          stateSchemaVersion: 1,
-          handNumber: 1,
-          version: 1,
-        }),
-        persistAIAction,
-      },
-      {
-        evaluate: async () => ({
-          answers: {
-            action: {
-              type: "choice",
-              choice: "check",
-              probabilities: { fold: 0, check: 1, raise: 0 },
-              confidence: 1,
+  it.each(["host-token", "spectator-token", null])(
+    "applies an AI action with a private response for viewer %s",
+    async (viewerToken) => {
+      const started = pokerEngineAdapter.startHand(
+        pokerEngineAdapter.createGame({
+          smallBlind: 50,
+          bigBlind: 100,
+          players: [
+            {
+              id: "human",
+              name: "You",
+              controller: "human",
+              seat: 0,
+              stack: 10_000,
+              playerToken: "host-token",
+              isHost: true,
             },
-            sizing: {
-              type: "choice",
-              choice: "small",
-              probabilities: { small: 1, medium: 0, large: 0, all_in: 0 },
-              confidence: 1,
+            {
+              id: "typesafe-ai",
+              name: "TypeSafe AI",
+              controller: "typesafe_ai",
+              seat: 1,
+              stack: 10_000,
             },
-          },
+          ],
         }),
-      },
-      "game-1",
-    );
+        createDeterministicDeck(),
+      );
+      const aiTurn = pokerEngineAdapter.applyAction(started, "human", {
+        type: "call",
+        amount: 50,
+      });
+      const persistAIAction = vi.fn().mockResolvedValue({
+        id: "game-1",
+        status: "playing",
+        currentState: {},
+        stateSchemaVersion: 1,
+        handNumber: 1,
+        version: 2,
+      });
 
-    expect(game.game.version).toBe(2);
-    expect(game.game.poker.currentActorId).toBe("typesafe-ai");
-    expect(game.aiDecision.action).toBe("check");
-    expect(persistAIAction).toHaveBeenCalledWith(
-      expect.objectContaining({ action: "check", choice: "check" }),
-    );
-  });
+      const game = await stepTypesafeAction(
+        {
+          getGame: vi.fn().mockResolvedValue({
+            id: "game-1",
+            status: "playing",
+            currentState: aiTurn,
+            stateSchemaVersion: 1,
+            handNumber: 1,
+            version: 1,
+          }),
+          persistAIAction,
+        },
+        {
+          evaluate: async () => ({
+            answers: {
+              action: {
+                type: "choice",
+                choice: "check",
+                probabilities: { fold: 0, check: 1, raise: 0 },
+                confidence: 1,
+              },
+              sizing: {
+                type: "choice",
+                choice: "small",
+                probabilities: { small: 1, medium: 0, large: 0, all_in: 0 },
+                confidence: 1,
+              },
+            },
+          }),
+        },
+        "game-1",
+        viewerToken,
+      );
+
+      expect(game.game.version).toBe(2);
+      const human = game.game.poker.players.find(
+        (player) => player.id === "human",
+      );
+      expect(human?.playerToken).toBe(
+        viewerToken === "host-token" ? "host-token" : null,
+      );
+      expect(human?.isHost).toBe(true);
+      if (viewerToken === "host-token") {
+        expect(human?.holeCards).toHaveLength(2);
+      } else {
+        expect(human?.holeCards).toBeNull();
+        expect(game.game.poker.legalActions).toEqual([]);
+      }
+      expect(
+        game.game.poker.players.find((player) => player.id === "typesafe-ai"),
+      ).toMatchObject({
+        playerToken: null,
+        holeCards: null,
+      });
+      expect(game.game.poker.currentActorId).toBe("typesafe-ai");
+      expect(game.aiDecision.action).toBe("check");
+      expect(persistAIAction).toHaveBeenCalledWith(
+        expect.objectContaining({ action: "check", choice: "check" }),
+      );
+    },
+  );
 
   it("rejects attempts to step a human turn", async () => {
     const humanTurn = pokerEngineAdapter.startHand(
@@ -642,68 +675,166 @@ describe("stepTypesafeAction", () => {
 });
 
 describe("startNextHand", () => {
-  it("persists a fresh preflop hand after completion", async () => {
-    const completedState = pokerEngineAdapter.applyAction(
-      pokerEngineAdapter.startHand(
-        pokerEngineAdapter.createGame({
-          smallBlind: 50,
-          bigBlind: 100,
-          players: [
-            {
-              id: "human",
-              name: "You",
-              controller: "human",
-              seat: 0,
-              stack: 10_000,
-            },
-            {
-              id: "typesafe-ai",
-              name: "TypeSafe AI",
-              controller: "typesafe_ai",
-              seat: 1,
-              stack: 10_000,
-            },
-          ],
-        }),
-        createDeterministicDeck(),
-      ),
-      "human",
-      { type: "fold" },
-    );
-    const startNextHandWriter = vi.fn().mockResolvedValue({
-      id: "game-1",
-      status: "playing",
-      currentState: {},
-      stateSchemaVersion: 1,
-      handNumber: 2,
-      version: 2,
-    });
+  it.each(["host-token", "spectator-token", null])(
+    "starts the next hand with a private response for viewer %s",
+    async (viewerToken) => {
+      const completedState = pokerEngineAdapter.applyAction(
+        pokerEngineAdapter.startHand(
+          pokerEngineAdapter.createGame({
+            smallBlind: 50,
+            bigBlind: 100,
+            players: [
+              {
+                id: "human",
+                name: "You",
+                controller: "human",
+                seat: 0,
+                stack: 10_000,
+                playerToken: "host-token",
+                isHost: true,
+              },
+              {
+                id: "typesafe-ai",
+                name: "TypeSafe AI",
+                controller: "typesafe_ai",
+                seat: 1,
+                stack: 10_000,
+              },
+            ],
+          }),
+          createDeterministicDeck(),
+        ),
+        "human",
+        { type: "fold" },
+      );
+      const startNextHandWriter = vi.fn().mockResolvedValue({
+        id: "game-1",
+        status: "playing",
+        currentState: {},
+        stateSchemaVersion: 1,
+        handNumber: 2,
+        version: 2,
+      });
 
-    const game = await startNextHand(
+      const game = await startNextHand(
+        {
+          getGame: vi.fn().mockResolvedValue({
+            id: "game-1",
+            status: "complete",
+            currentState: completedState,
+            stateSchemaVersion: 1,
+            handNumber: 1,
+            version: 1,
+          }),
+          startNextHand: startNextHandWriter,
+        },
+        "game-1",
+        1,
+        viewerToken,
+      );
+
+      expect(game).toMatchObject({ version: 2, status: "playing" });
+      const human = game.poker.players.find((player) => player.id === "human");
+      expect(human?.playerToken).toBe(
+        viewerToken === "host-token" ? "host-token" : null,
+      );
+      expect(human?.isHost).toBe(true);
+      if (viewerToken === "host-token") {
+        expect(human?.holeCards).toHaveLength(2);
+      } else {
+        expect(human?.holeCards).toBeNull();
+        expect(game.poker.legalActions).toEqual([]);
+      }
+      expect(
+        game.poker.players.find((player) => player.id === "typesafe-ai"),
+      ).toMatchObject({
+        playerToken: null,
+        holeCards: null,
+      });
+      expect(game.poker).toMatchObject({
+        handNumber: 2,
+        street: "preflop",
+        communityCards: [],
+      });
+      expect(startNextHandWriter).toHaveBeenCalledWith(
+        expect.objectContaining({ handNumber: 2, expectedVersion: 1 }),
+      );
+    },
+  );
+});
+
+describe("startGame", () => {
+  it("preserves the host's identity and actions without exposing another player's cards or token", async () => {
+    const state = pokerEngineAdapter.createGame({
+      smallBlind: 50,
+      bigBlind: 100,
+      players: [
+        {
+          id: "host",
+          name: "Host",
+          controller: "human",
+          seat: 0,
+          stack: 10_000,
+          playerToken: "host-token",
+          isHost: true,
+        },
+        {
+          id: "guest",
+          name: "Guest",
+          controller: "human",
+          seat: 1,
+          stack: 10_000,
+          playerToken: "guest-token",
+        },
+      ],
+    });
+    const storedGame = {
+      id: "game-1",
+      status: "waiting",
+      currentState: state,
+      stateSchemaVersion: 1,
+      handNumber: 0,
+      version: 0,
+    };
+    const game = await startGame(
       {
-        getGame: vi.fn().mockResolvedValue({
-          id: "game-1",
-          status: "complete",
-          currentState: completedState,
-          stateSchemaVersion: 1,
-          handNumber: 1,
-          version: 1,
-        }),
-        startNextHand: startNextHandWriter,
+        getGame: vi.fn().mockResolvedValue(storedGame),
+        getSeatAssignments: vi.fn().mockResolvedValue(
+          state.config.players.map((player) => ({
+            gameId: "game-1",
+            seat: player.seat,
+            status: "claimed",
+            controller: player.controller,
+            playerToken: player.playerToken,
+            isHost: player.isHost ?? false,
+            enginePlayerId: player.id,
+          })),
+        ),
+        updateSeatAssignment: vi.fn(),
+        startGame: vi
+          .fn()
+          .mockResolvedValue({ ...storedGame, status: "playing", version: 1 }),
       },
       "game-1",
-      1,
+      0,
+      "host-token",
     );
 
-    expect(game).toMatchObject({ version: 2, status: "playing" });
-    expect(game.poker).toMatchObject({
-      handNumber: 2,
-      street: "preflop",
-      communityCards: [],
+    expect(
+      game.poker.players.find((player) => player.id === "host"),
+    ).toMatchObject({
+      playerToken: "host-token",
+      isHost: true,
+      holeCards: expect.arrayContaining([expect.any(String)]),
     });
-    expect(startNextHandWriter).toHaveBeenCalledWith(
-      expect.objectContaining({ handNumber: 2, expectedVersion: 1 }),
-    );
+    expect(game.poker.currentActorId).toBe("host");
+    expect(game.poker.legalActions.length).toBeGreaterThan(0);
+    expect(
+      game.poker.players.find((player) => player.id === "guest"),
+    ).toMatchObject({
+      playerToken: null,
+      holeCards: null,
+    });
   });
 });
 
