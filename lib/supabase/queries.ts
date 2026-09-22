@@ -366,7 +366,7 @@ export class SupabaseGameRepository {
       .from("game_players")
       .update({
         status: input.status,
-        controller: input.controller ?? "human",
+        controller: input.controller,
         player_token: input.playerToken ?? null,
         is_host: input.isHost ?? false,
         leaving: input.leaving ?? false,

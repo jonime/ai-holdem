@@ -22,11 +22,13 @@ function createClient(options: {
 }): {
   readonly client: GameDatabaseClient;
   readonly rpc: ReturnType<typeof vi.fn>;
+  readonly update: ReturnType<typeof vi.fn>;
 } {
   const rpc = vi.fn().mockResolvedValue({
     data: options.updateResult ?? [persistedGame],
     error: null,
   });
+  const update = vi.fn();
 
   return {
     client: {
@@ -52,22 +54,26 @@ function createClient(options: {
             }),
           }),
         }),
-        update: () => ({
-          eq: () => ({
+        update: (values) => {
+          update(values);
+          return {
             eq: () => ({
-              select: () => ({
-                single: async () => ({
-                  data: options.updateResult ?? persistedGame,
-                  error: null,
+              eq: () => ({
+                select: () => ({
+                  single: async () => ({
+                    data: options.updateResult ?? persistedGame,
+                    error: null,
+                  }),
                 }),
               }),
             }),
-          }),
-        }),
+          };
+        },
       }),
       rpc,
     },
     rpc,
+    update,
   };
 }
 
@@ -138,6 +144,26 @@ describe("SupabaseGameRepository", () => {
         },
       ],
     });
+  });
+
+  it("persists the controller when updating a bot seat", async () => {
+    const { client, update } = createClient({});
+    const repository = new SupabaseGameRepository(client);
+
+    await repository.updateSeatAssignment({
+      gameId: "game-1",
+      seat: 1,
+      status: "bot",
+      controller: "typesafe_ai",
+      enginePlayerId: "bot-game-1-1",
+    });
+
+    expect(update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "bot",
+        controller: "typesafe_ai",
+      }),
+    );
   });
 
   it("withholds AI inspection data for an active hand", async () => {
