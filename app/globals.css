@@ -387,16 +387,23 @@ aside {
   margin: 13px 0 0;
   color: #667b75;
 }
-.inspection {
-  margin-top: 15px;
-  padding-top: 12px;
-  border-top: 1px solid #cad8cf;
+.history-inspection {
+  grid-column: 1 / -1;
 }
-.inspection summary {
+.history-inspection summary {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
   cursor: pointer;
   color: #155f52;
-  font-weight: 700;
+  list-style: none;
 }
+.history-inspection summary::-webkit-details-marker { display: none; }
+.history-inspection summary::before { content: "+"; grid-row: 1 / span 2; align-self: center; color: #0b7563; font-weight: 700; }
+.history-inspection[open] summary::before { content: "-"; }
+.history-inspection summary span { grid-column: 1; padding-left: 15px; }
+.history-inspection summary b { grid-column: 2; }
+.history-inspection summary small { grid-column: 1 / -1; padding-left: 15px; }
 .inspection-entry {
   margin-top: 12px;
 }

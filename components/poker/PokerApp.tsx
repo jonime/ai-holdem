@@ -220,48 +220,58 @@ function ActionHistory({ history }: { readonly history: HandHistory | null }) {
         <p className="empty-history">No actions yet.</p>
       ) : (
         <ol className="history-list">
-          {history.actions.map((action) => (
-            <li
-              key={action.sequence}
-              className={
-                action.controller === "typesafe_ai" ? "ai-history" : ""
-              }
-            >
-              <span>{action.player}</span>
-              <b>
-                {action.action}
-                {action.amount !== null ? ` ${formatChips(action.amount)}` : ""}
-              </b>
-              <small>{action.street}</small>
-            </li>
-          ))}
+          {history.actions.map((action) => {
+            const inspection =
+              action.controller === "typesafe_ai"
+                ? history.aiDecisions.find(
+                    (decision) => decision.actionSequence === action.sequence,
+                  )
+                : undefined;
+            const actionLabel = `${action.action}${action.amount !== null ? ` ${formatChips(action.amount)}` : ""}`;
+
+            return (
+              <li
+                key={action.sequence}
+                className={action.controller === "typesafe_ai" ? "ai-history" : ""}
+              >
+                {inspection ? (
+                  <details className="history-inspection">
+                    <summary>
+                      <span>{action.player}</span>
+                      <b>{actionLabel}</b>
+                      <small>{action.street}</small>
+                    </summary>
+                    <div className="inspection-entry">
+                      <strong>
+                        {inspection.choice.toUpperCase()} /{" "}
+                        {Math.round(inspection.confidence * 100)}%
+                      </strong>
+                      <pre>
+                        {JSON.stringify(
+                          {
+                            state: inspection.state,
+                            legalActions: inspection.legalActions,
+                            probabilities: inspection.probabilities,
+                            rawResponse: inspection.rawResponse,
+                          },
+                          null,
+                          2,
+                        )}
+                      </pre>
+                    </div>
+                  </details>
+                ) : (
+                  <>
+                    <span>{action.player}</span>
+                    <b>{actionLabel}</b>
+                    <small>{action.street}</small>
+                  </>
+                )}
+              </li>
+            );
+          })}
         </ol>
       )}
-      {history.status === "complete" && history.aiDecisions.length > 0 ? (
-        <details className="inspection">
-          <summary>Inspect TypeSafe input and result</summary>
-          {history.aiDecisions.map((decision) => (
-            <div key={decision.actionSequence} className="inspection-entry">
-              <strong>
-                {decision.choice.toUpperCase()} /{" "}
-                {Math.round(decision.confidence * 100)}%
-              </strong>
-              <pre>
-                {JSON.stringify(
-                  {
-                    state: decision.state,
-                    legalActions: decision.legalActions,
-                    probabilities: decision.probabilities,
-                    rawResponse: decision.rawResponse,
-                  },
-                  null,
-                  2,
-                )}
-              </pre>
-            </div>
-          ))}
-        </details>
-      ) : null}
     </section>
   );
 }
@@ -473,6 +483,19 @@ export default function PokerApp() {
     history && history.handNumber === game?.poker.handNumber
       ? history.value
       : null;
+  const winnerNames = game?.poker.winnerIds
+    .map(
+      (winnerId) => game.poker.players.find((player) => player.id === winnerId)?.name,
+    )
+    .filter((name): name is string => Boolean(name));
+  const handResult =
+    game?.poker.street === "complete"
+      ? winnerNames && winnerNames.length > 1
+        ? `Split pot: ${winnerNames.join(" & ")}`
+        : winnerNames?.[0]
+          ? `Winner: ${winnerNames[0]}`
+          : "Hand complete"
+      : null;
 
   return (
     <main className="poker-app">
@@ -528,9 +551,7 @@ export default function PokerApp() {
                   ))}
                 </div>
                 {game.poker.street === "complete" ? (
-                  <p className="hand-result">
-                    Hand complete: {game.poker.completionReason}
-                  </p>
+                  <p className="hand-result">{handResult}</p>
                 ) : null}
               </div>
               <Seat player={human} active={isHumanTurn} />
