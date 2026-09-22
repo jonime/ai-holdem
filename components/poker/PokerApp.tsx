@@ -219,17 +219,28 @@ function Seat({
   );
 }
 
-function DecisionPanel({ decision }: { readonly decision: AIDecision }) {
+function parseProbabilities(value: unknown): Readonly<Record<string, number>> {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).filter(
+      (entry): entry is [string, number] => typeof entry[1] === "number",
+    ),
+  );
+}
+
+function DecisionSummary({
+  probabilities,
+  confidence,
+}: {
+  readonly probabilities: Readonly<Record<string, number>>;
+  readonly confidence: number;
+}) {
   return (
-    <section className="decision-panel">
-      <div className="panel-kicker">TYPE SAFE SYSTEM ONE</div>
-      <h2>Latest Decision</h2>
-      <div className="selected-decision">
-        {decision.action.toUpperCase()}
-        {decision.amount !== null ? ` ${formatChips(decision.amount)}` : ""}
-      </div>
-      <div className="probability-list">
-        {Object.entries(decision.probabilities).map(([choice, probability]) => (
+    <div className="decision-summary">
+      <div className="probability-list compact">
+        {Object.entries(probabilities).map(([choice, probability]) => (
           <div className="probability" key={choice}>
             <span>{choice}</span>
             <div className="probability-track">
@@ -239,10 +250,10 @@ function DecisionPanel({ decision }: { readonly decision: AIDecision }) {
           </div>
         ))}
       </div>
-      <div className="confidence">
-        Confidence <strong>{Math.round(decision.confidence * 100)}%</strong>
-      </div>
-    </section>
+      <span className="confidence-chip">
+        Confidence {Math.round(confidence * 100)}%
+      </span>
+    </div>
   );
 }
 
@@ -251,11 +262,13 @@ function ActionHistory({
   handNumber,
   availableHands,
   onSelectHand,
+  liveDecisions,
 }: {
   readonly history: HandHistory | null;
   readonly handNumber: number;
   readonly availableHands: readonly number[];
   readonly onSelectHand: (handNumber: number) => void;
+  readonly liveDecisions: readonly AIDecision[];
 }) {
   if (!history) {
     return (
@@ -264,6 +277,16 @@ function ActionHistory({
       </section>
     );
   }
+
+  const aiActionSequences = history.actions
+    .filter((action) => action.controller === "typesafe_ai")
+    .map((action) => action.sequence);
+  const liveDecisionBySequence = new Map(
+    aiActionSequences.map((sequence, index) => [
+      sequence,
+      liveDecisions[index],
+    ]),
+  );
 
   return (
     <section className="history-panel">
@@ -291,6 +314,10 @@ function ActionHistory({
                     (decision) => decision.actionSequence === action.sequence,
                   )
                 : undefined;
+            const liveDecision =
+              action.controller === "typesafe_ai" && !inspection
+                ? liveDecisionBySequence.get(action.sequence)
+                : undefined;
             const actionLabel = `${action.action}${action.amount !== null ? ` ${formatChips(action.amount)}` : ""}`;
 
             return (
@@ -300,39 +327,43 @@ function ActionHistory({
                   action.controller === "typesafe_ai" ? "ai-history" : ""
                 }
               >
+                <span>{action.player}</span>
+                <b>{actionLabel}</b>
+                <small>{action.street}</small>
                 {inspection ? (
-                  <details className="history-inspection">
-                    <summary>
-                      <span>{action.player}</span>
-                      <b>{actionLabel}</b>
-                      <small>{action.street}</small>
-                    </summary>
-                    <div className="inspection-entry">
-                      <strong>
-                        {inspection.choice.toUpperCase()} /{" "}
-                        {Math.round(inspection.confidence * 100)}%
-                      </strong>
-                      <pre>
-                        {JSON.stringify(
-                          {
-                            state: inspection.state,
-                            legalActions: inspection.legalActions,
-                            probabilities: inspection.probabilities,
-                            rawResponse: inspection.rawResponse,
-                          },
-                          null,
-                          2,
-                        )}
-                      </pre>
-                    </div>
-                  </details>
-                ) : (
                   <>
-                    <span>{action.player}</span>
-                    <b>{actionLabel}</b>
-                    <small>{action.street}</small>
+                    <DecisionSummary
+                      probabilities={parseProbabilities(
+                        inspection.probabilities,
+                      )}
+                      confidence={inspection.confidence}
+                    />
+                    <details className="history-inspection">
+                      <summary>Raw decision data</summary>
+                      <div className="inspection-entry">
+                        <pre>
+                          {JSON.stringify(
+                            {
+                              state: inspection.state,
+                              legalActions: inspection.legalActions,
+                              probabilities: inspection.probabilities,
+                              rawResponse: inspection.rawResponse,
+                            },
+                            null,
+                            2,
+                          )}
+                        </pre>
+                      </div>
+                    </details>
                   </>
-                )}
+                ) : liveDecision ? (
+                  <DecisionSummary
+                    probabilities={parseProbabilities(
+                      liveDecision.probabilities,
+                    )}
+                    confidence={liveDecision.confidence}
+                  />
+                ) : null}
               </li>
             );
           })}
@@ -363,7 +394,7 @@ function getClientPlayerToken(): string | null {
 
 export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const [game, setGame] = useState<Game | null>(null);
-  const [decision, setDecision] = useState<AIDecision | null>(null);
+  const [liveDecisions, setLiveDecisions] = useState<readonly AIDecision[]>([]);
   const [history, setHistory] = useState<{
     readonly handNumber: number;
     readonly value: HandHistory;
@@ -455,7 +486,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   async function createGame() {
     setLoading(true);
     setError(null);
-    setDecision(null);
+    setLiveDecisions([]);
     setSelectedHistoryHand(null);
     try {
       const body = await requestJson<{ gameId: string }>("/api/games", {
@@ -575,7 +606,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
       );
       current = body.game;
       setGame(current);
-      setDecision(body.aiDecision);
+      setLiveDecisions((previous) => [...previous, body.aiDecision]);
     }
   }
 
@@ -640,7 +671,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     if (!game) return;
     setLoading(true);
     setError(null);
-    setDecision(null);
+    setLiveDecisions([]);
     setSelectedHistoryHand(null);
     try {
       const body = await requestJson<{ game: Game }>(
@@ -1015,11 +1046,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               )}
             </section>
           </section>
-          {decision ? (
-            <aside>
-              <DecisionPanel decision={decision} />
-            </aside>
-          ) : null}
           {historyOpen && displayedHistoryHand ? (
             <div
               className="history-modal"
@@ -1045,6 +1071,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                   handNumber={displayedHistoryHand}
                   history={currentHistory}
                   onSelectHand={setSelectedHistoryHand}
+                  liveDecisions={
+                    displayedHistoryHand === game?.poker.handNumber
+                      ? liveDecisions
+                      : []
+                  }
                 />
               </div>
             </div>
