@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GitFork } from "lucide-react";
+import { FaGithub } from "react-icons/fa";
 
 type LegalAction =
   | { type: "fold" }
@@ -548,7 +548,7 @@ export default function PokerApp() {
             aria-label="Open the GitHub repository"
             title="Open the GitHub repository"
           >
-            <GitFork aria-hidden="true" size={20} strokeWidth={1.8} />
+            <FaGithub aria-hidden="true" size={20} />
           </a>
           <button
             className="new-game"
