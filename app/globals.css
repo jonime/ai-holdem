@@ -147,6 +147,24 @@ h2 {
   color: #56716b;
   font-size: 17px;
 }
+.home-attribution {
+  max-width: 1220px;
+  margin: 22px auto 0;
+  color: #56716b;
+  text-align: center;
+}
+.home-attribution p {
+  margin: 0;
+  font-size: 15px;
+}
+.home-attribution a {
+  color: var(--felt-dark);
+  font-weight: 700;
+}
+.home-attribution a:hover,
+.home-attribution a:focus-visible {
+  color: var(--coral);
+}
 .error-banner {
   max-width: 1220px;
   margin: 0 auto 18px;

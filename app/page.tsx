@@ -70,6 +70,15 @@ export default function Home() {
           New Game
         </button>
       </section>
+      <section className="home-attribution" aria-label="About the bots">
+        <p>
+          The bots at this table use{" "}
+          <a href="https://typesafe.ai/" target="_blank" rel="noreferrer">
+            TypeSafe
+          </a>{" "}
+          for their poker decisions.
+        </p>
+      </section>
     </main>
   );
 }
