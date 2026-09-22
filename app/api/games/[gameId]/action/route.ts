@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
 import { GameNotFoundError, submitHumanAction } from "@/lib/poker/game-service";
 import { HumanActionError } from "@/lib/poker/human-actions";
 import type { PokerAction } from "@/lib/poker/types";
@@ -64,7 +65,7 @@ export async function POST(request: Request, context: ActionRouteContext) {
       gameId,
       {
         expectedVersion,
-        playerId: "human",
+        playerId: getOrCreatePlayerToken(request),
         action,
       },
     );

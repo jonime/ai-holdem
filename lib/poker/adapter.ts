@@ -18,6 +18,7 @@ import {
   type GameConfig,
   type LegalAction,
   type PokerAction,
+  type PokerPlayerConfig,
   type PokerGameSnapshot,
   type PokerGameState,
   type PublicPokerGame,
@@ -146,10 +147,8 @@ export function createDeterministicDeck(
 
 export const pokerEngineAdapter = {
   createGame(config: GameConfig): PokerGameState {
-    if (config.players.length < 2) {
-      throw new PokerRuleError(
-        "A Texas Hold'em game requires at least two players",
-      );
+    if (config.players.length < 1) {
+      throw new PokerRuleError("A poker table requires at least one player");
     }
 
     const configuredSeatCount =
@@ -173,6 +172,38 @@ export const pokerEngineAdapter = {
     }
 
     return withEngineState(config, table);
+  },
+
+  seatPlayer(state: PokerGameState, player: PokerPlayerConfig): PokerGameState {
+    const table = transitionOrThrow(engineStateFrom(state), {
+      type: "seat-player",
+      playerId: player.id,
+      stack: player.stack,
+      seat: player.seat,
+    });
+    return withEngineState(
+      {
+        ...state.config,
+        players: [...state.config.players, player],
+      },
+      table,
+    );
+  },
+
+  removePlayer(state: PokerGameState, playerId: string): PokerGameState {
+    const table = transitionOrThrow(engineStateFrom(state), {
+      type: "leave-player",
+      playerId,
+    });
+    return withEngineState(
+      {
+        ...state.config,
+        players: state.config.players.filter(
+          (player) => player.id !== playerId,
+        ),
+      },
+      table,
+    );
   },
 
   startHand(
@@ -260,6 +291,10 @@ export const pokerEngineAdapter = {
       kind: effectiveViewerId === null ? "spectator" : "player",
       playerId: effectiveViewerId ?? "",
     });
+    const projectedPlayers = new Map(
+      projectedTable.hand?.players.map((player) => [player.playerId, player]) ??
+        [],
+    );
     const snapshot = this.snapshot(state);
 
     const seatCount =
@@ -274,40 +309,34 @@ export const pokerEngineAdapter = {
         snapshot.currentActorId === effectiveViewerId
           ? this.getLegalActions(state)
           : [],
-      players:
-        projectedTable.hand?.players.map((player) => {
-          const config = state.config.players.find(
-            (candidate) => candidate.id === player.playerId,
-          );
-          const seat = table.seats[player.seat];
+      players: state.config.players.map((config) => {
+        const player = projectedPlayers.get(config.id);
+        const seat = table.seats[config.seat];
 
-          if (!config || !seat) {
-            throw new PokerRuleError(
-              "Engine player is missing game configuration",
-            );
-          }
+        const isViewer =
+          effectiveViewerId !== null && config.id === effectiveViewerId;
 
-          const isViewer =
-            effectiveViewerId !== null && player.playerId === effectiveViewerId;
-
-          return {
-            id: player.playerId,
-            name: config.name,
-            controller: config.controller,
-            seat: player.seat,
-            status:
-              config.status ??
-              (config.controller === "typesafe_ai" ? "bot" : "claimed"),
-            playerToken: config.playerToken ?? null,
-            isHost: config.isHost ?? false,
-            stack: seat.stack,
-            folded: player.folded,
-            allIn: player.allIn,
-            holeCards: isViewer
+        return {
+          id: config.id,
+          name: config.name,
+          controller: config.controller,
+          seat: config.seat,
+          status:
+            config.status ??
+            (config.controller === "typesafe_ai" ? "bot" : "claimed"),
+          playerToken: isViewer ? (config.playerToken ?? null) : null,
+          isHost: config.isHost ?? false,
+          leaving: config.leaving ?? false,
+          inHand: player !== undefined,
+          stack: seat?.stack ?? config.stack,
+          folded: player?.folded ?? false,
+          allIn: player?.allIn ?? false,
+          holeCards:
+            isViewer && player
               ? (player.holeCards?.map(cardToString) ?? null)
               : null,
-          };
-        }) ?? [],
+        };
+      }),
     };
   },
 

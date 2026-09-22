@@ -23,6 +23,10 @@ interface Player {
   readonly folded: boolean;
   readonly allIn: boolean;
   readonly holeCards: readonly string[] | null;
+  readonly status: "open" | "claimed" | "bot";
+  readonly isHost: boolean;
+  readonly leaving: boolean;
+  readonly inHand: boolean;
 }
 
 interface PokerGame {
@@ -35,6 +39,7 @@ interface PokerGame {
   readonly winnerIds: readonly string[];
   readonly legalActions: readonly LegalAction[];
   readonly players: readonly Player[];
+  readonly seatCount: number;
 }
 
 interface Game {
@@ -145,7 +150,9 @@ function Seat({
       className={`seat ${isAi ? "ai-seat" : "human-seat"} ${active ? "active-seat" : ""}`}
     >
       <div className="seat-heading">
-        <span className="seat-label">{isAi ? "TYPESAFE AI" : "YOU"}</span>
+        <span className="seat-label">
+          {isAi ? "TYPESAFE AI" : player.name.toUpperCase()}
+        </span>
         {active ? (
           <span className="turn-dot" aria-label="Current turn" />
         ) : null}
@@ -162,13 +169,17 @@ function Seat({
         )}
       </div>
       <span className="seat-status">
-        {player.folded
-          ? "Folded"
-          : player.allIn
-            ? "All-in"
-            : active
-              ? "Thinking"
-              : "In hand"}
+        {player.leaving
+          ? "Leaving after this hand"
+          : !player.inHand
+            ? "Waiting for next hand"
+            : player.folded
+              ? "Folded"
+              : player.allIn
+                ? "All-in"
+                : active
+                  ? "Thinking"
+                  : "In hand"}
       </span>
     </section>
   );
@@ -435,13 +446,71 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     }
   }
 
+  async function postSeatAction(path: string) {
+    if (!game) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await requestJson(path, { method: "POST" });
+      await loadGame(game.id);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Seat update failed",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function claimFirstOpenSeat() {
+    const openSeat = game?.poker.players.find(
+      (player) => player.status === "open",
+    );
+    if (openSeat) {
+      await postSeatAction(
+        `/api/games/${game?.id}/seats/${openSeat.seat}/claim`,
+      );
+    }
+  }
+
+  async function startWaitingGame() {
+    if (!game) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const body = await requestJson<{ game: Game }>(
+        `/api/games/${game.id}/start`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expectedVersion: game.version }),
+        },
+      );
+      setGame(body.game);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to start game",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function advanceAiTurns(nextGame: Game) {
     let current = nextGame;
     for (
       let attempts = 0;
-      attempts < 4 &&
+      attempts < 12 &&
       current.status === "playing" &&
-      current.poker.currentActorId === "typesafe-ai";
+      current.poker.players.some(
+        (player) =>
+          player.id === current.poker.currentActorId &&
+          player.controller === "typesafe_ai",
+      );
       attempts += 1
     ) {
       const body = await requestJson<{ game: Game; aiDecision: AIDecision }>(
@@ -550,9 +619,9 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
       ? viewerPlayer
       : (game?.poker.players.find((player) => player.controller === "human") ??
         null);
-  const ai =
-    game?.poker.players.find((player) => player.controller === "typesafe_ai") ??
-    null;
+  const currentActor = game?.poker.players.find(
+    (player) => player.id === game.poker.currentActorId,
+  );
   const sizedAction = game?.poker.legalActions.find(
     (action) => action.type === "bet" || action.type === "raise",
   );
@@ -615,12 +684,117 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           {error}
         </p>
       ) : null}
-      {!game || !human || !ai ? (
+      {!game ? (
         <section className="empty-state">
           <p>Start a heads-up hand against TypeSafe AI.</p>
           <button onClick={() => void createGame()} disabled={loading}>
             {loading ? "Preparing table" : "Deal a hand"}
           </button>
+        </section>
+      ) : game.status === "waiting" ? (
+        <section className="lobby-panel">
+          <div className="panel-kicker">WAITING ROOM</div>
+          <h2>Choose your table</h2>
+          <p>Fill at least two seats, then start the hand.</p>
+          <div className="lobby-seats">
+            {Array.from({ length: game.poker.seatCount }, (_, seat) => {
+              const player = game.poker.players.find(
+                (entry) => entry.seat === seat,
+              );
+              const canManage =
+                !game.poker.players.some((entry) => entry.isHost) ||
+                game.poker.players.some(
+                  (entry) => entry.isHost && entry.playerToken === viewerToken,
+                );
+              return (
+                <article
+                  className={`lobby-seat ${player?.status ?? "open"}`}
+                  key={seat}
+                >
+                  <span className="seat-label">SEAT {seat + 1}</span>
+                  <strong>{player?.name ?? "Open seat"}</strong>
+                  <span>
+                    {player?.status === "bot"
+                      ? "TypeSafe AI"
+                      : player?.status === "claimed"
+                        ? "Human"
+                        : "Available"}
+                  </span>
+                  {player?.status === "open" ? (
+                    <div className="lobby-actions">
+                      <button
+                        type="button"
+                        disabled={loading}
+                        onClick={() =>
+                          void postSeatAction(
+                            `/api/games/${game.id}/seats/${seat}/claim`,
+                          )
+                        }
+                      >
+                        Sit here
+                      </button>
+                      {canManage ? (
+                        <button
+                          type="button"
+                          disabled={loading}
+                          onClick={() =>
+                            void postSeatAction(
+                              `/api/games/${game.id}/seats/${seat}/assign-bot`,
+                            )
+                          }
+                        >
+                          Assign bot
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {player?.playerToken === viewerToken &&
+                  player.status === "claimed" ? (
+                    <button
+                      type="button"
+                      disabled={loading}
+                      onClick={() =>
+                        void postSeatAction(
+                          `/api/games/${game.id}/seats/${seat}/release`,
+                        )
+                      }
+                    >
+                      Stand up
+                    </button>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+          {(() => {
+            const filled = game.poker.players.filter(
+              (player) =>
+                player.status === "claimed" || player.status === "bot",
+            ).length;
+            const canManage =
+              !game.poker.players.some((player) => player.isHost) ||
+              game.poker.players.some(
+                (player) => player.isHost && player.playerToken === viewerToken,
+              );
+            return (
+              <div className="lobby-footer">
+                <button
+                  type="button"
+                  disabled={!canManage || filled < 2 || loading}
+                  onClick={() => void startWaitingGame()}
+                >
+                  Start hand
+                </button>
+                {!canManage ? (
+                  <span>Waiting for the host to start.</span>
+                ) : null}
+              </div>
+            );
+          })()}
+        </section>
+      ) : !human ? (
+        <section className="empty-state">
+          <p>This table is waiting for a playable seat.</p>
         </section>
       ) : (
         <div className="game-layout">
@@ -630,7 +804,15 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               <span>{game.poker.street?.toUpperCase() ?? "WAITING"}</span>
             </div>
             <div className="felt">
-              <Seat player={ai} active={game.poker.currentActorId === ai.id} />
+              {game.poker.players
+                .filter((player) => player.id !== human.id)
+                .map((player) => (
+                  <Seat
+                    key={player.id}
+                    player={player}
+                    active={game.poker.currentActorId === player.id}
+                  />
+                ))}
               <div className="center-table">
                 <div className="pot">
                   POT <strong>{formatChips(game.poker.pot)}</strong>
@@ -660,18 +842,48 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                   ? "Spectating"
                   : isHumanTurn
                     ? "Your legal actions"
-                    : game.poker.currentActorId === "typesafe-ai"
+                    : currentActor?.controller === "typesafe_ai"
                       ? "TypeSafe AI is deciding"
                       : "Hand complete"}
               </div>
               {isSpectator ? (
                 <div className="action-controls">
-                  <button type="button" disabled={loading}>
-                    {loading ? "Preparing" : "Sit here"}
+                  <button
+                    type="button"
+                    disabled={
+                      loading ||
+                      !game.poker.players.some(
+                        (player) => player.status === "open",
+                      )
+                    }
+                    onClick={() => void claimFirstOpenSeat()}
+                  >
+                    {loading
+                      ? "Claiming seat"
+                      : game.poker.players.some(
+                            (player) => player.status === "open",
+                          )
+                        ? "Sit in an open seat"
+                        : "No open seats"}
                   </button>
                 </div>
               ) : (
                 <>
+                  {human.playerToken === viewerToken ? (
+                    <div className="action-controls">
+                      <button
+                        type="button"
+                        disabled={loading || human.leaving}
+                        onClick={() =>
+                          void postSeatAction(
+                            `/api/games/${game.id}/seats/${human.seat}/release`,
+                          )
+                        }
+                      >
+                        {human.leaving ? "Leaving after this hand" : "Stand up"}
+                      </button>
+                    </div>
+                  ) : null}
                   <div className="action-controls">
                     {game.poker.legalActions.map((action) => (
                       <button
@@ -687,7 +899,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                               action.type.slice(1)}
                       </button>
                     ))}
-                    {game.poker.currentActorId === "typesafe-ai" ? (
+                    {currentActor?.controller === "typesafe_ai" ? (
                       <button
                         disabled={loading}
                         onClick={() => void continueAiTurn()}

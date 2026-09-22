@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
+import {
+  getOrCreatePlayerToken,
+  setPlayerTokenCookie,
+} from "@/lib/identity/player-token";
 import { claimSeat } from "@/lib/poker/game-service";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { publishSeatEvent } from "@/lib/realtime/publish";
@@ -29,7 +32,9 @@ export async function POST(request: Request, context: ClaimSeatRouteContext) {
       playerToken,
     );
     void publishSeatEvent(gameId, "seat_claimed", assignment);
-    return NextResponse.json({ seat: assignment }, { status: 200 });
+    const result = NextResponse.json({ seat: assignment }, { status: 200 });
+    setPlayerTokenCookie(result, playerToken);
+    return result;
   } catch (error) {
     if (error instanceof Error && error.message === "Seat is not open") {
       return NextResponse.json({ error: error.message }, { status: 409 });

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
+import {
+  getOrCreatePlayerToken,
+  setPlayerTokenCookie,
+} from "@/lib/identity/player-token";
 import { getPublicGame } from "@/lib/poker/game-service";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
@@ -21,7 +24,7 @@ export async function GET(request: Request, context: GameRouteContext) {
       playerToken,
     );
     const response = NextResponse.json({ game });
-    getOrCreatePlayerToken(request, response);
+    setPlayerTokenCookie(response, playerToken);
     return response;
   } catch (error) {
     if (error instanceof Error && error.name === "GameNotFoundError") {
@@ -29,7 +32,7 @@ export async function GET(request: Request, context: GameRouteContext) {
         { error: "Game not found" },
         { status: 404 },
       );
-      getOrCreatePlayerToken(request, response);
+      setPlayerTokenCookie(response, playerToken);
       return response;
     }
 
@@ -38,7 +41,7 @@ export async function GET(request: Request, context: GameRouteContext) {
       { error: "Unable to load game" },
       { status: 500 },
     );
-    getOrCreatePlayerToken(request, response);
+    setPlayerTokenCookie(response, playerToken);
     return response;
   }
 }

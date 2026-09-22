@@ -10,6 +10,7 @@ export interface PokerPlayerConfig {
   readonly status?: SeatStatus;
   readonly playerToken?: string | null;
   readonly isHost?: boolean;
+  readonly leaving?: boolean;
 }
 
 export interface GameConfig {
@@ -67,6 +68,8 @@ export interface PublicPokerPlayer {
   readonly status: SeatStatus;
   readonly playerToken: string | null;
   readonly isHost: boolean;
+  readonly leaving: boolean;
+  readonly inHand: boolean;
   readonly stack: number;
   readonly folded: boolean;
   readonly allIn: boolean;

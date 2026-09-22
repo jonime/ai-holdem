@@ -60,11 +60,13 @@ export interface GamePlayerSeatAssignment {
   readonly controller: "human" | "typesafe_ai";
   readonly playerToken: string | null;
   readonly isHost: boolean;
+  readonly leaving: boolean;
+  readonly enginePlayerId: string | null;
 }
 
 export interface CreateGameSessionInput extends CreateGameInput {
   readonly players: readonly {
-    readonly enginePlayerId: string;
+    readonly enginePlayerId: string | null;
     readonly seat: number;
     readonly name: string;
     readonly controller: "human" | "typesafe_ai";
@@ -72,6 +74,7 @@ export interface CreateGameSessionInput extends CreateGameInput {
     readonly status?: SeatStatus;
     readonly playerToken?: string | null;
     readonly isHost?: boolean;
+    readonly leaving?: boolean;
   }[];
 }
 
@@ -112,6 +115,10 @@ interface MaybeSingleQueryResult extends DatabaseResult {
   readonly error: { readonly message: string } | null;
 }
 
+interface FilteredQueryResult extends PromiseLike<DatabaseResult> {
+  maybeSingle(): PromiseLike<MaybeSingleQueryResult>;
+}
+
 export interface GameDatabaseClient {
   from(table: "games" | "game_players"): {
     insert(values: Record<string, unknown>): {
@@ -120,12 +127,7 @@ export interface GameDatabaseClient {
       };
     };
     select(): {
-      eq(
-        column: string,
-        value: string | number,
-      ): {
-        maybeSingle(): PromiseLike<MaybeSingleQueryResult>;
-      };
+      eq(column: string, value: string | number): FilteredQueryResult;
     };
     update(values: Record<string, unknown>): {
       eq(
@@ -150,6 +152,7 @@ export interface GameDatabaseClient {
       | "create_game_session"
       | "get_hand_history"
       | "start_next_hand_if_version"
+      | "start_game_if_version"
       | "update_game_state_if_version",
     arguments_: Record<string, unknown>,
   ): PromiseLike<DatabaseResult>;
@@ -307,8 +310,7 @@ export class SupabaseGameRepository {
     const result = await this.client
       .from("game_players")
       .select()
-      .eq("game_id", gameId)
-      .maybeSingle();
+      .eq("game_id", gameId);
 
     if (result.error) {
       throw new Error(
@@ -341,6 +343,11 @@ export class SupabaseGameRepository {
         playerToken:
           typeof row.player_token === "string" ? row.player_token : null,
         isHost: Boolean(row.is_host),
+        leaving: Boolean(row.leaving),
+        enginePlayerId:
+          typeof row.engine_player_id === "string"
+            ? row.engine_player_id
+            : null,
       } satisfies GamePlayerSeatAssignment;
     });
   }
@@ -352,6 +359,8 @@ export class SupabaseGameRepository {
     readonly controller?: "human" | "typesafe_ai";
     readonly playerToken?: string | null;
     readonly isHost?: boolean;
+    readonly leaving?: boolean;
+    readonly enginePlayerId?: string | null;
   }): Promise<void> {
     const { error } = await this.client
       .from("game_players")
@@ -360,6 +369,8 @@ export class SupabaseGameRepository {
         controller: input.controller ?? "human",
         player_token: input.playerToken ?? null,
         is_host: input.isHost ?? false,
+        leaving: input.leaving ?? false,
+        engine_player_id: input.enginePlayerId,
       })
       .eq("game_id", input.gameId)
       .eq("seat", input.seat)
@@ -415,6 +426,9 @@ export class SupabaseGameRepository {
         }
         if (player.isHost !== undefined) {
           row.is_host = player.isHost;
+        }
+        if (player.leaving !== undefined) {
+          row.leaving = player.leaving;
         }
 
         return row;
@@ -506,6 +520,24 @@ export class SupabaseGameRepository {
       throw new GameConflictError(input.gameId, input.expectedVersion);
     }
 
+    return toPersistedGame(data[0]);
+  }
+
+  async startGame(input: StartNextHandInput): Promise<PersistedGame> {
+    const { data, error } = await this.client.rpc("start_game_if_version", {
+      p_game_id: input.gameId,
+      p_expected_version: input.expectedVersion,
+      p_current_state: input.currentState,
+      p_hand_number: input.handNumber,
+      p_state_schema_version: input.stateSchemaVersion,
+    });
+
+    if (error) {
+      throw new Error(`Unable to start game: ${error.message}`);
+    }
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new GameConflictError(input.gameId, input.expectedVersion);
+    }
     return toPersistedGame(data[0]);
   }
 

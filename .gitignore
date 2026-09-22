@@ -2,6 +2,8 @@
 !.env.example
 node_modules
 .next
+.next-e2e
+test-results
 *.tsbuildinfo
 next-env.d.ts
 supabase/.branches/

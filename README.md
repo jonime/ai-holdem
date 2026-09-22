@@ -60,6 +60,19 @@ npm test
 npm run build
 ```
 
+### Local Supabase E2E
+
+Start the local Supabase stack with `supabase start`, then run:
+
+```sh
+npm run test:e2e
+```
+
+The Playwright setup reads credentials from `supabase status`, resets only the
+local database, applies every migration, starts Next on an isolated port, and
+runs the browser flow against that local database. It never uses the remote
+values from `.env`.
+
 ## Deploy To Vercel
 
 1. Import the existing Git repository in Vercel.

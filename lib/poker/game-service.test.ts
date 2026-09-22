@@ -19,10 +19,10 @@ import type {
 import type { SystemOneRequest } from "@/lib/typesafe/types";
 
 describe("createDemoGame", () => {
-  it("creates and persists a shuffled heads-up starting hand", async () => {
+  it("creates and persists a waiting lobby with the host seated", async () => {
     const createGameSession = vi.fn().mockResolvedValue({
       id: "game-1",
-      status: "playing",
+      status: "waiting",
       currentState: {},
       stateSchemaVersion: 1,
       handNumber: 1,
@@ -33,32 +33,33 @@ describe("createDemoGame", () => {
 
     expect(game).toMatchObject({ gameId: "game-1", version: 0 });
     expect(pokerEngineAdapter.snapshot(game.state)).toMatchObject({
-      handNumber: 1,
-      street: "preflop",
-      currentActorId: "human",
+      handNumber: 0,
+      street: null,
+      currentActorId: null,
     });
     expect(createGameSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        handNumber: 1,
-        status: "playing",
+        handNumber: 0,
+        status: "waiting",
         players: expect.arrayContaining([
           expect.objectContaining({
             enginePlayerId: "human",
             controller: "human",
           }),
           expect.objectContaining({
-            enginePlayerId: "typesafe-ai",
-            controller: "typesafe_ai",
+            enginePlayerId: null,
+            seat: 1,
+            status: "open",
           }),
         ]),
       }),
     );
   });
 
-  it("supports custom seat counts while preserving the default host and bot setup", async () => {
+  it("supports custom seat counts with open placeholder seats", async () => {
     const createGameSession = vi.fn().mockResolvedValue({
       id: "game-1",
-      status: "playing",
+      status: "waiting",
       currentState: {},
       stateSchemaVersion: 1,
       handNumber: 1,
@@ -81,9 +82,9 @@ describe("createDemoGame", () => {
             isHost: true,
           }),
           expect.objectContaining({
-            enginePlayerId: "typesafe-ai",
+            enginePlayerId: null,
             seat: 1,
-            status: "bot",
+            status: "open",
           }),
         ]),
       }),
@@ -170,7 +171,7 @@ describe("getPublicGame", () => {
 });
 
 describe("startNextHand", () => {
-  it("rejects starting a next hand when an open seat remains unfilled", async () => {
+  it("starts a next hand with the currently filled seats", async () => {
     const completedState = pokerEngineAdapter.applyAction(
       pokerEngineAdapter.startHand(
         pokerEngineAdapter.createGame({
@@ -200,6 +201,14 @@ describe("startNextHand", () => {
       { type: "fold" },
     );
 
+    const startNextHandWriter = vi.fn().mockResolvedValue({
+      id: "game-1",
+      status: "playing",
+      currentState: {},
+      stateSchemaVersion: 1,
+      handNumber: 2,
+      version: 2,
+    });
     await expect(
       startNextHand(
         {
@@ -211,12 +220,12 @@ describe("startNextHand", () => {
             handNumber: 1,
             version: 1,
           }),
-          startNextHand: vi.fn(),
+          startNextHand: startNextHandWriter,
         },
         "game-1",
         1,
       ),
-    ).rejects.toThrow("Waiting for players");
+    ).resolves.toMatchObject({ status: "playing" });
   });
 });
 

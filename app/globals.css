@@ -491,6 +491,83 @@ aside {
   box-shadow: 7px 8px 0 rgba(32, 78, 67, 0.16);
   font-size: 20px;
 }
+.seat-count-picker {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #526560;
+  font:
+    700 12px/1 ui-monospace,
+    Menlo,
+    monospace;
+  text-transform: uppercase;
+}
+.seat-count-picker select {
+  border: 1px solid #8eaaa0;
+  border-radius: 3px;
+  padding: 8px;
+  background: #fffef9;
+}
+.lobby-panel {
+  max-width: 900px;
+  margin: 8vh auto;
+  padding: 28px;
+  border: 1px solid #a8c1b4;
+  background: #f8f7f0;
+  box-shadow: 7px 8px 0 rgba(32, 78, 67, 0.16);
+}
+.lobby-panel > p {
+  color: #526560;
+}
+.lobby-seats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin: 24px 0;
+}
+.lobby-seat {
+  display: grid;
+  gap: 7px;
+  min-height: 125px;
+  padding: 14px;
+  border: 1px solid #b9cbc0;
+  background: #eef2e9;
+}
+.lobby-seat.claimed {
+  border-color: #d99c45;
+}
+.lobby-seat.bot {
+  border-color: #4e9680;
+}
+.lobby-seat > span:not(.seat-label) {
+  color: #61766e;
+  font-size: 13px;
+}
+.lobby-actions,
+.lobby-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.lobby-actions button,
+.lobby-footer button {
+  border: 1px solid #507a6d;
+  border-radius: 3px;
+  padding: 7px 9px;
+  background: #fffef9;
+  color: #173a34;
+  font-weight: 700;
+}
+.lobby-footer button {
+  background: var(--coral);
+  color: #fff9ef;
+  border-color: #9b3e2a;
+}
+.lobby-footer span {
+  color: #667b75;
+  font-size: 14px;
+}
 @media (max-width: 860px) {
   .game-layout {
     grid-template-columns: 1fr;

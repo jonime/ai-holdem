@@ -1,14 +1,20 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const gameStorageKey = "ai-holdem-game-id";
 
 export default function Home() {
   const router = useRouter();
+  const [seatCount, setSeatCount] = useState(6);
 
   async function createGame() {
-    const response = await fetch("/api/games", { method: "POST" });
+    const response = await fetch("/api/games", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ seatCount }),
+    });
     const body = (await response.json()) as { gameId?: string; error?: string };
 
     if (!response.ok || !body.gameId) {
@@ -26,6 +32,19 @@ export default function Home() {
           <h1>AI Hold&apos;em</h1>
         </div>
         <div className="header-actions">
+          <label className="seat-count-picker">
+            Seats
+            <select
+              value={seatCount}
+              onChange={(event) => setSeatCount(Number(event.target.value))}
+            >
+              {[2, 3, 4, 5, 6].map((count) => (
+                <option key={count} value={count}>
+                  {count}
+                </option>
+              ))}
+            </select>
+          </label>
           <button type="button" onClick={() => void createGame()}>
             New Game
           </button>
@@ -33,7 +52,8 @@ export default function Home() {
       </header>
       <section className="empty-state">
         <p>
-          Start a fresh heads-up table and share the URL with a second browser.
+          Start a table and share the URL. Empty seats stay available for
+          others.
         </p>
       </section>
     </main>

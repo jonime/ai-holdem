@@ -17,9 +17,16 @@ export async function POST(request: Request) {
     const seatCount =
       typeof requestBody.seatCount === "number" &&
       Number.isInteger(requestBody.seatCount) &&
-      requestBody.seatCount >= 2
+      requestBody.seatCount >= 2 &&
+      requestBody.seatCount <= 6
         ? requestBody.seatCount
         : undefined;
+    if (requestBody.seatCount !== undefined && seatCount === undefined) {
+      return NextResponse.json(
+        { error: "seatCount must be an integer from 2 through 6" },
+        { status: 400 },
+      );
+    }
     const hostToken = getOrCreatePlayerToken(request);
 
     const game = await createDemoGame(createSupabaseGameRepository(), {

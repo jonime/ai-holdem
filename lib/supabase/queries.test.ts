@@ -41,6 +41,11 @@ function createClient(options: {
         }),
         select: () => ({
           eq: () => ({
+            then: (resolve, reject) =>
+              Promise.resolve({
+                data: options.loadResult ?? [persistedGame],
+                error: null,
+              }).then(resolve, reject),
             maybeSingle: async () => ({
               data: options.loadResult ?? persistedGame,
               error: null,

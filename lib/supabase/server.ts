@@ -35,16 +35,17 @@ function createGameDatabaseClient(client: SupabaseClient): GameDatabaseClient {
         }),
       }),
       select: () => ({
-        eq: (column, value) => ({
-          maybeSingle: async () => {
-            const { data, error } = await client
-              .from(table)
-              .select()
-              .eq(column, value)
-              .maybeSingle();
-            return { data: data as unknown, error };
-          },
-        }),
+        eq: (column, value) => {
+          const query = client.from(table).select().eq(column, value);
+          return {
+            then: (onfulfilled, onrejected) =>
+              query.then(onfulfilled, onrejected),
+            maybeSingle: async () => {
+              const { data, error } = await query.maybeSingle();
+              return { data: data as unknown, error };
+            },
+          };
+        },
       }),
       update: (values) => ({
         eq: (column, value) => ({

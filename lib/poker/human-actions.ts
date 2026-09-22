@@ -37,6 +37,17 @@ export function applyHumanAction(
     throw new HumanActionError("It is not this player's turn");
   }
 
+  if (player.leaving) {
+    try {
+      return pokerEngineAdapter.applyAction(state, player.id, { type: "fold" });
+    } catch (error) {
+      if (error instanceof PokerRuleError) {
+        throw new HumanActionError(error.message);
+      }
+      throw error;
+    }
+  }
+
   try {
     return pokerEngineAdapter.applyAction(state, player.id, submission.action);
   } catch (error) {

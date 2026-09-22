@@ -1,7 +1,12 @@
 import { pokerEngineAdapter } from "./adapter";
 import { createPokerAIState } from "./ai-state";
 import { applyHumanAction, type HumanActionSubmission } from "./human-actions";
-import type { GameConfig, PokerGameState, PublicPokerGame } from "./types";
+import type {
+  GameConfig,
+  PokerGameState,
+  PublicPokerGame,
+  PokerPlayerConfig,
+} from "./types";
 import type {
   CreateGameSessionInput,
   PersistAIActionInput,
@@ -23,7 +28,7 @@ export interface CreateDemoGameOptions {
 export function createDemoGameConfig(
   options: CreateDemoGameOptions = {},
 ): GameConfig {
-  const seatCount = Math.max(2, options.seatCount ?? 2);
+  const seatCount = Math.min(6, Math.max(2, options.seatCount ?? 6));
 
   return {
     smallBlind: 50,
@@ -39,16 +44,6 @@ export function createDemoGameConfig(
         status: "claimed",
         playerToken: options.hostToken ?? null,
         isHost: true,
-      },
-      {
-        id: "typesafe-ai",
-        seat: 1,
-        name: "TypeSafe AI",
-        controller: "typesafe_ai",
-        stack: 10_000,
-        status: "bot",
-        playerToken: null,
-        isHost: false,
       },
     ],
   };
@@ -73,6 +68,8 @@ export interface SeatAssignment {
   readonly controller: "human" | "typesafe_ai";
   readonly playerToken: string | null;
   readonly isHost: boolean;
+  readonly leaving?: boolean;
+  readonly enginePlayerId?: string | null;
 }
 
 export interface SeatAssignmentRepository {
@@ -84,6 +81,8 @@ export interface SeatAssignmentRepository {
     readonly controller?: "human" | "typesafe_ai";
     readonly playerToken?: string | null;
     readonly isHost?: boolean;
+    readonly leaving?: boolean;
+    readonly enginePlayerId?: string | null;
   }): Promise<void>;
 }
 
@@ -97,6 +96,10 @@ export interface AIActionWriter {
 
 export interface NextHandWriter {
   startNextHand(input: StartNextHandInput): Promise<PersistedGame>;
+}
+
+export interface StartGameWriter {
+  startGame(input: StartNextHandInput): Promise<PersistedGame>;
 }
 
 export interface CreatedGame {
@@ -141,30 +144,157 @@ export async function createDemoGame(
   options: CreateDemoGameOptions = {},
 ): Promise<CreatedGame> {
   const config = createDemoGameConfig(options);
-  const initialState = pokerEngineAdapter.startHand(
-    pokerEngineAdapter.createGame(config),
-  );
+  const initialState = pokerEngineAdapter.createGame(config);
   const persistedGame = await repository.createGameSession({
     currentState: initialState,
     stateSchemaVersion: initialState.stateSchemaVersion,
-    handNumber: 1,
-    status: "playing",
-    players: initialState.config.players.map((player) => ({
-      enginePlayerId: player.id,
-      seat: player.seat,
-      name: player.name,
-      controller: player.controller,
-      stack: player.stack,
-      status: player.status,
-      playerToken: player.playerToken ?? null,
-      isHost: player.isHost,
-    })),
+    handNumber: 0,
+    status: "waiting",
+    players: Array.from({ length: config.seatCount ?? 2 }, (_, seat) => {
+      const player = initialState.config.players.find(
+        (candidate) => candidate.seat === seat,
+      );
+      return {
+        enginePlayerId: player?.id ?? null,
+        seat,
+        name: player?.name ?? `Seat ${seat + 1}`,
+        controller: player?.controller ?? "human",
+        stack: player?.stack ?? 10_000,
+        status: player?.status ?? "open",
+        playerToken: player?.playerToken ?? null,
+        isHost: player?.isHost ?? false,
+      };
+    }),
   });
 
   return {
     gameId: persistedGame.id,
     state: initialState,
     version: persistedGame.version,
+  };
+}
+
+function enginePlayerIdForAssignment(
+  gameId: string,
+  assignment: SeatAssignment,
+): string {
+  return (
+    assignment.enginePlayerId ??
+    `${assignment.status === "bot" ? "bot" : "player"}-${gameId}-${assignment.seat}`
+  );
+}
+
+function playerConfigForAssignment(
+  gameId: string,
+  assignment: SeatAssignment,
+): PokerPlayerConfig {
+  return {
+    id: enginePlayerIdForAssignment(gameId, assignment),
+    seat: assignment.seat,
+    name:
+      assignment.status === "bot"
+        ? "TypeSafe AI"
+        : `Player ${assignment.seat + 1}`,
+    controller: assignment.controller,
+    stack: 10_000,
+    status: assignment.status,
+    playerToken: assignment.playerToken,
+    isHost: assignment.isHost,
+    leaving: assignment.leaving ?? false,
+  };
+}
+
+async function reconcileState(
+  repository: SeatAssignmentRepository,
+  gameId: string,
+  state: PokerGameState,
+): Promise<PokerGameState> {
+  const assignments = await repository.getSeatAssignments(gameId);
+  const filled = assignments.filter(
+    (assignment) =>
+      (assignment.status === "claimed" || assignment.status === "bot") &&
+      !assignment.leaving,
+  );
+  const desiredIds = new Set(
+    filled.map((assignment) => enginePlayerIdForAssignment(gameId, assignment)),
+  );
+  let nextState = state;
+  for (const player of state.config.players) {
+    if (!desiredIds.has(player.id)) {
+      nextState = pokerEngineAdapter.removePlayer(nextState, player.id);
+    }
+  }
+  for (const assignment of filled) {
+    const playerId = enginePlayerIdForAssignment(gameId, assignment);
+    if (!nextState.config.players.some((player) => player.id === playerId)) {
+      nextState = pokerEngineAdapter.seatPlayer(
+        nextState,
+        playerConfigForAssignment(gameId, assignment),
+      );
+      await repository.updateSeatAssignment({
+        gameId,
+        seat: assignment.seat,
+        status: assignment.status,
+        enginePlayerId: playerId,
+      });
+    }
+  }
+  return nextState;
+}
+
+export async function startGame(
+  repository: GameReader & SeatAssignmentRepository & StartGameWriter,
+  gameId: string,
+  expectedVersion: number,
+  callerToken: string,
+): Promise<PublicGame> {
+  const game = await repository.getGame(gameId);
+  if (!game) throw new GameNotFoundError(gameId);
+  if (game.status !== "waiting") throw new Error("The game is not waiting");
+  if (game.version !== expectedVersion) {
+    throw new GameConflictError(gameId, expectedVersion);
+  }
+
+  const assignments = await repository.getSeatAssignments(gameId);
+  const hasHost = assignments.some((assignment) => assignment.isHost);
+  if (
+    hasHost &&
+    !assignments.some(
+      (assignment) =>
+        assignment.isHost && assignment.playerToken === callerToken,
+    )
+  ) {
+    throw new Error("Only the host can start the game");
+  }
+
+  const filled = assignments.filter(
+    (assignment) =>
+      (assignment.status === "claimed" || assignment.status === "bot") &&
+      !assignment.leaving,
+  );
+  if (filled.length < 2) throw new Error("At least two seats are required");
+
+  const state = await reconcileState(
+    repository,
+    gameId,
+    pokerEngineAdapter.restore(game.currentState as PokerGameState),
+  );
+
+  const nextState = pokerEngineAdapter.startHand(state);
+  const snapshot = pokerEngineAdapter.snapshot(nextState);
+  const persistedGame = await repository.startGame({
+    gameId,
+    expectedVersion,
+    currentState: nextState,
+    stateSchemaVersion: nextState.stateSchemaVersion,
+    handNumber: snapshot.handNumber,
+  });
+
+  return {
+    id: persistedGame.id,
+    status: persistedGame.status,
+    version: persistedGame.version,
+    poker: pokerEngineAdapter.publicProjection(nextState, null),
   };
 }
 
@@ -190,6 +320,7 @@ export async function claimSeat(
     controller: "human",
     playerToken,
     isHost: false,
+    enginePlayerId: assignment.enginePlayerId ?? `seat-${gameId}-${seat}`,
   };
 
   await repository.updateSeatAssignment({
@@ -199,6 +330,7 @@ export async function claimSeat(
     controller: "human",
     playerToken,
     isHost: false,
+    enginePlayerId: updatedAssignment.enginePlayerId,
   });
 
   return updatedAssignment;
@@ -211,12 +343,13 @@ export async function assignBotToSeat(
   hostToken: string,
 ): Promise<SeatAssignment> {
   const seatAssignments = await repository.getSeatAssignments(gameId);
+  const hasHost = seatAssignments.some((entry) => entry.isHost);
   const hostAssignment = seatAssignments.find(
     (entry) => entry.isHost && entry.playerToken === hostToken,
   );
   const assignment = seatAssignments.find((entry) => entry.seat === seat);
 
-  if (!hostAssignment) {
+  if (hasHost && !hostAssignment) {
     throw new Error("Only the host can assign bots");
   }
   if (!assignment) {
@@ -232,6 +365,7 @@ export async function assignBotToSeat(
     controller: "typesafe_ai",
     playerToken: null,
     isHost: false,
+    enginePlayerId: assignment.enginePlayerId ?? `bot-${gameId}-${seat}`,
   };
 
   await repository.updateSeatAssignment({
@@ -241,13 +375,14 @@ export async function assignBotToSeat(
     controller: "typesafe_ai",
     playerToken: null,
     isHost: false,
+    enginePlayerId: updatedAssignment.enginePlayerId,
   });
 
   return updatedAssignment;
 }
 
 export async function releaseSeat(
-  repository: SeatAssignmentRepository,
+  repository: SeatAssignmentRepository & Partial<GameReader>,
   gameId: string,
   seat: number,
   playerToken: string,
@@ -267,21 +402,35 @@ export async function releaseSeat(
     throw new Error("Seat does not belong to this player");
   }
 
+  let isHandInProgress = false;
+  if (repository.getGame) {
+    const game = await repository.getGame(gameId);
+    if (game) {
+      const snapshot = pokerEngineAdapter.snapshot(
+        game.currentState as PokerGameState,
+      );
+      isHandInProgress = Boolean(
+        snapshot.street && snapshot.street !== "complete",
+      );
+    }
+  }
   const updatedAssignment: SeatAssignment = {
     ...assignment,
-    status: "open",
-    controller: "human",
-    playerToken: null,
+    status: isHandInProgress ? assignment.status : "open",
+    controller: isHandInProgress ? assignment.controller : "human",
+    playerToken: isHandInProgress ? assignment.playerToken : null,
     isHost: false,
+    leaving: isHandInProgress,
   };
 
   await repository.updateSeatAssignment({
     gameId,
     seat,
-    status: "open",
-    controller: "human",
-    playerToken: null,
+    status: updatedAssignment.status,
+    controller: updatedAssignment.controller,
+    playerToken: updatedAssignment.playerToken,
     isHost: false,
+    leaving: updatedAssignment.leaving,
   });
 
   return updatedAssignment;
@@ -297,7 +446,21 @@ export async function getPublicGame(
     throw new GameNotFoundError(gameId);
   }
 
-  const state = pokerEngineAdapter.restore(game.currentState as PokerGameState);
+  let state = pokerEngineAdapter.restore(game.currentState as PokerGameState);
+  if ("getSeatAssignments" in repository) {
+    const assignments = await (
+      repository as GameReader & SeatAssignmentRepository
+    ).getSeatAssignments(gameId);
+    const configuredSeats = new Set(
+      state.config.players.map((player) => player.seat),
+    );
+    const players = [...state.config.players];
+    for (const assignment of assignments) {
+      if (configuredSeats.has(assignment.seat)) continue;
+      players.push(playerConfigForAssignment(gameId, assignment));
+    }
+    state = { ...state, config: { ...state.config, players } };
+  }
   const viewerPlayerId =
     viewerPlayerToken === undefined
       ? (state.config.players.find((player) => player.controller === "human")
@@ -334,15 +497,22 @@ export async function submitHumanAction(
     throw new Error("The current hand is not accepting actions");
   }
 
+  const resolvedPlayerId =
+    stateBefore.config.players.find(
+      (player) =>
+        player.id === submission.playerId ||
+        player.playerToken === submission.playerId,
+    )?.id ?? submission.playerId;
   const stateAfter = applyHumanAction(stateBefore, {
     ...submission,
+    playerId: resolvedPlayerId,
     currentVersion: game.version,
   });
   const snapshotAfter = pokerEngineAdapter.snapshot(stateAfter);
   const persistedGame = await repository.persistHumanAction({
     gameId,
     expectedVersion: submission.expectedVersion,
-    playerEngineId: submission.playerId,
+    playerEngineId: resolvedPlayerId,
     currentState: stateAfter,
     stateSchemaVersion: stateAfter.stateSchemaVersion,
     handNumber: snapshotAfter.handNumber,
@@ -359,7 +529,7 @@ export async function submitHumanAction(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
-    poker: pokerEngineAdapter.publicProjection(stateAfter, "human"),
+    poker: pokerEngineAdapter.publicProjection(stateAfter, resolvedPlayerId),
   };
 }
 
@@ -424,7 +594,7 @@ export async function stepTypesafeAction(
       id: persistedGame.id,
       status: persistedGame.status,
       version: persistedGame.version,
-      poker: pokerEngineAdapter.publicProjection(stateAfter, "human"),
+      poker: pokerEngineAdapter.publicProjection(stateAfter, null),
     },
     aiDecision: {
       action: decision.action.type,
@@ -458,23 +628,18 @@ export async function startNextHand(
     throw new Error("The current hand has not completed");
   }
 
-  const occupiedSeats = new Set(
-    completedState.config.players.map((player) => player.seat),
-  );
-  const seatCount =
-    completedState.config.seatCount ??
-    Math.max(
-      0,
-      ...completedState.config.players.map((player) => player.seat + 1),
+  let nextState = completedState;
+  if ("getSeatAssignments" in repository) {
+    nextState = await reconcileState(
+      repository as unknown as GameReader & SeatAssignmentRepository,
+      gameId,
+      completedState,
     );
-  const hasOpenSeat = Array.from({ length: seatCount }, (_, seat) => seat).some(
-    (seat) => !occupiedSeats.has(seat),
-  );
-  if (hasOpenSeat) {
-    throw new Error("Waiting for players");
   }
-
-  const nextState = pokerEngineAdapter.startHand(completedState);
+  if (nextState.config.players.length < 2) {
+    throw new Error("At least two seats are required");
+  }
+  nextState = pokerEngineAdapter.startHand(nextState);
   const nextSnapshot = pokerEngineAdapter.snapshot(nextState);
   const persistedGame = await repository.startNextHand({
     gameId,
@@ -488,6 +653,6 @@ export async function startNextHand(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
-    poker: pokerEngineAdapter.publicProjection(nextState, "human"),
+    poker: pokerEngineAdapter.publicProjection(nextState, null),
   };
 }
