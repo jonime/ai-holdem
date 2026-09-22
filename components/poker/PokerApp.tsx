@@ -669,13 +669,6 @@ export default function PokerApp() {
                 onSelectHand={setSelectedHistoryHand}
               />
             ) : null}
-            <section className="rules-note">
-              <p className="panel-kicker">AUTHORITATIVE RULES</p>
-              <p>
-                Every action is checked by the poker engine before it changes
-                the hand.
-              </p>
-            </section>
           </aside>
         </div>
       )}
