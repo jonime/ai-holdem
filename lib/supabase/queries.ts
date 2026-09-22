@@ -53,6 +53,14 @@ export interface PersistAIActionInput extends PersistHumanActionInput {
 
 export type SeatStatus = "open" | "claimed" | "bot";
 
+export interface GamePlayerSeatAssignment {
+  readonly seat: number;
+  readonly status: SeatStatus;
+  readonly controller: "human" | "typesafe_ai";
+  readonly playerToken: string | null;
+  readonly isHost: boolean;
+}
+
 export interface CreateGameSessionInput extends CreateGameInput {
   readonly players: readonly {
     readonly enginePlayerId: string;
@@ -99,7 +107,7 @@ interface DatabaseResult {
 }
 
 export interface GameDatabaseClient {
-  from(table: "games"): {
+  from(table: "games" | "game_players"): {
     insert(values: Record<string, unknown>): {
       select(): {
         single(): PromiseLike<DatabaseResult>;
@@ -111,6 +119,21 @@ export interface GameDatabaseClient {
         value: string,
       ): {
         maybeSingle(): PromiseLike<DatabaseResult>;
+      };
+    };
+    update(values: Record<string, unknown>): {
+      eq(
+        column: "game_id" | "seat",
+        value: string | number,
+      ): {
+        eq(
+          column: "seat",
+          value: number,
+        ): {
+          select(): {
+            single(): PromiseLike<DatabaseResult>;
+          };
+        };
       };
     };
   };
@@ -271,6 +294,72 @@ function toHandHistory(value: unknown): HandHistory | null {
 
 export class SupabaseGameRepository {
   constructor(private readonly client: GameDatabaseClient) {}
+
+  async getSeatAssignments(
+    gameId: string,
+  ): Promise<readonly GamePlayerSeatAssignment[]> {
+    const { data, error } = await this.client
+      .from("game_players")
+      .select()
+      .eq("game_id", gameId);
+
+    if (error) {
+      throw new Error(`Unable to load seat assignments: ${error.message}`);
+    }
+
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    return data.map((row) => {
+      if (!isRecord(row)) {
+        throw new Error("Supabase returned an invalid seat assignment");
+      }
+      const status = requiredString(row, "status");
+      if (status !== "open" && status !== "claimed" && status !== "bot") {
+        throw new Error("Supabase returned an invalid seat status");
+      }
+      const controller = requiredString(row, "controller");
+      if (controller !== "human" && controller !== "typesafe_ai") {
+        throw new Error("Supabase returned an invalid player controller");
+      }
+
+      return {
+        seat: requiredNonNegativeInteger(row, "seat"),
+        status,
+        controller,
+        playerToken:
+          typeof row.player_token === "string" ? row.player_token : null,
+        isHost: Boolean(row.is_host),
+      } satisfies GamePlayerSeatAssignment;
+    });
+  }
+
+  async updateSeatAssignment(input: {
+    readonly gameId: string;
+    readonly seat: number;
+    readonly status: SeatStatus;
+    readonly controller?: "human" | "typesafe_ai";
+    readonly playerToken?: string | null;
+    readonly isHost?: boolean;
+  }): Promise<void> {
+    const { error } = await this.client
+      .from("game_players")
+      .update({
+        status: input.status,
+        controller: input.controller ?? "human",
+        player_token: input.playerToken ?? null,
+        is_host: input.isHost ?? false,
+      })
+      .eq("game_id", input.gameId)
+      .eq("seat", input.seat)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Unable to update seat assignment: ${error.message}`);
+    }
+  }
 
   async createGame(input: CreateGameInput): Promise<PersistedGame> {
     const { data, error } = await this.client

@@ -46,6 +46,24 @@ function createGameDatabaseClient(client: SupabaseClient): GameDatabaseClient {
           },
         }),
       }),
+      update: (values) => ({
+        eq: (column, value) => ({
+          eq: (secondColumn, secondValue) => ({
+            select: () => ({
+              single: async () => {
+                const { data, error } = await client
+                  .from(table)
+                  .update(values)
+                  .eq(column, value)
+                  .eq(secondColumn, secondValue)
+                  .select()
+                  .single();
+                return { data: data as unknown, error };
+              },
+            }),
+          }),
+        }),
+      }),
     }),
     rpc: async (functionName, arguments_) => {
       const { data, error } = await client.rpc(functionName, arguments_);

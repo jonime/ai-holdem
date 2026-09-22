@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  assignBotToSeat,
+  claimSeat,
   createDemoGame,
   GameNotFoundError,
   getPublicGame,
@@ -195,6 +197,83 @@ describe("startNextHand", () => {
         1,
       ),
     ).rejects.toThrow("Waiting for players");
+  });
+});
+
+describe("claimSeat", () => {
+  it("claims an open seat for the calling player token", async () => {
+    const getSeatAssignments = vi.fn().mockResolvedValue([
+      { seat: 0, status: "claimed", playerToken: "host-token", isHost: true },
+      { seat: 1, status: "bot", playerToken: null, isHost: false },
+      { seat: 2, status: "open", playerToken: null, isHost: false },
+    ]);
+    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
+
+    await claimSeat(
+      {
+        getSeatAssignments,
+        updateSeatAssignment,
+      },
+      "game-1",
+      2,
+      "player-token",
+    );
+
+    expect(updateSeatAssignment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        gameId: "game-1",
+        seat: 2,
+        status: "claimed",
+        playerToken: "player-token",
+        isHost: false,
+      }),
+    );
+  });
+
+  it("rejects claiming a seat that is already claimed or occupied by a bot", async () => {
+    const getSeatAssignments = vi.fn().mockResolvedValue([
+      { seat: 0, status: "claimed", playerToken: "host-token", isHost: true },
+      { seat: 1, status: "bot", playerToken: null, isHost: false },
+    ]);
+
+    await expect(
+      claimSeat(
+        { getSeatAssignments, updateSeatAssignment: vi.fn() },
+        "game-1",
+        1,
+        "player-token",
+      ),
+    ).rejects.toThrow("Seat is not open");
+  });
+});
+
+describe("assignBotToSeat", () => {
+  it("allows the host to assign a bot to an open seat", async () => {
+    const getSeatAssignments = vi.fn().mockResolvedValue([
+      { seat: 0, status: "claimed", playerToken: "host-token", isHost: true },
+      { seat: 1, status: "open", playerToken: null, isHost: false },
+    ]);
+    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
+
+    await assignBotToSeat(
+      {
+        getSeatAssignments,
+        updateSeatAssignment,
+      },
+      "game-1",
+      1,
+      "host-token",
+    );
+
+    expect(updateSeatAssignment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        gameId: "game-1",
+        seat: 1,
+        status: "bot",
+        controller: "typesafe_ai",
+        playerToken: null,
+      }),
+    );
   });
 });
 

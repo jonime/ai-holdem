@@ -64,6 +64,29 @@ export interface GameReader {
   getGame(gameId: string): Promise<PersistedGame | null>;
 }
 
+export type SeatStatus = "open" | "claimed" | "bot";
+
+export interface SeatAssignment {
+  readonly gameId: string;
+  readonly seat: number;
+  readonly status: SeatStatus;
+  readonly controller: "human" | "typesafe_ai";
+  readonly playerToken: string | null;
+  readonly isHost: boolean;
+}
+
+export interface SeatAssignmentRepository {
+  getSeatAssignments(gameId: string): Promise<readonly SeatAssignment[]>;
+  updateSeatAssignment(input: {
+    readonly gameId: string;
+    readonly seat: number;
+    readonly status: SeatStatus;
+    readonly controller?: "human" | "typesafe_ai";
+    readonly playerToken?: string | null;
+    readonly isHost?: boolean;
+  }): Promise<void>;
+}
+
 export interface HumanActionWriter {
   persistHumanAction(input: PersistHumanActionInput): Promise<PersistedGame>;
 }
@@ -143,6 +166,125 @@ export async function createDemoGame(
     state: initialState,
     version: persistedGame.version,
   };
+}
+
+export async function claimSeat(
+  repository: SeatAssignmentRepository,
+  gameId: string,
+  seat: number,
+  playerToken: string,
+): Promise<SeatAssignment> {
+  const seatAssignments = await repository.getSeatAssignments(gameId);
+  const assignment = seatAssignments.find((entry) => entry.seat === seat);
+
+  if (!assignment) {
+    throw new Error("Seat does not exist");
+  }
+  if (assignment.status !== "open") {
+    throw new Error("Seat is not open");
+  }
+
+  const updatedAssignment: SeatAssignment = {
+    ...assignment,
+    status: "claimed",
+    controller: "human",
+    playerToken,
+    isHost: false,
+  };
+
+  await repository.updateSeatAssignment({
+    gameId,
+    seat,
+    status: "claimed",
+    controller: "human",
+    playerToken,
+    isHost: false,
+  });
+
+  return updatedAssignment;
+}
+
+export async function assignBotToSeat(
+  repository: SeatAssignmentRepository,
+  gameId: string,
+  seat: number,
+  hostToken: string,
+): Promise<SeatAssignment> {
+  const seatAssignments = await repository.getSeatAssignments(gameId);
+  const hostAssignment = seatAssignments.find(
+    (entry) => entry.isHost && entry.playerToken === hostToken,
+  );
+  const assignment = seatAssignments.find((entry) => entry.seat === seat);
+
+  if (!hostAssignment) {
+    throw new Error("Only the host can assign bots");
+  }
+  if (!assignment) {
+    throw new Error("Seat does not exist");
+  }
+  if (assignment.status !== "open") {
+    throw new Error("Seat is not open");
+  }
+
+  const updatedAssignment: SeatAssignment = {
+    ...assignment,
+    status: "bot",
+    controller: "typesafe_ai",
+    playerToken: null,
+    isHost: false,
+  };
+
+  await repository.updateSeatAssignment({
+    gameId,
+    seat,
+    status: "bot",
+    controller: "typesafe_ai",
+    playerToken: null,
+    isHost: false,
+  });
+
+  return updatedAssignment;
+}
+
+export async function releaseSeat(
+  repository: SeatAssignmentRepository,
+  gameId: string,
+  seat: number,
+  playerToken: string,
+): Promise<SeatAssignment> {
+  const seatAssignments = await repository.getSeatAssignments(gameId);
+  const assignment = seatAssignments.find((entry) => entry.seat === seat);
+
+  if (!assignment) {
+    throw new Error("Seat does not exist");
+  }
+
+  const isHostRelease = seatAssignments.some(
+    (entry) => entry.isHost && entry.playerToken === playerToken,
+  );
+  const isSelfRelease = assignment.playerToken === playerToken;
+  if (!isHostRelease && !isSelfRelease) {
+    throw new Error("Seat does not belong to this player");
+  }
+
+  const updatedAssignment: SeatAssignment = {
+    ...assignment,
+    status: "open",
+    controller: "human",
+    playerToken: null,
+    isHost: false,
+  };
+
+  await repository.updateSeatAssignment({
+    gameId,
+    seat,
+    status: "open",
+    controller: "human",
+    playerToken: null,
+    isHost: false,
+  });
+
+  return updatedAssignment;
 }
 
 export async function getPublicGame(
