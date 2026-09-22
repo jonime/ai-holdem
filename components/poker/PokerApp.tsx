@@ -166,6 +166,19 @@ function Seat({
   readonly active: boolean;
 }) {
   const isAi = player.controller === "typesafe_ai";
+  const isOpen = player.status === "open";
+
+  if (isOpen) {
+    return (
+      <section className="seat open-seat">
+        <div className="seat-heading">
+          <span className="seat-label">SEAT {player.seat + 1}</span>
+        </div>
+        <span className="seat-status">Open seat</span>
+      </section>
+    );
+  }
+
   return (
     <section
       className={`seat ${isAi ? "ai-seat" : "human-seat"} ${active ? "active-seat" : ""}`}
@@ -515,6 +528,34 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     }
   }
 
+  async function updateSeatCount(nextSeatCount: number) {
+    if (!game) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const body = await requestJson<{ game: Game }>(
+        `/api/games/${game.id}/seat-count`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            seatCount: nextSeatCount,
+            expectedVersion: game.version,
+          }),
+        },
+      );
+      setGame(body.game);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to update seat count",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function advanceAiTurns(nextGame: Game) {
     let current = nextGame;
     for (
@@ -715,6 +756,31 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           <div className="panel-kicker">WAITING ROOM</div>
           <h2>Choose your table</h2>
           <p>Fill at least two seats, then start the hand.</p>
+          {(() => {
+            const isHost = game.poker.players.some(
+              (player) => player.isHost && player.playerToken === viewerToken,
+            );
+            const hasHost = game.poker.players.some((player) => player.isHost);
+            if (!isHost && hasHost) return null;
+            return (
+              <label className="seat-count-picker">
+                Seats
+                <select
+                  value={game.poker.seatCount}
+                  disabled={loading}
+                  onChange={(event) =>
+                    void updateSeatCount(Number(event.target.value))
+                  }
+                >
+                  {[2, 3, 4, 5, 6].map((count) => (
+                    <option key={count} value={count}>
+                      {count}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            );
+          })()}
           <div className="lobby-seats">
             {Array.from({ length: game.poker.seatCount }, (_, seat) => {
               const player = game.poker.players.find(

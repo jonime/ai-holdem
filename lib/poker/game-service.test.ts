@@ -9,6 +9,7 @@ import {
   stepTypesafeAction,
   startNextHand,
   submitHumanAction,
+  updateSeatCount,
 } from "./game-service";
 import { createDeterministicDeck, pokerEngineAdapter } from "./adapter";
 import type {
@@ -303,6 +304,138 @@ describe("assignBotToSeat", () => {
         playerToken: null,
       }),
     );
+  });
+});
+
+describe("updateSeatCount", () => {
+  function waitingGame(seatCount: number) {
+    return {
+      id: "game-1",
+      status: "waiting" as const,
+      currentState: pokerEngineAdapter.createGame({
+        smallBlind: 50,
+        bigBlind: 100,
+        seatCount,
+        players: [
+          {
+            id: "human",
+            name: "You",
+            controller: "human",
+            seat: 0,
+            stack: 10_000,
+            status: "claimed",
+            playerToken: "host-token",
+            isHost: true,
+          },
+        ],
+      }),
+      stateSchemaVersion: 1,
+      handNumber: 0,
+      version: 0,
+    };
+  }
+
+  it("lets the host resize the table and persists the new config", async () => {
+    const getGame = vi.fn().mockResolvedValue(waitingGame(4));
+    const getSeatAssignments = vi.fn().mockResolvedValue([
+      { seat: 0, status: "claimed", playerToken: "host-token", isHost: true },
+      { seat: 1, status: "open", playerToken: null, isHost: false },
+      { seat: 2, status: "open", playerToken: null, isHost: false },
+      { seat: 3, status: "open", playerToken: null, isHost: false },
+    ]);
+    const updateSeatCountWriter = vi.fn().mockResolvedValue({
+      id: "game-1",
+      status: "waiting",
+      currentState: {},
+      stateSchemaVersion: 1,
+      handNumber: 0,
+      version: 1,
+    });
+
+    const game = await updateSeatCount(
+      {
+        getGame,
+        getSeatAssignments,
+        updateSeatCount: updateSeatCountWriter,
+      },
+      "game-1",
+      0,
+      6,
+      "host-token",
+    );
+
+    expect(updateSeatCountWriter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        gameId: "game-1",
+        expectedVersion: 0,
+        seatCount: 6,
+      }),
+    );
+    expect(
+      (
+        updateSeatCountWriter.mock.calls[0][0] as {
+          currentState: { config: { seatCount: number } };
+        }
+      ).currentState.config.seatCount,
+    ).toBe(6);
+    expect(game.poker.seatCount).toBe(6);
+  });
+
+  it("rejects a non-host caller", async () => {
+    const getGame = vi.fn().mockResolvedValue(waitingGame(4));
+    const getSeatAssignments = vi.fn().mockResolvedValue([
+      { seat: 0, status: "claimed", playerToken: "host-token", isHost: true },
+      { seat: 1, status: "open", playerToken: null, isHost: false },
+    ]);
+
+    await expect(
+      updateSeatCount(
+        { getGame, getSeatAssignments, updateSeatCount: vi.fn() },
+        "game-1",
+        0,
+        6,
+        "other-token",
+      ),
+    ).rejects.toThrow("Only the host can change the seat count");
+  });
+
+  it("rejects shrinking below an occupied seat", async () => {
+    const getGame = vi.fn().mockResolvedValue(waitingGame(4));
+    const getSeatAssignments = vi.fn().mockResolvedValue([
+      { seat: 0, status: "claimed", playerToken: "host-token", isHost: true },
+      { seat: 3, status: "bot", playerToken: null, isHost: false },
+    ]);
+
+    await expect(
+      updateSeatCount(
+        { getGame, getSeatAssignments, updateSeatCount: vi.fn() },
+        "game-1",
+        0,
+        2,
+        "host-token",
+      ),
+    ).rejects.toThrow("Cannot shrink seat count below an occupied seat");
+  });
+
+  it("rejects changes once the hand has started", async () => {
+    const startedGame = waitingGame(4);
+    const getGame = vi
+      .fn()
+      .mockResolvedValue({ ...startedGame, status: "playing" as const });
+
+    await expect(
+      updateSeatCount(
+        {
+          getGame,
+          getSeatAssignments: vi.fn(),
+          updateSeatCount: vi.fn(),
+        },
+        "game-1",
+        0,
+        6,
+        "host-token",
+      ),
+    ).rejects.toThrow("The game is not waiting");
   });
 });
 
