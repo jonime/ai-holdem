@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FaGithub } from "react-icons/fa";
 
@@ -300,7 +301,7 @@ function ActionHistory({
   );
 }
 
-export default function PokerApp() {
+export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const [game, setGame] = useState<Game | null>(null);
   const [decision, setDecision] = useState<AIDecision | null>(null);
   const [history, setHistory] = useState<{
@@ -313,6 +314,7 @@ export default function PokerApp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
+  const router = useRouter();
 
   async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
     const response = await fetch(path, init);
@@ -336,24 +338,32 @@ export default function PokerApp() {
   }
 
   useEffect(() => {
-    const gameId = window.localStorage.getItem(gameStorageKey);
-    if (!gameId) return;
+    if (!gameId) {
+      return;
+    }
+
     let cancelled = false;
 
     void fetch(`/api/games/${gameId}`)
       .then(async (response) => {
-        if (!response.ok) throw new Error("Stored game is unavailable");
+        if (!response.ok) {
+          throw new Error("Game is unavailable");
+        }
         return (await response.json()) as { game: Game };
       })
       .then((body) => {
         if (!cancelled) setGame(body.game);
       })
-      .catch(() => window.localStorage.removeItem(gameStorageKey));
+      .catch(() => {
+        if (!cancelled) {
+          setError("Unable to load the requested game.");
+        }
+      });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [gameId]);
 
   useEffect(() => {
     if (!game) return;
@@ -387,7 +397,7 @@ export default function PokerApp() {
         method: "POST",
       });
       window.localStorage.setItem(gameStorageKey, body.gameId);
-      await loadGame(body.gameId);
+      router.push(`/game/${body.gameId}`);
     } catch (requestError) {
       setError(
         requestError instanceof Error
