@@ -148,6 +148,29 @@ describe("SupabaseGameRepository", () => {
     });
   });
 
+  it("starts a next hand through the version-checked RPC", async () => {
+    const { client, rpc } = createClient({
+      updateResult: [{ ...persistedGame, version: 5, hand_number: 2 }],
+    });
+    const repository = new SupabaseGameRepository(client);
+
+    await repository.startNextHand({
+      gameId: "game-1",
+      expectedVersion: 4,
+      currentState: { nextHand: true },
+      stateSchemaVersion: 1,
+      handNumber: 2,
+    });
+
+    expect(rpc).toHaveBeenCalledWith("start_next_hand_if_version", {
+      p_game_id: "game-1",
+      p_expected_version: 4,
+      p_current_state: { nextHand: true },
+      p_hand_number: 2,
+      p_state_schema_version: 1,
+    });
+  });
+
   it("persists a human action and state transition through one RPC", async () => {
     const updatedGame = { ...persistedGame, version: 5 };
     const { client, rpc } = createClient({ updateResult: [updatedGame] });

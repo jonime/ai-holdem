@@ -7,7 +7,9 @@ import type {
   PersistAIActionInput,
   PersistHumanActionInput,
   PersistedGame,
+  StartNextHandInput,
 } from "@/lib/supabase/queries";
+import { GameConflictError } from "@/lib/supabase/queries";
 import {
   decidePokerAction,
   type TypesafeDecisionClient,
@@ -48,6 +50,10 @@ export interface HumanActionWriter {
 
 export interface AIActionWriter {
   persistAIAction(input: PersistAIActionInput): Promise<PersistedGame>;
+}
+
+export interface NextHandWriter {
+  startNextHand(input: StartNextHandInput): Promise<PersistedGame>;
 }
 
 export interface CreatedGame {
@@ -251,5 +257,44 @@ export async function stepTypesafeAction(
       confidence: decision.confidence,
       sizing: decision.sizing ?? null,
     },
+  };
+}
+
+export async function startNextHand(
+  repository: GameReader & NextHandWriter,
+  gameId: string,
+  expectedVersion: number,
+): Promise<PublicGame> {
+  const game = await repository.getGame(gameId);
+  if (!game) {
+    throw new GameNotFoundError(gameId);
+  }
+  if (game.version !== expectedVersion) {
+    throw new GameConflictError(gameId, expectedVersion);
+  }
+
+  const completedState = pokerEngineAdapter.restore(
+    game.currentState as PokerGameState,
+  );
+  const completedSnapshot = pokerEngineAdapter.snapshot(completedState);
+  if (completedSnapshot.street !== "complete") {
+    throw new Error("The current hand has not completed");
+  }
+
+  const nextState = pokerEngineAdapter.startHand(completedState);
+  const nextSnapshot = pokerEngineAdapter.snapshot(nextState);
+  const persistedGame = await repository.startNextHand({
+    gameId,
+    expectedVersion,
+    currentState: nextState,
+    stateSchemaVersion: nextState.stateSchemaVersion,
+    handNumber: nextSnapshot.handNumber,
+  });
+
+  return {
+    id: persistedGame.id,
+    status: persistedGame.status,
+    version: persistedGame.version,
+    poker: pokerEngineAdapter.publicProjection(nextState, "human"),
   };
 }

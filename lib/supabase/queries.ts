@@ -23,6 +23,14 @@ export interface CompareAndSwapGameInput extends CreateGameInput {
   readonly expectedVersion: number;
 }
 
+export interface StartNextHandInput {
+  readonly gameId: string;
+  readonly expectedVersion: number;
+  readonly currentState: unknown;
+  readonly stateSchemaVersion: number;
+  readonly handNumber: number;
+}
+
 export interface PersistHumanActionInput extends CompareAndSwapGameInput {
   readonly playerEngineId: string;
   readonly street: "preflop" | "flop" | "turn" | "river";
@@ -79,6 +87,7 @@ export interface GameDatabaseClient {
       | "apply_human_action_if_version"
       | "apply_ai_action_if_version"
       | "create_game_session"
+      | "start_next_hand_if_version"
       | "update_game_state_if_version",
     arguments_: Record<string, unknown>,
   ): PromiseLike<DatabaseResult>;
@@ -225,6 +234,29 @@ export class SupabaseGameRepository {
 
     if (error) {
       throw new Error(`Unable to update game: ${error.message}`);
+    }
+
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new GameConflictError(input.gameId, input.expectedVersion);
+    }
+
+    return toPersistedGame(data[0]);
+  }
+
+  async startNextHand(input: StartNextHandInput): Promise<PersistedGame> {
+    const { data, error } = await this.client.rpc(
+      "start_next_hand_if_version",
+      {
+        p_game_id: input.gameId,
+        p_expected_version: input.expectedVersion,
+        p_current_state: input.currentState,
+        p_hand_number: input.handNumber,
+        p_state_schema_version: input.stateSchemaVersion,
+      },
+    );
+
+    if (error) {
+      throw new Error(`Unable to start next hand: ${error.message}`);
     }
 
     if (!Array.isArray(data) || data.length === 0) {

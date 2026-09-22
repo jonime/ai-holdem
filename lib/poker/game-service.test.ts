@@ -5,6 +5,7 @@ import {
   GameNotFoundError,
   getPublicGame,
   stepTypesafeAction,
+  startNextHand,
 } from "./game-service";
 import { createDeterministicDeck, pokerEngineAdapter } from "./adapter";
 
@@ -274,21 +275,85 @@ describe("stepTypesafeAction", () => {
     await expect(
       stepTypesafeAction(
         {
-          getGame: vi
-            .fn()
-            .mockResolvedValue({
-              id: "game-1",
-              status: "playing",
-              currentState: humanTurn,
-              stateSchemaVersion: 1,
-              handNumber: 1,
-              version: 0,
-            }),
+          getGame: vi.fn().mockResolvedValue({
+            id: "game-1",
+            status: "playing",
+            currentState: humanTurn,
+            stateSchemaVersion: 1,
+            handNumber: 1,
+            version: 0,
+          }),
           persistAIAction: vi.fn(),
         },
         { evaluate: vi.fn() },
         "game-1",
       ),
     ).rejects.toThrow("not a TypeSafe AI turn");
+  });
+});
+
+describe("startNextHand", () => {
+  it("persists a fresh preflop hand after completion", async () => {
+    const completedState = pokerEngineAdapter.applyAction(
+      pokerEngineAdapter.startHand(
+        pokerEngineAdapter.createGame({
+          smallBlind: 50,
+          bigBlind: 100,
+          players: [
+            {
+              id: "human",
+              name: "You",
+              controller: "human",
+              seat: 0,
+              stack: 10_000,
+            },
+            {
+              id: "typesafe-ai",
+              name: "TypeSafe AI",
+              controller: "typesafe_ai",
+              seat: 1,
+              stack: 10_000,
+            },
+          ],
+        }),
+        createDeterministicDeck(),
+      ),
+      "human",
+      { type: "fold" },
+    );
+    const startNextHandWriter = vi.fn().mockResolvedValue({
+      id: "game-1",
+      status: "playing",
+      currentState: {},
+      stateSchemaVersion: 1,
+      handNumber: 2,
+      version: 2,
+    });
+
+    const game = await startNextHand(
+      {
+        getGame: vi.fn().mockResolvedValue({
+          id: "game-1",
+          status: "complete",
+          currentState: completedState,
+          stateSchemaVersion: 1,
+          handNumber: 1,
+          version: 1,
+        }),
+        startNextHand: startNextHandWriter,
+      },
+      "game-1",
+      1,
+    );
+
+    expect(game).toMatchObject({ version: 2, status: "playing" });
+    expect(game.poker).toMatchObject({
+      handNumber: 2,
+      street: "preflop",
+      communityCards: [],
+    });
+    expect(startNextHandWriter).toHaveBeenCalledWith(
+      expect.objectContaining({ handNumber: 2, expectedVersion: 1 }),
+    );
   });
 });
