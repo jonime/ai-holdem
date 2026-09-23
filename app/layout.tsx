@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+
+import { APP_NAME } from "@/lib/constants";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Hold'em",
+  title: APP_NAME,
   description: "A structured TypeSafe AI poker decision demo.",
 };
 

@@ -40,18 +40,36 @@ button:disabled {
   min-height: 100vh;
   padding: 28px clamp(18px, 4vw, 64px) 48px;
 }
-.app-header {
-  max-width: 1220px;
-  margin: 0 auto 24px;
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  align-items: end;
+.game-header {
+  padding: 12px clamp(18px, 4vw, 64px) 0;
 }
-.header-actions {
+.game-header-inner {
+  max-width: 1220px;
+  margin: 0 auto;
   display: flex;
-  gap: 10px;
   align-items: center;
+  justify-content: space-between;
+}
+.game-header-title {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.4px;
+}
+.exit-game {
+  border: 0;
+  border-radius: 5px;
+  background: var(--coral);
+  color: #fff9ef;
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 3px 3px 0 #9b3e2a;
+}
+.exit-game:hover,
+.exit-game:focus-visible {
+  background: #e27b55;
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 #9b3e2a;
 }
 .eyebrow,
 .panel-kicker {
@@ -122,7 +140,7 @@ h2 {
   line-height: 0.8;
   text-shadow: 4px 4px 0 rgba(240, 183, 77, 0.65);
 }
-.home-empty-state h2 {
+.home-empty-state h1 {
   margin-bottom: 10px;
   font-size: clamp(28px, 5vw, 46px);
 }
@@ -1065,9 +1083,8 @@ h2 {
   .lobby-footer > span:first-child {
     width: 100%;
   }
-  .app-header {
-    align-items: start;
-    margin-bottom: 10px;
+  .game-header {
+    padding-top: 8px;
   }
   h1 {
     font-size: 26px;

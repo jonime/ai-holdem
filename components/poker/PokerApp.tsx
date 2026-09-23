@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-import { AppHeader } from "@/components/poker/AppHeader";
 import { HistoryModal } from "@/components/poker/HistoryModal";
 import { LobbyPanel } from "@/components/poker/LobbyPanel";
 import { PokerTable } from "@/components/poker/PokerTable";
@@ -32,7 +31,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     liveDecisions,
     loading,
     error,
-    createGame,
     claimSeatAt,
     assignBot,
     releaseSeat,
@@ -196,7 +194,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
 
   return (
     <main className="poker-app">
-      <AppHeader loading={loading} onNewGame={() => void createGame()} />
       {error ? (
         <p className="error-banner" role="alert">
           {error}

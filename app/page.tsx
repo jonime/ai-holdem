@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { AppHeader } from "@/components/poker/AppHeader";
+import { APP_NAME } from "@/lib/constants";
 
 const gameStorageKey = "ai-holdem-game-id";
 const playerNameStorageKey = "ai-holdem-player-name";
@@ -42,7 +42,6 @@ export default function Home() {
 
   return (
     <main className="poker-app">
-      <AppHeader onNewGame={() => void createGame()} />
       <section
         className="empty-state home-empty-state"
         aria-label="Start a new game"
@@ -50,7 +49,7 @@ export default function Home() {
         <span className="empty-state-mark" aria-hidden="true">
           ♠
         </span>
-        <h2>Deal yourself in</h2>
+        <h1>{APP_NAME}</h1>
         <p>Create a table, then invite someone to take an open seat.</p>
         <label className="player-name-field">
           Your name
