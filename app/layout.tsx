@@ -1,16 +1,8 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
 
 import { APP_NAME } from "@/lib/constants";
 
 import "./globals.css";
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-space-grotesk",
-  display: "swap",
-  weight: "700",
-});
 
 export const metadata: Metadata = {
   title: APP_NAME,
@@ -37,7 +29,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
-      <body className={spaceGrotesk.variable}>{children}</body>
+      <body>{children}</body>
     </html>
   );
 }

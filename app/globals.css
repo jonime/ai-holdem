@@ -8,6 +8,9 @@
   --sun: #f0b74d;
   --coral: #db694b;
   --line: #bed0c8;
+  --font-space-grotesk:
+    "Avenir Next Condensed", "Arial Narrow", "Franklin Gothic Medium",
+    "Segoe UI", sans-serif;
 }
 * {
   box-sizing: border-box;
