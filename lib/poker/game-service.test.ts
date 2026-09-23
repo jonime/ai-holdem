@@ -427,6 +427,7 @@ describe("releaseSeat", () => {
           },
           {
             seat: 1,
+            name: "TypeSafe AI #1",
             status: "bot",
             controller: "typesafe_ai",
             aiDifficulty: "hard",
@@ -444,6 +445,7 @@ describe("releaseSeat", () => {
     expect(updateSeatAssignment).toHaveBeenCalledWith(
       expect.objectContaining({
         status: "open",
+        name: "Seat 2",
         controller: "human",
         aiDifficulty: null,
       }),
@@ -942,6 +944,152 @@ describe("stepTypesafeAction", () => {
 });
 
 describe("startNextHand", () => {
+  it("resets a departing player's seat name when the next hand starts", async () => {
+    let completedState = pokerEngineAdapter.startHand(
+      pokerEngineAdapter.createGame({
+        smallBlind: 50,
+        bigBlind: 100,
+        players: [
+          {
+            id: "departing-player",
+            name: "Joni",
+            controller: "human",
+            seat: 0,
+            stack: 10_000,
+          },
+          {
+            id: "player-2",
+            name: "Player 2",
+            controller: "human",
+            seat: 1,
+            stack: 10_000,
+          },
+          {
+            id: "player-3",
+            name: "Player 3",
+            controller: "human",
+            seat: 2,
+            stack: 10_000,
+          },
+        ],
+      }),
+      createDeterministicDeck(),
+    );
+    for (let folds = 0; folds < 2; folds += 1) {
+      const actorId =
+        pokerEngineAdapter.snapshot(completedState).currentActorId;
+      if (!actorId) throw new Error("Expected a current actor");
+      completedState = pokerEngineAdapter.applyAction(completedState, actorId, {
+        type: "fold",
+      });
+    }
+    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
+
+    const game = await startNextHand(
+      {
+        getGame: vi.fn().mockResolvedValue({
+          id: "game-1",
+          status: "complete",
+          currentState: completedState,
+          stateSchemaVersion: 1,
+          handNumber: 1,
+          version: 1,
+        }),
+        getSeatAssignments: vi
+          .fn()
+          .mockResolvedValueOnce([
+            {
+              seat: 0,
+              name: "Joni",
+              status: "claimed",
+              controller: "human",
+              playerToken: "player-token",
+              isHost: false,
+              leaving: true,
+              enginePlayerId: "departing-player",
+            },
+            {
+              seat: 1,
+              name: "Player 2",
+              status: "claimed",
+              controller: "human",
+              playerToken: "player-2-token",
+              isHost: true,
+              leaving: false,
+              enginePlayerId: "player-2",
+            },
+            {
+              seat: 2,
+              name: "Player 3",
+              status: "claimed",
+              controller: "human",
+              playerToken: "player-3-token",
+              isHost: false,
+              leaving: false,
+              enginePlayerId: "player-3",
+            },
+          ])
+          .mockResolvedValueOnce([
+            {
+              seat: 0,
+              name: "Seat 1",
+              status: "open",
+              controller: "human",
+              playerToken: null,
+              isHost: false,
+              leaving: false,
+              enginePlayerId: "departing-player",
+            },
+            {
+              seat: 1,
+              name: "Player 2",
+              status: "claimed",
+              controller: "human",
+              playerToken: "player-2-token",
+              isHost: true,
+              leaving: false,
+              enginePlayerId: "player-2",
+            },
+            {
+              seat: 2,
+              name: "Player 3",
+              status: "claimed",
+              controller: "human",
+              playerToken: "player-3-token",
+              isHost: false,
+              leaving: false,
+              enginePlayerId: "player-3",
+            },
+          ]),
+        updateSeatAssignment,
+        startNextHand: vi.fn().mockResolvedValue({
+          id: "game-1",
+          status: "playing",
+          currentState: {},
+          stateSchemaVersion: 1,
+          handNumber: 2,
+          version: 2,
+        }),
+      },
+      "game-1",
+      1,
+      "player-2-token",
+    );
+
+    expect(updateSeatAssignment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        seat: 0,
+        name: "Seat 1",
+        status: "open",
+        playerToken: null,
+        leaving: false,
+      }),
+    );
+    expect(
+      game.poker.players.find((player) => player.seat === 0),
+    ).toMatchObject({ name: "Seat 1", status: "open", leaving: false });
+  });
+
   it.each(["host-token", "spectator-token", null])(
     "starts the next hand with a private response for viewer %s",
     async (viewerToken) => {

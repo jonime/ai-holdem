@@ -343,7 +343,34 @@ async function reconcileState(
   gameId: string,
   state: PokerGameState,
 ): Promise<PokerGameState> {
-  const assignments = await repository.getSeatAssignments(gameId);
+  const assignments = await Promise.all(
+    (await repository.getSeatAssignments(gameId)).map(async (assignment) => {
+      if (!assignment.leaving) return assignment;
+
+      const openAssignment: SeatAssignment = {
+        ...assignment,
+        name: `Seat ${assignment.seat + 1}`,
+        status: "open",
+        controller: "human",
+        aiDifficulty: null,
+        playerToken: null,
+        isHost: false,
+        leaving: false,
+      };
+      await repository.updateSeatAssignment({
+        gameId,
+        seat: assignment.seat,
+        name: openAssignment.name,
+        status: "open",
+        controller: "human",
+        aiDifficulty: null,
+        playerToken: null,
+        isHost: false,
+        leaving: false,
+      });
+      return openAssignment;
+    }),
+  );
   const startingStack =
     state.config.startingStack ?? state.config.players[0]?.stack ?? 10_000;
   const filled = assignments.filter(
@@ -744,6 +771,7 @@ export async function releaseSeat(
   const updatedAssignment: SeatAssignment = {
     ...assignment,
     status: isHandInProgress ? assignment.status : "open",
+    name: isHandInProgress ? assignment.name : `Seat ${seat + 1}`,
     controller: isHandInProgress ? assignment.controller : "human",
     aiDifficulty: isHandInProgress ? assignment.aiDifficulty : null,
     playerToken: isHandInProgress ? assignment.playerToken : null,
@@ -755,6 +783,7 @@ export async function releaseSeat(
     gameId,
     seat,
     status: updatedAssignment.status,
+    name: updatedAssignment.name,
     controller: updatedAssignment.controller,
     aiDifficulty: updatedAssignment.aiDifficulty,
     playerToken: updatedAssignment.playerToken,
