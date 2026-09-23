@@ -32,8 +32,10 @@ export function PlayingCard({
       className={`playing-card ${red ? "red-card" : ""}`}
       aria-label={cardLabel(card)}
     >
-      {rank}
-      {suitSymbol[suit]}
+      <span className="card-face" aria-hidden="true">
+        <span className="card-rank">{rank}</span>
+        <span className="card-suit">{suitSymbol[suit]}</span>
+      </span>
     </span>
   );
 }
