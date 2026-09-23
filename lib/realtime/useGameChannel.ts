@@ -9,6 +9,14 @@ interface GameEventEnvelope {
   readonly version?: unknown;
 }
 
+function isFiniteSafeInteger(value: unknown): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    Number.isSafeInteger(value)
+  );
+}
+
 export function useGameChannel(
   gameId: string | undefined,
   currentVersion: number | null,
@@ -41,17 +49,28 @@ export function useGameChannel(
           ({ payload }: { payload: unknown }) => {
             if (!payload || typeof payload !== "object") return;
             const event = payload as GameEventEnvelope;
+            const eventType = event.type;
             const isSeatEvent =
-              event.type === "seat_claimed" ||
-              event.type === "seat_released" ||
-              event.type === "seat_bot_assigned";
-            if (
-              !isSeatEvent &&
-              typeof event.version === "number" &&
-              versionRef.current !== null &&
-              event.version <= versionRef.current
-            ) {
+              eventType === "seat_claimed" ||
+              eventType === "seat_released" ||
+              eventType === "seat_bot_assigned";
+            if (!isSeatEvent && !eventType) {
               return;
+            }
+            if (!isSeatEvent && !isFiniteSafeInteger(event.version)) {
+              return;
+            }
+            if (!isSeatEvent) {
+              const version = event.version;
+              if (!isFiniteSafeInteger(version)) {
+                return;
+              }
+              if (
+                versionRef.current !== null &&
+                version <= versionRef.current
+              ) {
+                return;
+              }
             }
             onUpdateRef.current();
           },

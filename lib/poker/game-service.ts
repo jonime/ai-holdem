@@ -181,6 +181,21 @@ export class GameNotFoundError extends Error {
   }
 }
 
+function restorePersistedState(raw: unknown): PokerGameState {
+  if (!raw || typeof raw !== "object") {
+    throw new Error("Malformed persisted game state");
+  }
+  const state = raw as Record<string, unknown>;
+  if (state.stateSchemaVersion !== 1) {
+    throw new Error("Malformed persisted game state");
+  }
+  try {
+    return pokerEngineAdapter.restore(state as unknown as PokerGameState);
+  } catch {
+    throw new Error("Malformed persisted game state");
+  }
+}
+
 export async function createDemoGame(
   repository: GameSessionWriter,
   options: CreateDemoGameOptions = {},
@@ -405,7 +420,7 @@ export async function startGame(
   const state = await reconcileState(
     repository,
     gameId,
-    pokerEngineAdapter.restore(game.currentState as PokerGameState),
+    restorePersistedState(game.currentState),
   );
 
   const nextState = pokerEngineAdapter.startHand(state);
@@ -441,7 +456,7 @@ export async function updateSeatCount(
 ): Promise<PublicGame> {
   const game = await repository.getGame(gameId);
   if (!game) throw new GameNotFoundError(gameId);
-  const state = pokerEngineAdapter.restore(game.currentState as PokerGameState);
+  const state = restorePersistedState(game.currentState);
 
   try {
     return await updateTableSettings(
@@ -541,7 +556,7 @@ export async function updateTableSettings(
     throw new Error("Cannot shrink seat count below an occupied seat");
   }
 
-  const state = pokerEngineAdapter.restore(game.currentState as PokerGameState);
+  const state = restorePersistedState(game.currentState);
   const nextState = pokerEngineAdapter.createGame({
     ...state.config,
     ...settings,
@@ -697,7 +712,7 @@ export async function releaseSeat(
     const game = await repository.getGame(gameId);
     if (game) {
       const snapshot = pokerEngineAdapter.snapshot(
-        game.currentState as PokerGameState,
+        restorePersistedState(game.currentState),
       );
       isHandInProgress = Boolean(
         snapshot.street && snapshot.street !== "complete",
@@ -738,7 +753,7 @@ export async function getPublicGame(
     throw new GameNotFoundError(gameId);
   }
 
-  let state = pokerEngineAdapter.restore(game.currentState as PokerGameState);
+  let state = restorePersistedState(game.currentState);
   if ("getSeatAssignments" in repository) {
     state = await withOpenSeatPlaceholders(
       repository as GameReader & SeatAssignmentRepository,
@@ -776,9 +791,7 @@ export async function submitHumanAction(
     throw new GameNotFoundError(gameId);
   }
 
-  const stateBefore = pokerEngineAdapter.restore(
-    game.currentState as PokerGameState,
-  );
+  const stateBefore = restorePersistedState(game.currentState);
   const snapshotBefore = pokerEngineAdapter.snapshot(stateBefore);
   if (!snapshotBefore.street || snapshotBefore.street === "complete") {
     throw new Error("The current hand is not accepting actions");
@@ -844,9 +857,7 @@ export async function stepTypesafeAction(
     throw new GameNotFoundError(gameId);
   }
 
-  const stateBefore = pokerEngineAdapter.restore(
-    game.currentState as PokerGameState,
-  );
+  const stateBefore = restorePersistedState(game.currentState);
   const snapshotBefore = pokerEngineAdapter.snapshot(stateBefore);
   const aiPlayer = stateBefore.config.players.find(
     (player) => player.id === snapshotBefore.currentActorId,
@@ -936,9 +947,7 @@ export async function startNextHand(
     throw new GameConflictError(gameId, expectedVersion);
   }
 
-  const completedState = pokerEngineAdapter.restore(
-    game.currentState as PokerGameState,
-  );
+  const completedState = restorePersistedState(game.currentState);
   const completedSnapshot = pokerEngineAdapter.snapshot(completedState);
   if (completedSnapshot.street !== "complete") {
     throw new Error("The current hand has not completed");

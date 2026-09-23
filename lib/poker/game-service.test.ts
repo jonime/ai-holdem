@@ -168,6 +168,28 @@ describe("getPublicGame", () => {
     ).toBe(true);
   });
 
+  it("rejects malformed persisted state without leaking unchecked casts", async () => {
+    await expect(
+      getPublicGame(
+        {
+          getGame: vi.fn().mockResolvedValue({
+            id: "game-1",
+            status: "playing",
+            currentState: {
+              stateSchemaVersion: 1,
+              config: {},
+              engineState: {},
+            },
+            stateSchemaVersion: 1,
+            handNumber: 1,
+            version: 0,
+          }),
+        },
+        "game-1",
+      ),
+    ).rejects.toThrow("Malformed persisted game state");
+  });
+
   it("rejects unknown games", async () => {
     await expect(
       getPublicGame({ getGame: vi.fn().mockResolvedValue(null) }, "missing"),

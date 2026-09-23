@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { requestJson } from "@/lib/http/request-json";
+import { gameEnvelopeSchema, historyEnvelopeSchema } from "@/lib/http/schemas";
 import { useGameChannel } from "@/lib/realtime/useGameChannel";
 
 import type {
@@ -39,6 +40,8 @@ export function useGameSession(gameId?: string) {
   const loadGame = useCallback(async (targetGameId: string) => {
     const body = await requestJson<{ game: Game }>(
       `/api/games/${targetGameId}`,
+      undefined,
+      gameEnvelopeSchema,
     );
     setGame(body.game);
   }, []);
@@ -54,13 +57,11 @@ export function useGameSession(gameId?: string) {
 
     let cancelled = false;
 
-    void fetch(`/api/games/${gameId}`)
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error("Game is unavailable");
-        }
-        return (await response.json()) as { game: Game };
-      })
+    void requestJson<{ game: Game }>(
+      `/api/games/${gameId}`,
+      undefined,
+      gameEnvelopeSchema,
+    )
       .then((body) => {
         if (!cancelled) setGame(body.game);
       })
@@ -79,11 +80,11 @@ export function useGameSession(gameId?: string) {
     if (!game) return;
     let cancelled = false;
     const handNumber = selectedHistoryHand ?? game.poker.handNumber;
-    void fetch(`/api/games/${game.id}/history?hand=${handNumber}`)
-      .then(async (response) => {
-        if (!response.ok) throw new Error("Hand history is unavailable");
-        return (await response.json()) as { history: HandHistory };
-      })
+    void requestJson<{ history: HandHistory }>(
+      `/api/games/${game.id}/history?hand=${handNumber}`,
+      undefined,
+      historyEnvelopeSchema,
+    )
       .then((body) => {
         if (!cancelled)
           setHistory({

@@ -50,6 +50,7 @@ function choiceAnswer(
     throw new TypesafeResponseError(`Malformed TypeSafe ${key} answer`);
   }
   const probabilities: Record<string, number> = {};
+  let total = 0;
   for (const [option, probability] of Object.entries(answer.probabilities)) {
     if (
       typeof probability !== "number" ||
@@ -62,6 +63,12 @@ function choiceAnswer(
       );
     }
     probabilities[option] = probability;
+    total += probability;
+  }
+  if (!Number.isFinite(total) || total <= 0) {
+    throw new TypesafeResponseError(
+      `TypeSafe ${key} probabilities must sum to a positive value`,
+    );
   }
   return {
     choice: answer.choice,
@@ -159,15 +166,29 @@ export async function decidePokerAction(
   );
   const sizingOptions = createSizingOptions(state);
   const sizingChoices = sizingOptions.map((option) => option.choice);
+  if (!sizingOptions.some((option) => option.choice === sizingAnswer.choice)) {
+    throw new TypesafeResponseError(
+      `TypeSafe selected an unavailable sizing choice: ${sizingAnswer.choice}`,
+    );
+  }
   const sizingChoice = selectChoice(
     state,
     sizingChoices,
     sizingAnswer,
     random,
   ) as SizingChoice;
-  const sizingAmount =
-    sizingOptions.find((option) => option.choice === sizingChoice)?.amount ??
-    null;
+  const sizingOption = sizingOptions.find(
+    (option) => option.choice === sizingChoice,
+  );
+  const sizingAmount = sizingOption?.amount ?? null;
+  if (
+    sizingOption === undefined &&
+    (actionChoice === "bet" || actionChoice === "raise")
+  ) {
+    throw new TypesafeResponseError(
+      `TypeSafe selected an unavailable sizing option: ${sizingChoice}`,
+    );
+  }
   const action = actionFromChoice(
     actionChoice,
     state.legalActions,

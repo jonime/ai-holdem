@@ -121,9 +121,9 @@ describe("TypeSafe poker decision", () => {
     expect(new Set(amounts).size).toBe(amounts.length);
     expect(amounts.every((amount) => amount >= raise.minAmount)).toBe(true);
     expect(amounts.every((amount) => amount <= raise.maxAmount)).toBe(true);
-    expect(options.some((option) => option.description.includes("exactly"))).toBe(
-      true,
-    );
+    expect(
+      options.some((option) => option.description.includes("exactly")),
+    ).toBe(true);
   });
 
   it("converts a valid raise choice into a legal engine action", async () => {
@@ -156,6 +156,58 @@ describe("TypeSafe poker decision", () => {
     ).rejects.toBeInstanceOf(TypesafeResponseError);
     await expect(
       decidePokerAction({ evaluate: async () => ({ answers: {} }) }, state),
+    ).rejects.toBeInstanceOf(TypesafeResponseError);
+  });
+
+  it("rejects invalid chosen probabilities and impossible sizing choices", async () => {
+    const state = createPokerAIState(aiTurnState(), "typesafe-ai");
+
+    await expect(
+      decidePokerAction(
+        {
+          evaluate: async () => ({
+            answers: {
+              action: {
+                type: "choice",
+                choice: "raise",
+                probabilities: { fold: 0.5, check: 0.5, raise: 0.5 },
+                confidence: 0.7,
+              },
+              sizing: {
+                type: "choice",
+                choice: "all_in",
+                probabilities: { all_in: 2 },
+                confidence: 0.5,
+              },
+            },
+          }),
+        },
+        state,
+      ),
+    ).rejects.toBeInstanceOf(TypesafeResponseError);
+
+    await expect(
+      decidePokerAction(
+        {
+          evaluate: async () => ({
+            answers: {
+              action: {
+                type: "choice",
+                choice: "call",
+                probabilities: { fold: 1, check: 0, raise: 0 },
+                confidence: 0.7,
+              },
+              sizing: {
+                type: "choice",
+                choice: "impossible",
+                probabilities: { impossible: 1 },
+                confidence: 0.5,
+              },
+            },
+          }),
+        },
+        state,
+      ),
     ).rejects.toBeInstanceOf(TypesafeResponseError);
   });
 
