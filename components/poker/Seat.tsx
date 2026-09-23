@@ -39,9 +39,6 @@ export function Seat({
       <span className="seat-number">{player.seat + 1}</span>
       <div className="seat-heading">
         <span className="seat-label">{player.name.toUpperCase()}</span>
-        {active ? (
-          <span className="turn-dot" aria-label="Current turn" />
-        ) : null}
       </div>
       {winner ? <span className="winner-badge">POT WINNER</span> : null}
       {winner && winnerAmount !== null ? (

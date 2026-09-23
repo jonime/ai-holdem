@@ -369,13 +369,6 @@ h2 {
     monospace;
   letter-spacing: 1px;
 }
-.turn-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--sun);
-  box-shadow: 0 0 12px var(--sun);
-}
 .seat strong {
   display: block;
   margin: 4px 0 7px;
