@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AppHeader } from "@/components/poker/AppHeader";
 import { HistoryModal } from "@/components/poker/HistoryModal";
@@ -16,6 +16,7 @@ import {
 } from "@/components/poker/view-model";
 
 const playerNameStorageKey = "ai-holdem-player-name";
+const bigBlindStep = 100;
 
 export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const [playerName, setPlayerName] = useState(() =>
@@ -92,6 +93,97 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
         return player ? [[player.id, action] as const] : [];
       }),
   );
+
+  useEffect(() => {
+    function handleShortcut(event: KeyboardEvent) {
+      if (
+        !game ||
+        !isHumanTurn ||
+        loading ||
+        historyOpen ||
+        event.repeat ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+      const actionByKey = {
+        a: game.poker.legalActions.find((action) => action.type === "fold"),
+        s: game.poker.legalActions.find(
+          (action) => action.type === "check" || action.type === "call",
+        ),
+      };
+      const action = key === "a" || key === "s" ? actionByKey[key] : null;
+
+      if (action) {
+        event.preventDefault();
+        void submitAction(
+          action,
+          action.type === "call" ? action.amount : null,
+        );
+        return;
+      }
+
+      if (key === "d" && sizedAction) {
+        event.preventDefault();
+        void submitAction(
+          sizedAction,
+          Math.min(
+            sizedAction.maxAmount,
+            Math.max(sizedAction.minAmount, amount ?? sizedAction.minAmount),
+          ),
+        );
+        return;
+      }
+
+      if (
+        (key === "q" ||
+          key === "e" ||
+          key === "arrowleft" ||
+          key === "arrowright") &&
+        sizedAction
+      ) {
+        event.preventDefault();
+        const currentAmount = Math.min(
+          sizedAction.maxAmount,
+          Math.max(sizedAction.minAmount, amount ?? sizedAction.minAmount),
+        );
+        const direction = key === "q" || key === "arrowleft" ? -1 : 1;
+        setAmount(
+          Math.min(
+            sizedAction.maxAmount,
+            Math.max(
+              sizedAction.minAmount,
+              currentAmount + direction * bigBlindStep,
+            ),
+          ),
+        );
+      }
+    }
+
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, [
+    amount,
+    game,
+    historyOpen,
+    isHumanTurn,
+    loading,
+    sizedAction,
+    submitAction,
+  ]);
 
   return (
     <main className="poker-app">
