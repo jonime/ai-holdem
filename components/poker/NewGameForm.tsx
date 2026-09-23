@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { useI18n } from "@/components/poker/I18nProvider";
+
 const gameStorageKey = "ai-holdem-game-id";
 const playerNameStorageKey = "ai-holdem-player-name";
 
@@ -15,6 +17,7 @@ function initialPlayerName(): string {
 
 export function NewGameForm() {
   const router = useRouter();
+  const { locale, t } = useI18n();
   const [playerName, setPlayerName] = useState(initialPlayerName);
 
   async function createGame() {
@@ -31,22 +34,22 @@ export function NewGameForm() {
     const body = (await response.json()) as { gameId?: string; error?: string };
 
     if (!response.ok || !body.gameId) {
-      throw new Error(body.error ?? "Unable to create game");
+      throw new Error(body.error ?? t("errors.createGame"));
     }
 
     window.localStorage.setItem(gameStorageKey, body.gameId);
-    router.push(`/game/${body.gameId}`);
+    router.push(`/${locale}/game/${body.gameId}`);
   }
 
   return (
     <>
       <label className="player-name-field">
-        Your name
+        {t("home.yourName")}
         <input
           type="text"
           value={playerName}
           maxLength={30}
-          placeholder="Anonymous"
+          placeholder={t("home.anonymous")}
           onChange={(event) => setPlayerName(event.target.value)}
         />
       </label>
@@ -55,7 +58,7 @@ export function NewGameForm() {
         type="button"
         onClick={() => void createGame()}
       >
-        New Game
+        {t("home.newGame")}
       </button>
     </>
   );

@@ -43,7 +43,9 @@ describe("GamePageContent", () => {
   it("redirects to notFound for an unknown game id", async () => {
     getPublicGameMock.mockRejectedValue(new GameNotFoundErrorMock("missing"));
 
-    await GamePageContent({ params: Promise.resolve({ gameId: "missing" }) });
+    await GamePageContent({
+      params: Promise.resolve({ lang: "en-US", gameId: "missing" }),
+    });
 
     expect(notFoundMock).toHaveBeenCalledTimes(1);
   });

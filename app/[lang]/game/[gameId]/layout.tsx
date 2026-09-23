@@ -2,7 +2,7 @@ import { GameHeader } from "@/components/poker/GameHeader";
 
 export default function GameLayout({
   children,
-}: LayoutProps<"/game/[gameId]">) {
+}: LayoutProps<"/[lang]/game/[gameId]">) {
   return (
     <>
       <GameHeader />

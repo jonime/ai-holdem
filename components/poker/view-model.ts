@@ -4,21 +4,31 @@ import type {
   PublicPokerPlayer,
 } from "@/lib/poker/types";
 import type { LatestPlayerAction } from "@/components/poker/types";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
+import dictionary, { type Dictionary } from "@/lib/i18n/dictionaries/en-US";
 
-export function formatChips(value: number): string {
-  return new Intl.NumberFormat("en-US").format(value);
+export function formatChips(
+  value: number,
+  locale: Locale = DEFAULT_LOCALE,
+): string {
+  return new Intl.NumberFormat(locale).format(value);
 }
 
-export function cardLabel(card: string): string {
+export function cardLabel(
+  card: string,
+  labels: Dictionary["cards"] = dictionary.cards,
+): string {
   const suit = card.at(-1) ?? "";
   const rank = card.slice(0, -1);
   const suits: Record<string, string> = {
-    c: "clubs",
-    d: "diamonds",
-    h: "hearts",
-    s: "spades",
+    c: labels.clubs,
+    d: labels.diamonds,
+    h: labels.hearts,
+    s: labels.spades,
   };
-  return `${rank} of ${suits[suit] ?? "unknown suit"}`;
+  return labels.of
+    .replace("{rank}", rank)
+    .replace("{suit}", suits[suit] ?? labels.unknownSuit);
 }
 
 function rotateSeats(
@@ -118,14 +128,15 @@ export function filledSeatCount(
 
 export function describeHandResult(
   winnerNames: readonly string[] | null | undefined,
+  labels: Dictionary["history"] = dictionary.history,
 ): string | null {
   if (!winnerNames || winnerNames.length === 0) {
-    return "Hand complete";
+    return labels.handComplete;
   }
   if (winnerNames.length > 1) {
-    return `Split pot: ${winnerNames.join(" & ")}`;
+    return labels.splitPot.replace("{winners}", winnerNames.join(" & "));
   }
-  return `Winner: ${winnerNames[0]}`;
+  return labels.winner.replace("{winner}", winnerNames[0]);
 }
 
 export function findGameWinnerId(
@@ -152,33 +163,42 @@ export function describeSeatStatus(
     readonly active?: boolean;
   },
   latestAction: LatestPlayerAction | null = null,
+  labels: Dictionary["seat"] = dictionary.seat,
+  actions: Dictionary["actions"] = dictionary.actions,
+  locale: Locale = DEFAULT_LOCALE,
 ): string {
   if (player.leaving) {
-    return "Leaving after this hand";
+    return labels.leaving;
   }
   if (player.stack === 0 && !player.inHand) {
-    return "Busted";
+    return labels.busted;
   }
   if (!player.inHand) {
-    return "Waiting for next hand";
+    return labels.waitingNextHand;
   }
   if (player.folded) {
-    return "Folded";
+    return labels.folded;
   }
   if (player.allIn) {
-    return "All-in";
+    return labels.allIn;
   }
   if (player.active) {
-    return "Thinking";
+    return labels.thinking;
   }
-  return latestAction ? formatActionLabel(latestAction) : "Waiting";
+  return latestAction
+    ? formatActionLabel(latestAction, locale, actions)
+    : labels.waiting;
 }
 
-export function formatActionLabel(action: LatestPlayerAction): string {
-  const label = action.action[0].toUpperCase() + action.action.slice(1);
+export function formatActionLabel(
+  action: LatestPlayerAction,
+  locale: Locale = DEFAULT_LOCALE,
+  labels: Dictionary["actions"] = dictionary.actions,
+): string {
+  const label = labels[action.action as keyof typeof labels] ?? action.action;
   return action.amount === null
     ? label
-    : `${label} ${formatChips(action.amount)}`;
+    : `${label} ${formatChips(action.amount, locale)}`;
 }
 
 export function availableHistoryHands(handNumber: number): number[] {

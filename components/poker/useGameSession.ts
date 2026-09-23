@@ -12,6 +12,7 @@ import {
 import { requestJson } from "@/lib/http/request-json";
 import { gameEnvelopeSchema, historyEnvelopeSchema } from "@/lib/http/schemas";
 import { useGameChannel } from "@/lib/realtime/useGameChannel";
+import { useI18n } from "@/components/poker/I18nProvider";
 
 import type {
   AIDecision,
@@ -42,6 +43,7 @@ export function useGameSession(gameId?: string) {
   const realtimeRefreshInFlight = useRef(false);
   const realtimeRefreshPending = useRef(false);
   const router = useRouter();
+  const { locale, t } = useI18n();
 
   const loadGame = useCallback(async (targetGameId: string) => {
     const requestNumber = ++latestLoadRequest.current;
@@ -70,7 +72,7 @@ export function useGameSession(gameId?: string) {
         realtimeRefreshInFlight.current = true;
         void loadGame(gameId)
           .catch(() => {
-            setError("Unable to refresh the latest game state.");
+            setError(t("errors.refreshGame"));
           })
           .finally(() => {
             realtimeRefreshInFlight.current = false;
@@ -83,7 +85,7 @@ export function useGameSession(gameId?: string) {
     }
 
     schedule();
-  }, [gameId, loadGame]);
+  }, [gameId, loadGame, t]);
 
   useGameChannel(gameId, game?.version ?? null, scheduleRealtimeRefresh);
 
@@ -96,14 +98,14 @@ export function useGameSession(gameId?: string) {
 
     void loadGame(gameId).catch(() => {
       if (!cancelled) {
-        setError("Unable to load the requested game.");
+        setError(t("errors.loadGame"));
       }
     });
 
     return () => {
       cancelled = true;
     };
-  }, [gameId, loadGame]);
+  }, [gameId, loadGame, t]);
 
   useEffect(() => {
     return () => {
@@ -148,17 +150,17 @@ export function useGameSession(gameId?: string) {
         method: "POST",
       });
       window.localStorage.setItem("ai-holdem-game-id", body.gameId);
-      router.push(`/game/${body.gameId}`);
+      router.push(`/${locale}/game/${body.gameId}`);
     } catch (requestError) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Unable to create game",
+          : t("errors.createGame"),
       );
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [locale, router, t]);
 
   const postSeatAction = useCallback(
     async (path: string, body?: unknown) => {
@@ -181,13 +183,13 @@ export function useGameSession(gameId?: string) {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "Seat update failed",
+            : t("errors.seatUpdate"),
         );
       } finally {
         setLoading(false);
       }
     },
-    [game, loadGame],
+    [game, loadGame, t],
   );
 
   const claimSeatAt = useCallback(
@@ -235,12 +237,12 @@ export function useGameSession(gameId?: string) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Unable to start game",
+          : t("errors.startGame"),
       );
     } finally {
       setLoading(false);
     }
-  }, [game]);
+  }, [game, t]);
 
   const updateTableSettings = useCallback(
     async (settings: TableSettings) => {
@@ -264,13 +266,13 @@ export function useGameSession(gameId?: string) {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "Unable to update table settings",
+            : t("errors.updateSettings"),
         );
       } finally {
         setLoading(false);
       }
     },
-    [game],
+    [game, t],
   );
 
   const advanceAiTurns = useCallback(async (nextGame: Game) => {
@@ -305,7 +307,7 @@ export function useGameSession(gameId?: string) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Unable to advance TypeSafe AI",
+          : t("errors.advanceAi"),
       );
     } finally {
       setLoading(false);
@@ -366,13 +368,13 @@ export function useGameSession(gameId?: string) {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "Unable to submit action",
+            : t("errors.submitAction"),
         );
       } finally {
         setLoading(false);
       }
     },
-    [advanceAiTurns, game],
+    [advanceAiTurns, game, t],
   );
 
   const beginNextHand = useCallback(async () => {
@@ -396,12 +398,12 @@ export function useGameSession(gameId?: string) {
       setError(
         requestError instanceof Error
           ? requestError.message
-          : "Unable to start next hand",
+          : t("errors.nextHand"),
       );
     } finally {
       setLoading(false);
     }
-  }, [advanceAiTurns, game]);
+  }, [advanceAiTurns, game, t]);
 
   const selectHistoryHand = useCallback((handNumber: number) => {
     setSelectedHistoryHand(handNumber);

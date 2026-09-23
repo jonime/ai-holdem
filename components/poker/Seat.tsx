@@ -4,6 +4,7 @@ import type {
   PublicPokerPlayer,
 } from "@/components/poker/types";
 import { describeSeatStatus, formatChips } from "@/components/poker/view-model";
+import { useI18n } from "@/components/poker/I18nProvider";
 
 export function Seat({
   player,
@@ -26,25 +27,40 @@ export function Seat({
   readonly bigBlindSeat: number | null;
   readonly gameWinner: boolean;
 }) {
+  const { dictionary, locale, t } = useI18n();
   const isAi = player.controller === "typesafe_ai";
   const isOpen = player.status === "open";
   const isBusted = player.stack === 0 && !player.inHand;
   const role =
     player.seat === dealerSeat
-      ? { label: "D", className: "dealer-badge", name: "Dealer" }
+      ? {
+          label: dictionary.seat.dealerBadge,
+          className: "dealer-badge",
+          name: dictionary.seat.dealer,
+        }
       : player.seat === smallBlindSeat
-        ? { label: "SB", className: "small-blind-badge", name: "Small blind" }
+        ? {
+            label: dictionary.seat.smallBlindBadge,
+            className: "small-blind-badge",
+            name: dictionary.seat.smallBlind,
+          }
         : player.seat === bigBlindSeat
-          ? { label: "BB", className: "big-blind-badge", name: "Big blind" }
+          ? {
+              label: dictionary.seat.bigBlindBadge,
+              className: "big-blind-badge",
+              name: dictionary.seat.bigBlind,
+            }
           : null;
 
   if (isOpen) {
     return (
       <section className="seat open-seat">
         <div className="seat-heading">
-          <span className="seat-label">SEAT {player.seat + 1}</span>
+          <span className="seat-label">
+            {t("seat.seat", { seat: player.seat + 1 })}
+          </span>
         </div>
-        <span className="seat-status">Open seat</span>
+        <span className="seat-status">{t("seat.openSeat")}</span>
       </section>
     );
   }
@@ -64,17 +80,19 @@ export function Seat({
       ) : null}
       {winner || gameWinner ? (
         <span className="winner-badge">
-          {gameWinner ? "GAME WINNER" : "POT WINNER"}
+          {gameWinner ? dictionary.seat.gameWinner : dictionary.seat.potWinner}
         </span>
       ) : null}
       {winner && winnerAmount !== null ? (
-        <span className="winner-amount">+{formatChips(winnerAmount)}</span>
+        <span className="winner-amount">
+          +{formatChips(winnerAmount, locale)}
+        </span>
       ) : null}
-      <strong>{formatChips(player.stack)}</strong>
+      <strong>{formatChips(player.stack, locale)}</strong>
       {latestAction?.action === "bet" || latestAction?.action === "raise" ? (
         <span className="action-badge">
           {latestAction.action.toUpperCase()}{" "}
-          {formatChips(latestAction.amount ?? 0)}
+          {formatChips(latestAction.amount ?? 0, locale)}
         </span>
       ) : null}
       <div className="hole-cards">
@@ -98,6 +116,9 @@ export function Seat({
             active,
           },
           latestAction,
+          dictionary.seat,
+          dictionary.actions,
+          locale,
         )}
       </span>
     </section>

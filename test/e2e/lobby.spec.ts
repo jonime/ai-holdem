@@ -13,7 +13,7 @@ test("runs a two-player hand in a six-seat lobby", async ({
   page,
 }) => {
   test.setTimeout(60_000);
-  await page.goto("/");
+  await page.goto("/en-US");
   const createResponsePromise = page.waitForResponse(
     (response) =>
       response.url().endsWith("/api/games") &&
@@ -26,7 +26,7 @@ test("runs a two-player hand in a six-seat lobby", async ({
   const createResponse = await createResponsePromise;
   const createBody = await createResponse.text();
   expect(createResponse.ok(), createBody).toBe(true);
-  await expect(page).toHaveURL(/\/game\/[0-9a-f-]+$/);
+  await expect(page).toHaveURL(/\/en-US\/game\/[0-9a-f-]+$/);
   const gameUrl = page.url();
 
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
@@ -73,7 +73,7 @@ test("runs a two-player hand in a six-seat lobby", async ({
 test("persists a per-bot difficulty selected in the lobby", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/en-US");
   await page
     .getByRole("region", { name: "Start a new game" })
     .getByRole("button", { name: "New Game" })
@@ -89,7 +89,7 @@ test("persists a per-bot difficulty selected in the lobby", async ({
 });
 
 test("persists host table settings selected in the lobby", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/en-US");
   await page
     .getByRole("region", { name: "Start a new game" })
     .getByRole("button", { name: "New Game" })

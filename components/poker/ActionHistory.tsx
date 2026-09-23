@@ -1,5 +1,6 @@
 import type { AIDecision, HandHistory } from "@/components/poker/types";
 import { formatChips, parseProbabilities } from "@/components/poker/view-model";
+import { useI18n } from "@/components/poker/I18nProvider";
 
 function DecisionSummary({
   probabilities,
@@ -8,6 +9,7 @@ function DecisionSummary({
   readonly probabilities: Readonly<Record<string, number>>;
   readonly confidence: number;
 }) {
+  const { t } = useI18n();
   return (
     <div className="decision-summary">
       <div className="probability-list compact">
@@ -22,7 +24,7 @@ function DecisionSummary({
         ))}
       </div>
       <span className="confidence-chip">
-        Confidence {Math.round(confidence * 100)}%
+        {t("history.confidence", { percent: Math.round(confidence * 100) })}
       </span>
     </div>
   );
@@ -41,10 +43,11 @@ export function ActionHistory({
   readonly onSelectHand: (handNumber: number) => void;
   readonly liveDecisions: readonly AIDecision[];
 }) {
+  const { locale, t } = useI18n();
   if (!history) {
     return (
       <section className="history-panel muted-panel">
-        <p>Hand history loads with the table.</p>
+        <p>{t("history.loadsWithTable")}</p>
       </section>
     );
   }
@@ -61,21 +64,21 @@ export function ActionHistory({
 
   return (
     <section className="history-panel">
-      <div className="panel-kicker">PERSISTED HAND</div>
-      <h2>Action History</h2>
-      <div className="hand-selector" aria-label="Select hand history">
+      <div className="panel-kicker">{t("history.persistedHand")}</div>
+      <h2>{t("history.title")}</h2>
+      <div className="hand-selector" aria-label={t("history.selectHand")}>
         {availableHands.map((availableHand) => (
           <button
             className={availableHand === handNumber ? "selected-hand" : ""}
             key={availableHand}
             onClick={() => onSelectHand(availableHand)}
           >
-            Hand {availableHand}
+            {t("history.hand", { hand: availableHand })}
           </button>
         ))}
       </div>
       {history.actions.length === 0 ? (
-        <p className="empty-history">No actions yet.</p>
+        <p className="empty-history">{t("history.noActions")}</p>
       ) : (
         <ol className="history-list">
           {history.actions.map((action) => {
@@ -89,7 +92,7 @@ export function ActionHistory({
               action.controller === "typesafe_ai" && !inspection
                 ? liveDecisionBySequence.get(action.sequence)
                 : undefined;
-            const actionLabel = `${action.action}${action.amount !== null ? ` ${formatChips(action.amount)}` : ""}`;
+            const actionLabel = `${action.action}${action.amount !== null ? ` ${formatChips(action.amount, locale)}` : ""}`;
 
             return (
               <li
@@ -110,7 +113,7 @@ export function ActionHistory({
                       confidence={inspection.confidence}
                     />
                     <details className="history-inspection">
-                      <summary>Raw decision data</summary>
+                      <summary>{t("history.rawDecision")}</summary>
                       <div className="inspection-entry">
                         <pre>
                           {JSON.stringify(

@@ -7,6 +7,7 @@ import type {
   PublicPokerPlayer,
 } from "@/components/poker/types";
 import { findGameWinnerId, formatChips } from "@/components/poker/view-model";
+import { useI18n } from "@/components/poker/I18nProvider";
 
 export function PokerTable({
   game,
@@ -55,6 +56,7 @@ export function PokerTable({
   readonly onOpenHistory: () => void;
   readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
 }) {
+  const { locale, t } = useI18n();
   const gameWinnerId = findGameWinnerId(game.poker.players, game.poker.street);
   const gameOver = gameWinnerId !== null;
   const legalAction = (type: LegalAction["type"]) =>
@@ -98,8 +100,12 @@ export function PokerTable({
   return (
     <section className="table-shell">
       <div className="table-meta">
-        <span>HAND {game.poker.handNumber}</span>
-        <span>{game.poker.street?.toUpperCase() ?? "WAITING"}</span>
+        <span>{t("table.hand", { hand: game.poker.handNumber })}</span>
+        <span>
+          {game.poker.street
+            ? t(`table.${game.poker.street}`)
+            : t("table.waiting")}
+        </span>
         <div className="table-meta-actions">
           {human?.playerToken === viewerToken ? (
             <button
@@ -108,7 +114,7 @@ export function PokerTable({
               disabled={loading || human.leaving}
               onClick={onStandUp}
             >
-              {human.leaving ? "Leaving" : "Stand up"}
+              {human.leaving ? t("table.leaving") : t("table.standUp")}
             </button>
           ) : null}
           <button
@@ -116,7 +122,7 @@ export function PokerTable({
             className="history-toggle"
             onClick={onOpenHistory}
           >
-            History
+            {t("table.history")}
           </button>
         </div>
       </div>
@@ -139,7 +145,8 @@ export function PokerTable({
         </div>
         <div className="center-table">
           <div className="pot">
-            POT <strong>{formatChips(game.poker.pot)}</strong>
+            {t("table.pot")}{" "}
+            <strong>{formatChips(game.poker.pot, locale)}</strong>
           </div>
           <div className="community-cards">
             {[
@@ -198,7 +205,7 @@ export function PokerTable({
                 }
                 onClick={onBeginNextHand}
               >
-                Next Hand
+                {t("table.nextHand")}
               </button>
             ) : !botOnlyGame &&
               game.poker.players.some((player) => player.status === "open") ? (
@@ -207,7 +214,7 @@ export function PokerTable({
                 disabled={loading}
                 onClick={onClaimFirstOpenSeat}
               >
-                {loading ? "Claiming seat" : "Sit in an open seat"}
+                {loading ? t("table.claimingSeat") : t("table.sitOpenSeat")}
               </button>
             ) : null}
           </div>
@@ -219,7 +226,7 @@ export function PokerTable({
                 disabled={!isHumanTurn || loading || !legalAction("fold")}
                 onClick={() => submitFixedAction("fold")}
               >
-                Fold
+                {t("table.fold")}
               </button>
               <button
                 type="button"
@@ -240,11 +247,13 @@ export function PokerTable({
               >
                 {game.poker.street === "complete"
                   ? loading
-                    ? "Preparing"
-                    : "Next Hand"
+                    ? t("table.preparing")
+                    : t("table.nextHand")
                   : checkCallAction?.type === "call"
-                    ? `Call ${formatChips(checkCallAction.amount)}`
-                    : "Check"}
+                    ? t("table.call", {
+                        amount: formatChips(checkCallAction.amount, locale),
+                      })
+                    : t("table.check")}
               </button>
               <button
                 type="button"
@@ -254,16 +263,26 @@ export function PokerTable({
                 }}
               >
                 {sizedAction
-                  ? `${sizedAction.type === "raise" ? "Raise" : "Bet"} to ${formatChips(selectedAmount ?? sizedAction.minAmount)}`
-                  : "Bet"}
+                  ? t(
+                      sizedAction.type === "raise"
+                        ? "table.raiseTo"
+                        : "table.betTo",
+                      {
+                        amount: formatChips(
+                          selectedAmount ?? sizedAction.minAmount,
+                          locale,
+                        ),
+                      },
+                    )
+                  : t("table.bet")}
               </button>
             </div>
             <div className="amount-control">
               <div className="amount-heading">
-                <span>Bet size</span>
+                <span>{t("table.betSize")}</span>
                 <strong>
                   {sizedAction && selectedAmount !== null
-                    ? formatChips(selectedAmount)
+                    ? formatChips(selectedAmount, locale)
                     : "-"}
                 </strong>
               </div>
@@ -276,7 +295,7 @@ export function PokerTable({
                 }
                 disabled={!sizedAction || !isHumanTurn || loading}
                 onChange={(event) => setAmount(Number(event.target.value))}
-                aria-label="Bet amount"
+                aria-label={t("table.betAmount")}
               />
               <div className="amount-presets">
                 {[0.5, 0.75, 1].map((fraction) => (
@@ -286,7 +305,9 @@ export function PokerTable({
                     disabled={!sizedAction || !isHumanTurn || loading}
                     onClick={() => setAmount(potPresetAmount(fraction))}
                   >
-                    {fraction === 1 ? "Pot" : `${fraction * 100}% Pot`}
+                    {fraction === 1
+                      ? t("table.pot")
+                      : t("table.potPercent", { percent: fraction * 100 })}
                   </button>
                 ))}
                 <button
@@ -296,7 +317,7 @@ export function PokerTable({
                     if (sizedAction) setAmount(sizedAction.maxAmount);
                   }}
                 >
-                  Max
+                  {t("table.max")}
                 </button>
               </div>
             </div>

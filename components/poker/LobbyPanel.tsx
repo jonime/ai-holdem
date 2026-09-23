@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { useI18n } from "@/components/poker/I18nProvider";
 import type {
   AIDifficulty,
   Game,
@@ -30,6 +31,7 @@ export function LobbyPanel({
   readonly onStartWaitingGame: () => void;
   readonly onUpdateTableSettings: (settings: TableSettings) => void;
 }) {
+  const { t } = useI18n();
   const canManage = game.viewerIsHost;
   const occupiedSeats = filledSeatCount(game.poker.players);
   const [botDifficulties, setBotDifficulties] = useState<
@@ -83,7 +85,7 @@ export function LobbyPanel({
             type="text"
             value={playerName}
             maxLength={30}
-            placeholder="Anonymous"
+            placeholder={t("lobby.anonymous")}
             onChange={(event) => setPlayerName(event.target.value)}
           />
         </label>
@@ -162,7 +164,7 @@ export function LobbyPanel({
               <small>
                 {settingsValid
                   ? `${Math.round(parsedSettings.startingStack / parsedSettings.bigBlind)} BB`
-                  : "Check values"}
+                  : t("lobby.checkValues")}
               </small>
             </label>
             <button
@@ -210,7 +212,7 @@ export function LobbyPanel({
                 </span>
               </div>
               <div className="lobby-seat-person">
-                <strong>{player?.name ?? "Open seat"}</strong>
+                <strong>{player?.name ?? t("lobby.openSeat")}</strong>
                 <span>
                   {player?.status === "bot"
                     ? `TypeSafe AI · ${player.aiDifficulty ?? "medium"}`

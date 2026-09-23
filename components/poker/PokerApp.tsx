@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { HistoryModal } from "@/components/poker/HistoryModal";
+import { useI18n } from "@/components/poker/I18nProvider";
 import { LobbyPanel } from "@/components/poker/LobbyPanel";
 import { PokerTable } from "@/components/poker/PokerTable";
 import { useGameSession } from "@/components/poker/useGameSession";
@@ -16,6 +17,7 @@ import {
 
 const playerNameStorageKey = "ai-holdem-player-name";
 export default function PokerApp({ gameId }: { readonly gameId?: string }) {
+  const { t } = useI18n();
   const [playerName, setPlayerName] = useState(() =>
     typeof window === "undefined"
       ? ""
@@ -200,7 +202,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
         </p>
       ) : null}
       {!game ? (
-        <div className="route-loading" aria-label="Loading table" />
+        <div className="route-loading" aria-label={t("table.waiting")} />
       ) : game.status === "waiting" ? (
         <LobbyPanel
           game={game}

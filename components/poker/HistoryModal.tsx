@@ -1,5 +1,6 @@
 import { ActionHistory } from "@/components/poker/ActionHistory";
 import type { AIDecision, HandHistory } from "@/components/poker/types";
+import { useI18n } from "@/components/poker/I18nProvider";
 
 export function HistoryModal({
   onClose,
@@ -16,12 +17,13 @@ export function HistoryModal({
   readonly onSelectHand: (handNumber: number) => void;
   readonly liveDecisions: readonly AIDecision[];
 }) {
+  const { t } = useI18n();
   return (
     <div
       className="history-modal"
       role="dialog"
       aria-modal="true"
-      aria-label="Action history"
+      aria-label={t("history.actionHistory")}
     >
       <div className="history-backdrop" onClick={onClose} />
       <div className="history-dialog">
@@ -29,7 +31,7 @@ export function HistoryModal({
           type="button"
           className="history-close"
           onClick={onClose}
-          aria-label="Close action history"
+          aria-label={t("history.close")}
         >
           ×
         </button>

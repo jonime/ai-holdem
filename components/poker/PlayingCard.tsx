@@ -1,4 +1,5 @@
 import { cardLabel } from "@/components/poker/view-model";
+import { useI18n } from "@/components/poker/I18nProvider";
 
 export function PlayingCard({
   card,
@@ -7,9 +8,10 @@ export function PlayingCard({
   readonly card?: string;
   readonly hidden?: boolean;
 }) {
+  const { dictionary, t } = useI18n();
   if (hidden) {
     return (
-      <span className="playing-card card-back" aria-label="Hidden card">
+      <span className="playing-card card-back" aria-label={t("cards.hidden")}>
         TS
       </span>
     );
@@ -30,7 +32,7 @@ export function PlayingCard({
   return (
     <span
       className={`playing-card ${red ? "red-card" : ""}`}
-      aria-label={cardLabel(card)}
+      aria-label={cardLabel(card, dictionary.cards)}
     >
       <span className="card-face" aria-hidden="true">
         <span className="card-rank">{rank}</span>
