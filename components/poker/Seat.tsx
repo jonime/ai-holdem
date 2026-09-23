@@ -3,7 +3,11 @@ import type {
   LatestPlayerAction,
   PublicPokerPlayer,
 } from "@/components/poker/types";
-import { describeSeatStatus, formatChips } from "@/components/poker/view-model";
+import {
+  describeSeatStatus,
+  formatChips,
+  type SeatMarker,
+} from "@/components/poker/view-model";
 
 export function Seat({
   player,
@@ -11,12 +15,14 @@ export function Seat({
   winner,
   winnerAmount,
   latestAction,
+  markers,
 }: {
   readonly player: PublicPokerPlayer;
   readonly active: boolean;
   readonly winner: boolean;
   readonly winnerAmount: number | null;
   readonly latestAction: LatestPlayerAction | null;
+  readonly markers: readonly SeatMarker[];
 }) {
   const isAi = player.controller === "typesafe_ai";
   const isOpen = player.status === "open";
@@ -37,6 +43,20 @@ export function Seat({
       className={`seat ${isAi ? "ai-seat" : "human-seat"} ${active ? "active-seat" : ""} ${winner ? "winner-seat" : ""}`}
     >
       <span className="seat-number">{player.seat + 1}</span>
+      {markers.length > 0 ? (
+        <div className="seat-markers" aria-label="Seat markers">
+          {markers.map((marker) => (
+            <span
+              key={marker.key}
+              className={`seat-marker ${marker.tone}-marker`}
+              aria-label={marker.ariaLabel}
+              title={marker.ariaLabel}
+            >
+              {marker.label}
+            </span>
+          ))}
+        </div>
+      ) : null}
       <div className="seat-heading">
         <span className="seat-label">{player.name.toUpperCase()}</span>
         {active ? (

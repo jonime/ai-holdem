@@ -1,5 +1,16 @@
-import type { LegalAction, PublicPokerPlayer } from "@/lib/poker/types";
+import type {
+  LegalAction,
+  PublicPokerGame,
+  PublicPokerPlayer,
+} from "@/lib/poker/types";
 import type { LatestPlayerAction } from "@/components/poker/types";
+
+export interface SeatMarker {
+  readonly key: "dealer" | "smallBlind" | "bigBlind";
+  readonly label: "D" | "SB" | "BB";
+  readonly ariaLabel: string;
+  readonly tone: "dealer" | "blind";
+}
 
 export function formatChips(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
@@ -160,6 +171,47 @@ export function formatActionLabel(action: LatestPlayerAction): string {
 
 export function availableHistoryHands(handNumber: number): number[] {
   return Array.from({ length: handNumber }, (_, index) => index + 1);
+}
+
+export function seatMarkersForSeat(
+  game: Pick<
+    PublicPokerGame,
+    "buttonSeat" | "smallBlindSeat" | "bigBlindSeat" | "street"
+  >,
+  seat: number,
+): readonly SeatMarker[] {
+  if (game.street === null) {
+    return [];
+  }
+
+  const markers: SeatMarker[] = [];
+
+  if (seat === game.buttonSeat) {
+    markers.push({
+      key: "dealer",
+      label: "D",
+      ariaLabel: "Dealer button",
+      tone: "dealer",
+    });
+  }
+  if (seat === game.smallBlindSeat) {
+    markers.push({
+      key: "smallBlind",
+      label: "SB",
+      ariaLabel: "Small blind",
+      tone: "blind",
+    });
+  }
+  if (seat === game.bigBlindSeat) {
+    markers.push({
+      key: "bigBlind",
+      label: "BB",
+      ariaLabel: "Big blind",
+      tone: "blind",
+    });
+  }
+
+  return markers;
 }
 
 export function getSizedAction(

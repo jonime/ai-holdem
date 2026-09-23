@@ -100,6 +100,9 @@ describe("pokerEngineAdapter", () => {
     expect(human?.holeCards).toHaveLength(2);
     expect(ai?.holeCards).toBeNull();
     expect(projection).not.toHaveProperty("engineState");
+    expect(projection.buttonSeat).toBe(0);
+    expect(projection.smallBlindSeat).toBe(0);
+    expect(projection.bigBlindSeat).toBe(1);
   });
 
   it("hides all hole cards for an unseated spectator", () => {
@@ -110,6 +113,17 @@ describe("pokerEngineAdapter", () => {
       projection.players.every((player) => player.holeCards === null),
     ).toBe(true);
     expect(projection.legalActions).toEqual([]);
+  });
+
+  it("clears dealer and blind seats when no hand is active", () => {
+    const projection = pokerEngineAdapter.publicProjection(
+      pokerEngineAdapter.createGame(headsUpConfig),
+      null,
+    );
+
+    expect(projection.buttonSeat).toBeNull();
+    expect(projection.smallBlindSeat).toBeNull();
+    expect(projection.bigBlindSeat).toBeNull();
   });
 
   it("preserves the viewer's private cards after JSON restoration", () => {

@@ -6,7 +6,7 @@ import type {
   LatestPlayerAction,
   PublicPokerPlayer,
 } from "@/components/poker/types";
-import { formatChips } from "@/components/poker/view-model";
+import { formatChips, seatMarkersForSeat } from "@/components/poker/view-model";
 
 export function PokerTable({
   game,
@@ -123,6 +123,7 @@ export function PokerTable({
               winner={game.poker.winnerIds.includes(player.id)}
               winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
               latestAction={latestActions[player.id] ?? null}
+              markers={seatMarkersForSeat(game.poker, player.seat)}
             />
           ))}
         </div>
@@ -150,6 +151,7 @@ export function PokerTable({
               winner={game.poker.winnerIds.includes(player.id)}
               winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
               latestAction={latestActions[player.id] ?? null}
+              markers={seatMarkersForSeat(game.poker, player.seat)}
             />
           ))}
         </div>
@@ -162,6 +164,7 @@ export function PokerTable({
               winner={game.poker.winnerIds.includes(player.id)}
               winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
               latestAction={latestActions[player.id] ?? null}
+              markers={seatMarkersForSeat(game.poker, player.seat)}
             />
           ))}
         </div>

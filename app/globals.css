@@ -290,6 +290,38 @@ h2 {
     Menlo,
     monospace;
 }
+.seat-markers {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: end;
+  gap: 5px;
+}
+.seat-marker {
+  min-width: 30px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  text-align: center;
+  font:
+    700 10px/1 ui-monospace,
+    Menlo,
+    monospace;
+  letter-spacing: 0.6px;
+  box-shadow: 0 3px 8px rgba(3, 22, 19, 0.24);
+}
+.dealer-marker {
+  border: 1px solid rgba(255, 241, 192, 0.9);
+  color: #183630;
+  background: linear-gradient(180deg, #fff4c9 0, #f0b74d 100%);
+}
+.blind-marker {
+  border: 1px solid rgba(193, 214, 204, 0.4);
+  color: #eff4e9;
+  background: rgba(7, 44, 39, 0.78);
+}
 .human-seat {
   border-color: rgba(240, 183, 77, 0.55);
 }

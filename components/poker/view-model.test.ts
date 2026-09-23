@@ -8,6 +8,7 @@ import {
   describeSeatStatus,
   filledSeatCount,
   parseProbabilities,
+  seatMarkersForSeat,
 } from "./view-model";
 
 describe("view-model", () => {
@@ -218,5 +219,46 @@ describe("view-model", () => {
       c: 0.7,
     });
     expect(parseProbabilities("nope")).toEqual({});
+  });
+
+  it("returns stacked dealer and blind markers for the active hand", () => {
+    const game = {
+      street: "preflop" as const,
+      buttonSeat: 0,
+      smallBlindSeat: 0,
+      bigBlindSeat: 1,
+    };
+
+    expect(seatMarkersForSeat(game, 0)).toEqual([
+      {
+        key: "dealer",
+        label: "D",
+        ariaLabel: "Dealer button",
+        tone: "dealer",
+      },
+      {
+        key: "smallBlind",
+        label: "SB",
+        ariaLabel: "Small blind",
+        tone: "blind",
+      },
+    ]);
+    expect(seatMarkersForSeat(game, 1)).toEqual([
+      {
+        key: "bigBlind",
+        label: "BB",
+        ariaLabel: "Big blind",
+        tone: "blind",
+      },
+    ]);
+    expect(
+      seatMarkersForSeat(
+        {
+          ...game,
+          street: null,
+        },
+        0,
+      ),
+    ).toEqual([]);
   });
 });
