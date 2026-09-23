@@ -51,8 +51,9 @@ export default function Home() {
           className="empty-state-mark"
           src="/ai-holdem-logo.png"
           alt="AI Hold'em"
-          width={768}
-          height={768}
+          width={270}
+          height={270}
+          sizes="(max-width: 450px) 60vw, 270px"
           priority
         />
         <h1>{APP_NAME}</h1>
