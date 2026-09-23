@@ -80,6 +80,7 @@ export function useGameChannel(
           },
         );
       void channel.subscribe((status) => {
+        if (!active) return;
         if (status === "SUBSCRIBED") {
           setStatus("subscribed");
           return;
@@ -91,7 +92,6 @@ export function useGameChannel(
         }
         if (status === "CLOSED") {
           setStatus("closed");
-          console.error(`Realtime channel ${gameId} closed`);
         }
       });
     } catch (error) {
