@@ -285,7 +285,6 @@ h2 {
   outline: 2px solid rgba(240, 183, 77, 0.7);
   outline-offset: 3px;
   box-shadow: 0 8px 24px rgba(240, 183, 77, 0.2);
-  transform: translateY(-3px);
 }
 .winner-badge {
   position: absolute;
@@ -304,20 +303,6 @@ h2 {
     Menlo,
     monospace;
   letter-spacing: 0.7px;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .winner-seat {
-    animation: winner-lift 2.8s ease-in-out infinite;
-  }
-}
-@keyframes winner-lift {
-  0%,
-  100% {
-    transform: translateY(-3px);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
 }
 .open-seat {
   border-style: dashed;
