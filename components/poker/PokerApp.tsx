@@ -12,7 +12,6 @@ import {
   arrangeSeats,
   arrangeSeatsLinear,
   availableHistoryHands,
-  describeHandResult,
   resolveViewer,
 } from "@/components/poker/view-model";
 
@@ -80,14 +79,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const availableHands = game
     ? availableHistoryHands(game.poker.handNumber)
     : [];
-  const winnerNames = game?.poker.winnerIds
-    .map(
-      (winnerId) =>
-        game.poker.players.find((player) => player.id === winnerId)?.name,
-    )
-    .filter((name): name is string => Boolean(name));
-  const handResult =
-    game?.poker.street === "complete" ? describeHandResult(winnerNames) : null;
   const latestActions = Object.fromEntries(
     (currentHistory?.actions ?? [])
       .filter((action) => action.street === game?.poker.street)
@@ -264,7 +255,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             }
             onBeginNextHand={() => void beginNextHand()}
             onOpenHistory={() => setHistoryOpen(true)}
-            handResult={handResult}
             latestActions={latestActions}
           />
           {historyOpen && displayedHistoryHand ? (

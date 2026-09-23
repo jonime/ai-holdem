@@ -25,7 +25,6 @@ export function PokerTable({
   onSubmitAction,
   onBeginNextHand,
   onOpenHistory,
-  handResult,
   latestActions,
 }: {
   readonly game: Game;
@@ -52,7 +51,6 @@ export function PokerTable({
   ) => void;
   readonly onBeginNextHand: () => void;
   readonly onOpenHistory: () => void;
-  readonly handResult: string | null;
   readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
 }) {
   const legalAction = (type: LegalAction["type"]) =>
@@ -141,9 +139,6 @@ export function PokerTable({
               <PlayingCard key={`${card}-${index}`} card={card || undefined} />
             ))}
           </div>
-          <p className="hand-result" aria-live="polite">
-            {handResult ?? "\u00a0"}
-          </p>
         </div>
         <div className="seat-row bottom-row desktop-seats">
           {seatRows.bottom.map((player) => (
