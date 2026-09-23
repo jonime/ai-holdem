@@ -8,7 +8,13 @@ import { SUPPORTED_LOCALES, type Locale } from "@/lib/i18n";
 const languageNames: Record<Locale, string> = {
   "en-US": "English",
   "fi-FI": "Suomi",
+  "es-ES": "Español",
+  "de-DE": "Deutsch",
 };
+
+const sortedLocales = [...SUPPORTED_LOCALES].sort((left, right) =>
+  languageNames[left].localeCompare(languageNames[right]),
+);
 
 export function LanguageSelector() {
   const router = useRouter();
@@ -21,7 +27,7 @@ export function LanguageSelector() {
         value={locale}
         onChange={(event) => router.push(`/${event.target.value}`)}
       >
-        {SUPPORTED_LOCALES.map((supportedLocale) => (
+        {sortedLocales.map((supportedLocale) => (
           <option key={supportedLocale} value={supportedLocale}>
             {languageNames[supportedLocale]}
           </option>
