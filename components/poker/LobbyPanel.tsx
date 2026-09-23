@@ -268,6 +268,15 @@ export function LobbyPanel({
                   Stand up
                 </button>
               ) : null}
+              {seatCanManage && player?.status === "bot" ? (
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={() => onReleaseSeat(seat)}
+                >
+                  Remove bot
+                </button>
+              ) : null}
             </article>
           );
         })}
