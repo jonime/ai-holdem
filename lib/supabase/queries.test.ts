@@ -99,6 +99,7 @@ describe("SupabaseGameRepository", () => {
     const repository = new SupabaseGameRepository(client);
 
     const created = await repository.createGameSession({
+      hostToken: "host-token",
       currentState: { stateSchemaVersion: 1 },
       stateSchemaVersion: 1,
       handNumber: 1,
@@ -128,6 +129,7 @@ describe("SupabaseGameRepository", () => {
       p_state_schema_version: 1,
       p_hand_number: 1,
       p_status: "playing",
+      p_host_token: "host-token",
       p_players: [
         {
           engine_player_id: "human",

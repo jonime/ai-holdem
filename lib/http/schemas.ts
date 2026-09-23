@@ -57,6 +57,7 @@ export const gameSchema = z.object({
   id: z.string(),
   status: z.enum(["waiting", "playing", "complete", "error"]),
   version: z.number().int().nonnegative(),
+  viewerIsHost: z.boolean(),
   poker: publicGameSchema,
 });
 

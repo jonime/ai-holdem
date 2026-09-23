@@ -15,6 +15,7 @@ export function PokerTable({
   human,
   viewerToken,
   isSpectator,
+  canStartNextHand,
   isHumanTurn,
   sizedAction,
   amount,
@@ -33,9 +34,10 @@ export function PokerTable({
     readonly bottom: readonly PublicPokerPlayer[];
   };
   readonly linearSeats: readonly PublicPokerPlayer[];
-  readonly human: PublicPokerPlayer;
+  readonly human: PublicPokerPlayer | null;
   readonly viewerToken: string | null;
   readonly isSpectator: boolean;
+  readonly canStartNextHand: boolean;
   readonly isHumanTurn: boolean;
   readonly sizedAction:
     | Extract<LegalAction, { type: "bet" | "raise" }>
@@ -56,6 +58,9 @@ export function PokerTable({
   const legalAction = (type: LegalAction["type"]) =>
     game.poker.legalActions.find((action) => action.type === type);
   const checkCallAction = legalAction("check") ?? legalAction("call");
+  const botOnlyGame = game.poker.players
+    .filter((player) => player.status === "claimed" || player.status === "bot")
+    .every((player) => player.controller === "typesafe_ai");
   const selectedAmount = sizedAction
     ? Math.min(
         sizedAction.maxAmount,
@@ -94,7 +99,7 @@ export function PokerTable({
         <span>HAND {game.poker.handNumber}</span>
         <span>{game.poker.street?.toUpperCase() ?? "WAITING"}</span>
         <div className="table-meta-actions">
-          {human.playerToken === viewerToken ? (
+          {human?.playerToken === viewerToken ? (
             <button
               type="button"
               className="stand-up-toggle"
@@ -178,20 +183,28 @@ export function PokerTable({
       <section className="action-tray">
         {isSpectator ? (
           <div className="action-controls">
-            <button
-              type="button"
-              disabled={
-                loading ||
-                !game.poker.players.some((player) => player.status === "open")
-              }
-              onClick={onClaimFirstOpenSeat}
-            >
-              {loading
-                ? "Claiming seat"
-                : game.poker.players.some((player) => player.status === "open")
-                  ? "Sit in an open seat"
-                  : "No open seats"}
-            </button>
+            {botOnlyGame ? (
+              <button
+                type="button"
+                disabled={
+                  loading ||
+                  game.poker.street !== "complete" ||
+                  !canStartNextHand
+                }
+                onClick={onBeginNextHand}
+              >
+                Next Hand
+              </button>
+            ) : !botOnlyGame &&
+              game.poker.players.some((player) => player.status === "open") ? (
+              <button
+                type="button"
+                disabled={loading}
+                onClick={onClaimFirstOpenSeat}
+              >
+                {loading ? "Claiming seat" : "Sit in an open seat"}
+              </button>
+            ) : null}
           </div>
         ) : (
           <>
@@ -208,7 +221,7 @@ export function PokerTable({
                 disabled={
                   loading ||
                   (game.poker.street === "complete"
-                    ? human.playerToken !== viewerToken
+                    ? human?.playerToken !== viewerToken
                     : !isHumanTurn || !checkCallAction)
                 }
                 onClick={() => {

@@ -11,6 +11,7 @@ const seatEvent = realtimeGameEventSchema.parse({
     id: "game-1",
     status: "waiting",
     version: 4,
+    viewerIsHost: false,
     poker: {
       handNumber: 0,
       seatCount: 2,

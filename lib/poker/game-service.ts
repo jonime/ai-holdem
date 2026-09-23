@@ -80,6 +80,10 @@ export interface GameReader {
   getGame(gameId: string): Promise<PersistedGame | null>;
 }
 
+export interface GameHostReader {
+  getHostToken(gameId: string): Promise<string | null>;
+}
+
 export type SeatStatus = "open" | "claimed" | "bot";
 
 export interface SeatAssignment {
@@ -154,6 +158,7 @@ export interface PublicGame {
   readonly id: string;
   readonly status: PersistedGame["status"];
   readonly version: number;
+  readonly viewerIsHost: boolean;
   readonly poker: PublicPokerGame;
 }
 
@@ -203,6 +208,7 @@ export async function createDemoGame(
   const config = createDemoGameConfig(options);
   const initialState = pokerEngineAdapter.createGame(config);
   const persistedGame = await repository.createGameSession({
+    hostToken: options.hostToken,
     currentState: initialState,
     stateSchemaVersion: initialState.stateSchemaVersion,
     handNumber: 0,
@@ -230,6 +236,23 @@ export async function createDemoGame(
     state: initialState,
     version: persistedGame.version,
   };
+}
+
+async function isCallerHost(
+  repository: Partial<GameHostReader>,
+  gameId: string,
+  callerToken: string | null,
+  assignments: readonly SeatAssignment[] = [],
+): Promise<boolean> {
+  if (repository.getHostToken) {
+    const hostToken = await repository.getHostToken(gameId);
+    return hostToken !== null && callerToken === hostToken;
+  }
+  const hostAssignments = assignments.filter((assignment) => assignment.isHost);
+  return (
+    hostAssignments.length === 0 ||
+    hostAssignments.some((assignment) => assignment.playerToken === callerToken)
+  );
 }
 
 function enginePlayerIdForAssignment(
@@ -298,10 +321,16 @@ async function withOpenSeatPlaceholders(
         return assignment
           ? {
               ...player,
+              name: assignment.name ?? player.name,
+              controller: assignment.controller,
               aiDifficulty:
                 assignment.controller === "typesafe_ai"
                   ? (assignment.aiDifficulty ?? "medium")
                   : null,
+              status: assignment.status,
+              playerToken: assignment.playerToken,
+              isHost: assignment.isHost,
+              leaving: assignment.leaving ?? false,
             }
           : player;
       }),
@@ -386,7 +415,10 @@ function publicProjectionForViewer(
 }
 
 export async function startGame(
-  repository: GameReader & SeatAssignmentRepository & StartGameWriter,
+  repository: GameReader &
+    SeatAssignmentRepository &
+    StartGameWriter &
+    Partial<GameHostReader>,
   gameId: string,
   expectedVersion: number,
   callerToken: string,
@@ -399,14 +431,7 @@ export async function startGame(
   }
 
   const assignments = await repository.getSeatAssignments(gameId);
-  const hasHost = assignments.some((assignment) => assignment.isHost);
-  if (
-    hasHost &&
-    !assignments.some(
-      (assignment) =>
-        assignment.isHost && assignment.playerToken === callerToken,
-    )
-  ) {
+  if (!(await isCallerHost(repository, gameId, callerToken, assignments))) {
     throw new Error("Only the host can start the game");
   }
 
@@ -443,6 +468,7 @@ export async function startGame(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
+    viewerIsHost: true,
     poker: publicProjectionForViewer(projectedState, callerToken),
   };
 }
@@ -518,7 +544,10 @@ export function validateTableSettings(settings: TableSettings): void {
 }
 
 export async function updateTableSettings(
-  repository: GameReader & SeatAssignmentRepository & UpdateTableSettingsWriter,
+  repository: GameReader &
+    SeatAssignmentRepository &
+    UpdateTableSettingsWriter &
+    Partial<GameHostReader>,
   gameId: string,
   expectedVersion: number,
   settings: TableSettings,
@@ -534,14 +563,7 @@ export async function updateTableSettings(
   }
 
   const assignments = await repository.getSeatAssignments(gameId);
-  const hasHost = assignments.some((assignment) => assignment.isHost);
-  if (
-    hasHost &&
-    !assignments.some(
-      (assignment) =>
-        assignment.isHost && assignment.playerToken === callerToken,
-    )
-  ) {
+  if (!(await isCallerHost(repository, gameId, callerToken, assignments))) {
     throw new Error("Only the host can change table settings");
   }
 
@@ -584,6 +606,7 @@ export async function updateTableSettings(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
+    viewerIsHost: true,
     poker: publicProjectionForViewer(projectedState, callerToken),
   };
 }
@@ -632,20 +655,16 @@ export async function claimSeat(
 }
 
 export async function assignBotToSeat(
-  repository: SeatAssignmentRepository,
+  repository: SeatAssignmentRepository & Partial<GameHostReader>,
   gameId: string,
   seat: number,
   hostToken: string,
   difficulty: AIDifficulty = "medium",
 ): Promise<SeatAssignment> {
   const seatAssignments = await repository.getSeatAssignments(gameId);
-  const hasHost = seatAssignments.some((entry) => entry.isHost);
-  const hostAssignment = seatAssignments.find(
-    (entry) => entry.isHost && entry.playerToken === hostToken,
-  );
   const assignment = seatAssignments.find((entry) => entry.seat === seat);
 
-  if (hasHost && !hostAssignment) {
+  if (!(await isCallerHost(repository, gameId, hostToken, seatAssignments))) {
     throw new Error("Only the host can assign bots");
   }
   if (!assignment) {
@@ -687,7 +706,7 @@ export async function assignBotToSeat(
 }
 
 export async function releaseSeat(
-  repository: SeatAssignmentRepository & Partial<GameReader>,
+  repository: SeatAssignmentRepository & Partial<GameReader & GameHostReader>,
   gameId: string,
   seat: number,
   playerToken: string,
@@ -699,8 +718,11 @@ export async function releaseSeat(
     throw new Error("Seat does not exist");
   }
 
-  const isHostRelease = seatAssignments.some(
-    (entry) => entry.isHost && entry.playerToken === playerToken,
+  const isHostRelease = await isCallerHost(
+    repository,
+    gameId,
+    playerToken,
+    seatAssignments,
   );
   const isSelfRelease = assignment.playerToken === playerToken;
   if (!isHostRelease && !isSelfRelease) {
@@ -744,7 +766,7 @@ export async function releaseSeat(
 }
 
 export async function getPublicGame(
-  repository: GameReader,
+  repository: GameReader & Partial<GameHostReader & SeatAssignmentRepository>,
   gameId: string,
   viewerPlayerToken?: string | null,
 ): Promise<PublicGame> {
@@ -775,6 +797,11 @@ export async function getPublicGame(
     id: game.id,
     status: game.status,
     version: game.version,
+    viewerIsHost: await isCallerHost(
+      repository,
+      gameId,
+      viewerPlayerToken ?? null,
+    ),
     poker: pokerEngineAdapter.publicProjection(state, viewerPlayerId),
   };
 }
@@ -782,7 +809,7 @@ export async function getPublicGame(
 export async function submitHumanAction(
   repository: GameReader &
     HumanActionWriter &
-    Partial<SeatAssignmentRepository>,
+    Partial<SeatAssignmentRepository & GameHostReader>,
   gameId: string,
   submission: Omit<HumanActionSubmission, "currentVersion">,
 ): Promise<PublicGame> {
@@ -837,6 +864,7 @@ export async function submitHumanAction(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
+    viewerIsHost: await isCallerHost(repository, gameId, submission.playerId),
     poker: pokerEngineAdapter.publicProjection(
       projectedState,
       resolvedPlayerId,
@@ -847,7 +875,7 @@ export async function submitHumanAction(
 export async function stepTypesafeAction(
   repository: GameReader &
     AIActionWriter &
-    Partial<SeatAssignmentRepository & HandHistoryReader>,
+    Partial<SeatAssignmentRepository & HandHistoryReader & GameHostReader>,
   client: TypesafeDecisionClient,
   gameId: string,
   viewerToken: string | null = null,
@@ -920,6 +948,7 @@ export async function stepTypesafeAction(
       id: persistedGame.id,
       status: persistedGame.status,
       version: persistedGame.version,
+      viewerIsHost: await isCallerHost(repository, gameId, viewerToken),
       poker: publicProjectionForViewer(projectedState, viewerToken),
     },
     aiDecision: {
@@ -934,7 +963,9 @@ export async function stepTypesafeAction(
 }
 
 export async function startNextHand(
-  repository: GameReader & NextHandWriter & Partial<SeatAssignmentRepository>,
+  repository: GameReader &
+    NextHandWriter &
+    Partial<SeatAssignmentRepository & GameHostReader>,
   gameId: string,
   expectedVersion: number,
   viewerToken: string | null = null,
@@ -986,6 +1017,7 @@ export async function startNextHand(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
+    viewerIsHost: await isCallerHost(repository, gameId, viewerToken),
     poker: publicProjectionForViewer(projectedState, viewerToken),
   };
 }

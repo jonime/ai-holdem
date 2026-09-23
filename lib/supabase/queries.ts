@@ -83,6 +83,7 @@ export interface GamePlayerSeatAssignment {
 }
 
 export interface CreateGameSessionInput extends CreateGameInput {
+  readonly hostToken?: string;
   readonly players: readonly {
     readonly enginePlayerId: string | null;
     readonly seat: number;
@@ -139,7 +140,7 @@ interface FilteredQueryResult extends PromiseLike<DatabaseResult> {
 }
 
 export interface GameDatabaseClient {
-  from(table: "games" | "game_players"): {
+  from(table: "games" | "game_players" | "game_hosts"): {
     insert(values: Record<string, unknown>): {
       select(): {
         single(): PromiseLike<DatabaseResult>;
@@ -449,6 +450,7 @@ export class SupabaseGameRepository {
       p_state_schema_version: input.stateSchemaVersion,
       p_hand_number: input.handNumber,
       p_status: input.status,
+      p_host_token: input.hostToken ?? null,
       p_players: input.players.map((player) => {
         const row: Record<string, unknown> = {
           engine_player_id: player.enginePlayerId,
@@ -501,6 +503,23 @@ export class SupabaseGameRepository {
     }
 
     return data === null ? null : toPersistedGame(data);
+  }
+
+  async getHostToken(gameId: string): Promise<string | null> {
+    const { data, error } = await this.client
+      .from("game_hosts")
+      .select()
+      .eq("game_id", gameId)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Unable to load game host: ${error.message}`);
+    }
+    if (data === null) return null;
+    if (!isRecord(data) || typeof data.host_token !== "string") {
+      throw new Error("Supabase returned an invalid game host");
+    }
+    return data.host_token;
   }
 
   async getHandHistory(

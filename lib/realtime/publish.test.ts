@@ -20,6 +20,7 @@ const game = {
   id: "game-1",
   status: "playing" as const,
   version: 2,
+  viewerIsHost: true,
   poker: {
     handNumber: 1,
     seatCount: 2,

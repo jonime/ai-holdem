@@ -10,6 +10,7 @@ const event = {
     id: "game-1",
     status: "waiting",
     version: 3,
+    viewerIsHost: false,
     poker: {
       handNumber: 0,
       seatCount: 2,

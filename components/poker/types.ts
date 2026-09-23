@@ -13,6 +13,7 @@ export interface Game {
   readonly id: string;
   readonly status: "waiting" | "playing" | "complete" | "error";
   readonly version: number;
+  readonly viewerIsHost: boolean;
   readonly poker: PublicPokerGame;
 }
 

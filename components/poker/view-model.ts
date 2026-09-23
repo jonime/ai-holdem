@@ -87,10 +87,7 @@ export function resolveViewer(
         player.playerToken !== null && player.playerToken === viewerToken,
     ) ?? null;
 
-  const human =
-    viewerPlayer && viewerPlayer.controller === "human"
-      ? viewerPlayer
-      : (players.find((player) => player.controller === "human") ?? null);
+  const human = viewerPlayer?.controller === "human" ? viewerPlayer : null;
 
   return { viewerPlayer, human };
 }

@@ -8,6 +8,7 @@ import {
   describeSeatStatus,
   filledSeatCount,
   parseProbabilities,
+  resolveViewer,
 } from "./view-model";
 
 describe("view-model", () => {
@@ -150,6 +151,32 @@ describe("view-model", () => {
         { status: "open" },
       ]),
     ).toBe(2);
+  });
+
+  it("does not attach a spectator to another human seat", () => {
+    const players: PublicPokerPlayer[] = [
+      {
+        id: "other-human",
+        name: "Other player",
+        controller: "human",
+        aiDifficulty: null,
+        seat: 0,
+        status: "claimed",
+        playerToken: null,
+        isHost: false,
+        leaving: false,
+        inHand: true,
+        stack: 1_000,
+        folded: false,
+        allIn: false,
+        holeCards: null,
+      },
+    ];
+
+    expect(resolveViewer(players, "departed-player")).toEqual({
+      viewerPlayer: null,
+      human: null,
+    });
   });
 
   it("prioritizes the seat-status labels exactly as the UI expects", () => {

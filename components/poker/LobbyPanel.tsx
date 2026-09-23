@@ -5,7 +5,7 @@ import type {
   Game,
   TableSettings,
 } from "@/components/poker/types";
-import { canManageTable, filledSeatCount } from "@/components/poker/view-model";
+import { filledSeatCount } from "@/components/poker/view-model";
 
 export function LobbyPanel({
   game,
@@ -30,7 +30,7 @@ export function LobbyPanel({
   readonly onStartWaitingGame: () => void;
   readonly onUpdateTableSettings: (settings: TableSettings) => void;
 }) {
-  const canManage = canManageTable(game.poker.players, viewerToken);
+  const canManage = game.viewerIsHost;
   const occupiedSeats = filledSeatCount(game.poker.players);
   const [botDifficulties, setBotDifficulties] = useState<
     Readonly<Record<number, AIDifficulty>>
@@ -197,7 +197,7 @@ export function LobbyPanel({
           const player = game.poker.players.find(
             (entry) => entry.seat === seat,
           );
-          const seatCanManage = canManageTable(game.poker.players, viewerToken);
+          const seatCanManage = game.viewerIsHost;
           return (
             <article
               className={`lobby-seat ${player?.status ?? "open"}`}

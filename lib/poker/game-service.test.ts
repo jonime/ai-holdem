@@ -168,6 +168,62 @@ describe("getPublicGame", () => {
     ).toBe(true);
   });
 
+  it("projects a released seat from the authoritative assignment", async () => {
+    const state = pokerEngineAdapter.createGame({
+      smallBlind: 50,
+      bigBlind: 100,
+      seatCount: 2,
+      players: [
+        {
+          id: "human",
+          name: "Host",
+          controller: "human",
+          seat: 0,
+          stack: 10_000,
+          status: "claimed",
+          playerToken: "host-token",
+          isHost: true,
+        },
+      ],
+    });
+    const game = await getPublicGame(
+      {
+        getGame: vi.fn().mockResolvedValue({
+          id: "game-1",
+          status: "waiting",
+          currentState: state,
+          stateSchemaVersion: 1,
+          handNumber: 0,
+          version: 0,
+        }),
+        getHostToken: vi.fn().mockResolvedValue("host-token"),
+        getSeatAssignments: vi.fn().mockResolvedValue([
+          {
+            gameId: "game-1",
+            seat: 0,
+            name: "Host",
+            status: "open",
+            controller: "human",
+            aiDifficulty: null,
+            playerToken: null,
+            isHost: false,
+            leaving: false,
+            enginePlayerId: "human",
+          },
+        ]),
+      },
+      "game-1",
+      "host-token",
+    );
+
+    expect(game.viewerIsHost).toBe(true);
+    expect(game.poker.players[0]).toMatchObject({
+      status: "open",
+      playerToken: null,
+      isHost: false,
+    });
+  });
+
   it("rejects malformed persisted state without leaking unchecked casts", async () => {
     await expect(
       getPublicGame(
@@ -332,6 +388,27 @@ describe("assignBotToSeat", () => {
         playerToken: null,
       }),
     );
+  });
+
+  it("allows a seatless game host to assign a bot", async () => {
+    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
+    const repository = {
+      getHostToken: vi.fn().mockResolvedValue("host-token"),
+      getSeatAssignments: vi.fn().mockResolvedValue([
+        { seat: 0, status: "open", playerToken: null, isHost: false },
+        { seat: 1, status: "open", playerToken: null, isHost: false },
+      ]),
+      updateSeatAssignment,
+    };
+
+    await assignBotToSeat(repository, "game-1", 0, "host-token");
+
+    expect(updateSeatAssignment).toHaveBeenCalledWith(
+      expect.objectContaining({ seat: 0, status: "bot" }),
+    );
+    await expect(
+      assignBotToSeat(repository, "game-1", 1, "spectator-token"),
+    ).rejects.toThrow("Only the host can assign bots");
   });
 });
 

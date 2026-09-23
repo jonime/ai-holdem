@@ -61,11 +61,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const isSpectator = viewerPlayer === null && Boolean(game);
   const seatRows = arrangeSeats(
     game?.poker.players ?? [],
-    (viewerPlayer ?? human)?.id ?? null,
+    viewerPlayer?.id ?? null,
   );
   const linearSeats = arrangeSeatsLinear(
     game?.poker.players ?? [],
-    (viewerPlayer ?? human)?.id ?? null,
+    viewerPlayer?.id ?? null,
   );
   const displayedHistoryHand = selectedHistoryHand ?? game?.poker.handNumber;
   const currentHistory =
@@ -216,10 +216,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             void updateTableSettings(settings)
           }
         />
-      ) : !human ? (
-        <section className="empty-state">
-          <p>This table is waiting for a playable seat.</p>
-        </section>
       ) : (
         <div className="game-layout">
           <PokerTable
@@ -229,6 +225,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             human={human}
             viewerToken={viewerToken}
             isSpectator={isSpectator}
+            canStartNextHand={game.viewerIsHost}
             isHumanTurn={isHumanTurn}
             sizedAction={sizedAction}
             amount={amount}
@@ -243,9 +240,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               }
             }}
             onStandUp={() => {
-              if (human) {
-                void releaseSeat(human.seat);
-              }
+              if (human) void releaseSeat(human.seat);
             }}
             onSubmitAction={(action, amountOverride = amount ?? null) =>
               void submitAction(action, amountOverride)
