@@ -76,7 +76,15 @@ export default function Home() {
           <a href="https://typesafe.ai/" target="_blank" rel="noreferrer">
             TypeSafe
           </a>{" "}
-          for their poker decisions.
+          for their poker decisions. View the source on{" "}
+          <a
+            href="https://github.com/jonime/ai-holdem"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GitHub
+          </a>
+          .
         </p>
       </section>
     </main>

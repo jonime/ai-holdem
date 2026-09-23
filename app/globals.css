@@ -53,22 +53,6 @@ button:disabled {
   gap: 10px;
   align-items: center;
 }
-.github-link {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  place-items: center;
-  border: 1px solid #6d8980;
-  border-radius: 4px;
-  color: #193e37;
-  background: #f8f7f0;
-  box-shadow: 2px 2px 0 rgba(30, 78, 68, 0.18);
-}
-.github-link:hover {
-  color: #f8f7f0;
-  border-color: #0e5a4d;
-  background: #0e5a4d;
-}
 .eyebrow,
 .panel-kicker {
   margin: 0 0 7px;
@@ -177,13 +161,6 @@ h2 {
 .game-layout {
   max-width: 1220px;
   margin: auto;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 22px;
-  align-items: start;
-}
-.game-layout > aside {
-  width: 310px;
 }
 .table-shell {
   background: #f6f5ee;
@@ -1001,12 +978,6 @@ h2 {
   font-size: 14px;
 }
 @media (max-width: 860px) {
-  .game-layout {
-    grid-template-columns: 1fr;
-  }
-  .game-layout > aside {
-    width: auto;
-  }
   .felt {
     min-height: 490px;
     padding: 20px 12px;
@@ -1101,10 +1072,6 @@ h2 {
   .new-game {
     padding: 8px 10px;
     font-size: 13px;
-  }
-  .github-link {
-    width: 34px;
-    height: 34px;
   }
   .table-meta {
     padding: 8px 10px;
