@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Image from "next/image";
 
 import { APP_NAME } from "@/lib/constants";
 
@@ -46,9 +47,14 @@ export default function Home() {
         className="empty-state home-empty-state"
         aria-label="Start a new game"
       >
-        <span className="empty-state-mark" aria-hidden="true">
-          ♠
-        </span>
+        <Image
+          className="empty-state-mark"
+          src="/ai-holdem-logo.png"
+          alt="AI Hold'em"
+          width={768}
+          height={768}
+          priority
+        />
         <h1>{APP_NAME}</h1>
         <p>Create a table, then invite someone to take an open seat.</p>
         <label className="player-name-field">

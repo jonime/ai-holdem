@@ -1,0 +1,17 @@
+{
+  "name": "AI Hold'em",
+  "short_name": "AI Hold'em",
+  "description": "A structured TypeSafe AI poker decision demo.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#061d17",
+  "theme_color": "#061d17",
+  "icons": [
+    {
+      "src": "/ai-holdem-logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

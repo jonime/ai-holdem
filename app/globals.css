@@ -51,9 +51,10 @@ button:disabled {
   justify-content: space-between;
 }
 .game-header-title {
+  font-family: var(--font-space-grotesk), sans-serif;
   font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.4px;
+  font-size: 17px;
+  letter-spacing: -0.03em;
 }
 .exit-game {
   border: 0;
@@ -134,15 +135,16 @@ h2 {
 }
 .empty-state-mark {
   display: block;
-  margin-bottom: 12px;
-  color: var(--coral);
-  font-size: 72px;
-  line-height: 0.8;
-  text-shadow: 4px 4px 0 rgba(240, 183, 77, 0.65);
+  width: min(270px, 60vw);
+  height: auto;
+  margin: 0 auto 22px;
 }
 .home-empty-state h1 {
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-weight: 700;
   margin-bottom: 10px;
   font-size: clamp(28px, 5vw, 46px);
+  letter-spacing: -0.03em;
 }
 .home-empty-state p {
   max-width: 360px;
