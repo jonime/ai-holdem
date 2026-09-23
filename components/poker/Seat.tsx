@@ -11,15 +11,29 @@ export function Seat({
   winner,
   winnerAmount,
   latestAction,
+  dealerSeat,
+  smallBlindSeat,
+  bigBlindSeat,
 }: {
   readonly player: PublicPokerPlayer;
   readonly active: boolean;
   readonly winner: boolean;
   readonly winnerAmount: number | null;
   readonly latestAction: LatestPlayerAction | null;
+  readonly dealerSeat: number | null;
+  readonly smallBlindSeat: number | null;
+  readonly bigBlindSeat: number | null;
 }) {
   const isAi = player.controller === "typesafe_ai";
   const isOpen = player.status === "open";
+  const role =
+    player.seat === dealerSeat
+      ? { label: "D", className: "dealer-badge", name: "Dealer" }
+      : player.seat === smallBlindSeat
+        ? { label: "SB", className: "small-blind-badge", name: "Small blind" }
+        : player.seat === bigBlindSeat
+          ? { label: "BB", className: "big-blind-badge", name: "Big blind" }
+          : null;
 
   if (isOpen) {
     return (
@@ -40,6 +54,11 @@ export function Seat({
       <div className="seat-heading">
         <span className="seat-label">{player.name.toUpperCase()}</span>
       </div>
+      {role ? (
+        <span className={`role-badge ${role.className}`} title={role.name}>
+          {role.label}
+        </span>
+      ) : null}
       {winner ? <span className="winner-badge">POT WINNER</span> : null}
       {winner && winnerAmount !== null ? (
         <span className="winner-amount">+{formatChips(winnerAmount)}</span>

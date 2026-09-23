@@ -63,6 +63,9 @@ export interface PokerGameState {
 export interface PokerGameSnapshot {
   readonly handNumber: number;
   readonly street: PokerStreet | null;
+  readonly dealerSeat: number | null;
+  readonly smallBlindSeat: number | null;
+  readonly bigBlindSeat: number | null;
   readonly currentActorId: string | null;
   readonly communityCards: readonly string[];
   readonly pot: number;
@@ -95,6 +98,9 @@ export interface PublicPokerGame {
   readonly bigBlind: number;
   readonly startingStack: number;
   readonly street: PokerStreet | null;
+  readonly dealerSeat: number | null;
+  readonly smallBlindSeat: number | null;
+  readonly bigBlindSeat: number | null;
   readonly currentActorId: string | null;
   readonly communityCards: readonly string[];
   readonly pot: number;

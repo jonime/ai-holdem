@@ -259,6 +259,9 @@ export const pokerEngineAdapter = {
   snapshot(state: PokerGameState): PokerGameSnapshot {
     const table = engineStateFrom(state);
     const hand = table.hand;
+    const dealerSeat = hand?.buttonSeat ?? null;
+    const smallBlindSeat = hand?.smallBlindSeat ?? null;
+    const bigBlindSeat = hand?.bigBlindSeat ?? null;
     const actor = hand?.players.find(
       (player) => player.seat === hand.currentActorSeat,
     );
@@ -280,6 +283,9 @@ export const pokerEngineAdapter = {
     return {
       handNumber: table.handNumber,
       street: hand?.stage ?? null,
+      dealerSeat,
+      smallBlindSeat,
+      bigBlindSeat,
       currentActorId: actor?.playerId ?? null,
       communityCards: hand?.communityCards.map(cardToString) ?? [],
       pot: hand?.pots.reduce((total, pot) => total + pot.amount, 0) ?? 0,

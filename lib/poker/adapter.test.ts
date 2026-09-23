@@ -99,6 +99,11 @@ describe("pokerEngineAdapter", () => {
 
     expect(human?.holeCards).toHaveLength(2);
     expect(ai?.holeCards).toBeNull();
+    expect(projection).toMatchObject({
+      dealerSeat: 0,
+      smallBlindSeat: 0,
+      bigBlindSeat: 1,
+    });
     expect(projection).not.toHaveProperty("engineState");
   });
 

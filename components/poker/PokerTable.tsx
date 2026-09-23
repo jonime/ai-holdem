@@ -123,6 +123,9 @@ export function PokerTable({
               winner={game.poker.winnerIds.includes(player.id)}
               winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
               latestAction={latestActions[player.id] ?? null}
+              dealerSeat={game.poker.dealerSeat}
+              smallBlindSeat={game.poker.smallBlindSeat}
+              bigBlindSeat={game.poker.bigBlindSeat}
             />
           ))}
         </div>
@@ -150,6 +153,9 @@ export function PokerTable({
               winner={game.poker.winnerIds.includes(player.id)}
               winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
               latestAction={latestActions[player.id] ?? null}
+              dealerSeat={game.poker.dealerSeat}
+              smallBlindSeat={game.poker.smallBlindSeat}
+              bigBlindSeat={game.poker.bigBlindSeat}
             />
           ))}
         </div>
@@ -162,6 +168,9 @@ export function PokerTable({
               winner={game.poker.winnerIds.includes(player.id)}
               winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
               latestAction={latestActions[player.id] ?? null}
+              dealerSeat={game.poker.dealerSeat}
+              smallBlindSeat={game.poker.smallBlindSeat}
+              bigBlindSeat={game.poker.bigBlindSeat}
             />
           ))}
         </div>
