@@ -1,4 +1,8 @@
-import type { LegalAction, PublicPokerPlayer } from "@/lib/poker/types";
+import type {
+  LegalAction,
+  PokerStreet,
+  PublicPokerPlayer,
+} from "@/lib/poker/types";
 import type { LatestPlayerAction } from "@/components/poker/types";
 
 export function formatChips(value: number): string {
@@ -122,6 +126,22 @@ export function describeHandResult(
     return `Split pot: ${winnerNames.join(" & ")}`;
   }
   return `Winner: ${winnerNames[0]}`;
+}
+
+export function findGameWinnerId(
+  players: readonly Pick<PublicPokerPlayer, "id" | "stack" | "status">[],
+  street: PokerStreet | null,
+): string | null {
+  if (street !== "complete") {
+    return null;
+  }
+
+  const remainingPlayers = players.filter(
+    (player) =>
+      (player.status === "claimed" || player.status === "bot") &&
+      player.stack > 0,
+  );
+  return remainingPlayers.length === 1 ? remainingPlayers[0].id : null;
 }
 
 export function describeSeatStatus(

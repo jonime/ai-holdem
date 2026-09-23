@@ -14,6 +14,7 @@ export function Seat({
   dealerSeat,
   smallBlindSeat,
   bigBlindSeat,
+  gameWinner,
 }: {
   readonly player: PublicPokerPlayer;
   readonly active: boolean;
@@ -23,6 +24,7 @@ export function Seat({
   readonly dealerSeat: number | null;
   readonly smallBlindSeat: number | null;
   readonly bigBlindSeat: number | null;
+  readonly gameWinner: boolean;
 }) {
   const isAi = player.controller === "typesafe_ai";
   const isOpen = player.status === "open";
@@ -60,7 +62,11 @@ export function Seat({
           {role.label}
         </span>
       ) : null}
-      {winner ? <span className="winner-badge">POT WINNER</span> : null}
+      {winner || gameWinner ? (
+        <span className="winner-badge">
+          {gameWinner ? "GAME WINNER" : "POT WINNER"}
+        </span>
+      ) : null}
       {winner && winnerAmount !== null ? (
         <span className="winner-amount">+{formatChips(winnerAmount)}</span>
       ) : null}

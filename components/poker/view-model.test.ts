@@ -7,6 +7,7 @@ import {
   describeHandResult,
   describeSeatStatus,
   filledSeatCount,
+  findGameWinnerId,
   parseProbabilities,
   resolveViewer,
 } from "./view-model";
@@ -151,6 +152,31 @@ describe("view-model", () => {
         { status: "open" },
       ]),
     ).toBe(2);
+  });
+
+  it("finds the final winner only after one player remains in a completed hand", () => {
+    const players = [
+      { id: "winner", stack: 1_000, status: "claimed" as const },
+      { id: "busted", stack: 0, status: "bot" as const },
+    ];
+
+    expect(findGameWinnerId(players, "river")).toBeNull();
+    expect(findGameWinnerId(players, "complete")).toBe("winner");
+    expect(
+      findGameWinnerId(
+        [
+          { id: "player-1", stack: 600, status: "claimed" as const },
+          { id: "player-2", stack: 400, status: "bot" as const },
+        ],
+        "complete",
+      ),
+    ).toBeNull();
+    expect(
+      findGameWinnerId(
+        [...players, { id: "open", stack: 10_000, status: "open" }],
+        "complete",
+      ),
+    ).toBe("winner");
   });
 
   it("does not attach a spectator to another human seat", () => {

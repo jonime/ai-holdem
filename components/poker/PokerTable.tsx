@@ -6,7 +6,7 @@ import type {
   LatestPlayerAction,
   PublicPokerPlayer,
 } from "@/components/poker/types";
-import { formatChips } from "@/components/poker/view-model";
+import { findGameWinnerId, formatChips } from "@/components/poker/view-model";
 
 export function PokerTable({
   game,
@@ -55,6 +55,8 @@ export function PokerTable({
   readonly onOpenHistory: () => void;
   readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
 }) {
+  const gameWinnerId = findGameWinnerId(game.poker.players, game.poker.street);
+  const gameOver = gameWinnerId !== null;
   const legalAction = (type: LegalAction["type"]) =>
     game.poker.legalActions.find((action) => action.type === type);
   const checkCallAction = legalAction("check") ?? legalAction("call");
@@ -131,6 +133,7 @@ export function PokerTable({
               dealerSeat={game.poker.dealerSeat}
               smallBlindSeat={game.poker.smallBlindSeat}
               bigBlindSeat={game.poker.bigBlindSeat}
+              gameWinner={player.id === gameWinnerId}
             />
           ))}
         </div>
@@ -161,6 +164,7 @@ export function PokerTable({
               dealerSeat={game.poker.dealerSeat}
               smallBlindSeat={game.poker.smallBlindSeat}
               bigBlindSeat={game.poker.bigBlindSeat}
+              gameWinner={player.id === gameWinnerId}
             />
           ))}
         </div>
@@ -176,6 +180,7 @@ export function PokerTable({
               dealerSeat={game.poker.dealerSeat}
               smallBlindSeat={game.poker.smallBlindSeat}
               bigBlindSeat={game.poker.bigBlindSeat}
+              gameWinner={player.id === gameWinnerId}
             />
           ))}
         </div>
@@ -183,7 +188,7 @@ export function PokerTable({
       <section className="action-tray">
         {isSpectator ? (
           <div className="action-controls">
-            {botOnlyGame ? (
+            {botOnlyGame && !gameOver ? (
               <button
                 type="button"
                 disabled={
@@ -220,6 +225,7 @@ export function PokerTable({
                 type="button"
                 disabled={
                   loading ||
+                  gameOver ||
                   (game.poker.street === "complete"
                     ? human?.playerToken !== viewerToken
                     : !isHumanTurn || !checkCallAction)
