@@ -26,6 +26,7 @@ export function Seat({
 }) {
   const isAi = player.controller === "typesafe_ai";
   const isOpen = player.status === "open";
+  const isBusted = player.stack === 0 && !player.inHand;
   const role =
     player.seat === dealerSeat
       ? { label: "D", className: "dealer-badge", name: "Dealer" }
@@ -48,7 +49,7 @@ export function Seat({
 
   return (
     <section
-      className={`seat ${isAi ? "ai-seat" : "human-seat"} ${active ? "active-seat" : ""} ${winner ? "winner-seat" : ""}`}
+      className={`seat ${isAi ? "ai-seat" : "human-seat"} ${player.folded ? "folded-seat" : ""} ${isBusted ? "busted-seat" : ""} ${active ? "active-seat" : ""} ${winner ? "winner-seat" : ""}`}
     >
       <span className="seat-number">{player.seat + 1}</span>
       <div className="seat-heading">
@@ -87,6 +88,7 @@ export function Seat({
             inHand: player.inHand,
             folded: player.folded,
             allIn: player.allIn,
+            stack: player.stack,
             active,
           },
           latestAction,

@@ -202,6 +202,9 @@ describe("view-model", () => {
     expect(describeSeatStatus({ ...playerBase, inHand: false })).toBe(
       "Waiting for next hand",
     );
+    expect(describeSeatStatus({ ...playerBase, inHand: false, stack: 0 })).toBe(
+      "Busted",
+    );
     expect(describeSeatStatus({ ...playerBase, folded: true })).toBe("Folded");
     expect(describeSeatStatus({ ...playerBase, allIn: true })).toBe("All-in");
     expect(describeSeatStatus({ ...playerBase, active: true })).toBe(
@@ -230,6 +233,7 @@ describe("view-model", () => {
       inHand: true,
       folded: true,
       allIn: false,
+      stack: 1_000,
       active: false,
     };
 

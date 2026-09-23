@@ -125,13 +125,19 @@ export function describeHandResult(
 }
 
 export function describeSeatStatus(
-  player: Pick<PublicPokerPlayer, "leaving" | "inHand" | "folded" | "allIn"> & {
+  player: Pick<
+    PublicPokerPlayer,
+    "leaving" | "inHand" | "folded" | "allIn" | "stack"
+  > & {
     readonly active?: boolean;
   },
   latestAction: LatestPlayerAction | null = null,
 ): string {
   if (player.leaving) {
     return "Leaving after this hand";
+  }
+  if (player.stack === 0 && !player.inHand) {
+    return "Busted";
   }
   if (!player.inHand) {
     return "Waiting for next hand";

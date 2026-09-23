@@ -293,6 +293,36 @@ h2 {
 .human-seat {
   border-color: rgba(240, 183, 77, 0.55);
 }
+.folded-seat {
+  border-color: rgba(236, 246, 235, 0.2);
+  background: rgba(4, 37, 32, 0.18);
+}
+.folded-seat .seat-label,
+.folded-seat strong,
+.folded-seat .seat-status {
+  opacity: 0.55;
+}
+.folded-seat .playing-card {
+  filter: grayscale(0.85);
+  opacity: 0.5;
+}
+.busted-seat {
+  border-color: rgba(144, 177, 190, 0.7);
+  background:
+    linear-gradient(135deg, rgba(135, 174, 190, 0.18), transparent 62%),
+    rgba(16, 35, 42, 0.62);
+}
+.busted-seat .seat-label,
+.busted-seat .seat-status {
+  color: #b8d1da;
+}
+.busted-seat strong {
+  color: #d7e4e7;
+}
+.busted-seat .playing-card {
+  filter: grayscale(0.9) saturate(0.45);
+  opacity: 0.65;
+}
 .active-seat {
   outline: 2px solid var(--sun);
   outline-offset: 3px;
