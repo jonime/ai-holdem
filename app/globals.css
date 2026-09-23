@@ -1110,6 +1110,9 @@ h2 {
   .poker-app {
     padding: 10px 8px 16px;
   }
+  .home-empty-state {
+    margin: 2vh auto 0;
+  }
   .lobby-panel {
     margin-top: 12px;
     padding: 18px 14px;
