@@ -7,8 +7,6 @@ import {
 import { createDemoGame } from "@/lib/poker/game-service";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
-export const runtime = "nodejs";
-
 export async function POST(request: Request) {
   try {
     const body: unknown = await request.json().catch(() => null);

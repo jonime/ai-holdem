@@ -6,8 +6,6 @@ import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { publishSeatEvent } from "@/lib/realtime/publish";
 import type { AIDifficulty } from "@/lib/poker/types";
 
-export const runtime = "nodejs";
-
 interface AssignBotRouteContext {
   readonly params: Promise<{ gameId: string; seat: string }>;
 }
@@ -31,7 +29,10 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
     requestedDifficulty !== "medium" &&
     requestedDifficulty !== "hard"
   ) {
-    return NextResponse.json({ error: "Invalid AI difficulty" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid AI difficulty" },
+      { status: 400 },
+    );
   }
   const difficulty: AIDifficulty = requestedDifficulty ?? "medium";
 

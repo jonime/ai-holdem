@@ -32,9 +32,9 @@ vi.mock("@/components/poker/PokerApp", () => ({
   ),
 }));
 
-import GamePage from "./page";
+import { GamePageContent } from "./GamePageContent";
 
-describe("GamePage", () => {
+describe("GamePageContent", () => {
   beforeEach(() => {
     notFoundMock.mockReset();
     getPublicGameMock.mockReset();
@@ -43,7 +43,7 @@ describe("GamePage", () => {
   it("redirects to notFound for an unknown game id", async () => {
     getPublicGameMock.mockRejectedValue(new GameNotFoundErrorMock("missing"));
 
-    await GamePage({ params: Promise.resolve({ gameId: "missing" }) });
+    await GamePageContent({ params: Promise.resolve({ gameId: "missing" }) });
 
     expect(notFoundMock).toHaveBeenCalledTimes(1);
   });

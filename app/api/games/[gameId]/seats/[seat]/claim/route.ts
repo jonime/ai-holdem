@@ -8,8 +8,6 @@ import { claimSeat } from "@/lib/poker/game-service";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { publishSeatEvent } from "@/lib/realtime/publish";
 
-export const runtime = "nodejs";
-
 interface ClaimSeatRouteContext {
   readonly params: Promise<{ gameId: string; seat: string }>;
 }

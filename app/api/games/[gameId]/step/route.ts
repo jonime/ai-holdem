@@ -12,8 +12,6 @@ import { TypesafeRequestError } from "@/lib/typesafe/client";
 import { TypesafeResponseError } from "@/lib/typesafe/types";
 import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
 
-export const runtime = "nodejs";
-
 interface StepRouteContext {
   readonly params: Promise<{ gameId: string }>;
 }

@@ -7,8 +7,6 @@ import {
 import { getPublicGame } from "@/lib/poker/game-service";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
-export const runtime = "nodejs";
-
 interface GameRouteContext {
   readonly params: Promise<{ gameId: string }>;
 }

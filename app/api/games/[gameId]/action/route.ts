@@ -8,8 +8,6 @@ import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
 
-export const runtime = "nodejs";
-
 interface ActionRouteContext {
   readonly params: Promise<{ gameId: string }>;
 }

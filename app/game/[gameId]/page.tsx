@@ -1,25 +1,21 @@
-import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
-import PokerApp from "@/components/poker/PokerApp";
-import { getPublicGame } from "@/lib/poker/game-service";
-import { createSupabaseGameRepository } from "@/lib/supabase/server";
+import { GamePageContent } from "./GamePageContent";
 
 interface GamePageParams {
   readonly params: Promise<{ gameId: string }>;
 }
 
-export default async function GamePage({ params }: GamePageParams) {
-  const { gameId } = await params;
-
-  try {
-    await getPublicGame(createSupabaseGameRepository(), gameId);
-  } catch (error) {
-    if (error instanceof Error && error.name === "GameNotFoundError") {
-      notFound();
-      return null;
-    }
-    throw error;
-  }
-
-  return <PokerApp gameId={gameId} />;
+export default function GamePage({ params }: GamePageParams) {
+  return (
+    <Suspense
+      fallback={
+        <main className="poker-app">
+          <div className="route-loading" aria-label="Loading table" />
+        </main>
+      }
+    >
+      <GamePageContent params={params} />
+    </Suspense>
+  );
 }

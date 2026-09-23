@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
-export const runtime = "nodejs";
-
 interface HistoryRouteContext {
   readonly params: Promise<{ gameId: string }>;
 }

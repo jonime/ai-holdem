@@ -6,8 +6,6 @@ import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
-export const runtime = "nodejs";
-
 interface SeatCountRouteContext {
   readonly params: Promise<{ gameId: string }>;
 }

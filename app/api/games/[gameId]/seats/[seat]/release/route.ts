@@ -5,8 +5,6 @@ import { releaseSeat } from "@/lib/poker/game-service";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { publishSeatEvent } from "@/lib/realtime/publish";
 
-export const runtime = "nodejs";
-
 interface ReleaseSeatRouteContext {
   readonly params: Promise<{ gameId: string; seat: string }>;
 }
