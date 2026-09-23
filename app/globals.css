@@ -1049,13 +1049,14 @@ h2 {
 }
 .bot-assignment-controls {
   min-width: 0;
-  flex: 1 1 160px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 .bot-assignment-controls select {
-  min-width: 0;
+  min-width: 100px;
+  flex: 1 1 100px;
   border: 1px solid #8eaaa0;
   border-radius: 3px;
   padding: 7px;
