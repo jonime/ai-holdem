@@ -96,9 +96,12 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
 
   useEffect(() => {
     function handleShortcut(event: KeyboardEvent) {
+      const completedHand = game?.poker.street === "complete";
+      const canStartNextHand =
+        completedHand && viewerPlayer?.controller === "human";
       if (
         !game ||
-        !isHumanTurn ||
+        (!isHumanTurn && !canStartNextHand) ||
         loading ||
         historyOpen ||
         event.repeat ||
@@ -119,6 +122,16 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
       }
 
       const key = event.key.toLowerCase();
+      if (canStartNextHand && ["s", "enter", " "].includes(key)) {
+        event.preventDefault();
+        void beginNextHand();
+        return;
+      }
+
+      if (completedHand) {
+        return;
+      }
+
       const actionByKey = {
         a: game.poker.legalActions.find((action) => action.type === "fold"),
         s: game.poker.legalActions.find(
@@ -178,11 +191,13 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   }, [
     amount,
     game,
+    beginNextHand,
     historyOpen,
     isHumanTurn,
     loading,
     sizedAction,
     submitAction,
+    viewerPlayer,
   ]);
 
   return (

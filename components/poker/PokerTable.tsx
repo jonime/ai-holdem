@@ -183,14 +183,27 @@ export function PokerTable({
               </button>
               <button
                 type="button"
-                disabled={!isHumanTurn || loading || !checkCallAction}
+                disabled={
+                  loading ||
+                  (game.poker.street === "complete"
+                    ? human.playerToken !== viewerToken
+                    : !isHumanTurn || !checkCallAction)
+                }
                 onClick={() => {
-                  if (checkCallAction) submitFixedAction(checkCallAction.type);
+                  if (game.poker.street === "complete") {
+                    onBeginNextHand();
+                  } else if (checkCallAction) {
+                    submitFixedAction(checkCallAction.type);
+                  }
                 }}
               >
-                {checkCallAction?.type === "call"
-                  ? `Call ${formatChips(checkCallAction.amount)}`
-                  : "Check"}
+                {game.poker.street === "complete"
+                  ? loading
+                    ? "Preparing"
+                    : "Next Hand"
+                  : checkCallAction?.type === "call"
+                    ? `Call ${formatChips(checkCallAction.amount)}`
+                    : "Check"}
               </button>
               <button
                 type="button"
@@ -203,15 +216,6 @@ export function PokerTable({
                   ? `${sizedAction.type === "raise" ? "Raise" : "Bet"} to ${formatChips(selectedAmount ?? sizedAction.minAmount)}`
                   : "Bet"}
               </button>
-              {game.poker.street === "complete" ? (
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={onBeginNextHand}
-                >
-                  {loading ? "Preparing" : "Next Hand"}
-                </button>
-              ) : null}
             </div>
             <div className="amount-control">
               <div className="amount-heading">
