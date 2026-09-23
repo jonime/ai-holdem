@@ -16,8 +16,6 @@ import {
 } from "@/components/poker/view-model";
 
 const playerNameStorageKey = "ai-holdem-player-name";
-const bigBlindStep = 100;
-
 export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const [playerName, setPlayerName] = useState(() =>
     typeof window === "undefined"
@@ -39,7 +37,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     assignBot,
     releaseSeat,
     startWaitingGame,
-    updateSeatCount,
+    updateTableSettings,
     submitAction,
     beginNextHand,
     selectHistoryHand,
@@ -175,7 +173,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             sizedAction.maxAmount,
             Math.max(
               sizedAction.minAmount,
-              currentAmount + direction * bigBlindStep,
+              currentAmount + direction * game.poker.bigBlind,
             ),
           ),
         );
@@ -217,7 +215,9 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           onAssignBot={(seat, difficulty) => void assignBot(seat, difficulty)}
           onReleaseSeat={(seat) => void releaseSeat(seat)}
           onStartWaitingGame={() => void startWaitingGame()}
-          onUpdateSeatCount={(count) => void updateSeatCount(count)}
+          onUpdateTableSettings={(settings) =>
+            void updateTableSettings(settings)
+          }
         />
       ) : !human ? (
         <section className="empty-state">

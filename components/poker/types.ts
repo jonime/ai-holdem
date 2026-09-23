@@ -3,10 +3,11 @@ import type {
   LegalAction,
   PublicPokerGame,
   PublicPokerPlayer,
+  TableSettings,
 } from "@/lib/poker/types";
 
 export type { LegalAction, PublicPokerGame, PublicPokerPlayer };
-export type { AIDifficulty };
+export type { AIDifficulty, TableSettings };
 
 export interface Game {
   readonly id: string;

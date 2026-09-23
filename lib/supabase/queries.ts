@@ -41,6 +41,12 @@ export interface UpdateSeatCountInput {
   readonly stateSchemaVersion: number;
 }
 
+export interface UpdateTableSettingsInput extends UpdateSeatCountInput {
+  readonly smallBlind: number;
+  readonly bigBlind: number;
+  readonly startingStack: number;
+}
+
 export interface PersistHumanActionInput extends CompareAndSwapGameInput {
   readonly playerEngineId: string;
   readonly street: "preflop" | "flop" | "turn" | "river";
@@ -167,7 +173,8 @@ export interface GameDatabaseClient {
       | "start_next_hand_if_version"
       | "start_game_if_version"
       | "update_game_state_if_version"
-      | "update_seat_count_if_version",
+      | "update_seat_count_if_version"
+      | "update_table_settings_if_version",
     arguments_: Record<string, unknown>,
   ): PromiseLike<DatabaseResult>;
 }
@@ -591,6 +598,32 @@ export class SupabaseGameRepository {
 
     if (error) {
       throw new Error(`Unable to update seat count: ${error.message}`);
+    }
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new GameConflictError(input.gameId, input.expectedVersion);
+    }
+    return toPersistedGame(data[0]);
+  }
+
+  async updateTableSettings(
+    input: UpdateTableSettingsInput,
+  ): Promise<PersistedGame> {
+    const { data, error } = await this.client.rpc(
+      "update_table_settings_if_version",
+      {
+        p_game_id: input.gameId,
+        p_expected_version: input.expectedVersion,
+        p_seat_count: input.seatCount,
+        p_small_blind: input.smallBlind,
+        p_big_blind: input.bigBlind,
+        p_starting_stack: input.startingStack,
+        p_current_state: input.currentState,
+        p_state_schema_version: input.stateSchemaVersion,
+      },
+    );
+
+    if (error) {
+      throw new Error(`Unable to update table settings: ${error.message}`);
     }
     if (!Array.isArray(data) || data.length === 0) {
       throw new GameConflictError(input.gameId, input.expectedVersion);

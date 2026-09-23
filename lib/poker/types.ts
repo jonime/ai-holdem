@@ -18,8 +18,16 @@ export interface PokerPlayerConfig {
 export interface GameConfig {
   readonly smallBlind: number;
   readonly bigBlind: number;
+  readonly startingStack?: number;
   readonly seatCount?: number;
   readonly players: readonly PokerPlayerConfig[];
+}
+
+export interface TableSettings {
+  readonly seatCount: number;
+  readonly smallBlind: number;
+  readonly bigBlind: number;
+  readonly startingStack: number;
 }
 
 export type PokerAction =
@@ -82,6 +90,9 @@ export interface PublicPokerPlayer {
 export interface PublicPokerGame {
   readonly handNumber: number;
   readonly seatCount: number;
+  readonly smallBlind: number;
+  readonly bigBlind: number;
+  readonly startingStack: number;
   readonly street: PokerStreet | null;
   readonly currentActorId: string | null;
   readonly communityCards: readonly string[];

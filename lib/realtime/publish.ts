@@ -20,7 +20,8 @@ export type GameEventType =
   | "seat_claimed"
   | "seat_released"
   | "seat_bot_assigned"
-  | "seat_count_updated";
+  | "seat_count_updated"
+  | "table_settings_updated";
 
 export interface BroadcastGame {
   readonly id: string;

@@ -12,6 +12,8 @@ import {
   startNextHand,
   submitHumanAction,
   updateSeatCount,
+  updateTableSettings,
+  validateTableSettings,
 } from "./game-service";
 import { createDeterministicDeck, pokerEngineAdapter } from "./adapter";
 import type {
@@ -501,6 +503,110 @@ describe("updateSeatCount", () => {
   });
 });
 
+describe("updateTableSettings", () => {
+  const waitingGame = {
+    id: "game-1",
+    status: "waiting" as const,
+    currentState: pokerEngineAdapter.createGame({
+      smallBlind: 50,
+      bigBlind: 100,
+      startingStack: 10_000,
+      seatCount: 2,
+      players: [
+        {
+          id: "human",
+          name: "You",
+          controller: "human" as const,
+          seat: 0,
+          stack: 10_000,
+          status: "claimed" as const,
+          playerToken: "host-token",
+          isHost: true,
+        },
+      ],
+    }),
+    stateSchemaVersion: 1,
+    handNumber: 0,
+    version: 3,
+  };
+
+  it("updates blinds and every configured starting stack", async () => {
+    const updateTableSettingsWriter = vi.fn().mockResolvedValue({
+      ...waitingGame,
+      currentState: {},
+      version: 4,
+    });
+
+    const game = await updateTableSettings(
+      {
+        getGame: vi.fn().mockResolvedValue(waitingGame),
+        getSeatAssignments: vi.fn().mockResolvedValue([
+          {
+            seat: 0,
+            status: "claimed",
+            playerToken: "host-token",
+            isHost: true,
+          },
+          { seat: 1, status: "open", playerToken: null, isHost: false },
+        ]),
+        updateSeatAssignment: vi.fn(),
+        updateTableSettings: updateTableSettingsWriter,
+      },
+      "game-1",
+      3,
+      {
+        seatCount: 3,
+        smallBlind: 25,
+        bigBlind: 50,
+        startingStack: 5_000,
+      },
+      "host-token",
+    );
+
+    const input = updateTableSettingsWriter.mock.calls[0][0] as {
+      currentState: {
+        config: {
+          smallBlind: number;
+          bigBlind: number;
+          players: { stack: number }[];
+        };
+      };
+    };
+    expect(input.currentState.config).toMatchObject({
+      smallBlind: 25,
+      bigBlind: 50,
+    });
+    expect(input.currentState.config.players).toEqual([
+      expect.objectContaining({ stack: 5_000 }),
+    ]);
+    expect(game.poker).toMatchObject({
+      seatCount: 3,
+      smallBlind: 25,
+      bigBlind: 50,
+      startingStack: 5_000,
+    });
+  });
+
+  it("validates blind and stack relationships", () => {
+    expect(() =>
+      validateTableSettings({
+        seatCount: 2,
+        smallBlind: 100,
+        bigBlind: 100,
+        startingStack: 10_000,
+      }),
+    ).toThrow("bigBlind must be an integer greater than smallBlind");
+    expect(() =>
+      validateTableSettings({
+        seatCount: 2,
+        smallBlind: 50,
+        bigBlind: 100,
+        startingStack: 99,
+      }),
+    ).toThrow("startingStack must be an integer at least as large as bigBlind");
+  });
+});
+
 describe("submitHumanAction", () => {
   it("validates and persists one human action", async () => {
     const state = pokerEngineAdapter.startHand(
@@ -982,7 +1088,10 @@ describe("deterministic persisted hand harness", () => {
               type: "choice",
               choice: sizingOptions[0],
               probabilities: Object.fromEntries(
-                sizingOptions.map((option, index) => [option, index === 0 ? 1 : 0]),
+                sizingOptions.map((option, index) => [
+                  option,
+                  index === 0 ? 1 : 0,
+                ]),
               ),
               confidence: 1,
             },

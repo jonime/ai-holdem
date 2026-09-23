@@ -7,6 +7,7 @@ import type {
   PokerGameState,
   PublicPokerGame,
   PokerPlayerConfig,
+  TableSettings,
 } from "./types";
 import type {
   CreateGameSessionInput,
@@ -24,6 +25,9 @@ import {
 
 export interface CreateDemoGameOptions {
   readonly seatCount?: number;
+  readonly smallBlind?: number;
+  readonly bigBlind?: number;
+  readonly startingStack?: number;
   readonly hostToken?: string;
   readonly hostName?: string;
 }
@@ -42,10 +46,14 @@ export function createDemoGameConfig(
   options: CreateDemoGameOptions = {},
 ): GameConfig {
   const seatCount = Math.min(6, Math.max(2, options.seatCount ?? 6));
+  const smallBlind = options.smallBlind ?? 50;
+  const bigBlind = options.bigBlind ?? 100;
+  const startingStack = options.startingStack ?? 10_000;
 
   return {
-    smallBlind: 50,
-    bigBlind: 100,
+    smallBlind,
+    bigBlind,
+    startingStack,
     seatCount,
     players: [
       {
@@ -53,7 +61,7 @@ export function createDemoGameConfig(
         seat: 0,
         name: sanitizePlayerName(options.hostName, "You"),
         controller: "human",
-        stack: 10_000,
+        stack: startingStack,
         status: "claimed",
         playerToken: options.hostToken ?? null,
         isHost: true,
@@ -130,6 +138,12 @@ export interface UpdateSeatCountWriter {
   updateSeatCount(input: UpdateSeatCountInput): Promise<PersistedGame>;
 }
 
+export interface UpdateTableSettingsWriter {
+  updateTableSettings(
+    input: UpdateSeatCountInput & TableSettings,
+  ): Promise<PersistedGame>;
+}
+
 export interface CreatedGame {
   readonly gameId: string;
   readonly state: PokerGameState;
@@ -188,7 +202,7 @@ export async function createDemoGame(
         name: player?.name ?? `Seat ${seat + 1}`,
         controller: player?.controller ?? "human",
         aiDifficulty: player?.aiDifficulty ?? null,
-        stack: player?.stack ?? 10_000,
+        stack: player?.stack ?? config.startingStack ?? 10_000,
         status: player?.status ?? "open",
         playerToken: player?.playerToken ?? null,
         isHost: player?.isHost ?? false,
@@ -216,6 +230,7 @@ function enginePlayerIdForAssignment(
 function playerConfigForAssignment(
   gameId: string,
   assignment: SeatAssignment,
+  startingStack: number,
 ): PokerPlayerConfig {
   return {
     id: enginePlayerIdForAssignment(gameId, assignment),
@@ -230,7 +245,7 @@ function playerConfigForAssignment(
       assignment.controller === "typesafe_ai"
         ? (assignment.aiDifficulty ?? "medium")
         : null,
-    stack: 10_000,
+    stack: startingStack,
     status: assignment.status,
     playerToken: assignment.playerToken,
     isHost: assignment.isHost,
@@ -248,9 +263,11 @@ async function withOpenSeatPlaceholders(
     state.config.players.map((player) => player.seat),
   );
   const players = [...state.config.players];
+  const startingStack =
+    state.config.startingStack ?? state.config.players[0]?.stack ?? 10_000;
   for (const assignment of assignments) {
     if (configuredSeats.has(assignment.seat)) continue;
-    players.push(playerConfigForAssignment(gameId, assignment));
+    players.push(playerConfigForAssignment(gameId, assignment, startingStack));
   }
   const assignmentsById = new Map(
     assignments
@@ -283,6 +300,8 @@ async function reconcileState(
   state: PokerGameState,
 ): Promise<PokerGameState> {
   const assignments = await repository.getSeatAssignments(gameId);
+  const startingStack =
+    state.config.startingStack ?? state.config.players[0]?.stack ?? 10_000;
   const filled = assignments.filter(
     (assignment) =>
       (assignment.status === "claimed" || assignment.status === "bot") &&
@@ -302,7 +321,7 @@ async function reconcileState(
     if (!nextState.config.players.some((player) => player.id === playerId)) {
       nextState = pokerEngineAdapter.seatPlayer(
         nextState,
-        playerConfigForAssignment(gameId, assignment),
+        playerConfigForAssignment(gameId, assignment, startingStack),
       );
       await repository.updateSeatAssignment({
         gameId,
@@ -420,9 +439,77 @@ export async function updateSeatCount(
   seatCount: number,
   callerToken: string,
 ): Promise<PublicGame> {
-  if (!Number.isInteger(seatCount) || seatCount < 2 || seatCount > 6) {
+  const game = await repository.getGame(gameId);
+  if (!game) throw new GameNotFoundError(gameId);
+  const state = pokerEngineAdapter.restore(game.currentState as PokerGameState);
+
+  try {
+    return await updateTableSettings(
+      {
+        getGame: (id) => repository.getGame(id),
+        getSeatAssignments: (id) => repository.getSeatAssignments(id),
+        updateSeatAssignment: (input) => repository.updateSeatAssignment(input),
+        updateTableSettings: (input) => repository.updateSeatCount(input),
+      },
+      gameId,
+      expectedVersion,
+      {
+        seatCount,
+        smallBlind: state.config.smallBlind,
+        bigBlind: state.config.bigBlind,
+        startingStack:
+          state.config.startingStack ??
+          state.config.players[0]?.stack ??
+          10_000,
+      },
+      callerToken,
+    );
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "Only the host can change table settings"
+    ) {
+      throw new Error("Only the host can change the seat count");
+    }
+    throw error;
+  }
+}
+
+export function validateTableSettings(settings: TableSettings): void {
+  if (
+    !Number.isSafeInteger(settings.seatCount) ||
+    settings.seatCount < 2 ||
+    settings.seatCount > 6
+  ) {
     throw new Error("seatCount must be an integer from 2 through 6");
   }
+  if (!Number.isSafeInteger(settings.smallBlind) || settings.smallBlind < 1) {
+    throw new Error("smallBlind must be a positive integer");
+  }
+  if (
+    !Number.isSafeInteger(settings.bigBlind) ||
+    settings.bigBlind <= settings.smallBlind
+  ) {
+    throw new Error("bigBlind must be an integer greater than smallBlind");
+  }
+  if (
+    !Number.isSafeInteger(settings.startingStack) ||
+    settings.startingStack < settings.bigBlind
+  ) {
+    throw new Error(
+      "startingStack must be an integer at least as large as bigBlind",
+    );
+  }
+}
+
+export async function updateTableSettings(
+  repository: GameReader & SeatAssignmentRepository & UpdateTableSettingsWriter,
+  gameId: string,
+  expectedVersion: number,
+  settings: TableSettings,
+  callerToken: string,
+): Promise<PublicGame> {
+  validateTableSettings(settings);
 
   const game = await repository.getGame(gameId);
   if (!game) throw new GameNotFoundError(gameId);
@@ -440,7 +527,7 @@ export async function updateSeatCount(
         assignment.isHost && assignment.playerToken === callerToken,
     )
   ) {
-    throw new Error("Only the host can change the seat count");
+    throw new Error("Only the host can change table settings");
   }
 
   const highestOccupiedSeat = assignments.reduce(
@@ -450,20 +537,24 @@ export async function updateSeatCount(
         : highest,
     -1,
   );
-  if (highestOccupiedSeat >= seatCount) {
+  if (highestOccupiedSeat >= settings.seatCount) {
     throw new Error("Cannot shrink seat count below an occupied seat");
   }
 
   const state = pokerEngineAdapter.restore(game.currentState as PokerGameState);
   const nextState = pokerEngineAdapter.createGame({
     ...state.config,
-    seatCount,
+    ...settings,
+    players: state.config.players.map((player) => ({
+      ...player,
+      stack: settings.startingStack,
+    })),
   });
 
-  const persistedGame = await repository.updateSeatCount({
+  const persistedGame = await repository.updateTableSettings({
     gameId,
     expectedVersion,
-    seatCount,
+    ...settings,
     currentState: nextState,
     stateSchemaVersion: nextState.stateSchemaVersion,
   });

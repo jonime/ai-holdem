@@ -18,6 +18,7 @@ import type {
   Game,
   HandHistory,
   LegalAction,
+  TableSettings,
 } from "@/components/poker/types";
 
 export function useGameSession(gameId?: string) {
@@ -201,19 +202,19 @@ export function useGameSession(gameId?: string) {
     }
   }, [game]);
 
-  const updateSeatCount = useCallback(
-    async (nextSeatCount: number) => {
+  const updateTableSettings = useCallback(
+    async (settings: TableSettings) => {
       if (!game) return;
       setLoading(true);
       setError(null);
       try {
         const body = await requestJson<{ game: Game }>(
-          `/api/games/${game.id}/seat-count`,
+          `/api/games/${game.id}/settings`,
           {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              seatCount: nextSeatCount,
+              ...settings,
               expectedVersion: game.version,
             }),
           },
@@ -223,7 +224,7 @@ export function useGameSession(gameId?: string) {
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "Unable to update seat count",
+            : "Unable to update table settings",
         );
       } finally {
         setLoading(false);
@@ -380,7 +381,7 @@ export function useGameSession(gameId?: string) {
     releaseSeat,
     assignBot,
     startWaitingGame,
-    updateSeatCount,
+    updateTableSettings,
     submitAction,
     beginNextHand,
     selectHistoryHand,

@@ -304,6 +304,10 @@ export const pokerEngineAdapter = {
     return {
       ...snapshot,
       seatCount,
+      smallBlind: state.config.smallBlind,
+      bigBlind: state.config.bigBlind,
+      startingStack:
+        state.config.startingStack ?? state.config.players[0]?.stack ?? 10_000,
       legalActions:
         effectiveViewerId !== null &&
         snapshot.currentActorId === effectiveViewerId

@@ -279,6 +279,35 @@ describe("SupabaseGameRepository", () => {
     });
   });
 
+  it("updates waiting table settings through one RPC", async () => {
+    const { client, rpc } = createClient({
+      updateResult: [{ ...persistedGame, status: "waiting", version: 5 }],
+    });
+    const repository = new SupabaseGameRepository(client);
+
+    await repository.updateTableSettings({
+      gameId: "game-1",
+      expectedVersion: 4,
+      seatCount: 4,
+      smallBlind: 25,
+      bigBlind: 50,
+      startingStack: 5_000,
+      currentState: { configured: true },
+      stateSchemaVersion: 1,
+    });
+
+    expect(rpc).toHaveBeenCalledWith("update_table_settings_if_version", {
+      p_game_id: "game-1",
+      p_expected_version: 4,
+      p_seat_count: 4,
+      p_small_blind: 25,
+      p_big_blind: 50,
+      p_starting_stack: 5_000,
+      p_current_state: { configured: true },
+      p_state_schema_version: 1,
+    });
+  });
+
   it("persists a human action and state transition through one RPC", async () => {
     const updatedGame = { ...persistedGame, version: 5 };
     const { client, rpc } = createClient({ updateResult: [updatedGame] });

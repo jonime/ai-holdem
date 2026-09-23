@@ -65,7 +65,9 @@ test("runs a two-player hand in a six-seat lobby", async ({
   await secondBrowser.close();
 });
 
-test("persists a per-bot difficulty selected in the lobby", async ({ page }) => {
+test("persists a per-bot difficulty selected in the lobby", async ({
+  page,
+}) => {
   await page.goto("/");
   await page
     .getByRole("region", { name: "Start a new game" })
@@ -79,4 +81,27 @@ test("persists a per-bot difficulty selected in the lobby", async ({ page }) => 
 
   await page.reload();
   await expect(page.getByText("TypeSafe AI · hard")).toBeVisible();
+});
+
+test("persists host table settings selected in the lobby", async ({ page }) => {
+  await page.goto("/");
+  await page
+    .getByRole("region", { name: "Start a new game" })
+    .getByRole("button", { name: "New Game" })
+    .click();
+  await expect(page.getByText("WAITING ROOM")).toBeVisible();
+
+  await page.getByLabel("Seats").selectOption("4");
+  await page.getByLabel("Small blind").fill("25");
+  await page.getByLabel("Big blind").fill("50");
+  await page.getByLabel("Starting stack").fill("5000");
+  await page.getByRole("button", { name: "Apply settings" }).click();
+
+  await expect(page.getByText("SEAT 4", { exact: true })).toBeVisible();
+  await expect(page.getByText("SEAT 5", { exact: true })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByLabel("Seats")).toHaveValue("4");
+  await expect(page.getByLabel("Small blind")).toHaveValue("25");
+  await expect(page.getByLabel("Big blind")).toHaveValue("50");
+  await expect(page.getByLabel("Starting stack")).toHaveValue("5000");
 });
