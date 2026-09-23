@@ -11,6 +11,7 @@ import { formatChips } from "@/components/poker/view-model";
 export function PokerTable({
   game,
   seatRows,
+  linearSeats,
   human,
   viewerToken,
   isSpectator,
@@ -32,6 +33,7 @@ export function PokerTable({
     readonly top: readonly PublicPokerPlayer[];
     readonly bottom: readonly PublicPokerPlayer[];
   };
+  readonly linearSeats: readonly PublicPokerPlayer[];
   readonly human: PublicPokerPlayer;
   readonly viewerToken: string | null;
   readonly isSpectator: boolean;
@@ -114,7 +116,7 @@ export function PokerTable({
         </div>
       </div>
       <div className="felt">
-        <div className="seat-row top-row">
+        <div className="seat-row top-row desktop-seats">
           {seatRows.top.map((player) => (
             <Seat
               key={player.id}
@@ -142,8 +144,18 @@ export function PokerTable({
             {handResult ?? "\u00a0"}
           </p>
         </div>
-        <div className="seat-row bottom-row">
+        <div className="seat-row bottom-row desktop-seats">
           {seatRows.bottom.map((player) => (
+            <Seat
+              key={player.id}
+              player={player}
+              active={game.poker.currentActorId === player.id}
+              latestAction={latestActions[player.id] ?? null}
+            />
+          ))}
+        </div>
+        <div className="seat-grid mobile-seats">
+          {linearSeats.map((player) => (
             <Seat
               key={player.id}
               player={player}

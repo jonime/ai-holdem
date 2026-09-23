@@ -17,6 +17,17 @@ export function cardLabel(card: string): string {
   return `${rank} of ${suits[suit] ?? "unknown suit"}`;
 }
 
+function rotateSeats(
+  players: readonly PublicPokerPlayer[],
+  anchorId: string | null,
+): readonly PublicPokerPlayer[] {
+  const ordered = [...players].sort((a, b) => a.seat - b.seat);
+  const anchorIndex = ordered.findIndex((player) => player.id === anchorId);
+  return anchorIndex > 0
+    ? [...ordered.slice(anchorIndex), ...ordered.slice(0, anchorIndex)]
+    : ordered;
+}
+
 export function arrangeSeats(
   players: readonly PublicPokerPlayer[],
   anchorId: string | null,
@@ -24,12 +35,7 @@ export function arrangeSeats(
   readonly top: readonly PublicPokerPlayer[];
   readonly bottom: readonly PublicPokerPlayer[];
 } {
-  const ordered = [...players].sort((a, b) => a.seat - b.seat);
-  const anchorIndex = ordered.findIndex((player) => player.id === anchorId);
-  const rotated =
-    anchorIndex > 0
-      ? [...ordered.slice(anchorIndex), ...ordered.slice(0, anchorIndex)]
-      : ordered;
+  const rotated = rotateSeats(players, anchorId);
 
   if (rotated.length >= 5) {
     return {
@@ -39,6 +45,19 @@ export function arrangeSeats(
   }
 
   return { bottom: rotated.slice(0, 1), top: rotated.slice(1).reverse() };
+}
+
+/**
+ * Seat order for compact/mobile layouts: a single sequential list starting
+ * at the anchor (typically the viewer) and walking the table in seat order,
+ * so reading top-to-bottom matches turn order instead of the oval layout's
+ * split top/bottom rows.
+ */
+export function arrangeSeatsLinear(
+  players: readonly PublicPokerPlayer[],
+  anchorId: string | null,
+): readonly PublicPokerPlayer[] {
+  return rotateSeats(players, anchorId);
 }
 
 export function parseProbabilities(

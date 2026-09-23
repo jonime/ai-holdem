@@ -10,6 +10,7 @@ import { useGameSession } from "@/components/poker/useGameSession";
 import { getClientPlayerToken } from "@/lib/identity/player-token-client";
 import {
   arrangeSeats,
+  arrangeSeatsLinear,
   availableHistoryHands,
   describeHandResult,
   resolveViewer,
@@ -64,6 +65,10 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     game?.poker.currentActorId === viewerPlayer.id;
   const isSpectator = viewerPlayer === null && Boolean(game);
   const seatRows = arrangeSeats(
+    game?.poker.players ?? [],
+    (viewerPlayer ?? human)?.id ?? null,
+  );
+  const linearSeats = arrangeSeatsLinear(
     game?.poker.players ?? [],
     (viewerPlayer ?? human)?.id ?? null,
   );
@@ -232,6 +237,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           <PokerTable
             game={game}
             seatRows={seatRows}
+            linearSeats={linearSeats}
             human={human}
             viewerToken={viewerToken}
             isSpectator={isSpectator}

@@ -32,6 +32,7 @@ export function Seat({
     <section
       className={`seat ${isAi ? "ai-seat" : "human-seat"} ${active ? "active-seat" : ""}`}
     >
+      <span className="seat-number">{player.seat + 1}</span>
       <div className="seat-heading">
         <span className="seat-label">{player.name.toUpperCase()}</span>
         {active ? (
