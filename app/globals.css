@@ -426,12 +426,6 @@ h2 {
   padding: 16px;
   border-top: 1px solid #c5d3c9;
 }
-.action-caption {
-  min-height: 17px;
-  margin-bottom: 12px;
-  color: #526560;
-  font-size: 14px;
-}
 .action-controls {
   display: flex;
   flex-wrap: nowrap;
@@ -486,10 +480,6 @@ h2 {
 }
 .amount-presets button:hover {
   background: #d7eadc;
-}
-.amount-control small {
-  color: #667b75;
-  font-weight: 400;
 }
 .history-panel {
   padding: 18px;

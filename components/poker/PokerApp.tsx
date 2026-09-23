@@ -49,9 +49,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     game?.poker.players ?? [],
     viewerToken,
   );
-  const currentActor = game?.poker.players.find(
-    (player) => player.id === game.poker.currentActorId,
-  );
   const sizedAction = game?.poker.legalActions.find(
     (
       action,
@@ -130,7 +127,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             seatRows={seatRows}
             human={human}
             viewerToken={viewerToken}
-            currentActor={currentActor}
             isSpectator={isSpectator}
             isHumanTurn={isHumanTurn}
             sizedAction={sizedAction}

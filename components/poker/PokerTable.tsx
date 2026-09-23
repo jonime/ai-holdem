@@ -13,7 +13,6 @@ export function PokerTable({
   seatRows,
   human,
   viewerToken,
-  currentActor,
   isSpectator,
   isHumanTurn,
   sizedAction,
@@ -35,7 +34,6 @@ export function PokerTable({
   };
   readonly human: PublicPokerPlayer;
   readonly viewerToken: string | null;
-  readonly currentActor: PublicPokerPlayer | undefined;
   readonly isSpectator: boolean;
   readonly isHumanTurn: boolean;
   readonly sizedAction:
@@ -57,6 +55,7 @@ export function PokerTable({
 }) {
   const legalAction = (type: LegalAction["type"]) =>
     game.poker.legalActions.find((action) => action.type === type);
+  const checkCallAction = legalAction("check") ?? legalAction("call");
   const selectedAmount = sizedAction
     ? Math.min(
         sizedAction.maxAmount,
@@ -155,15 +154,6 @@ export function PokerTable({
         </div>
       </div>
       <section className="action-tray">
-        <div className="action-caption">
-          {isSpectator
-            ? "Spectating"
-            : !isHumanTurn
-              ? currentActor?.controller === "typesafe_ai"
-                ? "TypeSafe AI is deciding"
-                : "Hand complete"
-              : "\u00a0"}
-        </div>
         {isSpectator ? (
           <div className="action-controls">
             <button
@@ -184,24 +174,24 @@ export function PokerTable({
         ) : (
           <>
             <div className="action-controls">
-              {(["fold", "check", "call"] as const).map((type) => {
-                const action = legalAction(type);
-                const label =
-                  type === "call" && action?.type === "call"
-                    ? `Call ${formatChips(action.amount)}`
-                    : type[0].toUpperCase() + type.slice(1);
-
-                return (
-                  <button
-                    key={type}
-                    type="button"
-                    disabled={!isHumanTurn || loading || !action}
-                    onClick={() => submitFixedAction(type)}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
+              <button
+                type="button"
+                disabled={!isHumanTurn || loading || !legalAction("fold")}
+                onClick={() => submitFixedAction("fold")}
+              >
+                Fold
+              </button>
+              <button
+                type="button"
+                disabled={!isHumanTurn || loading || !checkCallAction}
+                onClick={() => {
+                  if (checkCallAction) submitFixedAction(checkCallAction.type);
+                }}
+              >
+                {checkCallAction?.type === "call"
+                  ? `Call ${formatChips(checkCallAction.amount)}`
+                  : "Check"}
+              </button>
               <button
                 type="button"
                 disabled={!isHumanTurn || loading || !sizedAction}
@@ -264,11 +254,6 @@ export function PokerTable({
                   Max
                 </button>
               </div>
-              <small>
-                {sizedAction
-                  ? `${formatChips(sizedAction.minAmount)} - ${formatChips(sizedAction.maxAmount)}`
-                  : "Bet sizing unavailable"}
-              </small>
             </div>
           </>
         )}
