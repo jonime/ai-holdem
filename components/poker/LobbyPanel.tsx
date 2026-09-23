@@ -73,14 +73,14 @@ export function LobbyPanel({
     <section className="lobby-panel">
       <header className="lobby-heading">
         <div>
-          <div className="panel-kicker">WAITING ROOM</div>
-          <h2>Choose your table</h2>
+          <div className="panel-kicker">{t("lobby.waitingRoom")}</div>
+          <h2>{t("lobby.chooseTable")}</h2>
         </div>
-        <p>Fill at least two seats, then start the hand.</p>
+        <p>{t("lobby.instructions")}</p>
       </header>
       <div className="lobby-setup">
         <label className="lobby-field player-name-field">
-          <span>Your name</span>
+          <span>{t("lobby.yourName")}</span>
           <input
             type="text"
             value={playerName}
@@ -100,7 +100,7 @@ export function LobbyPanel({
             }}
           >
             <label className="lobby-field compact-field">
-              <span>Seats</span>
+              <span>{t("lobby.seats")}</span>
               <select
                 value={settingsDraft.seatCount}
                 disabled={loading}
@@ -116,11 +116,11 @@ export function LobbyPanel({
               </select>
             </label>
             <fieldset className="blind-fields">
-              <legend>Blinds</legend>
+              <legend>{t("lobby.blinds")}</legend>
               <label>
-                <span>Small</span>
+                <span>{t("lobby.small")}</span>
                 <input
-                  aria-label="Small blind"
+                  aria-label={t("lobby.smallBlind")}
                   type="number"
                   min="1"
                   step="1"
@@ -135,9 +135,9 @@ export function LobbyPanel({
                 /
               </span>
               <label>
-                <span>Big</span>
+                <span>{t("lobby.big")}</span>
                 <input
-                  aria-label="Big blind"
+                  aria-label={t("lobby.bigBlind")}
                   type="number"
                   min="2"
                   step="1"
@@ -150,7 +150,7 @@ export function LobbyPanel({
               </label>
             </fieldset>
             <label className="lobby-field stack-field">
-              <span>Starting stack</span>
+              <span>{t("lobby.startingStack")}</span>
               <input
                 type="number"
                 min={Math.max(1, parsedSettings.bigBlind || 1)}
@@ -172,23 +172,26 @@ export function LobbyPanel({
               type="submit"
               disabled={loading || !settingsValid || !settingsChanged}
             >
-              Apply settings
+              {t("lobby.applySettings")}
             </button>
           </form>
         ) : (
-          <div className="table-settings-summary" aria-label="Table settings">
+          <div
+            className="table-settings-summary"
+            aria-label={t("lobby.tableSettings")}
+          >
             <div>
-              <span>Seats</span>
+              <span>{t("lobby.seats")}</span>
               <strong>{game.poker.seatCount}</strong>
             </div>
             <div>
-              <span>Blinds</span>
+              <span>{t("lobby.blinds")}</span>
               <strong>
                 {game.poker.smallBlind} / {game.poker.bigBlind}
               </strong>
             </div>
             <div>
-              <span>Starting stack</span>
+              <span>{t("lobby.startingStack")}</span>
               <strong>{game.poker.startingStack.toLocaleString()}</strong>
             </div>
           </div>
@@ -206,19 +209,27 @@ export function LobbyPanel({
               key={seat}
             >
               <div className="lobby-seat-heading">
-                <span className="seat-label">SEAT {seat + 1}</span>
+                <span className="seat-label">
+                  {t("lobby.seat", { seat: seat + 1 })}
+                </span>
                 <span className="seat-state">
-                  {player?.status === "open" ? "OPEN" : "FILLED"}
+                  {player?.status === "open"
+                    ? t("lobby.open")
+                    : t("lobby.filled")}
                 </span>
               </div>
               <div className="lobby-seat-person">
                 <strong>{player?.name ?? t("lobby.openSeat")}</strong>
                 <span>
                   {player?.status === "bot"
-                    ? `TypeSafe AI · ${player.aiDifficulty ?? "medium"}`
+                    ? t("lobby.typesafeAi", {
+                        difficulty: t(
+                          `lobby.${player.aiDifficulty ?? "medium"}`,
+                        ),
+                      })
                     : player?.status === "claimed"
-                      ? "Human player"
-                      : "Available"}
+                      ? t("lobby.humanPlayer")
+                      : t("lobby.available")}
                 </span>
               </div>
               {player?.status === "open" ? (
@@ -228,12 +239,14 @@ export function LobbyPanel({
                     disabled={loading}
                     onClick={() => onClaimSeatAt(seat)}
                   >
-                    Sit here
+                    {t("lobby.sitHere")}
                   </button>
                   {seatCanManage ? (
                     <div className="bot-assignment-controls">
                       <select
-                        aria-label={`Bot difficulty for seat ${seat + 1}`}
+                        aria-label={t("lobby.botDifficulty", {
+                          seat: seat + 1,
+                        })}
                         value={botDifficulties[seat] ?? "medium"}
                         disabled={loading}
                         onChange={(event) =>
@@ -243,9 +256,9 @@ export function LobbyPanel({
                           }))
                         }
                       >
-                        <option value="easy">Easy</option>
-                        <option value="medium">Medium</option>
-                        <option value="hard">Hard</option>
+                        <option value="easy">{t("lobby.easy")}</option>
+                        <option value="medium">{t("lobby.medium")}</option>
+                        <option value="hard">{t("lobby.hard")}</option>
                       </select>
                       <button
                         type="button"
@@ -254,7 +267,7 @@ export function LobbyPanel({
                           onAssignBot(seat, botDifficulties[seat] ?? "medium")
                         }
                       >
-                        Assign bot
+                        {t("lobby.assignBot")}
                       </button>
                     </div>
                   ) : null}
@@ -267,7 +280,7 @@ export function LobbyPanel({
                   disabled={loading}
                   onClick={() => onReleaseSeat(seat)}
                 >
-                  Stand up
+                  {t("lobby.standUp")}
                 </button>
               ) : null}
               {seatCanManage && player?.status === "bot" ? (
@@ -276,7 +289,7 @@ export function LobbyPanel({
                   disabled={loading}
                   onClick={() => onReleaseSeat(seat)}
                 >
-                  Remove bot
+                  {t("lobby.removeBot")}
                 </button>
               ) : null}
             </article>
@@ -285,7 +298,10 @@ export function LobbyPanel({
       </div>
       <div className="lobby-footer">
         <span>
-          {occupiedSeats} of {game.poker.seatCount} seats filled
+          {t("lobby.seatsFilled", {
+            occupied: occupiedSeats,
+            total: game.poker.seatCount,
+          })}
         </span>
         <button
           type="button"
@@ -294,9 +310,9 @@ export function LobbyPanel({
           }
           onClick={onStartWaitingGame}
         >
-          Start hand
+          {t("lobby.startHand")}
         </button>
-        {!canManage ? <span>Waiting for the host to start.</span> : null}
+        {!canManage ? <span>{t("lobby.waitingForHost")}</span> : null}
       </div>
     </section>
   );
