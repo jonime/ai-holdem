@@ -1,4 +1,5 @@
 import type { LegalAction, PublicPokerPlayer } from "@/lib/poker/types";
+import type { LatestPlayerAction } from "@/components/poker/types";
 
 export function formatChips(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
@@ -111,6 +112,7 @@ export function describeSeatStatus(
   player: Pick<PublicPokerPlayer, "leaving" | "inHand" | "folded" | "allIn"> & {
     readonly active?: boolean;
   },
+  latestAction: LatestPlayerAction | null = null,
 ): string {
   if (player.leaving) {
     return "Leaving after this hand";
@@ -127,7 +129,14 @@ export function describeSeatStatus(
   if (player.active) {
     return "Thinking";
   }
-  return "In hand";
+  return latestAction ? formatActionLabel(latestAction) : "Waiting";
+}
+
+export function formatActionLabel(action: LatestPlayerAction): string {
+  const label = action.action[0].toUpperCase() + action.action.slice(1);
+  return action.amount === null
+    ? label
+    : `${label} ${formatChips(action.amount)}`;
 }
 
 export function availableHistoryHands(handNumber: number): number[] {

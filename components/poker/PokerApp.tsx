@@ -85,6 +85,16 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     .filter((name): name is string => Boolean(name));
   const handResult =
     game?.poker.street === "complete" ? describeHandResult(winnerNames) : null;
+  const latestActions = Object.fromEntries(
+    (currentHistory?.actions ?? [])
+      .filter((action) => action.street === game?.poker.street)
+      .flatMap((action) => {
+        const player = game?.poker.players.find(
+          (candidate) => candidate.name === action.player,
+        );
+        return player ? [[player.id, action] as const] : [];
+      }),
+  );
 
   return (
     <main className="poker-app">
@@ -146,6 +156,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             onBeginNextHand={() => void beginNextHand()}
             onOpenHistory={() => setHistoryOpen(true)}
             handResult={handResult}
+            latestActions={latestActions}
           />
           {historyOpen && displayedHistoryHand ? (
             <HistoryModal

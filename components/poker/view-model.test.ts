@@ -181,7 +181,33 @@ describe("view-model", () => {
       "Thinking",
     );
     expect(describeSeatStatus({ ...playerBase, active: false })).toBe(
-      "In hand",
+      "Waiting",
+    );
+    expect(
+      describeSeatStatus(
+        { ...playerBase, active: false },
+        { action: "call", amount: 900 },
+      ),
+    ).toBe("Call 900");
+    expect(
+      describeSeatStatus(
+        { ...playerBase, active: false },
+        { action: "raise", amount: 1800 },
+      ),
+    ).toBe("Raise 1,800");
+  });
+
+  it("keeps terminal seat states ahead of the latest action", () => {
+    const player = {
+      leaving: false,
+      inHand: true,
+      folded: true,
+      allIn: false,
+      active: false,
+    };
+
+    expect(describeSeatStatus(player, { action: "fold", amount: null })).toBe(
+      "Folded",
     );
   });
 

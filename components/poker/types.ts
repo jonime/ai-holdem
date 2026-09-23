@@ -36,6 +36,11 @@ export interface HandActionHistoryItem {
   readonly controller: "human" | "typesafe_ai";
 }
 
+export type LatestPlayerAction = Pick<
+  HandActionHistoryItem,
+  "action" | "amount"
+>;
+
 export interface CompletedAIDecisionInspection {
   readonly actionSequence: number;
   readonly state: unknown;

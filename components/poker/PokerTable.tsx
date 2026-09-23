@@ -3,6 +3,7 @@ import { Seat } from "@/components/poker/Seat";
 import type {
   Game,
   LegalAction,
+  LatestPlayerAction,
   PublicPokerPlayer,
 } from "@/components/poker/types";
 import { formatChips } from "@/components/poker/view-model";
@@ -25,6 +26,7 @@ export function PokerTable({
   onBeginNextHand,
   onOpenHistory,
   handResult,
+  latestActions,
 }: {
   readonly game: Game;
   readonly seatRows: {
@@ -51,6 +53,7 @@ export function PokerTable({
   readonly onBeginNextHand: () => void;
   readonly onOpenHistory: () => void;
   readonly handResult: string | null;
+  readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
 }) {
   const legalAction = (type: LegalAction["type"]) =>
     game.poker.legalActions.find((action) => action.type === type);
@@ -118,6 +121,7 @@ export function PokerTable({
               key={player.id}
               player={player}
               active={game.poker.currentActorId === player.id}
+              latestAction={latestActions[player.id] ?? null}
             />
           ))}
         </div>
@@ -145,6 +149,7 @@ export function PokerTable({
               key={player.id}
               player={player}
               active={game.poker.currentActorId === player.id}
+              latestAction={latestActions[player.id] ?? null}
             />
           ))}
         </div>

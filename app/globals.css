@@ -271,9 +271,10 @@ h2 {
   align-items: end;
 }
 .seat {
+  position: relative;
   flex: 0 1 200px;
   max-width: 220px;
-  padding: 10px 12px;
+  padding: 18px 12px 10px;
   border: 1px solid rgba(236, 246, 235, 0.38);
   border-radius: 8px;
   background: rgba(4, 37, 32, 0.34);
@@ -338,6 +339,24 @@ h2 {
 }
 .hole-cards {
   margin-bottom: 8px;
+}
+.action-badge {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 1;
+  display: inline-block;
+  transform: translate(-50%, -50%);
+  padding: 4px 8px;
+  border: 1px solid rgba(240, 183, 77, 0.7);
+  border-radius: 999px;
+  color: #f8d17b;
+  background: #0e5a4d;
+  font:
+    700 11px/1 ui-monospace,
+    Menlo,
+    monospace;
+  letter-spacing: 0.4px;
 }
 .playing-card {
   display: inline-grid;

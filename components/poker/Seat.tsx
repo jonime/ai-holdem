@@ -1,13 +1,18 @@
 import { PlayingCard } from "@/components/poker/PlayingCard";
-import type { PublicPokerPlayer } from "@/components/poker/types";
+import type {
+  LatestPlayerAction,
+  PublicPokerPlayer,
+} from "@/components/poker/types";
 import { describeSeatStatus, formatChips } from "@/components/poker/view-model";
 
 export function Seat({
   player,
   active,
+  latestAction,
 }: {
   readonly player: PublicPokerPlayer;
   readonly active: boolean;
+  readonly latestAction: LatestPlayerAction | null;
 }) {
   const isAi = player.controller === "typesafe_ai";
   const isOpen = player.status === "open";
@@ -34,6 +39,12 @@ export function Seat({
         ) : null}
       </div>
       <strong>{formatChips(player.stack)}</strong>
+      {latestAction?.action === "bet" || latestAction?.action === "raise" ? (
+        <span className="action-badge">
+          {latestAction.action.toUpperCase()}{" "}
+          {formatChips(latestAction.amount ?? 0)}
+        </span>
+      ) : null}
       <div className="hole-cards">
         {player.holeCards ? (
           player.holeCards.map((card) => <PlayingCard key={card} card={card} />)
@@ -45,13 +56,16 @@ export function Seat({
         )}
       </div>
       <span className="seat-status">
-        {describeSeatStatus({
-          leaving: player.leaving,
-          inHand: player.inHand,
-          folded: player.folded,
-          allIn: player.allIn,
-          active,
-        })}
+        {describeSeatStatus(
+          {
+            leaving: player.leaving,
+            inHand: player.inHand,
+            folded: player.folded,
+            allIn: player.allIn,
+            active,
+          },
+          latestAction,
+        )}
       </span>
     </section>
   );
