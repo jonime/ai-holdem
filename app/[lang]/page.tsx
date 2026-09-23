@@ -1,5 +1,6 @@
 import Image from "next/image";
 
+import { LanguageSelector } from "@/components/poker/LanguageSelector";
 import { NewGameForm } from "@/components/poker/NewGameForm";
 import { APP_NAME } from "@/lib/constants";
 import { getDictionary } from "@/lib/i18n/server";
@@ -14,7 +15,11 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
 
   return (
     <main className="poker-app">
-      <section className="empty-state home-empty-state" aria-label={dictionary.home.startRegion}>
+      <section
+        className="empty-state home-empty-state"
+        aria-label={dictionary.home.startRegion}
+      >
+        <LanguageSelector />
         <Image
           className="empty-state-mark"
           src="/ai-holdem-logo.png"
@@ -28,12 +33,24 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
         <p>{dictionary.home.intro}</p>
         <NewGameForm />
       </section>
-      <section className="home-attribution" aria-label={dictionary.home.aboutBots}>
+      <section
+        className="home-attribution"
+        aria-label={dictionary.home.aboutBots}
+      >
         <p>
-          The bots at this table use{" "}
-          <a href="https://typesafe.ai/" target="_blank" rel="noreferrer">TypeSafe</a>{" "}
-          for their poker decisions. View the source on{" "}
-          <a href="https://github.com/jonime/ai-holdem" target="_blank" rel="noreferrer">GitHub</a>.
+          {dictionary.home.attributionBeforeTypeSafe}
+          <a href="https://typesafe.ai/" target="_blank" rel="noreferrer">
+            TypeSafe
+          </a>{" "}
+          {dictionary.home.attributionBetweenLinks}
+          <a
+            href="https://github.com/jonime/ai-holdem"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GitHub
+          </a>
+          {dictionary.home.attributionAfterGitHub}
         </p>
       </section>
     </main>

@@ -9,8 +9,10 @@ const dictionary = {
     title: "AI Hold'em",
     intro: "Create a table, then invite someone to take an open seat.",
     aboutBots: "About the bots",
-    attribution:
-      "The bots at this table use TypeSafe for their poker decisions. View the source on GitHub.",
+    attributionBeforeTypeSafe: "The bots at this table use ",
+    attributionBetweenLinks: " for their poker decisions. View the source on ",
+    attributionAfterGitHub: ".",
+    language: "Language",
     yourName: "Your name",
     anonymous: "Anonymous",
     newGame: "New Game",
@@ -145,4 +147,9 @@ const dictionary = {
 } as const;
 
 export default dictionary;
-export type Dictionary = typeof dictionary;
+
+type DictionaryShape<Value> = Value extends string
+  ? string
+  : { readonly [Key in keyof Value]: DictionaryShape<Value[Key]> };
+
+export type Dictionary = DictionaryShape<typeof dictionary>;

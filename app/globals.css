@@ -133,6 +133,29 @@ h2 {
   box-shadow: 6px 7px 0 rgba(16, 59, 51, 0.18);
   text-align: center;
 }
+.language-selector {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: -20px 0 22px;
+  color: #56716b;
+  font-size: 14px;
+  font-weight: 700;
+}
+.language-selector select {
+  min-width: 112px;
+  border: 1px solid #9db5aa;
+  border-radius: 4px;
+  background: #fffdf7;
+  color: var(--felt-dark);
+  padding: 7px 9px;
+  font: inherit;
+}
+.language-selector select:focus-visible {
+  outline: 3px solid rgba(226, 123, 85, 0.45);
+  outline-offset: 2px;
+}
 .empty-state-mark {
   display: block;
   width: min(270px, 60vw);
