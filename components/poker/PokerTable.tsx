@@ -44,23 +44,72 @@ export function PokerTable({
   readonly setAmount: (value: number | null) => void;
   readonly onClaimFirstOpenSeat: () => void;
   readonly onStandUp: () => void;
-  readonly onSubmitAction: (action: LegalAction) => void;
+  readonly onSubmitAction: (
+    action: LegalAction,
+    amountOverride?: number | null,
+  ) => void;
   readonly onBeginNextHand: () => void;
   readonly onOpenHistory: () => void;
   readonly handResult: string | null;
 }) {
+  const legalAction = (type: LegalAction["type"]) =>
+    game.poker.legalActions.find((action) => action.type === type);
+  const selectedAmount = sizedAction
+    ? Math.min(
+        sizedAction.maxAmount,
+        Math.max(sizedAction.minAmount, amount ?? sizedAction.minAmount),
+      )
+    : null;
+  const potPresetAmount = (fraction: number) => {
+    if (!sizedAction) return 0;
+    const call = legalAction("call");
+    const callAmount = call?.type === "call" ? call.amount : 0;
+    const target =
+      sizedAction.type === "raise"
+        ? callAmount + Math.round(game.poker.pot * fraction)
+        : Math.round(game.poker.pot * fraction);
+    return Math.min(
+      sizedAction.maxAmount,
+      Math.max(sizedAction.minAmount, target),
+    );
+  };
+  const submitFixedAction = (type: LegalAction["type"]) => {
+    const action = legalAction(type);
+    if (!action) return;
+    if (
+      (action.type === "bet" || action.type === "raise") &&
+      selectedAmount !== null
+    ) {
+      onSubmitAction(action, selectedAmount);
+      return;
+    }
+    onSubmitAction(action);
+  };
+
   return (
     <section className="table-shell">
       <div className="table-meta">
         <span>HAND {game.poker.handNumber}</span>
         <span>{game.poker.street?.toUpperCase() ?? "WAITING"}</span>
-        <button
-          type="button"
-          className="history-toggle"
-          onClick={onOpenHistory}
-        >
-          History
-        </button>
+        <div className="table-meta-actions">
+          {human.playerToken === viewerToken ? (
+            <button
+              type="button"
+              className="stand-up-toggle"
+              disabled={loading || human.leaving}
+              onClick={onStandUp}
+            >
+              {human.leaving ? "Leaving" : "Stand up"}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className="history-toggle"
+            onClick={onOpenHistory}
+          >
+            History
+          </button>
+        </div>
       </div>
       <div className="felt">
         <div className="seat-row top-row">
@@ -104,11 +153,11 @@ export function PokerTable({
         <div className="action-caption">
           {isSpectator
             ? "Spectating"
-            : isHumanTurn
-              ? "Your legal actions"
-              : currentActor?.controller === "typesafe_ai"
+            : !isHumanTurn
+              ? currentActor?.controller === "typesafe_ai"
                 ? "TypeSafe AI is deciding"
-                : "Hand complete"}
+                : "Hand complete"
+              : "\u00a0"}
         </div>
         {isSpectator ? (
           <div className="action-controls">
@@ -129,53 +178,93 @@ export function PokerTable({
           </div>
         ) : (
           <>
-            {human.playerToken === viewerToken ? (
-              <div className="action-controls">
+            <div className="action-controls">
+              {(["fold", "check", "call"] as const).map((type) => {
+                const action = legalAction(type);
+                const label =
+                  type === "call" && action?.type === "call"
+                    ? `Call ${formatChips(action.amount)}`
+                    : type[0].toUpperCase() + type.slice(1);
+
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    disabled={!isHumanTurn || loading || !action}
+                    onClick={() => submitFixedAction(type)}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                disabled={!isHumanTurn || loading || !sizedAction}
+                onClick={() => {
+                  if (sizedAction) submitFixedAction(sizedAction.type);
+                }}
+              >
+                {sizedAction
+                  ? `${sizedAction.type === "raise" ? "Raise" : "Bet"} to ${formatChips(selectedAmount ?? sizedAction.minAmount)}`
+                  : "Bet"}
+              </button>
+              {game.poker.street === "complete" ? (
                 <button
                   type="button"
-                  disabled={loading || human.leaving}
-                  onClick={onStandUp}
+                  disabled={loading}
+                  onClick={onBeginNextHand}
                 >
-                  {human.leaving ? "Leaving after this hand" : "Stand up"}
-                </button>
-              </div>
-            ) : null}
-            <div className="action-controls">
-              {game.poker.legalActions.map((action) => (
-                <button
-                  key={action.type}
-                  disabled={!isHumanTurn || loading}
-                  onClick={() => onSubmitAction(action)}
-                >
-                  {action.type === "call"
-                    ? `Call ${formatChips(action.amount)}`
-                    : action.type === "bet" || action.type === "raise"
-                      ? `${action.type[0].toUpperCase()}${action.type.slice(1)}`
-                      : action.type[0].toUpperCase() + action.type.slice(1)}
-                </button>
-              ))}
-              {game.poker.street === "complete" ? (
-                <button disabled={loading} onClick={onBeginNextHand}>
                   {loading ? "Preparing" : "Next Hand"}
                 </button>
               ) : null}
             </div>
-            {sizedAction && isHumanTurn ? (
-              <label className="amount-control">
-                <span>{sizedAction.type} to</span>
-                <input
-                  type="number"
-                  min={sizedAction.minAmount}
-                  max={sizedAction.maxAmount}
-                  value={amount ?? sizedAction.minAmount}
-                  onChange={(event) => setAmount(Number(event.target.value))}
-                />
-                <small>
-                  {formatChips(sizedAction.minAmount)} -{" "}
-                  {formatChips(sizedAction.maxAmount)}
-                </small>
-              </label>
-            ) : null}
+            <div className="amount-control">
+              <div className="amount-heading">
+                <span>Bet size</span>
+                <strong>
+                  {sizedAction && selectedAmount !== null
+                    ? formatChips(selectedAmount)
+                    : "-"}
+                </strong>
+              </div>
+              <input
+                type="range"
+                min={sizedAction?.minAmount ?? 0}
+                max={sizedAction?.maxAmount ?? 100}
+                value={
+                  sizedAction ? (selectedAmount ?? sizedAction.minAmount) : 0
+                }
+                disabled={!sizedAction || !isHumanTurn || loading}
+                onChange={(event) => setAmount(Number(event.target.value))}
+                aria-label="Bet amount"
+              />
+              <div className="amount-presets">
+                {[0.5, 0.75, 1].map((fraction) => (
+                  <button
+                    key={fraction}
+                    type="button"
+                    disabled={!sizedAction || !isHumanTurn || loading}
+                    onClick={() => setAmount(potPresetAmount(fraction))}
+                  >
+                    {fraction === 1 ? "Pot" : `${fraction * 100}% Pot`}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  disabled={!sizedAction || !isHumanTurn || loading}
+                  onClick={() => {
+                    if (sizedAction) setAmount(sizedAction.maxAmount);
+                  }}
+                >
+                  Max
+                </button>
+              </div>
+              <small>
+                {sizedAction
+                  ? `${formatChips(sizedAction.minAmount)} - ${formatChips(sizedAction.maxAmount)}`
+                  : "Bet sizing unavailable"}
+              </small>
+            </div>
           </>
         )}
       </section>

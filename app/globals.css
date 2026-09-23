@@ -32,7 +32,7 @@ button {
   cursor: pointer;
 }
 button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.55;
 }
 .poker-app {
@@ -212,6 +212,30 @@ h2 {
   color: #d7e8df;
   font: inherit;
 }
+.table-meta-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+}
+.table-meta-actions button {
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+}
+.stand-up-toggle {
+  border: 1px solid #3f5c56;
+  border-radius: 3px;
+  padding: 5px 8px;
+  background: transparent;
+  color: #9fb8ae;
+  font: inherit;
+  font-size: 11px;
+}
+.stand-up-toggle:hover:not(:disabled) {
+  border-color: #9fb8ae;
+  color: #eaf5ef;
+}
 .history-toggle:hover {
   border-color: var(--sun);
   color: var(--sun);
@@ -384,16 +408,19 @@ h2 {
   border-top: 1px solid #c5d3c9;
 }
 .action-caption {
+  min-height: 17px;
   margin-bottom: 12px;
   color: #526560;
   font-size: 14px;
 }
 .action-controls {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
 }
 .action-controls button {
+  flex: 1 1 0;
+  min-width: 0;
   border: 1px solid #507a6d;
   border-radius: 3px;
   padding: 9px 12px;
@@ -405,20 +432,41 @@ h2 {
   background: #d7eadc;
 }
 .amount-control {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+  display: grid;
   gap: 8px;
   margin-top: 14px;
+  min-height: 92px;
   color: #35554e;
   font-weight: 700;
 }
-.amount-control input {
-  width: 120px;
+.amount-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.amount-heading strong {
+  color: var(--felt-dark);
+}
+.amount-control input[type="range"] {
+  width: 100%;
+  accent-color: var(--coral);
+}
+.amount-presets {
+  display: flex;
+  gap: 6px;
+}
+.amount-presets button {
+  flex: 1 1 0;
   border: 1px solid #8eaaa0;
   border-radius: 3px;
-  padding: 7px;
+  padding: 6px 8px;
   background: #fffef9;
+  color: #35554e;
+  font-size: 12px;
+  font-weight: 700;
+}
+.amount-presets button:hover {
+  background: #d7eadc;
 }
 .amount-control small {
   color: #667b75;
@@ -790,6 +838,10 @@ h2 {
     gap: 4px;
   }
   .action-controls button {
-    flex: 1 0 auto;
+    flex: 1 1 0;
+    padding: 9px 7px;
+  }
+  .amount-presets button {
+    padding: 6px 4px;
   }
 }
