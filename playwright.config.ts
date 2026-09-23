@@ -35,7 +35,6 @@ function getLocalSupabaseEnvironment(): Record<string, string> {
 
 export default defineConfig({
   testDir: "./test/e2e",
-  globalSetup: "./test/e2e/global-setup.ts",
   fullyParallel: false,
   workers: 1,
   retries: 0,

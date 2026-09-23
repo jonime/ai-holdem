@@ -93,10 +93,15 @@ Start the local Supabase stack with `supabase start`, then run:
 npm run test:e2e
 ```
 
-The Playwright setup reads credentials from `supabase status`, resets only the
-local database, applies every migration, starts Next on an isolated port, and
-runs the browser flow against that local database. It never uses the remote
-values from `.env`.
+The Playwright setup reads credentials from `supabase status`, starts Next on
+an isolated port, and runs the browser flow against that local database. It
+never uses the remote values from `.env`.
+
+Use a clean local database when validating migration-dependent behavior:
+
+```sh
+npm run test:e2e:reset
+```
 
 ## Deploy To Vercel
 
