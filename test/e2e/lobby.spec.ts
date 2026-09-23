@@ -1,10 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
 
 async function waitForPlayableHuman(page: Page) {
-  await expect(page.getByText("Your legal actions")).toBeVisible({
+  const actionButton = page.getByRole("button", { name: /^(Call|Check)/ });
+  await expect(actionButton).toBeEnabled({
     timeout: 10_000,
   });
-  return page.getByRole("button", { name: /Call/ });
+  return actionButton;
 }
 
 test("runs a two-player hand in a six-seat lobby", async ({
@@ -41,16 +42,20 @@ test("runs a two-player hand in a six-seat lobby", async ({
   await secondPage.goto(gameUrl);
   await expect(secondPage.getByText("WAITING ROOM")).toBeVisible();
   await secondPage.getByRole("button", { name: "Sit here" }).first().click();
-  await expect(secondPage.getByText("Human")).toBeVisible();
+  await expect(secondPage.getByText("Player 2", { exact: true })).toBeVisible();
 
   await page.reload();
-  await expect(page.getByText("Human")).toBeVisible();
+  await expect(page.getByText("Player 2", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Start hand" })).toBeEnabled();
   await page.getByRole("button", { name: "Start hand" }).click();
 
   await expect(page.getByText("PREFLOP")).toBeVisible();
-  await expect(page.getByText("PLAYER 2")).toHaveCount(1);
-  await expect(page.getByText("Open seat")).toHaveCount(4);
+  await expect(
+    page.locator(".desktop-seats").getByText("PLAYER 2", { exact: true }),
+  ).toHaveCount(1);
+  await expect(
+    page.locator(".desktop-seats").getByText("Open seat", { exact: true }),
+  ).toHaveCount(4);
 
   const callButton = await Promise.race([
     waitForPlayableHuman(page),

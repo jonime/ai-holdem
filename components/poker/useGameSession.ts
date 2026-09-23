@@ -35,20 +35,57 @@ export function useGameSession(gameId?: string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const automaticallyAdvancedVersions = useRef(new Set<number>());
+  const latestLoadRequest = useRef(0);
+  const realtimeRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const realtimeRefreshInFlight = useRef(false);
+  const realtimeRefreshPending = useRef(false);
   const router = useRouter();
 
   const loadGame = useCallback(async (targetGameId: string) => {
+    const requestNumber = ++latestLoadRequest.current;
     const body = await requestJson<{ game: Game }>(
       `/api/games/${targetGameId}`,
       undefined,
       gameEnvelopeSchema,
     );
-    setGame(body.game);
+    if (requestNumber === latestLoadRequest.current) {
+      setGame(body.game);
+    }
+    return body.game;
   }, []);
 
-  useGameChannel(gameId, game?.version ?? null, () => {
-    if (gameId) void loadGame(gameId);
-  });
+  const scheduleRealtimeRefresh = useCallback(() => {
+    function schedule() {
+      if (!gameId) return;
+      if (realtimeRefreshInFlight.current) {
+        realtimeRefreshPending.current = true;
+        return;
+      }
+      if (realtimeRefreshTimer.current) return;
+
+      realtimeRefreshTimer.current = setTimeout(() => {
+        realtimeRefreshTimer.current = null;
+        realtimeRefreshInFlight.current = true;
+        void loadGame(gameId)
+          .catch(() => {
+            setError("Unable to refresh the latest game state.");
+          })
+          .finally(() => {
+            realtimeRefreshInFlight.current = false;
+            if (realtimeRefreshPending.current) {
+              realtimeRefreshPending.current = false;
+              schedule();
+            }
+          });
+      }, 75);
+    }
+
+    schedule();
+  }, [gameId, loadGame]);
+
+  useGameChannel(gameId, game?.version ?? null, scheduleRealtimeRefresh);
 
   useEffect(() => {
     if (!gameId) {
@@ -57,22 +94,24 @@ export function useGameSession(gameId?: string) {
 
     let cancelled = false;
 
-    void requestJson<{ game: Game }>(
-      `/api/games/${gameId}`,
-      undefined,
-      gameEnvelopeSchema,
-    )
-      .then((body) => {
-        if (!cancelled) setGame(body.game);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setError("Unable to load the requested game.");
-        }
-      });
+    void loadGame(gameId).catch(() => {
+      if (!cancelled) {
+        setError("Unable to load the requested game.");
+      }
+    });
 
     return () => {
       cancelled = true;
+    };
+  }, [gameId, loadGame]);
+
+  useEffect(() => {
+    return () => {
+      if (realtimeRefreshTimer.current) {
+        clearTimeout(realtimeRefreshTimer.current);
+        realtimeRefreshTimer.current = null;
+      }
+      realtimeRefreshPending.current = false;
     };
   }, [gameId]);
 

@@ -1,19 +1,28 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { realtimeGameEventSchema } from "@/lib/http/schemas";
 import { createSupabaseBrowserClient } from "./client";
 
-interface GameEventEnvelope {
-  readonly type?: string;
-  readonly version?: unknown;
-}
+export type GameChannelStatus =
+  | "connecting"
+  | "subscribed"
+  | "error"
+  | "closed";
 
-function isFiniteSafeInteger(value: unknown): value is number {
+export function shouldRefreshForGameEvent(
+  event: ReturnType<typeof realtimeGameEventSchema.parse>,
+  gameId: string,
+  currentVersion: number | null,
+): boolean {
+  if (event.gameId !== gameId) return false;
+  const isSeatEvent =
+    event.type === "seat_claimed" ||
+    event.type === "seat_released" ||
+    event.type === "seat_bot_assigned";
   return (
-    typeof value === "number" &&
-    Number.isFinite(value) &&
-    Number.isSafeInteger(value)
+    isSeatEvent || currentVersion === null || event.version > currentVersion
   );
 }
 
@@ -21,9 +30,12 @@ export function useGameChannel(
   gameId: string | undefined,
   currentVersion: number | null,
   onUpdate: () => void,
-): void {
+): GameChannelStatus {
   const versionRef = useRef(currentVersion);
   const onUpdateRef = useRef(onUpdate);
+  const [status, setStatus] = useState<GameChannelStatus>(() =>
+    gameId ? "connecting" : "closed",
+  );
 
   useEffect(() => {
     versionRef.current = currentVersion;
@@ -34,59 +46,67 @@ export function useGameChannel(
   }, [onUpdate]);
 
   useEffect(() => {
-    if (!gameId) return;
+    if (!gameId) {
+      return;
+    }
 
+    let active = true;
+    queueMicrotask(() => {
+      if (active) setStatus("connecting");
+    });
+    let client: ReturnType<typeof createSupabaseBrowserClient>;
     let channel: ReturnType<
       ReturnType<typeof createSupabaseBrowserClient>["channel"]
     >;
     try {
-      const client = createSupabaseBrowserClient();
+      client = createSupabaseBrowserClient();
       channel = client
         .channel(`game:${gameId}`)
         .on(
           "broadcast",
           { event: "*" },
           ({ payload }: { payload: unknown }) => {
-            if (!payload || typeof payload !== "object") return;
-            const event = payload as GameEventEnvelope;
-            const eventType = event.type;
-            const isSeatEvent =
-              eventType === "seat_claimed" ||
-              eventType === "seat_released" ||
-              eventType === "seat_bot_assigned";
-            if (!isSeatEvent && !eventType) {
+            const parsed = realtimeGameEventSchema.safeParse(payload);
+            if (
+              !parsed.success ||
+              !shouldRefreshForGameEvent(
+                parsed.data,
+                gameId,
+                versionRef.current,
+              )
+            )
               return;
-            }
-            if (!isSeatEvent && !isFiniteSafeInteger(event.version)) {
-              return;
-            }
-            if (!isSeatEvent) {
-              const version = event.version;
-              if (!isFiniteSafeInteger(version)) {
-                return;
-              }
-              if (
-                versionRef.current !== null &&
-                version <= versionRef.current
-              ) {
-                return;
-              }
-            }
             onUpdateRef.current();
           },
         );
       void channel.subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          setStatus("subscribed");
+          return;
+        }
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          setStatus("error");
           console.error(`Realtime channel ${gameId} is unavailable`);
+          return;
+        }
+        if (status === "CLOSED") {
+          setStatus("closed");
+          console.error(`Realtime channel ${gameId} closed`);
         }
       });
     } catch (error) {
+      queueMicrotask(() => {
+        if (active) setStatus("error");
+      });
       console.error("Unable to connect to game Realtime channel", error);
       return;
     }
 
     return () => {
-      void createSupabaseBrowserClient().removeChannel(channel);
+      active = false;
+      void client.removeChannel(channel);
     };
   }, [gameId]);
+
+  return gameId ? status : "closed";
 }

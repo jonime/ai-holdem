@@ -39,7 +39,10 @@ them with `NEXT_PUBLIC_` and do not commit `.env`.
 Game updates use Supabase Realtime Broadcast as a refetch signal. No additional
 SQL migration is required for Broadcast. The demo intentionally uses public
 game channels, so anyone who knows a game URL can subscribe; this is not an
-authorization boundary for production.
+authorization boundary for production. Broadcast is best-effort: a successful
+database mutation remains successful when delivery is unavailable, and clients
+always refetch authoritative HTTP state. Missing browser Supabase credentials
+prevent the Realtime client from starting but do not expose server credentials.
 
 Run every SQL file in [supabase/migrations](supabase/migrations) in filename
 order using the Supabase SQL Editor, or let the GitHub integration below push

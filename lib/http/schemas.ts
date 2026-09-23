@@ -59,6 +59,105 @@ export const gameSchema = z.object({
 
 export const gameEnvelopeSchema = z.object({ game: gameSchema });
 
+const broadcastPlayerSchema = publicPlayerSchema
+  .extend({
+    playerToken: z.null(),
+    holeCards: z.null(),
+  })
+  .strict();
+
+export const broadcastGameSchema = gameSchema
+  .extend({
+    poker: publicGameSchema
+      .extend({
+        legalActions: z.array(legalActionSchema).length(0),
+        players: z.array(broadcastPlayerSchema),
+      })
+      .strict(),
+  })
+  .strict();
+
+const publicAIDecisionSchema = z
+  .object({
+    action: z.enum(["fold", "check", "call", "bet", "raise"]),
+    amount: z.number().int().nonnegative().nullable(),
+    probabilities: z.record(z.string(), z.number().finite()),
+    confidence: z.number().finite(),
+    sizing: z
+      .object({
+        choice: z.enum([
+          "one_third_pot",
+          "one_half_pot",
+          "two_thirds_pot",
+          "full_pot",
+          "all_in",
+          "not_applicable",
+        ]),
+        probabilities: z.record(z.string(), z.number().finite()),
+        confidence: z.number().finite(),
+      })
+      .strict()
+      .nullable(),
+  })
+  .strict();
+
+const broadcastSeatSchema = z
+  .object({
+    gameId: z.string(),
+    seat: z.number().int().nonnegative(),
+    name: z.string().optional(),
+    status: z.enum(["open", "claimed", "bot"]),
+    controller: z.enum(["human", "typesafe_ai"]),
+    aiDifficulty: z.enum(["easy", "medium", "hard"]).nullable().optional(),
+    playerToken: z.null(),
+    isHost: z.boolean(),
+    leaving: z.boolean().optional(),
+  })
+  .strict();
+
+const realtimeEnvelopeBaseSchema = z.object({
+  gameId: z.string(),
+  version: z.number().int().nonnegative().safe(),
+});
+
+const gameEventSchema = realtimeEnvelopeBaseSchema
+  .extend({
+    type: z.enum([
+      "game_updated",
+      "player_action",
+      "hand_started",
+      "hand_completed",
+      "seat_count_updated",
+      "table_settings_updated",
+    ]),
+    game: broadcastGameSchema,
+  })
+  .strict();
+
+const aiDecisionEventSchema = realtimeEnvelopeBaseSchema
+  .extend({
+    type: z.literal("ai_decision"),
+    game: broadcastGameSchema,
+    aiDecision: publicAIDecisionSchema,
+  })
+  .strict();
+
+const seatEventSchema = realtimeEnvelopeBaseSchema
+  .extend({
+    type: z.enum(["seat_claimed", "seat_released", "seat_bot_assigned"]),
+    game: broadcastGameSchema,
+    seat: broadcastSeatSchema,
+  })
+  .strict();
+
+export const realtimeGameEventSchema = z.discriminatedUnion("type", [
+  gameEventSchema,
+  aiDecisionEventSchema,
+  seatEventSchema,
+]);
+
+export type RealtimeGameEvent = z.infer<typeof realtimeGameEventSchema>;
+
 export const handActionHistoryItemSchema = z.object({
   sequence: z.number().int().nonnegative(),
   street: z.string(),

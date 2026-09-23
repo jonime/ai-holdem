@@ -6,6 +6,7 @@ import {
   type PublicGame,
   type SeatAssignment,
 } from "@/lib/poker/game-service";
+import { realtimeGameEventSchema } from "@/lib/http/schemas";
 import {
   createSupabaseGameRepository,
   createSupabaseServerClient,
@@ -57,34 +58,77 @@ export function toBroadcastGame(game: PublicGame): BroadcastGame {
 export interface GameEventPayload {
   readonly game?: BroadcastGame;
   readonly aiDecision?: PublicAIDecision;
-  readonly seat?: Omit<SeatAssignment, "playerToken"> & {
-    readonly playerToken: null;
+  readonly seat?: BroadcastSeat;
+}
+
+export interface BroadcastSeat {
+  readonly gameId: string;
+  readonly seat: number;
+  readonly name?: string;
+  readonly status: SeatAssignment["status"];
+  readonly controller: SeatAssignment["controller"];
+  readonly aiDifficulty?: SeatAssignment["aiDifficulty"];
+  readonly isHost: boolean;
+  readonly leaving?: boolean;
+  readonly playerToken: null;
+}
+
+export function toBroadcastSeat(assignment: SeatAssignment): BroadcastSeat {
+  return {
+    gameId: assignment.gameId,
+    seat: assignment.seat,
+    ...(assignment.name === undefined ? {} : { name: assignment.name }),
+    status: assignment.status,
+    controller: assignment.controller,
+    ...(assignment.aiDifficulty === undefined
+      ? {}
+      : { aiDifficulty: assignment.aiDifficulty }),
+    isHost: assignment.isHost,
+    ...(assignment.leaving === undefined
+      ? {}
+      : { leaving: assignment.leaving }),
+    playerToken: null,
   };
 }
+
+export type PublishGameEventResult =
+  | { readonly ok: true }
+  | { readonly ok: false; readonly error: Error };
 
 export async function publishGameEvent(
   gameId: string,
   type: GameEventType,
   version: number,
   payload: GameEventPayload,
-): Promise<void> {
+): Promise<PublishGameEventResult> {
   let client: ReturnType<typeof createSupabaseServerClient> | null = null;
   let channel: ReturnType<
     ReturnType<typeof createSupabaseServerClient>["channel"]
   > | null = null;
   try {
+    const event = realtimeGameEventSchema.parse({
+      type,
+      gameId,
+      version,
+      ...payload,
+    });
     client = createSupabaseServerClient();
     channel = client.channel(`game:${gameId}`);
     const result = await channel.send({
       type: "broadcast",
       event: type,
-      payload: { type, gameId, version, ...payload },
+      payload: event,
     });
     if (result !== "ok") {
       throw new Error(`Supabase Realtime returned ${result}`);
     }
+    return { ok: true };
   } catch (error) {
     console.error(`Unable to publish ${type} for game ${gameId}`, error);
+    return {
+      ok: false,
+      error: error instanceof Error ? error : new Error(String(error)),
+    };
   } finally {
     if (client && channel) {
       await client.removeChannel(channel).catch(() => undefined);
@@ -99,18 +143,22 @@ export async function publishSeatEvent(
     "seat_claimed" | "seat_released" | "seat_bot_assigned"
   >,
   assignment: SeatAssignment,
-): Promise<void> {
+): Promise<PublishGameEventResult> {
   try {
     const game = await getPublicGame(
       createSupabaseGameRepository(),
       gameId,
       null,
     );
-    await publishGameEvent(gameId, type, game.version, {
+    return await publishGameEvent(gameId, type, game.version, {
       game: toBroadcastGame(game),
-      seat: { ...assignment, playerToken: null },
+      seat: toBroadcastSeat(assignment),
     });
   } catch (error) {
     console.error(`Unable to prepare ${type} for game ${gameId}`, error);
+    return {
+      ok: false,
+      error: error instanceof Error ? error : new Error(String(error)),
+    };
   }
 }
