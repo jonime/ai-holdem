@@ -265,6 +265,17 @@ export const pokerEngineAdapter = {
     const winnerIds = hand
       ? [...new Set(hand.pots.flatMap((pot) => pot.winnerPlayerIds))]
       : [];
+    const winnerAmounts = hand
+      ? hand.pots
+          .flatMap((pot) => pot.awards)
+          .reduce<Record<string, number>>(
+            (amounts, award) => ({
+              ...amounts,
+              [award.playerId]: (amounts[award.playerId] ?? 0) + award.amount,
+            }),
+            {},
+          )
+      : {};
 
     return {
       handNumber: table.handNumber,
@@ -274,6 +285,7 @@ export const pokerEngineAdapter = {
       pot: hand?.pots.reduce((total, pot) => total + pot.amount, 0) ?? 0,
       completionReason: hand?.completionReason ?? null,
       winnerIds,
+      winnerAmounts,
     };
   },
 

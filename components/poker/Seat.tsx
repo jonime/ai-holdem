@@ -9,11 +9,13 @@ export function Seat({
   player,
   active,
   winner,
+  winnerAmount,
   latestAction,
 }: {
   readonly player: PublicPokerPlayer;
   readonly active: boolean;
   readonly winner: boolean;
+  readonly winnerAmount: number | null;
   readonly latestAction: LatestPlayerAction | null;
 }) {
   const isAi = player.controller === "typesafe_ai";
@@ -42,6 +44,9 @@ export function Seat({
         ) : null}
       </div>
       {winner ? <span className="winner-badge">POT WINNER</span> : null}
+      {winner && winnerAmount !== null ? (
+        <span className="winner-amount">+{formatChips(winnerAmount)}</span>
+      ) : null}
       <strong>{formatChips(player.stack)}</strong>
       {latestAction?.action === "bet" || latestAction?.action === "raise" ? (
         <span className="action-badge">

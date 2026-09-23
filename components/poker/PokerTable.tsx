@@ -121,6 +121,7 @@ export function PokerTable({
               player={player}
               active={game.poker.currentActorId === player.id}
               winner={game.poker.winnerIds.includes(player.id)}
+              winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
               latestAction={latestActions[player.id] ?? null}
             />
           ))}
@@ -147,6 +148,7 @@ export function PokerTable({
               player={player}
               active={game.poker.currentActorId === player.id}
               winner={game.poker.winnerIds.includes(player.id)}
+              winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
               latestAction={latestActions[player.id] ?? null}
             />
           ))}
@@ -158,6 +160,7 @@ export function PokerTable({
               player={player}
               active={game.poker.currentActorId === player.id}
               winner={game.poker.winnerIds.includes(player.id)}
+              winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
               latestAction={latestActions[player.id] ?? null}
             />
           ))}

@@ -68,6 +68,7 @@ export interface PokerGameSnapshot {
   readonly pot: number;
   readonly completionReason: "fold" | "showdown" | null;
   readonly winnerIds: readonly string[];
+  readonly winnerAmounts: Readonly<Record<string, number>>;
 }
 
 export interface PublicPokerPlayer {
@@ -99,6 +100,7 @@ export interface PublicPokerGame {
   readonly pot: number;
   readonly completionReason: "fold" | "showdown" | null;
   readonly winnerIds: readonly string[];
+  readonly winnerAmounts: Readonly<Record<string, number>>;
   readonly legalActions: readonly LegalAction[];
   readonly players: readonly PublicPokerPlayer[];
 }

@@ -160,6 +160,12 @@ describe("pokerEngineAdapter", () => {
     });
     expect(completeHand.communityCards).toHaveLength(5);
     expect(completeHand.winnerIds.length).toBeGreaterThan(0);
+    expect(
+      Object.values(completeHand.winnerAmounts).reduce(
+        (total, amount) => total + amount,
+        0,
+      ),
+    ).toBeGreaterThan(0);
   });
 
   it("rejects an under-minimum raise before sending it to the engine", () => {
