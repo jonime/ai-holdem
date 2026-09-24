@@ -158,18 +158,18 @@
   font-size: 18px;
 }
 .lobbySeats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   margin: 24px 0;
 }
 .lobbySeat {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
   min-width: 0;
-  min-height: 190px;
   gap: 14px;
-  padding: 16px;
+  padding: 14px 16px;
   border: 1px solid #b9cbc0;
   background: #eef2e9;
 }
@@ -181,9 +181,10 @@
 }
 .lobbySeatHeading {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  flex: 0 0 80px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 .seatState {
   color: #6c8178;
@@ -196,6 +197,8 @@
 }
 .lobbySeatPerson {
   display: grid;
+  flex: 1 1 180px;
+  min-width: 0;
   gap: 5px;
 }
 .lobbySeatPerson strong {
@@ -214,11 +217,11 @@
   gap: 8px;
 }
 .lobbyActions {
-  margin-top: auto;
+  flex: 1 1 320px;
 }
 .botAssignmentControls {
   display: flex;
-  flex: 1 1 100%;
+  flex: 1 1 260px;
   flex-wrap: wrap;
   min-width: 0;
   gap: 6px;
@@ -242,8 +245,7 @@
   font-weight: 700;
 }
 .lobbySeat > button {
-  align-self: start;
-  margin-top: auto;
+  margin-left: auto;
 }
 .lobbyFooter {
   min-height: 42px;
@@ -261,8 +263,8 @@
   font-size: 14px;
 }
 @media (max-width: 760px) {
-  .lobbySeats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .lobbySeat > button {
+    margin-left: 0;
   }
   .tableSettingsForm {
     grid-template-columns: 72px minmax(0, 1fr);
@@ -295,11 +297,7 @@
     grid-template-columns: 1fr 1fr;
   }
   .lobbySeats {
-    grid-template-columns: 1fr;
     margin: 18px 0;
-  }
-  .lobbySeat {
-    min-height: 170px;
   }
   .lobbyFooter > span:first-child {
     width: 100%;
