@@ -1,0 +1,74 @@
+.home {
+  min-height: 100vh;
+  padding: 28px clamp(18px, 4vw, 64px) 48px;
+}
+
+.emptyState {
+  max-width: 640px;
+  min-height: 430px;
+  margin: 0 auto;
+  padding: 24px;
+  border: 1px solid #9db5aa;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.72),
+      rgba(240, 183, 77, 0.18)
+    ),
+    #f6f5ee;
+  text-align: center;
+  box-shadow: 6px 7px 0 rgba(16, 59, 51, 0.18);
+}
+
+.mark {
+  display: block;
+  width: min(270px, 60vw);
+  height: auto;
+  margin: 0 auto 22px;
+}
+
+.emptyState h1 {
+  margin-bottom: 10px;
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-size: clamp(28px, 5vw, 46px);
+  font-weight: 700;
+}
+
+.emptyState p {
+  max-width: 360px;
+  margin: 0 auto 24px;
+  color: #56716b;
+  font-size: 17px;
+}
+
+.attribution {
+  max-width: 1220px;
+  margin: 22px auto 0;
+  color: #56716b;
+  text-align: center;
+}
+
+.attribution p {
+  margin: 0;
+  font-size: 15px;
+}
+
+.attribution a {
+  color: var(--felt-dark);
+  font-weight: 700;
+}
+
+.attribution a:hover,
+.attribution a:focus-visible {
+  color: var(--coral);
+}
+
+@media (max-width: 560px) {
+  .home {
+    padding: 10px 8px 16px;
+  }
+
+  .emptyState {
+    margin-top: 2vh;
+  }
+}

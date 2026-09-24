@@ -32,7 +32,7 @@
 .foldedSeat .seatStatus {
   opacity: 0.55;
 }
-.foldedSeat :global(.playing-card) {
+.foldedSeat [data-playing-card] {
   filter: grayscale(0.85);
   opacity: 0.5;
 }
@@ -48,6 +48,10 @@
 }
 .bustedSeat strong {
   color: #d7e4e7;
+}
+.bustedSeat [data-playing-card] {
+  filter: grayscale(0.9) saturate(0.45);
+  opacity: 0.65;
 }
 .activeSeat {
   outline: 2px solid var(--sun);

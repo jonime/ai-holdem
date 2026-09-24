@@ -1,6 +1,7 @@
 import type { AIDecision, HandHistory } from "@/components/poker/types";
 import { formatChips, parseProbabilities } from "@/components/poker/view-model";
 import { useI18n } from "@/components/poker/I18nProvider";
+import styles from "@/components/poker/ActionHistory.module.css";
 
 function DecisionSummary({
   probabilities,
@@ -11,19 +12,19 @@ function DecisionSummary({
 }) {
   const { t } = useI18n();
   return (
-    <div className="decision-summary">
-      <div className="probability-list compact">
+    <div className={styles.decisionSummary}>
+      <div className={`${styles.probabilityList} ${styles.compact}`}>
         {Object.entries(probabilities).map(([choice, probability]) => (
-          <div className="probability" key={choice}>
+          <div className={styles.probability} key={choice}>
             <span>{choice}</span>
-            <div className="probability-track">
+            <div className={styles.probabilityTrack}>
               <i style={{ width: `${probability * 100}%` }} />
             </div>
             <b>{Math.round(probability * 100)}%</b>
           </div>
         ))}
       </div>
-      <span className="confidence-chip">
+      <span className={styles.confidenceChip}>
         {t("history.confidence", { percent: Math.round(confidence * 100) })}
       </span>
     </div>
@@ -46,7 +47,7 @@ export function ActionHistory({
   const { locale, t } = useI18n();
   if (!history) {
     return (
-      <section className="history-panel muted-panel">
+      <section className={`${styles.historyPanel} ${styles.mutedPanel}`}>
         <p>{t("history.loadsWithTable")}</p>
       </section>
     );
@@ -63,13 +64,13 @@ export function ActionHistory({
   );
 
   return (
-    <section className="history-panel">
-      <div className="panel-kicker">{t("history.persistedHand")}</div>
+    <section className={styles.historyPanel}>
+      <div className={styles.panelKicker}>{t("history.persistedHand")}</div>
       <h2>{t("history.title")}</h2>
-      <div className="hand-selector" aria-label={t("history.selectHand")}>
+      <div className={styles.handSelector} aria-label={t("history.selectHand")}>
         {availableHands.map((availableHand) => (
           <button
-            className={availableHand === handNumber ? "selected-hand" : ""}
+            className={availableHand === handNumber ? styles.selectedHand : ""}
             key={availableHand}
             onClick={() => onSelectHand(availableHand)}
           >
@@ -78,9 +79,9 @@ export function ActionHistory({
         ))}
       </div>
       {history.actions.length === 0 ? (
-        <p className="empty-history">{t("history.noActions")}</p>
+        <p className={styles.emptyHistory}>{t("history.noActions")}</p>
       ) : (
-        <ol className="history-list">
+        <ol className={styles.historyList}>
           {history.actions.map((action) => {
             const inspection =
               action.controller === "typesafe_ai"
@@ -98,7 +99,7 @@ export function ActionHistory({
               <li
                 key={action.sequence}
                 className={
-                  action.controller === "typesafe_ai" ? "ai-history" : ""
+                  action.controller === "typesafe_ai" ? styles.aiHistory : ""
                 }
               >
                 <span>{action.player}</span>
@@ -112,9 +113,9 @@ export function ActionHistory({
                       )}
                       confidence={inspection.confidence}
                     />
-                    <details className="history-inspection">
+                    <details className={styles.historyInspection}>
                       <summary>{t("history.rawDecision")}</summary>
-                      <div className="inspection-entry">
+                      <div className={styles.inspectionEntry}>
                         <pre>
                           {JSON.stringify(
                             {

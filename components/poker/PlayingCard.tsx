@@ -14,6 +14,7 @@ export function PlayingCard({
     return (
       <span
         className={`${styles.playingCard} ${styles.cardBack}`}
+        data-playing-card
         aria-label={t("cards.hidden")}
       >
         TS
@@ -24,6 +25,7 @@ export function PlayingCard({
     return (
       <span
         className={`${styles.playingCard} ${styles.emptyCard}`}
+        data-playing-card
         aria-hidden="true"
       />
     );
@@ -41,6 +43,7 @@ export function PlayingCard({
   return (
     <span
       className={`${styles.playingCard} ${red ? styles.redCard : ""}`}
+      data-playing-card
       aria-label={cardLabel(card, dictionary.cards)}
     >
       <span className={styles.cardFace} aria-hidden="true">

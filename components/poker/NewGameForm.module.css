@@ -1,0 +1,53 @@
+.playerNameField {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 16px 0;
+  color: #526560;
+  font:
+    700 12px/1 ui-monospace,
+    Menlo,
+    monospace;
+  text-transform: uppercase;
+}
+
+.playerNameField input {
+  width: min(260px, 100%);
+  padding: 9px 10px;
+  border: 1px solid #8eaaa0;
+  border-radius: 3px;
+  background: #fffef9;
+  font-size: 16px;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+.newGame {
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--coral);
+  color: #fff9ef;
+  font-weight: 700;
+  box-shadow: 3px 3px 0 #9b3e2a;
+}
+
+.newGame:hover,
+.newGame:focus-visible {
+  transform: translate(-1px, -1px);
+  background: #e27b55;
+  box-shadow: 5px 5px 0 #9b3e2a;
+}
+
+.newGameHero {
+  padding: 15px 24px;
+  font-size: 18px;
+}
+
+@media (max-width: 560px) {
+  .newGame {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+}

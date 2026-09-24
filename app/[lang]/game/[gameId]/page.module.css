@@ -1,0 +1,9 @@
+.loadingPage {
+  min-height: 100vh;
+  padding: 28px clamp(18px, 4vw, 64px) 48px;
+}
+@media (max-width: 560px) {
+  .loadingPage {
+    padding: 10px 8px 16px;
+  }
+}

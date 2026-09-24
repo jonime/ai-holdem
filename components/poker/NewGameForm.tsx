@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useI18n } from "@/components/poker/I18nProvider";
+import styles from "@/components/poker/NewGameForm.module.css";
 
 const gameStorageKey = "ai-holdem-game-id";
 const playerNameStorageKey = "ai-holdem-player-name";
@@ -43,7 +44,7 @@ export function NewGameForm() {
 
   return (
     <>
-      <label className="player-name-field">
+      <label className={styles.playerNameField}>
         {t("home.yourName")}
         <input
           type="text"
@@ -54,7 +55,7 @@ export function NewGameForm() {
         />
       </label>
       <button
-        className="new-game new-game-hero"
+        className={`${styles.newGame} ${styles.newGameHero}`}
         type="button"
         onClick={() => void createGame()}
       >

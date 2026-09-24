@@ -1,0 +1,41 @@
+.gameHeader {
+  padding: 12px clamp(18px, 4vw, 64px) 0;
+}
+
+.gameHeaderInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1220px;
+  margin: 0 auto;
+}
+
+.gameHeaderTitle {
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.exitGame {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 5px;
+  background: var(--coral);
+  color: #fff9ef;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 3px 3px 0 #9b3e2a;
+}
+
+.exitGame:hover,
+.exitGame:focus-visible {
+  transform: translate(-1px, -1px);
+  background: #e27b55;
+  box-shadow: 5px 5px 0 #9b3e2a;
+}
+
+@media (max-width: 560px) {
+  .gameHeader {
+    padding-top: 8px;
+  }
+}

@@ -7,6 +7,7 @@ import type {
   TableSettings,
 } from "@/components/poker/types";
 import { filledSeatCount } from "@/components/poker/view-model";
+import styles from "@/components/poker/LobbyPanel.module.css";
 
 export function LobbyPanel({
   game,
@@ -66,16 +67,16 @@ export function LobbyPanel({
   };
 
   return (
-    <section className="lobby-panel">
-      <header className="lobby-heading">
+    <section className={styles.lobbyPanel}>
+      <header className={styles.lobbyHeading}>
         <div>
-          <div className="panel-kicker">{t("lobby.waitingRoom")}</div>
+          <div className={styles.panelKicker}>{t("lobby.waitingRoom")}</div>
           <h2>{t("lobby.chooseTable")}</h2>
         </div>
         <p>{t("lobby.instructions")}</p>
       </header>
-      <div className="lobby-setup">
-        <label className="lobby-field player-name-field">
+      <div className={styles.lobbySetup}>
+        <label className={`${styles.lobbyField} ${styles.playerNameField}`}>
           <span>{t("lobby.yourName")}</span>
           <input
             type="text"
@@ -86,8 +87,8 @@ export function LobbyPanel({
           />
         </label>
         {canManage ? (
-          <div className="table-settings-form">
-            <label className="lobby-field compact-field">
+          <div className={styles.tableSettingsForm}>
+            <label className={styles.lobbyField}>
               <span>{t("lobby.seats")}</span>
               <select
                 value={settingsDraft.seatCount}
@@ -114,7 +115,7 @@ export function LobbyPanel({
                 ))}
               </select>
             </label>
-            <fieldset className="blind-fields">
+            <fieldset className={styles.blindFields}>
               <legend>{t("lobby.blinds")}</legend>
               <label>
                 <span>{t("lobby.small")}</span>
@@ -130,7 +131,7 @@ export function LobbyPanel({
                   }
                 />
               </label>
-              <span className="blind-separator" aria-hidden="true">
+              <span className={styles.blindSeparator} aria-hidden="true">
                 /
               </span>
               <label>
@@ -148,7 +149,7 @@ export function LobbyPanel({
                 />
               </label>
             </fieldset>
-            <label className="lobby-field stack-field">
+            <label className={`${styles.lobbyField} ${styles.stackField}`}>
               <span>{t("lobby.startingStack")}</span>
               <input
                 type="number"
@@ -166,7 +167,7 @@ export function LobbyPanel({
                   : t("lobby.checkValues")}
               </small>
             </label>
-            <label className="lobby-toggle">
+            <label className={styles.lobbyToggle}>
               <input
                 type="checkbox"
                 checked={settingsDraft.botsShowUncontestedWins}
@@ -183,7 +184,7 @@ export function LobbyPanel({
           </div>
         ) : (
           <div
-            className="table-settings-summary"
+            className={styles.tableSettingsSummary}
             aria-label={t("lobby.tableSettings")}
           >
             <div>
@@ -203,7 +204,7 @@ export function LobbyPanel({
           </div>
         )}
       </div>
-      <div className="lobby-seats">
+      <div className={styles.lobbySeats}>
         {Array.from({ length: game.poker.seatCount }, (_, seat) => {
           const player = game.poker.players.find(
             (entry) => entry.seat === seat,
@@ -211,20 +212,20 @@ export function LobbyPanel({
           const seatCanManage = game.viewerIsHost;
           return (
             <article
-              className={`lobby-seat ${player?.status ?? "open"}`}
+              className={`${styles.lobbySeat} ${player?.status === "claimed" ? styles.claimed : player?.status === "bot" ? styles.bot : ""}`}
               key={seat}
             >
-              <div className="lobby-seat-heading">
-                <span className="seat-label">
+              <div className={styles.lobbySeatHeading}>
+                <span className={styles.seatLabel}>
                   {t("lobby.seat", { seat: seat + 1 })}
                 </span>
-                <span className="seat-state">
+                <span className={styles.seatState}>
                   {player?.status === "open"
                     ? t("lobby.open")
                     : t("lobby.filled")}
                 </span>
               </div>
-              <div className="lobby-seat-person">
+              <div className={styles.lobbySeatPerson}>
                 <strong>{player?.name ?? t("lobby.openSeat")}</strong>
                 <span>
                   {player?.status === "bot"
@@ -239,7 +240,7 @@ export function LobbyPanel({
                 </span>
               </div>
               {player?.status === "open" ? (
-                <div className="lobby-actions">
+                <div className={styles.lobbyActions}>
                   <button
                     type="button"
                     disabled={loading}
@@ -248,7 +249,7 @@ export function LobbyPanel({
                     {t("lobby.sitHere")}
                   </button>
                   {seatCanManage ? (
-                    <div className="bot-assignment-controls">
+                    <div className={styles.botAssignmentControls}>
                       <select
                         aria-label={t("lobby.botDifficulty", {
                           seat: seat + 1,
@@ -302,7 +303,7 @@ export function LobbyPanel({
           );
         })}
       </div>
-      <div className="lobby-footer">
+      <div className={styles.lobbyFooter}>
         <span>
           {t("lobby.seatsFilled", {
             occupied: occupiedSeats,

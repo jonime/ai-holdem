@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import { useI18n } from "@/components/poker/I18nProvider";
+import styles from "@/components/poker/LanguageSelector.module.css";
 import { SUPPORTED_LOCALES, type Locale } from "@/lib/i18n";
 
 const languageNames: Record<Locale, string> = {
@@ -22,7 +23,7 @@ export function LanguageSelector() {
   const { locale, t } = useI18n();
 
   return (
-    <label className="language-selector">
+    <label className={styles.languageSelector}>
       <span>{t("home.language")}</span>
       <select
         value={locale}

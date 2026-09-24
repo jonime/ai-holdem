@@ -1,0 +1,23 @@
+.languageSelector {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  color: #56716b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.languageSelector select {
+  min-width: 112px;
+  padding: 7px 9px;
+  border: 1px solid #9db5aa;
+  border-radius: 4px;
+  background: #fffdf7;
+  color: var(--felt-dark);
+}
+
+.languageSelector select:focus-visible {
+  outline: 3px solid rgba(226, 123, 85, 0.45);
+  outline-offset: 2px;
+}

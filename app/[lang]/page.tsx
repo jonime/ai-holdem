@@ -6,6 +6,7 @@ import { APP_NAME } from "@/lib/constants";
 import { getDictionary } from "@/lib/i18n/server";
 import { hasLocale } from "@/lib/i18n";
 import { notFound } from "next/navigation";
+import styles from "./page.module.css";
 
 export default async function Home({ params }: PageProps<"/[lang]">) {
   "use cache";
@@ -14,14 +15,14 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
   const dictionary = await getDictionary(lang);
 
   return (
-    <main className="poker-app">
+    <main className={styles.home}>
       <section
-        className="empty-state home-empty-state"
+        className={styles.emptyState}
         aria-label={dictionary.home.startRegion}
       >
         <LanguageSelector />
         <Image
-          className="empty-state-mark"
+          className={styles.mark}
           src="/ai-holdem-logo.png"
           alt={dictionary.metadata.title}
           width={270}
@@ -34,7 +35,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
         <NewGameForm />
       </section>
       <section
-        className="home-attribution"
+        className={styles.attribution}
         aria-label={dictionary.home.aboutBots}
       >
         <p>
