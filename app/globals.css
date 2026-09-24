@@ -81,6 +81,7 @@ button:disabled {
     Menlo,
     monospace;
   letter-spacing: 1.2px;
+  text-transform: uppercase;
 }
 h1,
 h2,
@@ -223,6 +224,7 @@ h2 {
     Menlo,
     monospace;
   letter-spacing: 0.8px;
+  text-transform: uppercase;
 }
 .history-toggle {
   margin-left: auto;
@@ -376,6 +378,7 @@ h2 {
     Menlo,
     monospace;
   letter-spacing: 0.7px;
+  text-transform: uppercase;
 }
 .winner-amount {
   position: absolute;
@@ -447,6 +450,7 @@ h2 {
     Menlo,
     monospace;
   letter-spacing: 1px;
+  text-transform: uppercase;
 }
 .seat strong {
   display: block;
@@ -1040,6 +1044,7 @@ h2 {
     Menlo,
     monospace;
   letter-spacing: 0.8px;
+  text-transform: uppercase;
 }
 .lobby-seat-person {
   display: grid;
