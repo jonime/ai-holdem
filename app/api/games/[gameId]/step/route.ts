@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isFakeTypesafeModeEnabled } from "@/lib/env/server";
 import { getPlayerTokenFromRequest } from "@/lib/identity/player-token";
 import {
   GameNotFoundError,
@@ -9,6 +10,7 @@ import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { TypesafeSystemOneClient } from "@/lib/typesafe/client";
 import { TypesafeRequestError } from "@/lib/typesafe/client";
+import { FakeTypesafeClient } from "@/lib/typesafe/fake-client";
 import { TypesafeResponseError } from "@/lib/typesafe/types";
 import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
 
@@ -22,7 +24,9 @@ export async function POST(request: Request, context: StepRouteContext) {
   try {
     const result = await stepTypesafeAction(
       createSupabaseGameRepository(),
-      new TypesafeSystemOneClient(),
+      isFakeTypesafeModeEnabled()
+        ? new FakeTypesafeClient()
+        : new TypesafeSystemOneClient(),
       gameId,
       getPlayerTokenFromRequest(request),
     );

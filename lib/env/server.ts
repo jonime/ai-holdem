@@ -9,6 +9,14 @@ export interface TypesafeServerEnv {
   readonly typesafeApiKey: string;
 }
 
+/**
+ * When true, the step route uses FakeTypesafeClient instead of calling the
+ * real TypeSafe/jev model. Intended for e2e runs only.
+ */
+export function isFakeTypesafeModeEnabled(): boolean {
+  return process.env.TYPESAFE_FAKE_MODE === "true";
+}
+
 function requiredServerVariable(name: string): string {
   const value = process.env[name];
 
