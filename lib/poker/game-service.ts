@@ -356,44 +356,57 @@ async function withOpenSeatPlaceholders(
   state: PokerGameState,
 ): Promise<PokerGameState> {
   const assignments = await repository.getSeatAssignments(gameId);
-  const configuredSeats = new Set(
-    state.config.players.map((player) => player.seat),
-  );
-  const players = [...state.config.players];
   const startingStack =
     state.config.startingStack ?? state.config.players[0]?.stack ?? 10_000;
-  for (const assignment of assignments) {
-    if (configuredSeats.has(assignment.seat)) continue;
-    players.push(playerConfigForAssignment(gameId, assignment, startingStack));
-  }
   const assignmentsById = new Map(
     assignments
       .filter((assignment) => assignment.enginePlayerId)
       .map((assignment) => [assignment.enginePlayerId, assignment]),
   );
+  const assignmentsBySeat = new Map(
+    assignments.map((assignment) => [assignment.seat, assignment]),
+  );
+  const configuredPlayerIds = new Set(
+    state.config.players.map((player) => player.id),
+  );
+  const players = state.config.players.map((player) => {
+    const assignment =
+      assignmentsById.get(player.id) ?? assignmentsBySeat.get(player.seat);
+    return assignment
+      ? {
+          ...player,
+          seat: assignment.seat,
+          name: assignment.name ?? player.name,
+          controller: assignment.controller,
+          bot: assignment.controller === "bot" ? assignment.bot : null,
+          aiDifficulty:
+            assignment.bot?.provider === "typesafe"
+              ? (assignment.aiDifficulty ?? "medium")
+              : null,
+          status: assignment.status,
+          playerToken: assignment.playerToken,
+          isHost: assignment.isHost,
+          leaving: assignment.leaving ?? false,
+        }
+      : player;
+  });
+  const configuredSeats = new Set(players.map((player) => player.seat));
+  for (const assignment of assignments) {
+    if (
+      assignment.enginePlayerId &&
+      configuredPlayerIds.has(assignment.enginePlayerId)
+    ) {
+      continue;
+    }
+    if (configuredSeats.has(assignment.seat)) continue;
+    players.push(playerConfigForAssignment(gameId, assignment, startingStack));
+    configuredSeats.add(assignment.seat);
+  }
   return {
     ...state,
     config: {
       ...state.config,
-      players: players.map((player) => {
-        const assignment = assignmentsById.get(player.id);
-        return assignment
-          ? {
-              ...player,
-              name: assignment.name ?? player.name,
-              controller: assignment.controller,
-              bot: assignment.controller === "bot" ? assignment.bot : null,
-              aiDifficulty:
-                assignment.bot?.provider === "typesafe"
-                  ? (assignment.aiDifficulty ?? "medium")
-                  : null,
-              status: assignment.status,
-              playerToken: assignment.playerToken,
-              isHost: assignment.isHost,
-              leaving: assignment.leaving ?? false,
-            }
-          : player;
-      }),
+      players,
     },
   };
 }
@@ -440,6 +453,24 @@ async function reconcileState(
       (assignment.status === "claimed" || assignment.status === "bot") &&
       !assignment.leaving,
   );
+  const waitingSnapshot = pokerEngineAdapter.snapshot(state);
+  if (!waitingSnapshot.street) {
+    for (const assignment of filled) {
+      if (assignment.enginePlayerId) continue;
+      await repository.updateSeatAssignment({
+        gameId,
+        seat: assignment.seat,
+        status: assignment.status,
+        enginePlayerId: enginePlayerIdForAssignment(gameId, assignment),
+      });
+    }
+    return pokerEngineAdapter.createGame({
+      ...state.config,
+      players: filled.map((assignment) =>
+        playerConfigForAssignment(gameId, assignment, startingStack),
+      ),
+    });
+  }
   const desiredIds = new Set(
     filled.map((assignment) => enginePlayerIdForAssignment(gameId, assignment)),
   );
@@ -766,8 +797,30 @@ export async function claimSeat(
   if (assignment.status !== "open") {
     throw new Error("Seat is not open");
   }
+  const existingClaim = seatAssignments.find(
+    (entry) => entry.status === "claimed" && entry.playerToken === playerToken,
+  );
 
-  const name = sanitizePlayerName(playerName, `Player ${seat + 1}`);
+  const name = sanitizePlayerName(
+    playerName,
+    existingClaim?.name ?? `Player ${seat + 1}`,
+  );
+
+  if (existingClaim) {
+    await repository.updateSeatAssignment({
+      gameId,
+      seat: existingClaim.seat,
+      status: "open",
+      name: `Seat ${existingClaim.seat + 1}`,
+      controller: "human",
+      bot: null,
+      aiDifficulty: null,
+      playerToken: null,
+      isHost: false,
+      leaving: false,
+      enginePlayerId: null,
+    });
+  }
 
   const updatedAssignment: SeatAssignment = {
     ...assignment,
@@ -775,8 +828,11 @@ export async function claimSeat(
     controller: "human",
     name,
     playerToken,
-    isHost: false,
-    enginePlayerId: assignment.enginePlayerId ?? `seat-${gameId}-${seat}`,
+    isHost: existingClaim?.isHost ?? false,
+    enginePlayerId:
+      existingClaim?.enginePlayerId ??
+      assignment.enginePlayerId ??
+      `seat-${gameId}-${seat}`,
   };
 
   await repository.updateSeatAssignment({
@@ -786,7 +842,7 @@ export async function claimSeat(
     controller: "human",
     name,
     playerToken,
-    isHost: false,
+    isHost: updatedAssignment.isHost,
     enginePlayerId: updatedAssignment.enginePlayerId,
   });
 

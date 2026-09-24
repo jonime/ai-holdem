@@ -225,6 +225,86 @@ describe("getPublicGame", () => {
     });
   });
 
+  it("projects a moved host claim and opens the original configured seat", async () => {
+    const state = pokerEngineAdapter.createGame({
+      smallBlind: 50,
+      bigBlind: 100,
+      seatCount: 2,
+      players: [
+        {
+          id: "human",
+          name: "Host",
+          controller: "human",
+          seat: 0,
+          stack: 10_000,
+          status: "claimed",
+          playerToken: "host-token",
+          isHost: true,
+        },
+      ],
+    });
+    const game = await getPublicGame(
+      {
+        getGame: vi.fn().mockResolvedValue({
+          id: "game-1",
+          status: "waiting",
+          currentState: state,
+          stateSchemaVersion: 1,
+          handNumber: 0,
+          version: 0,
+        }),
+        getHostToken: vi.fn().mockResolvedValue("host-token"),
+        getSeatAssignments: vi.fn().mockResolvedValue([
+          {
+            gameId: "game-1",
+            seat: 0,
+            name: "Seat 1",
+            status: "open",
+            controller: "human",
+            aiDifficulty: null,
+            playerToken: null,
+            isHost: false,
+            leaving: false,
+            enginePlayerId: null,
+          },
+          {
+            gameId: "game-1",
+            seat: 1,
+            name: "Host",
+            status: "claimed",
+            controller: "human",
+            aiDifficulty: null,
+            playerToken: "host-token",
+            isHost: true,
+            leaving: false,
+            enginePlayerId: "human",
+          },
+        ]),
+      },
+      "game-1",
+      "host-token",
+    );
+
+    expect(game.viewerIsHost).toBe(true);
+    expect(game.poker.players).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          seat: 0,
+          status: "open",
+          playerToken: null,
+          isHost: false,
+        }),
+        expect.objectContaining({
+          id: "human",
+          seat: 1,
+          status: "claimed",
+          playerToken: "host-token",
+          isHost: true,
+        }),
+      ]),
+    );
+  });
+
   it("rejects malformed persisted state without leaking unchecked casts", async () => {
     await expect(
       getPublicGame(
@@ -357,6 +437,62 @@ describe("claimSeat", () => {
         "player-token",
       ),
     ).rejects.toThrow("Seat is not open");
+  });
+
+  it("moves an existing player claim to a different open seat", async () => {
+    const getSeatAssignments = vi.fn().mockResolvedValue([
+      {
+        seat: 0,
+        name: "Ada",
+        status: "claimed",
+        playerToken: "player-token",
+        isHost: true,
+        enginePlayerId: "human",
+      },
+      { seat: 1, status: "open", playerToken: null, isHost: false },
+    ]);
+    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
+
+    const assignment = await claimSeat(
+      { getSeatAssignments, updateSeatAssignment },
+      "game-1",
+      1,
+      "player-token",
+    );
+
+    expect(updateSeatAssignment).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        gameId: "game-1",
+        seat: 0,
+        status: "open",
+        playerToken: null,
+        isHost: false,
+        enginePlayerId: null,
+      }),
+    );
+    expect(updateSeatAssignment).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        gameId: "game-1",
+        seat: 1,
+        status: "claimed",
+        name: "Ada",
+        playerToken: "player-token",
+        isHost: true,
+        enginePlayerId: "human",
+      }),
+    );
+    expect(assignment).toEqual(
+      expect.objectContaining({
+        seat: 1,
+        status: "claimed",
+        name: "Ada",
+        playerToken: "player-token",
+        isHost: true,
+        enginePlayerId: "human",
+      }),
+    );
   });
 });
 
@@ -1180,6 +1316,110 @@ describe("startNextHand", () => {
 });
 
 describe("startGame", () => {
+  it("starts after the host moves from the originally configured seat", async () => {
+    const state = pokerEngineAdapter.createGame({
+      smallBlind: 50,
+      bigBlind: 100,
+      seatCount: 3,
+      players: [
+        {
+          id: "human",
+          name: "Host",
+          controller: "human",
+          seat: 0,
+          stack: 10_000,
+          status: "claimed",
+          playerToken: "host-token",
+          isHost: true,
+        },
+      ],
+    });
+    const storedGame = {
+      id: "game-1",
+      status: "waiting",
+      currentState: state,
+      stateSchemaVersion: 1,
+      handNumber: 0,
+      version: 0,
+    };
+    const startGameWriter = vi.fn().mockResolvedValue({
+      ...storedGame,
+      status: "playing",
+      version: 1,
+    });
+
+    const game = await startGame(
+      {
+        getGame: vi.fn().mockResolvedValue(storedGame),
+        getHostToken: vi.fn().mockResolvedValue("host-token"),
+        getSeatAssignments: vi.fn().mockResolvedValue([
+          {
+            gameId: "game-1",
+            seat: 0,
+            name: "Seat 1",
+            status: "open",
+            controller: "human",
+            playerToken: null,
+            isHost: false,
+            enginePlayerId: null,
+          },
+          {
+            gameId: "game-1",
+            seat: 1,
+            name: "Host",
+            status: "claimed",
+            controller: "human",
+            playerToken: "host-token",
+            isHost: true,
+            enginePlayerId: "human",
+          },
+          {
+            gameId: "game-1",
+            seat: 2,
+            name: "TypeSafe Jev #1",
+            status: "bot",
+            controller: "bot",
+            bot: {
+              id: "jev",
+              label: "TypeSafe Jev",
+              provider: "typesafe",
+              modelId: "jev-latest",
+            },
+            aiDifficulty: "medium",
+            playerToken: null,
+            isHost: false,
+            enginePlayerId: "bot-game-1-2",
+          },
+        ]),
+        updateSeatAssignment: vi.fn(),
+        startGame: startGameWriter,
+      },
+      "game-1",
+      0,
+      "host-token",
+    );
+
+    expect(startGameWriter).toHaveBeenCalledWith(
+      expect.objectContaining({
+        currentState: expect.objectContaining({
+          config: expect.objectContaining({
+            players: expect.arrayContaining([
+              expect.objectContaining({ id: "human", seat: 1 }),
+              expect.objectContaining({ id: "bot-game-1-2", seat: 2 }),
+            ]),
+          }),
+        }),
+      }),
+    );
+    expect(game.poker.players).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "human", seat: 1 }),
+        expect.objectContaining({ id: "bot-game-1-2", seat: 2 }),
+      ]),
+    );
+    expect(game.poker.currentActorId).not.toBeNull();
+  });
+
   it("preserves the host's identity and actions without exposing another player's cards or token", async () => {
     const state = pokerEngineAdapter.createGame({
       smallBlind: 50,
