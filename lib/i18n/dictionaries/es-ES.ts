@@ -14,7 +14,7 @@ const dictionary = {
     aboutBots: "Sobre los bots",
     attributionBeforeTypeSafe: "Los bots de esta mesa usan ",
     attributionBetweenLinks:
-      " para tomar sus decisiones de póquer. Consulta el código fuente en ",
+      " para sus decisiones de póquer, y también hay otros modelos disponibles. Consulta el código fuente en ",
     attributionAfterGitHub: ".",
     language: "Idioma",
     yourName: "Tu nombre",

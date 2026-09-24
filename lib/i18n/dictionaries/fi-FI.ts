@@ -12,7 +12,8 @@ const dictionary = {
     intro: "Luo pöytä ja kutsu joku avoimelle paikalle.",
     aboutBots: "Tietoa boteista",
     attributionBeforeTypeSafe: "Tämän pöydän botit käyttävät ",
-    attributionBetweenLinks: " pokeripäätöksiinsä. Katso lähdekoodi ",
+    attributionBetweenLinks:
+      " pokeripäätöksiinsä, ja myös muita malleja on käytettävissä. Katso lähdekoodi ",
     attributionAfterGitHub: ".",
     language: "Kieli",
     yourName: "Nimesi",

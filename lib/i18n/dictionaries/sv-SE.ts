@@ -12,7 +12,8 @@ const dictionary = {
     intro: "Skapa ett bord och bjud in någon till en ledig plats.",
     aboutBots: "Om botarna",
     attributionBeforeTypeSafe: "Botarna vid detta bord använder ",
-    attributionBetweenLinks: " för sina pokerbeslut. Se källkoden på ",
+    attributionBetweenLinks:
+      " för sina pokerbeslut, och andra modellbackendar finns också tillgängliga. Se källkoden på ",
     attributionAfterGitHub: ".",
     language: "Språk",
     yourName: "Ditt namn",

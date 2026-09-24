@@ -14,7 +14,7 @@ const dictionary = {
     aboutBots: "Über die Bots",
     attributionBeforeTypeSafe: "Die Bots an diesem Tisch verwenden ",
     attributionBetweenLinks:
-      " für ihre Pokerentscheidungen. Den Quellcode findest du auf ",
+      " für ihre Pokerentscheidungen; daneben sind auch andere Modell-Backends verfügbar. Den Quellcode findest du auf ",
     attributionAfterGitHub: ".",
     language: "Sprache",
     yourName: "Dein Name",

@@ -10,7 +10,8 @@ const dictionary = {
     intro: "Create a table, then invite someone to take an open seat.",
     aboutBots: "About the bots",
     attributionBeforeTypeSafe: "The bots at this table use ",
-    attributionBetweenLinks: " for their poker decisions. View the source on ",
+    attributionBetweenLinks:
+      " for poker decisions, with other model backends also available. View the source on ",
     attributionAfterGitHub: ".",
     language: "Language",
     yourName: "Your name",
