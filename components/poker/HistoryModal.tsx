@@ -7,6 +7,7 @@ export function HistoryModal({
   onClose,
   handNumber,
   history,
+  loading,
   availableHands,
   onSelectHand,
   liveDecisions,
@@ -14,6 +15,7 @@ export function HistoryModal({
   readonly onClose: () => void;
   readonly handNumber: number;
   readonly history: HandHistory | null;
+  readonly loading: boolean;
   readonly availableHands: readonly number[];
   readonly onSelectHand: (handNumber: number) => void;
   readonly liveDecisions: readonly AIDecision[];
@@ -40,6 +42,7 @@ export function HistoryModal({
           availableHands={availableHands}
           handNumber={handNumber}
           history={history}
+          loading={loading}
           onSelectHand={onSelectHand}
           liveDecisions={liveDecisions}
         />

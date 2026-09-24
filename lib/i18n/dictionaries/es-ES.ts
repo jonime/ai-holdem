@@ -130,6 +130,7 @@ const dictionary = {
     noActions: "Aún no hay acciones.",
     confidence: "Confianza {percent}%",
     rawDecision: "Datos de decisión sin procesar",
+    loading: "Cargando historial de manos...",
     copyRawDecision: "Copiar datos sin procesar",
     copied: "Copiado",
     handComplete: "Mano completada",

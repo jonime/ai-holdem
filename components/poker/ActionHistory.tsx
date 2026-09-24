@@ -63,18 +63,28 @@ function CopyRawDecisionButton({ value }: { readonly value: string }) {
 
 export function ActionHistory({
   history,
+  loading,
   handNumber,
   availableHands,
   onSelectHand,
   liveDecisions,
 }: {
   readonly history: HandHistory | null;
+  readonly loading: boolean;
   readonly handNumber: number;
   readonly availableHands: readonly number[];
   readonly onSelectHand: (handNumber: number) => void;
   readonly liveDecisions: readonly AIDecision[];
 }) {
   const { locale, t } = useI18n();
+  if (loading) {
+    return (
+      <section className={`${styles.historyPanel} ${styles.mutedPanel}`}>
+        <p>{t("history.loading")}</p>
+      </section>
+    );
+  }
+
   if (!history) {
     return (
       <section className={`${styles.historyPanel} ${styles.mutedPanel}`}>

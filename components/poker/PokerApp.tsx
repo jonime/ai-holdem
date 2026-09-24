@@ -31,6 +31,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     game,
     botCatalog,
     history,
+    historyLoading,
     selectedHistoryHand,
     liveDecisions,
     loading,
@@ -44,7 +45,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     revealCards,
     retryBotTurn,
     selectHistoryHand,
-  } = useGameSession(gameId);
+  } = useGameSession(gameId, historyOpen);
 
   const viewerToken = getClientPlayerToken();
   const { viewerPlayer, human } = resolveViewer(
@@ -285,6 +286,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               onClose={() => setHistoryOpen(false)}
               handNumber={displayedHistoryHand}
               history={currentHistory}
+              loading={historyLoading}
               availableHands={availableHands}
               onSelectHand={(hand) => selectHistoryHand(hand)}
               liveDecisions={

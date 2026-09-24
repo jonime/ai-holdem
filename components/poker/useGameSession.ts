@@ -24,7 +24,7 @@ import type {
   TableSettings,
 } from "@/components/poker/types";
 
-export function useGameSession(gameId?: string) {
+export function useGameSession(gameId?: string, historyOpen = false) {
   const [game, setGame] = useState<Game | null>(null);
   const [liveDecisions, setLiveDecisions] = useState<readonly AIDecision[]>([]);
   const [history, setHistory] = useState<{
@@ -128,7 +128,9 @@ export function useGameSession(gameId?: string) {
   }, [gameId]);
 
   useEffect(() => {
-    if (!game) return;
+    if (!game || !historyOpen) {
+      return;
+    }
     let cancelled = false;
     const handNumber = selectedHistoryHand ?? game.poker.handNumber;
     void requestJson<{ history: HandHistory }>(
@@ -148,7 +150,7 @@ export function useGameSession(gameId?: string) {
     return () => {
       cancelled = true;
     };
-  }, [game, selectedHistoryHand]);
+  }, [game, historyOpen, selectedHistoryHand]);
 
   const createGame = useCallback(async () => {
     setLoading(true);
@@ -510,10 +512,19 @@ export function useGameSession(gameId?: string) {
     setSelectedHistoryHand(handNumber);
   }, []);
 
+  const requestedHistoryHand = game
+    ? (selectedHistoryHand ?? game.poker.handNumber)
+    : null;
+  const historyLoading =
+    historyOpen &&
+    requestedHistoryHand !== null &&
+    history?.handNumber !== requestedHistoryHand;
+
   return {
     botCatalog,
     game,
     history,
+    historyLoading,
     selectedHistoryHand,
     liveDecisions,
     loading,

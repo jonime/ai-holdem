@@ -128,6 +128,7 @@ const dictionary = {
     noActions: "Ei toimintoja vielä.",
     confidence: "Varmuus {percent} %",
     rawDecision: "Raaka päätöstieto",
+    loading: "Käsihistoriaa ladataan...",
     copyRawDecision: "Kopioi raakatiedot",
     copied: "Kopioitu",
     handComplete: "Käsi päättyi",

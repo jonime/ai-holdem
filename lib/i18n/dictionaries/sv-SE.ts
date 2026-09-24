@@ -128,6 +128,7 @@ const dictionary = {
     noActions: "Inga åtgärder ännu.",
     confidence: "Säkerhet {percent}%",
     rawDecision: "Obearbetade beslutsdata",
+    loading: "Givhistoriken laddas...",
     copyRawDecision: "Kopiera rådata",
     copied: "Kopierad",
     handComplete: "Given är klar",
