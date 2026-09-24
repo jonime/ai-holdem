@@ -13,6 +13,7 @@ describe("i18n routing helpers", () => {
     expect(hasLocale("fi-FI")).toBe(true);
     expect(hasLocale("es-ES")).toBe(true);
     expect(hasLocale("de-DE")).toBe(true);
+    expect(hasLocale("sv-SE")).toBe(true);
     expect(hasLocale("fr-FR")).toBe(false);
     expect(addLocalePrefix("/game/example", DEFAULT_LOCALE)).toBe(
       "/en-US/game/example",
