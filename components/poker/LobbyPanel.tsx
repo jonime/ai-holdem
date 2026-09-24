@@ -21,7 +21,6 @@ export function LobbyPanel({
   onAssignBot,
   onReleaseSeat,
   onStartWaitingGame,
-  onSeatCountChange,
 }: {
   readonly game: Game;
   readonly botCatalog: readonly BotDescriptor[];
@@ -37,7 +36,6 @@ export function LobbyPanel({
   ) => void;
   readonly onReleaseSeat: (seat: number) => void;
   readonly onStartWaitingGame: (settings: TableSettings) => void;
-  readonly onSeatCountChange: (settings: TableSettings) => void;
 }) {
   const { t } = useI18n();
   const canManage = game.viewerIsHost;
@@ -104,18 +102,7 @@ export function LobbyPanel({
                 value={settingsDraft.seatCount}
                 disabled={loading}
                 onChange={(event) => {
-                  const seatCount = Number(event.target.value);
                   updateDraft("seatCount", event.target.value);
-                  if (seatCount !== game.poker.seatCount) {
-                    onSeatCountChange({
-                      seatCount,
-                      smallBlind: game.poker.smallBlind,
-                      bigBlind: game.poker.bigBlind,
-                      startingStack: game.poker.startingStack,
-                      botsShowUncontestedWins:
-                        game.poker.botsShowUncontestedWins ?? false,
-                    });
-                  }
                 }}
               >
                 {[2, 3, 4, 5, 6].map((count) => (
@@ -191,13 +178,6 @@ export function LobbyPanel({
               />
               <span>{t("lobby.botsShowUncontestedWins")}</span>
             </label>
-            <button
-              type="button"
-              disabled={loading || !settingsValid}
-              onClick={() => onSeatCountChange(parsedSettings)}
-            >
-              {t("lobby.applySettings")}
-            </button>
           </div>
         ) : (
           <div
@@ -285,23 +265,23 @@ export function LobbyPanel({
                       {(botCatalog.find(
                         (bot) => bot.id === (selectedBots[seat] ?? "jev"),
                       )?.provider ?? "typesafe") === "typesafe" ? (
-                      <select
-                        aria-label={t("lobby.botDifficulty", {
-                          seat: seat + 1,
-                        })}
-                        value={botDifficulties[seat] ?? "medium"}
-                        disabled={loading}
-                        onChange={(event) =>
-                          setBotDifficulties((current) => ({
-                            ...current,
-                            [seat]: event.target.value as AIDifficulty,
-                          }))
-                        }
-                      >
-                        <option value="easy">{t("lobby.easy")}</option>
-                        <option value="medium">{t("lobby.medium")}</option>
-                        <option value="hard">{t("lobby.hard")}</option>
-                      </select>
+                        <select
+                          aria-label={t("lobby.botDifficulty", {
+                            seat: seat + 1,
+                          })}
+                          value={botDifficulties[seat] ?? "medium"}
+                          disabled={loading}
+                          onChange={(event) =>
+                            setBotDifficulties((current) => ({
+                              ...current,
+                              [seat]: event.target.value as AIDifficulty,
+                            }))
+                          }
+                        >
+                          <option value="easy">{t("lobby.easy")}</option>
+                          <option value="medium">{t("lobby.medium")}</option>
+                          <option value="hard">{t("lobby.hard")}</option>
+                        </select>
                       ) : null}
                       <button
                         type="button"

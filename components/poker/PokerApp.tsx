@@ -39,7 +39,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     assignBot,
     releaseSeat,
     startWaitingGame,
-    updateTableSettings,
     submitAction,
     beginNextHand,
     revealCards,
@@ -220,7 +219,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               player.id === game.poker.currentActorId &&
               player.controller === "bot",
           ) ? (
-            <button type="button" disabled={loading} onClick={() => void retryBotTurn()}>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => void retryBotTurn()}
+            >
               {t("errors.retryBot")}
             </button>
           ) : null}
@@ -242,7 +245,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           }
           onReleaseSeat={(seat) => void releaseSeat(seat)}
           onStartWaitingGame={(settings) => void startWaitingGame(settings)}
-          onSeatCountChange={(settings) => void updateTableSettings(settings)}
         />
       ) : (
         <div className={styles.gameLayout}>
