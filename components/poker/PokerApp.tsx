@@ -34,7 +34,8 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const [feedCollapsed, setFeedCollapsed] = useState(() =>
     typeof window === "undefined"
       ? false
-      : window.localStorage.getItem(feedCollapsedStorageKey) === "true",
+      : window.matchMedia("(max-width: 900px)").matches ||
+        window.localStorage.getItem(feedCollapsedStorageKey) === "true",
   );
   const [feedModalOpen, setFeedModalOpen] = useState(false);
 
@@ -44,6 +45,23 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
       window.localStorage.setItem(feedCollapsedStorageKey, String(next));
       return next;
     });
+  };
+
+  const toggleFeed = () => {
+    if (window.matchMedia("(max-width: 900px)").matches) {
+      const next = !feedModalOpen;
+      setFeedModalOpen(next);
+      setFeedCollapsed(!next);
+      window.localStorage.setItem(feedCollapsedStorageKey, String(!next));
+      return;
+    }
+    toggleFeedCollapsed();
+  };
+
+  const closeFeedModal = () => {
+    setFeedModalOpen(false);
+    setFeedCollapsed(true);
+    window.localStorage.setItem(feedCollapsedStorageKey, "true");
   };
 
   const {
@@ -304,7 +322,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               onRevealCards={() => void revealCards()}
               onOpenHistory={() => setHistoryOpen(true)}
               feedCollapsed={feedCollapsed}
-              onToggleFeed={toggleFeedCollapsed}
+              onToggleFeed={toggleFeed}
               latestActions={latestActions}
             />
             {feedCollapsed ? null : (
@@ -315,18 +333,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               </div>
             )}
           </div>
-          <button
-            type="button"
-            className={styles.mobileFeedToggle}
-            onClick={() => setFeedModalOpen(true)}
-          >
-            {t("feed.openMobile")}
-          </button>
           {feedModalOpen ? (
             <ActionFeedModal
               feed={feed}
               loading={feedLoading}
-              onClose={() => setFeedModalOpen(false)}
+              onClose={closeFeedModal}
             />
           ) : null}
           {historyOpen && displayedHistoryHand ? (
