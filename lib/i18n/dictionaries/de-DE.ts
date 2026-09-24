@@ -130,6 +130,8 @@ const dictionary = {
     noActions: "Noch keine Aktionen.",
     confidence: "Sicherheit {percent}%",
     rawDecision: "Unverarbeitete Entscheidungsdaten",
+    copyRawDecision: "Rohdaten kopieren",
+    copied: "Kopiert",
     handComplete: "Hand abgeschlossen",
     splitPot: "Geteilter Pot: {winners}",
     winner: "Gewinner: {winner}",

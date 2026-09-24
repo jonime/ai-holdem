@@ -128,6 +128,8 @@ const dictionary = {
     noActions: "Ei toimintoja vielä.",
     confidence: "Varmuus {percent} %",
     rawDecision: "Raaka päätöstieto",
+    copyRawDecision: "Kopioi raakatiedot",
+    copied: "Kopioitu",
     handComplete: "Käsi päättyi",
     splitPot: "Jaettu potti: {winners}",
     winner: "Voittaja: {winner}",

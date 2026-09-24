@@ -126,6 +126,8 @@ const dictionary = {
     noActions: "No actions yet.",
     confidence: "Confidence {percent}%",
     rawDecision: "Raw decision data",
+    copyRawDecision: "Copy raw data",
+    copied: "Copied",
     handComplete: "Hand complete",
     splitPot: "Split pot: {winners}",
     winner: "Winner: {winner}",

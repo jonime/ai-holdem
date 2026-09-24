@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import type { AIDecision, HandHistory } from "@/components/poker/types";
 import { formatChips, parseProbabilities } from "@/components/poker/view-model";
 import { useI18n } from "@/components/poker/I18nProvider";
@@ -24,10 +26,38 @@ function DecisionSummary({
           </div>
         ))}
       </div>
-      {confidence !== null ? <span className={styles.confidenceChip}>
-        {t("history.confidence", { percent: Math.round(confidence * 100) })}
-      </span> : null}
+      {confidence !== null ? (
+        <span className={styles.confidenceChip}>
+          {t("history.confidence", { percent: Math.round(confidence * 100) })}
+        </span>
+      ) : null}
     </div>
+  );
+}
+
+function CopyRawDecisionButton({ value }: { readonly value: string }) {
+  const { t } = useI18n();
+  const [copied, setCopied] = useState(false);
+
+  const copyDecision = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      className={styles.copyButton}
+      aria-label={t(copied ? "history.copied" : "history.copyRawDecision")}
+      onClick={() => void copyDecision()}
+    >
+      {t(copied ? "history.copied" : "history.copyRawDecision")}
+    </button>
   );
 }
 
@@ -94,13 +124,23 @@ export function ActionHistory({
                 ? liveDecisionBySequence.get(action.sequence)
                 : undefined;
             const actionLabel = `${action.action}${action.amount !== null ? ` ${formatChips(action.amount, locale)}` : ""}`;
+            const rawDecision = inspection
+              ? JSON.stringify(
+                  {
+                    state: inspection.state,
+                    legalActions: inspection.legalActions,
+                    probabilities: inspection.probabilities,
+                    rawResponse: inspection.rawResponse,
+                  },
+                  null,
+                  2,
+                )
+              : null;
 
             return (
               <li
                 key={action.sequence}
-                className={
-                  action.controller === "bot" ? styles.aiHistory : ""
-                }
+                className={action.controller === "bot" ? styles.aiHistory : ""}
               >
                 <span>{action.player}</span>
                 {action.bot ? <small>{action.bot.label}</small> : null}
@@ -117,18 +157,12 @@ export function ActionHistory({
                     <details className={styles.historyInspection}>
                       <summary>{t("history.rawDecision")}</summary>
                       <div className={styles.inspectionEntry}>
-                        <pre>
-                          {JSON.stringify(
-                            {
-                              state: inspection.state,
-                              legalActions: inspection.legalActions,
-                              probabilities: inspection.probabilities,
-                              rawResponse: inspection.rawResponse,
-                            },
-                            null,
-                            2,
-                          )}
-                        </pre>
+                        {rawDecision ? (
+                          <>
+                            <CopyRawDecisionButton value={rawDecision} />
+                            <pre>{rawDecision}</pre>
+                          </>
+                        ) : null}
                       </div>
                     </details>
                   </>

@@ -128,6 +128,8 @@ const dictionary = {
     noActions: "Inga åtgärder ännu.",
     confidence: "Säkerhet {percent}%",
     rawDecision: "Obearbetade beslutsdata",
+    copyRawDecision: "Kopiera rådata",
+    copied: "Kopierad",
     handComplete: "Given är klar",
     splitPot: "Delad pott: {winners}",
     winner: "Vinnare: {winner}",
