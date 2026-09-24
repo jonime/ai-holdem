@@ -42,12 +42,14 @@ export function LobbyPanel({
     smallBlind: String(game.poker.smallBlind),
     bigBlind: String(game.poker.bigBlind),
     startingStack: String(game.poker.startingStack),
+    botsShowUncontestedWins: game.poker.botsShowUncontestedWins ?? false,
   });
   const parsedSettings: TableSettings = {
     seatCount: Number(settingsDraft.seatCount),
     smallBlind: Number(settingsDraft.smallBlind),
     bigBlind: Number(settingsDraft.bigBlind),
     startingStack: Number(settingsDraft.startingStack),
+    botsShowUncontestedWins: settingsDraft.botsShowUncontestedWins,
   };
   const settingsValid =
     Number.isSafeInteger(parsedSettings.seatCount) &&
@@ -64,6 +66,10 @@ export function LobbyPanel({
     parsedSettings.smallBlind !== game.poker.smallBlind ||
     parsedSettings.bigBlind !== game.poker.bigBlind ||
     parsedSettings.startingStack !== game.poker.startingStack;
+  const settingsChangedWithReveal =
+    settingsChanged ||
+    parsedSettings.botsShowUncontestedWins !==
+      (game.poker.botsShowUncontestedWins ?? false);
 
   const updateDraft = (key: keyof typeof settingsDraft, value: string) => {
     setSettingsDraft((current) => ({ ...current, [key]: value }));
@@ -94,7 +100,7 @@ export function LobbyPanel({
             className="table-settings-form"
             onSubmit={(event) => {
               event.preventDefault();
-              if (settingsValid && settingsChanged) {
+              if (settingsValid && settingsChangedWithReveal) {
                 onUpdateTableSettings(parsedSettings);
               }
             }}
@@ -170,10 +176,24 @@ export function LobbyPanel({
             <button
               className="apply-settings"
               type="submit"
-              disabled={loading || !settingsValid || !settingsChanged}
+              disabled={loading || !settingsValid || !settingsChangedWithReveal}
             >
               {t("lobby.applySettings")}
             </button>
+            <label className="lobby-toggle">
+              <input
+                type="checkbox"
+                checked={settingsDraft.botsShowUncontestedWins}
+                disabled={loading}
+                onChange={(event) =>
+                  setSettingsDraft((current) => ({
+                    ...current,
+                    botsShowUncontestedWins: event.target.checked,
+                  }))
+                }
+              />
+              <span>{t("lobby.botsShowUncontestedWins")}</span>
+            </label>
           </form>
         ) : (
           <div

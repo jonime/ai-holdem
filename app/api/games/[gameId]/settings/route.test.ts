@@ -68,6 +68,7 @@ describe("PATCH /api/games/[gameId]/settings", () => {
           smallBlind: 25,
           bigBlind: 50,
           startingStack: 5_000,
+          botsShowUncontestedWins: false,
         }),
       }),
       { params: Promise.resolve({ gameId: "game-1" }) },
@@ -78,7 +79,13 @@ describe("PATCH /api/games/[gameId]/settings", () => {
       expect.any(Object),
       "game-1",
       1,
-      { seatCount: 4, smallBlind: 25, bigBlind: 50, startingStack: 5_000 },
+      {
+        seatCount: 4,
+        smallBlind: 25,
+        bigBlind: 50,
+        startingStack: 5_000,
+        botsShowUncontestedWins: false,
+      },
       "host-token",
     );
     expect(publishGameEvent).toHaveBeenCalledWith(

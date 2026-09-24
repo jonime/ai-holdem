@@ -26,6 +26,7 @@ export function PokerTable({
   onStandUp,
   onSubmitAction,
   onBeginNextHand,
+  onRevealCards,
   onOpenHistory,
   latestActions,
 }: {
@@ -53,12 +54,21 @@ export function PokerTable({
     amountOverride?: number | null,
   ) => void;
   readonly onBeginNextHand: () => void;
+  readonly onRevealCards: () => void;
   readonly onOpenHistory: () => void;
   readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
 }) {
   const { locale, t } = useI18n();
   const gameWinnerId = findGameWinnerId(game.poker.players, game.poker.street);
   const gameOver = gameWinnerId !== null;
+  const canRevealCards =
+    game.poker.street === "complete" &&
+    game.poker.completionReason === "fold" &&
+    human?.playerToken === viewerToken &&
+    human.holeCards !== null &&
+    !human.cardsRevealed;
+  const isFoldEndedHand =
+    game.poker.street === "complete" && game.poker.completionReason === "fold";
   const legalAction = (type: LegalAction["type"]) =>
     game.poker.legalActions.find((action) => action.type === type);
   const checkCallAction = legalAction("check") ?? legalAction("call");
@@ -257,24 +267,35 @@ export function PokerTable({
               </button>
               <button
                 type="button"
-                disabled={!isHumanTurn || loading || !sizedAction}
+                disabled={
+                  loading ||
+                  (isFoldEndedHand
+                    ? !canRevealCards
+                    : !isHumanTurn || !sizedAction)
+                }
                 onClick={() => {
-                  if (sizedAction) submitFixedAction(sizedAction.type);
+                  if (isFoldEndedHand) {
+                    onRevealCards();
+                  } else if (sizedAction) {
+                    submitFixedAction(sizedAction.type);
+                  }
                 }}
               >
-                {sizedAction
-                  ? t(
-                      sizedAction.type === "raise"
-                        ? "table.raiseTo"
-                        : "table.betTo",
-                      {
-                        amount: formatChips(
-                          selectedAmount ?? sizedAction.minAmount,
-                          locale,
-                        ),
-                      },
-                    )
-                  : t("table.bet")}
+                {isFoldEndedHand
+                  ? t("table.show")
+                  : sizedAction
+                    ? t(
+                        sizedAction.type === "raise"
+                          ? "table.raiseTo"
+                          : "table.betTo",
+                        {
+                          amount: formatChips(
+                            selectedAmount ?? sizedAction.minAmount,
+                            locale,
+                          ),
+                        },
+                      )
+                    : t("table.bet")}
               </button>
             </div>
             <div className="amount-control">

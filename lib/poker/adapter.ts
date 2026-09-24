@@ -298,6 +298,7 @@ export const pokerEngineAdapter = {
   publicProjection(
     state: PokerGameState,
     viewerPlayerId: string | null,
+    revealedPlayerIds: readonly string[] = [],
   ): PublicPokerGame {
     const table = engineStateFrom(state);
     const effectiveViewerId =
@@ -313,7 +314,14 @@ export const pokerEngineAdapter = {
       projectedTable.hand?.players.map((player) => [player.playerId, player]) ??
         [],
     );
+    const sourcePlayers = new Map(
+      table.hand?.players.map((player) => [player.playerId, player]) ?? [],
+    );
     const snapshot = this.snapshot(state);
+    const revealedIds = new Set(revealedPlayerIds);
+    const publicAtCompletion =
+      snapshot.street === "complete" &&
+      snapshot.completionReason === "showdown";
 
     const seatCount =
       state.config.seatCount ??
@@ -326,6 +334,7 @@ export const pokerEngineAdapter = {
       bigBlind: state.config.bigBlind,
       startingStack:
         state.config.startingStack ?? state.config.players[0]?.stack ?? 10_000,
+      botsShowUncontestedWins: false,
       legalActions:
         effectiveViewerId !== null &&
         snapshot.currentActorId === effectiveViewerId
@@ -333,6 +342,7 @@ export const pokerEngineAdapter = {
           : [],
       players: state.config.players.map((config) => {
         const player = projectedPlayers.get(config.id);
+        const sourcePlayer = sourcePlayers.get(config.id);
         const seat = table.seats[config.seat];
 
         const isViewer =
@@ -357,10 +367,19 @@ export const pokerEngineAdapter = {
           stack: seat?.stack ?? config.stack,
           folded: player?.folded ?? false,
           allIn: player?.allIn ?? false,
-          holeCards:
-            isViewer && player
-              ? (player.holeCards?.map(cardToString) ?? null)
-              : null,
+          cardsRevealed:
+            Boolean(player) &&
+            (revealedIds.has(config.id) ||
+              (publicAtCompletion && !player?.folded)),
+          holeCards: (() => {
+            if (!player) return null;
+            const isPublic =
+              revealedIds.has(config.id) ||
+              (publicAtCompletion && !player.folded);
+            return isViewer || isPublic
+              ? (sourcePlayer?.holeCards?.map(cardToString) ?? null)
+              : null;
+          })(),
         };
       }),
     };

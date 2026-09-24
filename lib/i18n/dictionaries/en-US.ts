@@ -55,6 +55,7 @@ const dictionary = {
     startHand: "Start hand",
     waitingForHost: "Waiting for the host to start.",
     tableSettings: "Table settings",
+    botsShowUncontestedWins: "Bots show uncontested wins",
   },
   table: {
     hand: "HAND {hand}",
@@ -82,6 +83,7 @@ const dictionary = {
     betAmount: "Bet amount",
     potPercent: "{percent}% Pot",
     max: "Max",
+    show: "Show",
   },
   seat: {
     seat: "SEAT {seat}",
@@ -136,6 +138,7 @@ const dictionary = {
     advanceAi: "Unable to advance TypeSafe AI",
     submitAction: "Unable to submit action",
     nextHand: "Unable to start next hand",
+    revealCards: "Unable to show cards",
   },
   actions: {
     fold: "Fold",

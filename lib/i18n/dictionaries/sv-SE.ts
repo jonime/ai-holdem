@@ -57,6 +57,7 @@ const dictionary = {
     startHand: "Starta giv",
     waitingForHost: "Väntar på att värden ska starta.",
     tableSettings: "Bordsinställningar",
+    botsShowUncontestedWins: "Robotar visar obestridda vinster",
   },
   table: {
     hand: "GIV {hand}",
@@ -84,6 +85,7 @@ const dictionary = {
     betAmount: "Insatsbelopp",
     potPercent: "{percent}% av potten",
     max: "Max",
+    show: "Visa",
   },
   seat: {
     seat: "PLATS {seat}",
@@ -138,6 +140,7 @@ const dictionary = {
     advanceAi: "Det gick inte att låta TypeSafe AI gå vidare",
     submitAction: "Det gick inte att skicka åtgärden",
     nextHand: "Det gick inte att starta nästa giv",
+    revealCards: "Kunde inte visa korten",
   },
   actions: {
     fold: "Lägg dig",

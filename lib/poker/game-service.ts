@@ -80,6 +80,22 @@ export interface GameReader {
   getGame(gameId: string): Promise<PersistedGame | null>;
 }
 
+export interface HandRevealReader {
+  getCurrentHandRevealedPlayerIds(
+    gameId: string,
+    handNumber: number,
+  ): Promise<readonly string[]>;
+}
+
+export interface HumanRevealWriter {
+  revealHumanCards(input: {
+    readonly gameId: string;
+    readonly handNumber: number;
+    readonly expectedVersion: number;
+    readonly playerToken: string;
+  }): Promise<PersistedGame>;
+}
+
 export interface GameHostReader {
   getHostToken(gameId: string): Promise<string | null>;
 }
@@ -433,12 +449,50 @@ async function reconcileState(
 function publicProjectionForViewer(
   state: PokerGameState,
   viewerToken: string | null,
+  revealedPlayerIds: readonly string[] = [],
+  botsShowUncontestedWins = false,
 ): PublicPokerGame {
   const viewerPlayerId = viewerToken
-    ? (state.config.players.find((player) => player.playerToken === viewerToken)
-        ?.id ?? null)
+    ? (state.config.players.find(
+        (player) =>
+          player.playerToken === viewerToken || player.id === viewerToken,
+      )?.id ?? null)
     : null;
-  return pokerEngineAdapter.publicProjection(state, viewerPlayerId);
+  return {
+    ...pokerEngineAdapter.publicProjection(
+      state,
+      viewerPlayerId,
+      revealedPlayerIds,
+    ),
+    botsShowUncontestedWins,
+  };
+}
+
+async function currentRevealIds(
+  repository: Partial<HandRevealReader>,
+  gameId: string,
+  handNumber: number,
+): Promise<readonly string[]> {
+  return repository.getCurrentHandRevealedPlayerIds
+    ? repository.getCurrentHandRevealedPlayerIds(gameId, handNumber)
+    : [];
+}
+
+function autoRevealForCompletedState(
+  state: PokerGameState,
+  botsShowUncontestedWins: boolean,
+): { playerId: string; reason: "bot_uncontested" } | null {
+  const snapshot = pokerEngineAdapter.snapshot(state);
+  if (!botsShowUncontestedWins || snapshot.completionReason !== "fold") {
+    return null;
+  }
+  if (snapshot.winnerIds.length !== 1) return null;
+  const winner = state.config.players.find(
+    (player) => player.id === snapshot.winnerIds[0],
+  );
+  return winner?.controller === "typesafe_ai"
+    ? { playerId: winner.id, reason: "bot_uncontested" }
+    : null;
 }
 
 export async function startGame(
@@ -496,7 +550,12 @@ export async function startGame(
     status: persistedGame.status,
     version: persistedGame.version,
     viewerIsHost: true,
-    poker: publicProjectionForViewer(projectedState, callerToken),
+    poker: publicProjectionForViewer(
+      projectedState,
+      callerToken,
+      [],
+      persistedGame.botsShowUncontestedWins ?? false,
+    ),
   };
 }
 
@@ -529,6 +588,7 @@ export async function updateSeatCount(
           state.config.startingStack ??
           state.config.players[0]?.stack ??
           10_000,
+        botsShowUncontestedWins: game.botsShowUncontestedWins ?? false,
       },
       callerToken,
     );
@@ -634,7 +694,12 @@ export async function updateTableSettings(
     status: persistedGame.status,
     version: persistedGame.version,
     viewerIsHost: true,
-    poker: publicProjectionForViewer(projectedState, callerToken),
+    poker: publicProjectionForViewer(
+      projectedState,
+      callerToken,
+      [],
+      persistedGame.botsShowUncontestedWins ?? false,
+    ),
   };
 }
 
@@ -795,7 +860,8 @@ export async function releaseSeat(
 }
 
 export async function getPublicGame(
-  repository: GameReader & Partial<GameHostReader & SeatAssignmentRepository>,
+  repository: GameReader &
+    Partial<GameHostReader & SeatAssignmentRepository & HandRevealReader>,
   gameId: string,
   viewerPlayerToken?: string | null,
 ): Promise<PublicGame> {
@@ -831,14 +897,21 @@ export async function getPublicGame(
       gameId,
       viewerPlayerToken ?? null,
     ),
-    poker: pokerEngineAdapter.publicProjection(state, viewerPlayerId),
+    poker: {
+      ...pokerEngineAdapter.publicProjection(
+        state,
+        viewerPlayerId,
+        await currentRevealIds(repository, gameId, game.handNumber),
+      ),
+      botsShowUncontestedWins: game.botsShowUncontestedWins ?? false,
+    },
   };
 }
 
 export async function submitHumanAction(
   repository: GameReader &
     HumanActionWriter &
-    Partial<SeatAssignmentRepository & GameHostReader>,
+    Partial<SeatAssignmentRepository & GameHostReader & HandRevealReader>,
   gameId: string,
   submission: Omit<HumanActionSubmission, "currentVersion">,
 ): Promise<PublicGame> {
@@ -879,6 +952,18 @@ export async function submitHumanAction(
       "amount" in submission.action ? (submission.action.amount ?? null) : null,
     stateBefore,
     handComplete: snapshotAfter.street === "complete",
+    ...(() => {
+      const autoReveal = autoRevealForCompletedState(
+        stateAfter,
+        game.botsShowUncontestedWins ?? false,
+      );
+      return autoReveal
+        ? {
+            autoRevealPlayerEngineId: autoReveal.playerId,
+            autoRevealReason: autoReveal.reason,
+          }
+        : {};
+    })(),
   });
 
   const projectedState = repository.getSeatAssignments
@@ -894,9 +979,11 @@ export async function submitHumanAction(
     status: persistedGame.status,
     version: persistedGame.version,
     viewerIsHost: await isCallerHost(repository, gameId, submission.playerId),
-    poker: pokerEngineAdapter.publicProjection(
+    poker: publicProjectionForViewer(
       projectedState,
-      resolvedPlayerId,
+      submission.playerId,
+      await currentRevealIds(repository, gameId, snapshotAfter.handNumber),
+      persistedGame.botsShowUncontestedWins ?? false,
     ),
   };
 }
@@ -904,7 +991,12 @@ export async function submitHumanAction(
 export async function stepTypesafeAction(
   repository: GameReader &
     AIActionWriter &
-    Partial<SeatAssignmentRepository & HandHistoryReader & GameHostReader>,
+    Partial<
+      SeatAssignmentRepository &
+        HandHistoryReader &
+        GameHostReader &
+        HandRevealReader
+    >,
   client: TypesafeDecisionClient,
   gameId: string,
   viewerToken: string | null = null,
@@ -962,6 +1054,18 @@ export async function stepTypesafeAction(
     raiseSizeChoice: decision.sizing?.choice ?? null,
     raiseSizeProbabilities: decision.sizing?.probabilities ?? null,
     rawResponse: decision.rawResponse,
+    ...(() => {
+      const autoReveal = autoRevealForCompletedState(
+        stateAfter,
+        game.botsShowUncontestedWins ?? false,
+      );
+      return autoReveal
+        ? {
+            autoRevealPlayerEngineId: autoReveal.playerId,
+            autoRevealReason: autoReveal.reason,
+          }
+        : {};
+    })(),
   });
 
   const projectedState = repository.getSeatAssignments
@@ -978,7 +1082,12 @@ export async function stepTypesafeAction(
       status: persistedGame.status,
       version: persistedGame.version,
       viewerIsHost: await isCallerHost(repository, gameId, viewerToken),
-      poker: publicProjectionForViewer(projectedState, viewerToken),
+      poker: publicProjectionForViewer(
+        projectedState,
+        viewerToken,
+        await currentRevealIds(repository, gameId, snapshotAfter.handNumber),
+        persistedGame.botsShowUncontestedWins ?? false,
+      ),
     },
     aiDecision: {
       action: decision.action.type,
@@ -994,7 +1103,7 @@ export async function stepTypesafeAction(
 export async function startNextHand(
   repository: GameReader &
     NextHandWriter &
-    Partial<SeatAssignmentRepository & GameHostReader>,
+    Partial<SeatAssignmentRepository & GameHostReader & HandRevealReader>,
   gameId: string,
   expectedVersion: number,
   viewerToken: string | null = null,
@@ -1047,6 +1156,79 @@ export async function startNextHand(
     status: persistedGame.status,
     version: persistedGame.version,
     viewerIsHost: await isCallerHost(repository, gameId, viewerToken),
-    poker: publicProjectionForViewer(projectedState, viewerToken),
+    poker: publicProjectionForViewer(
+      projectedState,
+      viewerToken,
+      await currentRevealIds(repository, gameId, nextSnapshot.handNumber),
+      persistedGame.botsShowUncontestedWins ?? false,
+    ),
+  };
+}
+
+export async function revealHumanCards(
+  repository: GameReader &
+    HumanRevealWriter &
+    Partial<HandRevealReader & SeatAssignmentRepository & GameHostReader>,
+  gameId: string,
+  expectedVersion: number,
+  handNumber: number,
+  playerToken: string,
+): Promise<PublicGame> {
+  const game = await repository.getGame(gameId);
+  if (!game) throw new GameNotFoundError(gameId);
+  if (game.version !== expectedVersion) {
+    throw new GameConflictError(gameId, expectedVersion);
+  }
+
+  const state = restorePersistedState(game.currentState);
+  const snapshot = pokerEngineAdapter.snapshot(state);
+  if (
+    snapshot.handNumber !== handNumber ||
+    snapshot.street !== "complete" ||
+    snapshot.completionReason !== "fold"
+  ) {
+    throw new Error("Cards can only be shown after a fold-ended hand");
+  }
+
+  const player = state.config.players.find(
+    (candidate) => candidate.playerToken === playerToken,
+  );
+  if (!player || player.controller !== "human") {
+    throw new Error("Only a participating human can show cards");
+  }
+  const completedPlayer = (
+    state.engineState as {
+      hand?: { players?: readonly { playerId: string; holeCards?: unknown }[] };
+    }
+  ).hand?.players?.find((candidate) => candidate.playerId === player.id);
+  if (!completedPlayer?.holeCards) {
+    throw new Error("The player was not dealt cards");
+  }
+
+  const persistedGame = await repository.revealHumanCards({
+    gameId,
+    handNumber,
+    expectedVersion,
+    playerToken,
+  });
+  const projectedState = repository.getSeatAssignments
+    ? await withOpenSeatPlaceholders(
+        repository as SeatAssignmentRepository,
+        gameId,
+        state,
+      )
+    : state;
+
+  return {
+    id: persistedGame.id,
+    status: persistedGame.status,
+    version: persistedGame.version,
+    viewerIsHost: await isCallerHost(repository, gameId, playerToken),
+    poker: publicProjectionForViewer(
+      projectedState,
+      playerToken,
+      [player.id, ...(await currentRevealIds(repository, gameId, handNumber))],
+      persistedGame.botsShowUncontestedWins ?? false,
+    ),
   };
 }

@@ -24,7 +24,8 @@ export async function PATCH(request: Request, context: SettingsRouteContext) {
     typeof requestBody.seatCount !== "number" ||
     typeof requestBody.smallBlind !== "number" ||
     typeof requestBody.bigBlind !== "number" ||
-    typeof requestBody.startingStack !== "number"
+    typeof requestBody.startingStack !== "number" ||
+    typeof requestBody.botsShowUncontestedWins !== "boolean"
   ) {
     return NextResponse.json(
       { error: "Invalid table settings request" },
@@ -36,6 +37,7 @@ export async function PATCH(request: Request, context: SettingsRouteContext) {
     smallBlind: requestBody.smallBlind,
     bigBlind: requestBody.bigBlind,
     startingStack: requestBody.startingStack,
+    botsShowUncontestedWins: requestBody.botsShowUncontestedWins,
   };
   const expectedVersion = requestBody.expectedVersion;
 

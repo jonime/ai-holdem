@@ -30,6 +30,7 @@ export const publicPlayerSchema = z.object({
   stack: z.number().int().nonnegative(),
   folded: z.boolean(),
   allIn: z.boolean(),
+  cardsRevealed: z.boolean().default(false),
   holeCards: z.array(z.string()).nullable(),
 });
 
@@ -49,6 +50,7 @@ export const publicGameSchema = z.object({
   completionReason: z.enum(["fold", "showdown"]).nullable(),
   winnerIds: z.array(z.string()),
   winnerAmounts: z.record(z.string(), z.number().finite()),
+  botsShowUncontestedWins: z.boolean().default(false),
   legalActions: z.array(legalActionSchema),
   players: z.array(publicPlayerSchema),
 });
@@ -133,6 +135,7 @@ const gameEventSchema = realtimeEnvelopeBaseSchema
       "hand_completed",
       "seat_count_updated",
       "table_settings_updated",
+      "cards_revealed",
     ]),
     game: broadcastGameSchema,
   })

@@ -976,6 +976,22 @@ h2 {
   color: #173a34;
   font-weight: 700;
 }
+.lobby-toggle {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  color: #526560;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.lobby-toggle input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex: 0 0 auto;
+}
 .table-settings-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

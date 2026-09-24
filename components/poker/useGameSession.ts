@@ -53,7 +53,9 @@ export function useGameSession(gameId?: string) {
       gameEnvelopeSchema,
     );
     if (requestNumber === latestLoadRequest.current) {
-      setGame(body.game);
+      setGame((current) =>
+        current && current.version > body.game.version ? current : body.game,
+      );
     }
     return body.game;
   }, []);
@@ -405,6 +407,35 @@ export function useGameSession(gameId?: string) {
     }
   }, [advanceAiTurns, game, t]);
 
+  const revealCards = useCallback(async () => {
+    if (!game) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const body = await requestJson<{ game: Game }>(
+        `/api/games/${game.id}/reveal`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            expectedVersion: game.version,
+            handNumber: game.poker.handNumber,
+          }),
+        },
+        gameEnvelopeSchema,
+      );
+      setGame(body.game);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : t("errors.revealCards"),
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [game, t]);
+
   const selectHistoryHand = useCallback((handNumber: number) => {
     setSelectedHistoryHand(handNumber);
   }, []);
@@ -426,6 +457,7 @@ export function useGameSession(gameId?: string) {
     updateTableSettings,
     submitAction,
     beginNextHand,
+    revealCards,
     selectHistoryHand,
   };
 }

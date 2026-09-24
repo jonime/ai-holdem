@@ -28,6 +28,7 @@ export interface TableSettings {
   readonly smallBlind: number;
   readonly bigBlind: number;
   readonly startingStack: number;
+  readonly botsShowUncontestedWins?: boolean;
 }
 
 export type PokerAction =
@@ -88,6 +89,7 @@ export interface PublicPokerPlayer {
   readonly stack: number;
   readonly folded: boolean;
   readonly allIn: boolean;
+  readonly cardsRevealed?: boolean;
   readonly holeCards: readonly string[] | null;
 }
 
@@ -107,6 +109,7 @@ export interface PublicPokerGame {
   readonly completionReason: "fold" | "showdown" | null;
   readonly winnerIds: readonly string[];
   readonly winnerAmounts: Readonly<Record<string, number>>;
+  readonly botsShowUncontestedWins?: boolean;
   readonly legalActions: readonly LegalAction[];
   readonly players: readonly PublicPokerPlayer[];
 }

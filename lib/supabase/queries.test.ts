@@ -344,6 +344,8 @@ describe("SupabaseGameRepository", () => {
       p_state_before: { before: true },
       p_state_after: { after: true },
       p_hand_complete: false,
+      p_auto_reveal_player_engine_id: null,
+      p_auto_reveal_reason: null,
     });
   });
 

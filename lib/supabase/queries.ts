@@ -11,6 +11,7 @@ export interface PersistedGame {
   readonly stateSchemaVersion: number;
   readonly handNumber: number;
   readonly version: number;
+  readonly botsShowUncontestedWins?: boolean;
 }
 
 export interface CreateGameInput {
@@ -45,6 +46,7 @@ export interface UpdateTableSettingsInput extends UpdateSeatCountInput {
   readonly smallBlind: number;
   readonly bigBlind: number;
   readonly startingStack: number;
+  readonly botsShowUncontestedWins?: boolean;
 }
 
 export interface PersistHumanActionInput extends CompareAndSwapGameInput {
@@ -54,6 +56,8 @@ export interface PersistHumanActionInput extends CompareAndSwapGameInput {
   readonly amount: number | null;
   readonly stateBefore: unknown;
   readonly handComplete: boolean;
+  readonly autoRevealPlayerEngineId?: string | null;
+  readonly autoRevealReason?: "bot_uncontested" | null;
 }
 
 export interface PersistAIActionInput extends PersistHumanActionInput {
@@ -140,7 +144,7 @@ interface FilteredQueryResult extends PromiseLike<DatabaseResult> {
 }
 
 export interface GameDatabaseClient {
-  from(table: "games" | "game_players" | "game_hosts"): {
+  from(table: "games" | "game_players" | "game_hosts" | "hand_card_reveals"): {
     insert(values: Record<string, unknown>): {
       select(): {
         single(): PromiseLike<DatabaseResult>;
@@ -175,7 +179,8 @@ export interface GameDatabaseClient {
       | "start_game_if_version"
       | "update_game_state_if_version"
       | "update_seat_count_if_version"
-      | "update_table_settings_if_version",
+      | "update_table_settings_if_version"
+      | "reveal_human_cards_if_version",
     arguments_: Record<string, unknown>,
   ): PromiseLike<DatabaseResult>;
 }
@@ -245,6 +250,7 @@ function toPersistedGame(value: unknown): PersistedGame {
     ),
     handNumber: requiredNonNegativeInteger(value, "hand_number"),
     version: requiredNonNegativeInteger(value, "version"),
+    botsShowUncontestedWins: value.bots_show_uncontested_wins === true,
   };
 }
 
@@ -636,6 +642,7 @@ export class SupabaseGameRepository {
         p_small_blind: input.smallBlind,
         p_big_blind: input.bigBlind,
         p_starting_stack: input.startingStack,
+        p_bots_show_uncontested_wins: input.botsShowUncontestedWins,
         p_current_state: input.currentState,
         p_state_schema_version: input.stateSchemaVersion,
       },
@@ -669,6 +676,8 @@ export class SupabaseGameRepository {
         p_state_before: input.stateBefore,
         p_state_after: input.currentState,
         p_hand_complete: input.handComplete,
+        p_auto_reveal_player_engine_id: input.autoRevealPlayerEngineId ?? null,
+        p_auto_reveal_reason: input.autoRevealReason ?? null,
       },
     );
 
@@ -708,6 +717,8 @@ export class SupabaseGameRepository {
         p_raise_size_choice: input.raiseSizeChoice,
         p_raise_size_probabilities: input.raiseSizeProbabilities,
         p_raw_response: input.rawResponse,
+        p_auto_reveal_player_engine_id: input.autoRevealPlayerEngineId ?? null,
+        p_auto_reveal_reason: input.autoRevealReason ?? null,
       },
     );
 
@@ -720,5 +731,49 @@ export class SupabaseGameRepository {
     }
 
     return toPersistedGame(data[0]);
+  }
+
+  async revealHumanCards(input: {
+    readonly gameId: string;
+    readonly handNumber: number;
+    readonly expectedVersion: number;
+    readonly playerToken: string;
+  }): Promise<PersistedGame> {
+    const { data, error } = await this.client.rpc(
+      "reveal_human_cards_if_version",
+      {
+        p_game_id: input.gameId,
+        p_hand_number: input.handNumber,
+        p_expected_version: input.expectedVersion,
+        p_player_token: input.playerToken,
+      },
+    );
+    if (error)
+      throw new Error(`Unable to reveal human cards: ${error.message}`);
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new GameConflictError(input.gameId, input.expectedVersion);
+    }
+    return toPersistedGame(data[0]);
+  }
+
+  async getCurrentHandRevealedPlayerIds(
+    gameId: string,
+    handNumber: number,
+  ): Promise<readonly string[]> {
+    const result = await this.client
+      .from("hand_card_reveals")
+      .select()
+      .eq("game_id", gameId);
+    if (result.error) {
+      throw new Error(`Unable to load card reveals: ${result.error.message}`);
+    }
+    if (!Array.isArray(result.data)) return [];
+    return result.data.flatMap((row) =>
+      isRecord(row) &&
+      row.hand_number === handNumber &&
+      typeof row.engine_player_id === "string"
+        ? [row.engine_player_id]
+        : [],
+    );
   }
 }

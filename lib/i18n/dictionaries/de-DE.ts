@@ -59,6 +59,7 @@ const dictionary = {
     startHand: "Hand starten",
     waitingForHost: "Warten, bis der Gastgeber startet.",
     tableSettings: "Tischeinstellungen",
+    botsShowUncontestedWins: "Bots zeigen unangefochtene Gewinne",
   },
   table: {
     hand: "HAND {hand}",
@@ -86,6 +87,7 @@ const dictionary = {
     betAmount: "Einsatzbetrag",
     potPercent: "{percent}% des Pots",
     max: "Maximum",
+    show: "Aufdecken",
   },
   seat: {
     seat: "PLATZ {seat}",
@@ -140,6 +142,7 @@ const dictionary = {
     advanceAi: "TypeSafe-KI konnte nicht fortgesetzt werden",
     submitAction: "Aktion konnte nicht gesendet werden",
     nextHand: "Nächste Hand konnte nicht gestartet werden",
+    revealCards: "Karten konnten nicht aufgedeckt werden",
   },
   actions: {
     fold: "Passen",

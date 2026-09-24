@@ -40,6 +40,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     updateTableSettings,
     submitAction,
     beginNextHand,
+    revealCards,
     selectHistoryHand,
   } = useGameSession(gameId);
 
@@ -61,6 +62,12 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     viewerPlayer.controller === "human" &&
     game?.poker.currentActorId === viewerPlayer.id;
   const isSpectator = viewerPlayer === null && Boolean(game);
+  const canRevealCards =
+    game?.poker.street === "complete" &&
+    game.poker.completionReason === "fold" &&
+    human?.playerToken === viewerToken &&
+    human.holeCards !== null &&
+    !human.cardsRevealed;
   const seatRows = arrangeSeats(
     game?.poker.players ?? [],
     viewerPlayer?.id ?? null,
@@ -123,6 +130,10 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
       }
 
       if (completedHand) {
+        if (key === "d" && canRevealCards) {
+          event.preventDefault();
+          void revealCards();
+        }
         return;
       }
 
@@ -186,11 +197,13 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     amount,
     game,
     beginNextHand,
+    canRevealCards,
     historyOpen,
     isHumanTurn,
     loading,
     sizedAction,
     submitAction,
+    revealCards,
     viewerPlayer,
   ]);
 
@@ -248,6 +261,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               void submitAction(action, amountOverride)
             }
             onBeginNextHand={() => void beginNextHand()}
+            onRevealCards={() => void revealCards()}
             onOpenHistory={() => setHistoryOpen(true)}
             latestActions={latestActions}
           />

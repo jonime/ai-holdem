@@ -59,6 +59,7 @@ const dictionary = {
     startHand: "Empezar mano",
     waitingForHost: "Esperando a que el anfitrión empiece.",
     tableSettings: "Ajustes de la mesa",
+    botsShowUncontestedWins: "Los bots muestran victorias sin oposición",
   },
   table: {
     hand: "MANO {hand}",
@@ -86,6 +87,7 @@ const dictionary = {
     betAmount: "Importe de la apuesta",
     potPercent: "{percent}% del bote",
     max: "Máximo",
+    show: "Mostrar",
   },
   seat: {
     seat: "ASIENTO {seat}",
@@ -140,6 +142,7 @@ const dictionary = {
     advanceAi: "No se pudo avanzar la IA de TypeSafe",
     submitAction: "No se pudo enviar la acción",
     nextHand: "No se pudo iniciar la siguiente mano",
+    revealCards: "No se pudieron mostrar las cartas",
   },
   actions: {
     fold: "Retirarse",

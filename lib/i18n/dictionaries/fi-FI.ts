@@ -57,6 +57,7 @@ const dictionary = {
     startHand: "Aloita käsi",
     waitingForHost: "Odotetaan, että isäntä aloittaa.",
     tableSettings: "Pöydän asetukset",
+    botsShowUncontestedWins: "Botit näyttävät kiistattomat voitot",
   },
   table: {
     hand: "KÄSI {hand}",
@@ -84,6 +85,7 @@ const dictionary = {
     betAmount: "Vedon määrä",
     potPercent: "{percent} % potista",
     max: "Maksimi",
+    show: "Näytä",
   },
   seat: {
     seat: "PAIKKA {seat}",
@@ -138,6 +140,7 @@ const dictionary = {
     advanceAi: "TypeSafe AI:n vuoron edistäminen epäonnistui",
     submitAction: "Toiminnon lähettäminen epäonnistui",
     nextHand: "Seuraavan käden aloittaminen epäonnistui",
+    revealCards: "Kortteja ei voitu näyttää",
   },
   actions: {
     fold: "Kippaa",
