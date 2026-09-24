@@ -309,18 +309,19 @@ export function LobbyPanel({
             total: game.poker.seatCount,
           })}
         </span>
-        <button
-          type="button"
-          disabled={
-            !canManage ||
-            filledSeatCount(game.poker.players) < 2 ||
-            !settingsValid ||
-            loading
-          }
-          onClick={() => onStartWaitingGame(parsedSettings)}
-        >
-          {t("lobby.startHand")}
-        </button>
+        {canManage ? (
+          <button
+            type="button"
+            disabled={
+              filledSeatCount(game.poker.players) < 2 ||
+              !settingsValid ||
+              loading
+            }
+            onClick={() => onStartWaitingGame(parsedSettings)}
+          >
+            {t("lobby.startHand")}
+          </button>
+        ) : null}
         {!canManage ? <span>{t("lobby.waitingForHost")}</span> : null}
       </div>
     </section>

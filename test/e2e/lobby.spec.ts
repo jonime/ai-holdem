@@ -47,6 +47,9 @@ test("runs a two-player hand in a six-seat lobby", async ({
   await page.reload();
   await expect(page.getByText("Player 2", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Start hand" })).toBeEnabled();
+  await expect(
+    secondPage.getByRole("button", { name: "Start hand" }),
+  ).toHaveCount(0);
   await page.getByRole("button", { name: "Start hand" }).click();
 
   await expect(page.getByText("PREFLOP")).toBeVisible();
