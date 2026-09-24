@@ -1,0 +1,1 @@
+alter table public.game_hosts enable row level security;
