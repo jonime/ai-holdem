@@ -8,6 +8,15 @@ import { getDictionary } from "@/lib/i18n/server";
 
 import "../globals.css";
 
+const metadataBase = new URL(
+  process.env.NEXT_PUBLIC_APP_URL ??
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3001"),
+);
+
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-space-grotesk",
@@ -31,6 +40,7 @@ export async function generateMetadata({
   if (!hasLocale(lang)) notFound();
   const dictionary = await getDictionary(lang);
   return {
+    metadataBase,
     title: dictionary.metadata.title,
     description: dictionary.metadata.description,
     icons: {
