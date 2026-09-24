@@ -245,3 +245,37 @@ export const handHistorySchema = z.object({
 });
 
 export const historyEnvelopeSchema = z.object({ history: handHistorySchema });
+
+const gameFeedEventSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("handStarted"),
+    handNumber: z.number().int().nonnegative(),
+  }),
+  z.object({
+    type: z.literal("action"),
+    handNumber: z.number().int().nonnegative(),
+    player: z.string(),
+    controller: z.enum(["human", "bot"]),
+    action: z.enum(["fold", "check", "call", "bet", "raise", "all_in"]),
+    amount: z.number().nullable(),
+    street: z.enum(["preflop", "flop", "turn", "river"]),
+  }),
+  z.object({
+    type: z.literal("board"),
+    handNumber: z.number().int().nonnegative(),
+    cards: z.array(z.string()),
+  }),
+  z.object({
+    type: z.literal("win"),
+    handNumber: z.number().int().nonnegative(),
+    player: z.string(),
+    amount: z.number(),
+    uncontested: z.boolean(),
+  }),
+]);
+
+export const gameFeedSchema = z.object({
+  events: z.array(gameFeedEventSchema),
+});
+
+export const gameFeedEnvelopeSchema = z.object({ feed: gameFeedSchema });

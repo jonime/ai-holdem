@@ -29,6 +29,8 @@ export function PokerTable({
   onBeginNextHand,
   onRevealCards,
   onOpenHistory,
+  feedCollapsed,
+  onToggleFeed,
   latestActions,
 }: {
   readonly game: Game;
@@ -57,6 +59,8 @@ export function PokerTable({
   readonly onBeginNextHand: () => void;
   readonly onRevealCards: () => void;
   readonly onOpenHistory: () => void;
+  readonly feedCollapsed: boolean;
+  readonly onToggleFeed: () => void;
   readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
 }) {
   const { locale, t } = useI18n();
@@ -134,6 +138,15 @@ export function PokerTable({
             onClick={onOpenHistory}
           >
             {t("table.history")}
+          </button>
+          <button
+            type="button"
+            className={styles.feedToggle}
+            onClick={onToggleFeed}
+            aria-pressed={!feedCollapsed}
+            aria-label={t(feedCollapsed ? "feed.expand" : "feed.collapse")}
+          >
+            {t(feedCollapsed ? "feed.title" : "feed.hide")}
           </button>
         </div>
       </div>

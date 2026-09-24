@@ -55,6 +55,22 @@
   border-color: var(--sun);
   color: var(--sun);
 }
+.feedToggle {
+  border-radius: 3px;
+  background: transparent;
+  font: inherit;
+  border: 1px solid #5c7f76;
+  padding: 6px 10px;
+  color: #d7e8df;
+}
+.feedToggle:hover {
+  border-color: var(--sun);
+  color: var(--sun);
+}
+.feedToggle[aria-pressed="true"] {
+  border-color: var(--sun);
+  color: var(--sun);
+}
 .felt {
   min-height: 560px;
   display: grid;

@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 
+import {
+  ActionFeedModal,
+  ActionFeedPanel,
+} from "@/components/poker/ActionFeedPanel";
 import { HistoryModal } from "@/components/poker/HistoryModal";
 import { useI18n } from "@/components/poker/I18nProvider";
 import { LobbyPanel } from "@/components/poker/LobbyPanel";
@@ -17,6 +21,7 @@ import {
 } from "@/components/poker/view-model";
 
 const playerNameStorageKey = "ai-holdem-player-name";
+const feedCollapsedStorageKey = "ai-holdem-feed-collapsed";
 export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const { t } = useI18n();
   const [playerName, setPlayerName] = useState(() =>
@@ -26,12 +31,28 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   );
   const [amount, setAmount] = useState<number | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [feedCollapsed, setFeedCollapsed] = useState(() =>
+    typeof window === "undefined"
+      ? false
+      : window.localStorage.getItem(feedCollapsedStorageKey) === "true",
+  );
+  const [feedModalOpen, setFeedModalOpen] = useState(false);
+
+  const toggleFeedCollapsed = () => {
+    setFeedCollapsed((current) => {
+      const next = !current;
+      window.localStorage.setItem(feedCollapsedStorageKey, String(next));
+      return next;
+    });
+  };
 
   const {
     game,
     botCatalog,
     history,
     historyLoading,
+    feed,
+    feedLoading,
     selectedHistoryHand,
     liveDecisions,
     loading,
@@ -249,38 +270,65 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
         />
       ) : (
         <div className={styles.gameLayout}>
-          <PokerTable
-            game={game}
-            seatRows={seatRows}
-            linearSeats={linearSeats}
-            human={human}
-            viewerToken={viewerToken}
-            isSpectator={isSpectator}
-            canStartNextHand={game.viewerIsHost}
-            isHumanTurn={isHumanTurn}
-            sizedAction={sizedAction}
-            amount={amount}
-            loading={loading}
-            setAmount={setAmount}
-            onClaimFirstOpenSeat={() => {
-              const openSeat = game.poker.players.find(
-                (player) => player.status === "open",
-              );
-              if (openSeat) {
-                void claimSeatAt(openSeat.seat, playerName);
+          <div
+            className={`${styles.tableRow} ${feedCollapsed ? styles.feedCollapsed : ""}`}
+          >
+            <PokerTable
+              game={game}
+              seatRows={seatRows}
+              linearSeats={linearSeats}
+              human={human}
+              viewerToken={viewerToken}
+              isSpectator={isSpectator}
+              canStartNextHand={game.viewerIsHost}
+              isHumanTurn={isHumanTurn}
+              sizedAction={sizedAction}
+              amount={amount}
+              loading={loading}
+              setAmount={setAmount}
+              onClaimFirstOpenSeat={() => {
+                const openSeat = game.poker.players.find(
+                  (player) => player.status === "open",
+                );
+                if (openSeat) {
+                  void claimSeatAt(openSeat.seat, playerName);
+                }
+              }}
+              onStandUp={() => {
+                if (human) void releaseSeat(human.seat);
+              }}
+              onSubmitAction={(action, amountOverride = amount ?? null) =>
+                void submitAction(action, amountOverride)
               }
-            }}
-            onStandUp={() => {
-              if (human) void releaseSeat(human.seat);
-            }}
-            onSubmitAction={(action, amountOverride = amount ?? null) =>
-              void submitAction(action, amountOverride)
-            }
-            onBeginNextHand={() => void beginNextHand()}
-            onRevealCards={() => void revealCards()}
-            onOpenHistory={() => setHistoryOpen(true)}
-            latestActions={latestActions}
-          />
+              onBeginNextHand={() => void beginNextHand()}
+              onRevealCards={() => void revealCards()}
+              onOpenHistory={() => setHistoryOpen(true)}
+              feedCollapsed={feedCollapsed}
+              onToggleFeed={toggleFeedCollapsed}
+              latestActions={latestActions}
+            />
+            {feedCollapsed ? null : (
+              <div className={styles.feedColumn}>
+                <div className={styles.desktopFeed}>
+                  <ActionFeedPanel feed={feed} loading={feedLoading} />
+                </div>
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            className={styles.mobileFeedToggle}
+            onClick={() => setFeedModalOpen(true)}
+          >
+            {t("feed.openMobile")}
+          </button>
+          {feedModalOpen ? (
+            <ActionFeedModal
+              feed={feed}
+              loading={feedLoading}
+              onClose={() => setFeedModalOpen(false)}
+            />
+          ) : null}
           {historyOpen && displayedHistoryHand ? (
             <HistoryModal
               onClose={() => setHistoryOpen(false)}

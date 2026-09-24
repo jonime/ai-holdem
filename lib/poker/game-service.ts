@@ -13,6 +13,7 @@ import type {
 } from "./types";
 import type {
   CreateGameSessionInput,
+  GameFeed,
   PersistAIActionInput,
   PersistHumanActionInput,
   PersistedGame,
@@ -148,6 +149,38 @@ export interface HandHistoryReader {
     gameId: string,
     handNumber: number,
   ): Promise<import("@/lib/supabase/queries").HandHistory | null>;
+}
+
+export interface GameFeedReader {
+  getGameFeed(gameId: string): Promise<GameFeed>;
+}
+
+export type PublicFeedEvent =
+  | { readonly type: "handStarted"; readonly handNumber: number }
+  | {
+      readonly type: "action";
+      readonly handNumber: number;
+      readonly player: string;
+      readonly controller: "human" | "bot";
+      readonly action: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
+      readonly amount: number | null;
+      readonly street: "preflop" | "flop" | "turn" | "river";
+    }
+  | {
+      readonly type: "board";
+      readonly handNumber: number;
+      readonly cards: readonly string[];
+    }
+  | {
+      readonly type: "win";
+      readonly handNumber: number;
+      readonly player: string;
+      readonly amount: number;
+      readonly uncontested: boolean;
+    };
+
+export interface PublicGameFeed {
+  readonly events: readonly PublicFeedEvent[];
 }
 
 export interface NextHandWriter {
@@ -932,6 +965,74 @@ export async function getPublicGame(
   };
 }
 
+/**
+ * Simplified action feed spanning every hand played so far, for the
+ * always-visible player-facing panel. Unlike `getHandHistory`, it carries no
+ * bot inspection detail and never needs a viewer token, since it never
+ * exposes hole cards.
+ */
+export async function getGameFeed(
+  repository: GameFeedReader,
+  gameId: string,
+): Promise<PublicGameFeed> {
+  const feed = await repository.getGameFeed(gameId);
+  const events: PublicFeedEvent[] = [];
+
+  for (const hand of feed.hands) {
+    events.push({ type: "handStarted", handNumber: hand.handNumber });
+
+    for (const action of hand.actions) {
+      events.push({
+        type: "action",
+        handNumber: hand.handNumber,
+        player: action.player,
+        controller: action.controller,
+        action: action.action,
+        amount: action.amount,
+        street: action.street,
+      });
+    }
+
+    if (hand.status !== "complete" || !hand.finalState) {
+      continue;
+    }
+
+    let state: PokerGameState;
+    let snapshot: ReturnType<typeof pokerEngineAdapter.snapshot>;
+    try {
+      state = restorePersistedState(hand.finalState);
+      snapshot = pokerEngineAdapter.snapshot(state);
+    } catch {
+      continue;
+    }
+
+    if (snapshot.communityCards.length > 0) {
+      events.push({
+        type: "board",
+        handNumber: hand.handNumber,
+        cards: snapshot.communityCards,
+      });
+    }
+
+    const nameByPlayerId = new Map(
+      state.config.players.map((player) => [player.id, player.name]),
+    );
+    for (const winnerId of snapshot.winnerIds) {
+      const amount = snapshot.winnerAmounts[winnerId];
+      if (!amount) continue;
+      events.push({
+        type: "win",
+        handNumber: hand.handNumber,
+        player: nameByPlayerId.get(winnerId) ?? "Unknown player",
+        amount,
+        uncontested: snapshot.completionReason === "fold",
+      });
+    }
+  }
+
+  return { events };
+}
+
 export async function submitHumanAction(
   repository: GameReader &
     HumanActionWriter &
@@ -1083,8 +1184,7 @@ async function stepResolvedBotAction(
     probabilities: decision.diagnostics.probabilities,
     confidence: decision.diagnostics.confidence,
     raiseSizeChoice: decision.diagnostics.sizing?.choice ?? null,
-    raiseSizeProbabilities:
-      decision.diagnostics.sizing?.probabilities ?? null,
+    raiseSizeProbabilities: decision.diagnostics.sizing?.probabilities ?? null,
     matchedRule: decision.diagnostics.matchedRule,
     promptVersion: decision.diagnostics.promptVersion,
     durationMs: decision.diagnostics.durationMs,
@@ -1153,7 +1253,9 @@ export async function stepBotAction(
   }
   const state = restorePersistedState(game.currentState);
   const actorId = pokerEngineAdapter.snapshot(state).currentActorId;
-  const player = state.config.players.find((candidate) => candidate.id === actorId);
+  const player = state.config.players.find(
+    (candidate) => candidate.id === actorId,
+  );
   if (!player || player.controller === "human") {
     throw new Error("It is not a bot turn");
   }
@@ -1181,7 +1283,12 @@ export async function stepTypesafeAction(
   return stepResolvedBotAction(
     repository,
     new JevPokerBot(client),
-    { id: "jev", label: "TypeSafe Jev", provider: "typesafe", modelId: "jev-latest" },
+    {
+      id: "jev",
+      label: "TypeSafe Jev",
+      provider: "typesafe",
+      modelId: "jev-latest",
+    },
     gameId,
     game.version,
     viewerToken,

@@ -3,7 +3,10 @@ import type {
   PokerStreet,
   PublicPokerPlayer,
 } from "@/lib/poker/types";
-import type { LatestPlayerAction } from "@/components/poker/types";
+import type {
+  GameFeedEvent,
+  LatestPlayerAction,
+} from "@/components/poker/types";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
 import dictionary, { type Dictionary } from "@/lib/i18n/dictionaries/en-US";
 
@@ -12,6 +15,48 @@ export function formatChips(
   locale: Locale = DEFAULT_LOCALE,
 ): string {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+const shortSuitSymbols: Record<string, string> = {
+  c: "♣",
+  d: "♦",
+  h: "♥",
+  s: "♠",
+};
+
+export function shortCardLabel(card: string): string {
+  const suit = card.at(-1) ?? "";
+  const rank = card.slice(0, -1);
+  return `${rank}${shortSuitSymbols[suit] ?? ""}`;
+}
+
+export function feedEventLabel(
+  event: GameFeedEvent,
+  locale: Locale = DEFAULT_LOCALE,
+  labels: Dictionary["feed"] = dictionary.feed,
+): string {
+  switch (event.type) {
+    case "handStarted":
+      return labels.hand.replace("{hand}", String(event.handNumber));
+    case "board":
+      return labels.board.replace(
+        "{cards}",
+        event.cards.map(shortCardLabel).join(" "),
+      );
+    case "win":
+      return (event.uncontested ? labels.winUncontested : labels.win)
+        .replace("{player}", event.player)
+        .replace("{amount}", formatChips(event.amount, locale));
+    case "action": {
+      const amount =
+        event.amount !== null ? formatChips(event.amount, locale) : "";
+      const template =
+        event.action === "all_in" ? labels.allIn : labels[event.action];
+      return template
+        .replace("{player}", event.player)
+        .replace("{amount}", amount);
+    }
+  }
 }
 
 export function cardLabel(

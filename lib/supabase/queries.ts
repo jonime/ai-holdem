@@ -1,5 +1,6 @@
 import "server-only";
 
+import { GAME_FEED_HAND_LIMIT } from "@/lib/constants";
 import type { AIDifficulty, BotDescriptor } from "@/lib/poker/types";
 
 export type GameStatus = "waiting" | "playing" | "complete" | "error";
@@ -144,6 +145,31 @@ export interface HandHistory {
   readonly aiDecisions: readonly CompletedAIDecisionInspection[];
 }
 
+/**
+ * Slim, player-facing counterpart to `HandActionHistoryItem`: no bot
+ * inspection detail, used to render the always-visible action feed panel
+ * rather than the debug history modal.
+ */
+export interface GameFeedActionItem {
+  readonly sequence: number;
+  readonly street: "preflop" | "flop" | "turn" | "river";
+  readonly action: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
+  readonly amount: number | null;
+  readonly player: string;
+  readonly controller: "human" | "bot";
+}
+
+export interface GameFeedHand {
+  readonly handNumber: number;
+  readonly status: "playing" | "complete" | "error";
+  readonly finalState: unknown;
+  readonly actions: readonly GameFeedActionItem[];
+}
+
+export interface GameFeed {
+  readonly hands: readonly GameFeedHand[];
+}
+
 interface DatabaseResult {
   readonly data: unknown;
   readonly error: { readonly message: string } | null;
@@ -190,6 +216,7 @@ export interface GameDatabaseClient {
       | "apply_ai_action_if_version"
       | "create_game_session"
       | "get_hand_history"
+      | "get_game_feed"
       | "start_next_hand_if_version"
       | "start_game_if_version"
       | "update_game_state_if_version"
@@ -240,12 +267,19 @@ function botDescriptorFrom(
   if (
     typeof id !== "string" ||
     typeof label !== "string" ||
-    (provider !== "typesafe" && provider !== "openrouter" && provider !== "rules") ||
+    (provider !== "typesafe" &&
+      provider !== "openrouter" &&
+      provider !== "rules") ||
     (modelId !== null && modelId !== undefined && typeof modelId !== "string")
   ) {
     throw new Error("Supabase returned an invalid bot descriptor");
   }
-  return { id, label, provider, modelId: typeof modelId === "string" ? modelId : null };
+  return {
+    id,
+    label,
+    provider,
+    modelId: typeof modelId === "string" ? modelId : null,
+  };
 }
 
 function requiredString(record: Record<string, unknown>, key: string): string {
@@ -324,7 +358,9 @@ function toHandHistory(value: unknown): HandHistory | null {
     if (
       !["preflop", "flop", "turn", "river"].includes(street) ||
       !["fold", "check", "call", "bet", "raise", "all_in"].includes(action) ||
-      (controller !== "human" && controller !== "bot" && controller !== "typesafe_ai")
+      (controller !== "human" &&
+        controller !== "bot" &&
+        controller !== "typesafe_ai")
     ) {
       throw new Error("Supabase returned an invalid hand action domain value");
     }
@@ -382,14 +418,77 @@ function toHandHistory(value: unknown): HandHistory | null {
       raiseSizeChoice,
       raiseSizeProbabilities: item.raiseSizeProbabilities,
       rawResponse: item.rawResponse,
-      matchedRule: typeof item.matchedRule === "string" ? item.matchedRule : null,
-      promptVersion: typeof item.promptVersion === "string" ? item.promptVersion : null,
+      matchedRule:
+        typeof item.matchedRule === "string" ? item.matchedRule : null,
+      promptVersion:
+        typeof item.promptVersion === "string" ? item.promptVersion : null,
       durationMs: typeof item.durationMs === "number" ? item.durationMs : null,
       usage: item.usage ?? null,
       cost: typeof item.cost === "number" ? item.cost : null,
     };
   });
   return { status, actions, aiDecisions };
+}
+
+function toGameFeed(value: unknown): GameFeed {
+  if (!Array.isArray(value)) {
+    throw new Error("Supabase returned an invalid game feed");
+  }
+  const hands = value.map((item) => {
+    if (!isRecord(item))
+      throw new Error("Supabase returned an invalid game feed hand");
+    const status = requiredString(item, "status");
+    if (status !== "playing" && status !== "complete" && status !== "error") {
+      throw new Error("Supabase returned an invalid game feed hand status");
+    }
+    if (!Array.isArray(item.actions)) {
+      throw new Error("Supabase returned invalid game feed actions");
+    }
+    const actions = item.actions.map((action) => {
+      if (!isRecord(action))
+        throw new Error("Supabase returned an invalid game feed action");
+      const street = requiredString(action, "street");
+      const actionType = requiredString(action, "action");
+      const controller = requiredString(action, "controller");
+      if (
+        !["preflop", "flop", "turn", "river"].includes(street) ||
+        !["fold", "check", "call", "bet", "raise", "all_in"].includes(
+          actionType,
+        ) ||
+        (controller !== "human" &&
+          controller !== "bot" &&
+          controller !== "typesafe_ai")
+      ) {
+        throw new Error(
+          "Supabase returned an invalid game feed action domain value",
+        );
+      }
+      const amount = action.amount;
+      if (
+        amount !== null &&
+        (typeof amount !== "number" ||
+          !Number.isSafeInteger(amount) ||
+          amount < 0)
+      ) {
+        throw new Error("Supabase returned an invalid game feed action amount");
+      }
+      return {
+        sequence: requiredInteger(action, "sequence"),
+        street,
+        action: actionType,
+        amount,
+        player: requiredString(action, "player"),
+        controller: controller === "human" ? "human" : "bot",
+      } as GameFeedActionItem;
+    });
+    return {
+      handNumber: requiredInteger(item, "handNumber"),
+      status,
+      finalState: item.finalState ?? null,
+      actions,
+    } satisfies GameFeedHand;
+  });
+  return { hands };
 }
 
 export class SupabaseGameRepository {
@@ -469,7 +568,8 @@ export class SupabaseGameRepository {
     const values: Record<string, unknown> = { status: input.status };
     if (input.name !== undefined) values.name = input.name;
     if (input.controller !== undefined) {
-      values.controller = input.controller === "typesafe_ai" ? "bot" : input.controller;
+      values.controller =
+        input.controller === "typesafe_ai" ? "bot" : input.controller;
     }
     if (input.bot !== undefined) {
       values.bot_id = input.bot?.id ?? null;
@@ -534,7 +634,8 @@ export class SupabaseGameRepository {
           engine_player_id: player.enginePlayerId,
           seat: player.seat,
           name: player.name,
-          controller: player.controller === "typesafe_ai" ? "bot" : player.controller,
+          controller:
+            player.controller === "typesafe_ai" ? "bot" : player.controller,
           stack: player.stack,
         };
 
@@ -623,6 +724,20 @@ export class SupabaseGameRepository {
       throw new Error(`Unable to load hand history: ${error.message}`);
     }
     return toHandHistory(data);
+  }
+
+  async getGameFeed(
+    gameId: string,
+    handLimit: number = GAME_FEED_HAND_LIMIT,
+  ): Promise<GameFeed> {
+    const { data, error } = await this.client.rpc("get_game_feed", {
+      p_game_id: gameId,
+      p_hand_limit: handLimit,
+    });
+    if (error) {
+      throw new Error(`Unable to load game feed: ${error.message}`);
+    }
+    return toGameFeed(data);
   }
 
   async compareAndSwapGame(

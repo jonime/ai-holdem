@@ -5,6 +5,7 @@ import {
   claimSeat,
   createDemoGame,
   GameNotFoundError,
+  getGameFeed,
   getPublicGame,
   releaseSeat,
   stepTypesafeAction,
@@ -1392,5 +1393,78 @@ describe("deterministic persisted hand harness", () => {
       new Set(["preflop", "flop", "turn", "river"]),
     );
     expect(persistedActions.some((action) => "aiState" in action)).toBe(true);
+  });
+});
+
+describe("getGameFeed", () => {
+  it("builds hand-started, action, and win events from persisted feed rows", async () => {
+    let state = pokerEngineAdapter.startHand(
+      pokerEngineAdapter.createGame({
+        smallBlind: 50,
+        bigBlind: 100,
+        players: [
+          {
+            id: "human",
+            name: "You",
+            controller: "human",
+            seat: 0,
+            stack: 10_000,
+          },
+          {
+            id: "ai",
+            name: "TypeSafe AI",
+            controller: "typesafe_ai",
+            seat: 1,
+            stack: 10_000,
+          },
+        ],
+      }),
+      createDeterministicDeck(),
+    );
+    state = pokerEngineAdapter.applyAction(state, "human", { type: "fold" });
+
+    const repository = {
+      getGameFeed: async () => ({
+        hands: [
+          {
+            handNumber: 1,
+            status: "complete" as const,
+            finalState: state,
+            actions: [
+              {
+                sequence: 1,
+                street: "preflop" as const,
+                action: "fold" as const,
+                amount: null,
+                player: "You",
+                controller: "human" as const,
+              },
+            ],
+          },
+        ],
+      }),
+    };
+
+    const feed = await getGameFeed(repository, "game-1");
+
+    expect(feed.events).toEqual([
+      { type: "handStarted", handNumber: 1 },
+      {
+        type: "action",
+        handNumber: 1,
+        player: "You",
+        controller: "human",
+        action: "fold",
+        amount: null,
+        street: "preflop",
+      },
+      {
+        type: "win",
+        handNumber: 1,
+        player: "TypeSafe AI",
+        amount: expect.any(Number),
+        uncontested: true,
+      },
+    ]);
   });
 });

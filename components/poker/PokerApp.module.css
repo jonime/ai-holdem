@@ -17,8 +17,55 @@
   margin: auto;
 }
 
+.tableRow {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.tableRow.feedCollapsed {
+  grid-template-columns: 1fr;
+}
+
+.feedColumn {
+  position: relative;
+}
+
+.desktopFeed {
+  position: absolute;
+  inset: 0;
+}
+
+.mobileFeedToggle {
+  display: none;
+}
+
 @media (max-width: 560px) {
   .pokerApp {
     padding: 10px 8px 16px;
+  }
+}
+
+@media (max-width: 900px) {
+  .tableRow {
+    grid-template-columns: 1fr;
+  }
+
+  .feedColumn {
+    display: none;
+  }
+
+  .mobileFeedToggle {
+    display: block;
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 15;
+    padding: 10px 16px;
+    border: 1px solid #a9c1b7;
+    background: #f8f7f0;
+    color: #17352d;
+    box-shadow: 4px 5px 0 rgba(28, 77, 68, 0.2);
   }
 }

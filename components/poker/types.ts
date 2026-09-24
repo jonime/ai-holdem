@@ -65,3 +65,31 @@ export interface HandHistory {
   readonly actions: readonly HandActionHistoryItem[];
   readonly aiDecisions: readonly CompletedAIDecisionInspection[];
 }
+
+export type GameFeedEvent =
+  | { readonly type: "handStarted"; readonly handNumber: number }
+  | {
+      readonly type: "action";
+      readonly handNumber: number;
+      readonly player: string;
+      readonly controller: "human" | "bot";
+      readonly action: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
+      readonly amount: number | null;
+      readonly street: "preflop" | "flop" | "turn" | "river";
+    }
+  | {
+      readonly type: "board";
+      readonly handNumber: number;
+      readonly cards: readonly string[];
+    }
+  | {
+      readonly type: "win";
+      readonly handNumber: number;
+      readonly player: string;
+      readonly amount: number;
+      readonly uncontested: boolean;
+    };
+
+export interface GameFeed {
+  readonly events: readonly GameFeedEvent[];
+}

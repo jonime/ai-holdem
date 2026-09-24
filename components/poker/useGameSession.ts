@@ -10,7 +10,11 @@ import {
 } from "react";
 
 import { requestJson } from "@/lib/http/request-json";
-import { gameEnvelopeSchema, historyEnvelopeSchema } from "@/lib/http/schemas";
+import {
+  gameEnvelopeSchema,
+  gameFeedEnvelopeSchema,
+  historyEnvelopeSchema,
+} from "@/lib/http/schemas";
 import { useGameChannel } from "@/lib/realtime/useGameChannel";
 import { useI18n } from "@/components/poker/I18nProvider";
 
@@ -19,6 +23,7 @@ import type {
   AIDifficulty,
   BotDescriptor,
   Game,
+  GameFeed,
   HandHistory,
   LegalAction,
   TableSettings,
@@ -34,6 +39,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   const [selectedHistoryHand, setSelectedHistoryHand] = useState<number | null>(
     null,
   );
+  const [feed, setFeed] = useState<GameFeed | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [botCatalog, setBotCatalog] = useState<readonly BotDescriptor[]>([]);
@@ -151,6 +157,28 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       cancelled = true;
     };
   }, [game, historyOpen, selectedHistoryHand]);
+
+  const gameId_ = game?.id;
+  const gameVersion = game?.version;
+  useEffect(() => {
+    if (!gameId_) {
+      return;
+    }
+    let cancelled = false;
+    void requestJson<{ feed: GameFeed }>(
+      `/api/games/${gameId_}/feed`,
+      undefined,
+      gameFeedEnvelopeSchema,
+    )
+      .then((body) => {
+        if (!cancelled) setFeed(body.feed);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [gameId_, gameVersion]);
 
   const createGame = useCallback(async () => {
     setLoading(true);
@@ -525,6 +553,8 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     game,
     history,
     historyLoading,
+    feed,
+    feedLoading: Boolean(gameId_) && feed === null,
     selectedHistoryHand,
     liveDecisions,
     loading,
