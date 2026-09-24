@@ -6,6 +6,7 @@ import { HistoryModal } from "@/components/poker/HistoryModal";
 import { useI18n } from "@/components/poker/I18nProvider";
 import { LobbyPanel } from "@/components/poker/LobbyPanel";
 import { PokerTable } from "@/components/poker/PokerTable";
+import styles from "@/components/poker/PokerApp.module.css";
 import { useGameSession } from "@/components/poker/useGameSession";
 import { getClientPlayerToken } from "@/lib/identity/player-token-client";
 import {
@@ -208,9 +209,9 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   ]);
 
   return (
-    <main className="poker-app">
+    <main className={styles.pokerApp}>
       {error ? (
-        <p className="error-banner" role="alert">
+        <p className={styles.errorBanner} role="alert">
           {error}
         </p>
       ) : null}
@@ -230,7 +231,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           onSeatCountChange={(settings) => void updateTableSettings(settings)}
         />
       ) : (
-        <div className="game-layout">
+        <div className={styles.gameLayout}>
           <PokerTable
             game={game}
             seatRows={seatRows}

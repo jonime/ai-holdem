@@ -5,6 +5,7 @@ import type {
 } from "@/components/poker/types";
 import { describeSeatStatus, formatChips } from "@/components/poker/view-model";
 import { useI18n } from "@/components/poker/I18nProvider";
+import styles from "@/components/poker/Seat.module.css";
 
 export function Seat({
   player,
@@ -35,67 +36,70 @@ export function Seat({
     player.seat === dealerSeat
       ? {
           label: dictionary.seat.dealerBadge,
-          className: "dealer-badge",
+          className: styles.dealerBadge,
           name: dictionary.seat.dealer,
         }
       : player.seat === smallBlindSeat
         ? {
             label: dictionary.seat.smallBlindBadge,
-            className: "small-blind-badge",
+            className: styles.smallBlindBadge,
             name: dictionary.seat.smallBlind,
           }
         : player.seat === bigBlindSeat
           ? {
               label: dictionary.seat.bigBlindBadge,
-              className: "big-blind-badge",
+              className: styles.bigBlindBadge,
               name: dictionary.seat.bigBlind,
             }
           : null;
 
   if (isOpen) {
     return (
-      <section className="seat open-seat">
-        <div className="seat-heading">
-          <span className="seat-label">
+      <section className={`${styles.seat} ${styles.openSeat}`}>
+        <div className={styles.seatHeading}>
+          <span className={styles.seatLabel}>
             {t("seat.seat", { seat: player.seat + 1 })}
           </span>
         </div>
-        <span className="seat-status">{t("seat.openSeat")}</span>
+        <span className={styles.seatStatus}>{t("seat.openSeat")}</span>
       </section>
     );
   }
 
   return (
     <section
-      className={`seat ${isAi ? "ai-seat" : "human-seat"} ${player.folded ? "folded-seat" : ""} ${isBusted ? "busted-seat" : ""} ${active ? "active-seat" : ""} ${winner ? "winner-seat" : ""}`}
+      className={`${styles.seat} ${isAi ? "" : styles.humanSeat} ${player.folded ? styles.foldedSeat : ""} ${isBusted ? styles.bustedSeat : ""} ${active ? styles.activeSeat : ""} ${winner ? styles.winnerSeat : ""}`}
     >
-      <span className="seat-number">{player.seat + 1}</span>
-      <div className="seat-heading">
-        <span className="seat-label">{player.name.toUpperCase()}</span>
+      <span className={styles.seatNumber}>{player.seat + 1}</span>
+      <div className={styles.seatHeading}>
+        <span className={styles.seatLabel}>{player.name.toUpperCase()}</span>
       </div>
       {role ? (
-        <span className={`role-badge ${role.className}`} title={role.name}>
+        <span
+          className={`${styles.roleBadge} ${role.className}`}
+          title={role.name}
+        >
           {role.label}
         </span>
       ) : null}
       {winner || gameWinner ? (
-        <span className="winner-badge">
+        <span className={styles.winnerBadge}>
           {gameWinner ? dictionary.seat.gameWinner : dictionary.seat.potWinner}
         </span>
       ) : null}
       {winner && winnerAmount !== null ? (
-        <span className="winner-amount">
+        <span className={styles.winnerAmount}>
           +{formatChips(winnerAmount, locale)}
         </span>
       ) : null}
       <strong>{formatChips(player.stack, locale)}</strong>
       {latestAction?.action === "bet" || latestAction?.action === "raise" ? (
-        <span className="action-badge">
+        <span className={styles.actionBadge}>
           {latestAction.action.toUpperCase()}{" "}
           {formatChips(latestAction.amount ?? 0, locale)}
         </span>
       ) : null}
-      <div className="hole-cards">
+      <div className={styles.holeCards}>
         {player.holeCards ? (
           player.holeCards.map((card) => <PlayingCard key={card} card={card} />)
         ) : (
@@ -105,7 +109,7 @@ export function Seat({
           </>
         )}
       </div>
-      <span className="seat-status">
+      <span className={styles.seatStatus}>
         {player.bestHand
           ? dictionary.seat.handCategories[player.bestHand]
           : describeSeatStatus(

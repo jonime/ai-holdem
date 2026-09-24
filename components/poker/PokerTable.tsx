@@ -1,5 +1,6 @@
 import { PlayingCard } from "@/components/poker/PlayingCard";
 import { Seat } from "@/components/poker/Seat";
+import styles from "@/components/poker/PokerTable.module.css";
 import type {
   Game,
   LegalAction,
@@ -108,19 +109,19 @@ export function PokerTable({
   };
 
   return (
-    <section className="table-shell">
-      <div className="table-meta">
+    <section className={styles.tableShell}>
+      <div className={styles.tableMeta}>
         <span>{t("table.hand", { hand: game.poker.handNumber })}</span>
         <span>
           {game.poker.street
             ? t(`table.${game.poker.street}`)
             : t("table.waiting")}
         </span>
-        <div className="table-meta-actions">
+        <div className={styles.tableMetaActions}>
           {human?.playerToken === viewerToken ? (
             <button
               type="button"
-              className="stand-up-toggle"
+              className={styles.standUpToggle}
               disabled={loading || human.leaving}
               onClick={onStandUp}
             >
@@ -129,15 +130,17 @@ export function PokerTable({
           ) : null}
           <button
             type="button"
-            className="history-toggle"
+            className={styles.historyToggle}
             onClick={onOpenHistory}
           >
             {t("table.history")}
           </button>
         </div>
       </div>
-      <div className="felt">
-        <div className="seat-row top-row desktop-seats">
+      <div className={styles.felt}>
+        <div
+          className={`${styles.seatRow} ${styles.topRow} ${styles.desktopSeats}`}
+        >
           {seatRows.top.map((player) => (
             <Seat
               key={player.id}
@@ -153,12 +156,12 @@ export function PokerTable({
             />
           ))}
         </div>
-        <div className="center-table">
-          <div className="pot">
+        <div className={styles.centerTable}>
+          <div className={styles.pot}>
             {t("table.pot")}{" "}
             <strong>{formatChips(game.poker.pot, locale)}</strong>
           </div>
-          <div className="community-cards">
+          <div className={styles.communityCards}>
             {[
               ...game.poker.communityCards,
               ...Array(Math.max(0, 5 - game.poker.communityCards.length)).fill(
@@ -169,7 +172,9 @@ export function PokerTable({
             ))}
           </div>
         </div>
-        <div className="seat-row bottom-row desktop-seats">
+        <div
+          className={`${styles.seatRow} ${styles.bottomRow} ${styles.desktopSeats}`}
+        >
           {seatRows.bottom.map((player) => (
             <Seat
               key={player.id}
@@ -185,7 +190,7 @@ export function PokerTable({
             />
           ))}
         </div>
-        <div className="seat-grid mobile-seats">
+        <div className={styles.mobileSeats}>
           {linearSeats.map((player) => (
             <Seat
               key={player.id}
@@ -202,9 +207,9 @@ export function PokerTable({
           ))}
         </div>
       </div>
-      <section className="action-tray">
+      <section className={styles.actionTray}>
         {isSpectator ? (
-          <div className="action-controls">
+          <div className={styles.actionControls}>
             {botOnlyGame && !gameOver ? (
               <button
                 type="button"
@@ -230,7 +235,7 @@ export function PokerTable({
           </div>
         ) : (
           <>
-            <div className="action-controls">
+            <div className={styles.actionControls}>
               <button
                 type="button"
                 disabled={!isHumanTurn || loading || !legalAction("fold")}
@@ -298,8 +303,8 @@ export function PokerTable({
                     : t("table.bet")}
               </button>
             </div>
-            <div className="amount-control">
-              <div className="amount-heading">
+            <div className={styles.amountControl}>
+              <div className={styles.amountHeading}>
                 <span>{t("table.betSize")}</span>
                 <strong>
                   {sizedAction && selectedAmount !== null
@@ -318,7 +323,7 @@ export function PokerTable({
                 onChange={(event) => setAmount(Number(event.target.value))}
                 aria-label={t("table.betAmount")}
               />
-              <div className="amount-presets">
+              <div className={styles.amountPresets}>
                 {[0.5, 0.75, 1].map((fraction) => (
                   <button
                     key={fraction}

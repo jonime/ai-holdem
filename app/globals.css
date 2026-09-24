@@ -36,10 +36,6 @@ button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
-.poker-app {
-  min-height: 100vh;
-  padding: 28px clamp(18px, 4vw, 64px) 48px;
-}
 .game-header {
   padding: 12px clamp(18px, 4vw, 64px) 0;
 }
@@ -193,18 +189,6 @@ h2 {
 .home-attribution a:hover,
 .home-attribution a:focus-visible {
   color: var(--coral);
-}
-.error-banner {
-  max-width: 1220px;
-  margin: 0 auto 18px;
-  padding: 10px 14px;
-  border-left: 4px solid var(--coral);
-  background: #fff3e9;
-  color: #77321f;
-}
-.game-layout {
-  max-width: 1220px;
-  margin: auto;
 }
 .table-shell {
   background: #f6f5ee;
@@ -1151,9 +1135,6 @@ h2 {
     grid-template-columns: 1fr 1fr;
     gap: 6px;
     width: 100%;
-  }
-  .poker-app {
-    padding: 10px 8px 16px;
   }
   .home-empty-state {
     margin: 2vh auto 0;

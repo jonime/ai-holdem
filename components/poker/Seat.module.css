@@ -1,0 +1,225 @@
+.seat {
+  position: relative;
+  flex: 0 1 200px;
+  max-width: 220px;
+  padding: 18px 12px 10px;
+  border: 1px solid rgba(236, 246, 235, 0.38);
+  border-radius: 8px;
+  background: rgba(4, 37, 32, 0.34);
+  color: #eff4e9;
+  text-align: center;
+}
+.seatNumber {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  z-index: 1;
+  color: rgba(239, 244, 233, 0.55);
+  font:
+    700 10px/1 ui-monospace,
+    Menlo,
+    monospace;
+}
+.humanSeat {
+  border-color: rgba(240, 183, 77, 0.55);
+}
+.foldedSeat {
+  border-color: rgba(236, 246, 235, 0.2);
+  background: rgba(4, 37, 32, 0.18);
+}
+.foldedSeat .seatLabel,
+.foldedSeat strong,
+.foldedSeat .seatStatus {
+  opacity: 0.55;
+}
+.foldedSeat :global(.playing-card) {
+  filter: grayscale(0.85);
+  opacity: 0.5;
+}
+.bustedSeat {
+  border-color: rgba(144, 177, 190, 0.7);
+  background:
+    linear-gradient(135deg, rgba(135, 174, 190, 0.18), transparent 62%),
+    rgba(16, 35, 42, 0.62);
+}
+.bustedSeat .seatLabel,
+.bustedSeat .seatStatus {
+  color: #b8d1da;
+}
+.bustedSeat strong {
+  color: #d7e4e7;
+}
+.activeSeat {
+  outline: 2px solid var(--sun);
+  outline-offset: 3px;
+}
+.winnerSeat {
+  border-color: var(--sun);
+  background:
+    linear-gradient(135deg, rgba(240, 183, 77, 0.2), transparent 58%),
+    rgba(4, 37, 32, 0.5);
+  outline: 2px solid rgba(240, 183, 77, 0.7);
+  outline-offset: 3px;
+  box-shadow: 0 8px 24px rgba(240, 183, 77, 0.2);
+}
+.seatHeading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.seatLabel {
+  font:
+    700 11px/1 ui-monospace,
+    Menlo,
+    monospace;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.seat strong {
+  display: block;
+  margin: 4px 0 7px;
+  font-size: 19px;
+}
+.seatStatus {
+  color: #c1d6cc;
+  font-size: 12px;
+}
+.holeCards {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+.openSeat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+  border-style: dashed;
+  border-color: rgba(236, 246, 235, 0.18);
+  background: rgba(4, 37, 32, 0.16);
+  color: rgba(239, 244, 233, 0.45);
+}
+.openSeat .seatLabel {
+  color: rgba(239, 244, 233, 0.45);
+}
+.roleBadge,
+.winnerBadge,
+.winnerAmount,
+.actionBadge {
+  position: absolute;
+  z-index: 1;
+  display: inline-block;
+}
+.roleBadge {
+  top: 8px;
+  right: 8px;
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 4px;
+  border: 1px solid rgba(236, 246, 235, 0.65);
+  border-radius: 999px;
+  color: #163d37;
+  background: #edf5ee;
+  font:
+    700 10px/1 ui-monospace,
+    Menlo,
+    monospace;
+}
+.smallBlindBadge {
+  color: #f5fbff;
+  background: #4f91bd;
+}
+.bigBlindBadge {
+  color: #fff8f4;
+  background: #d96a62;
+}
+.winnerBadge,
+.actionBadge {
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 4px 8px;
+  border-radius: 999px;
+  font:
+    700 10px/1 ui-monospace,
+    Menlo,
+    monospace;
+}
+.winnerBadge {
+  border: 1px solid rgba(255, 231, 159, 0.72);
+  color: #193e37;
+  background: var(--sun);
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+.winnerAmount {
+  bottom: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 7px;
+  border: 1px solid rgba(255, 231, 159, 0.55);
+  border-radius: 999px;
+  color: var(--sun);
+  background: #193e37;
+  font:
+    700 12px/1 ui-monospace,
+    monospace;
+  white-space: nowrap;
+}
+.actionBadge {
+  border: 1px solid rgba(240, 183, 77, 0.7);
+  color: #f8d17b;
+  background: #0e5a4d;
+  font-size: 11px;
+  letter-spacing: 0.4px;
+}
+@media (max-width: 560px) {
+  .seat {
+    flex: unset;
+    max-width: none;
+    min-height: 0;
+    padding: 6px 4px 5px;
+  }
+  .openSeat {
+    min-height: 60px;
+  }
+  .seatNumber {
+    top: 3px;
+    left: 5px;
+    font-size: 9px;
+  }
+  .seatHeading {
+    gap: 4px;
+  }
+  .roleBadge {
+    top: 3px;
+    right: 3px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 3px;
+    font-size: 8px;
+  }
+  .seatLabel {
+    font-size: 9px;
+  }
+  .seat strong {
+    margin: 1px 0 3px;
+    font-size: 14px;
+  }
+  .seatStatus {
+    font-size: 9px;
+  }
+  .holeCards {
+    gap: 3px;
+    margin-bottom: 3px;
+  }
+  .actionBadge {
+    padding: 2px 5px;
+    font-size: 9px;
+  }
+}

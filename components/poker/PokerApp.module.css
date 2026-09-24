@@ -1,0 +1,24 @@
+.pokerApp {
+  min-height: 100vh;
+  padding: 28px clamp(18px, 4vw, 64px) 48px;
+}
+
+.errorBanner {
+  max-width: 1220px;
+  margin: 0 auto 18px;
+  padding: 10px 14px;
+  border-left: 4px solid var(--coral);
+  background: #fff3e9;
+  color: #77321f;
+}
+
+.gameLayout {
+  max-width: 1220px;
+  margin: auto;
+}
+
+@media (max-width: 560px) {
+  .pokerApp {
+    padding: 10px 8px 16px;
+  }
+}
