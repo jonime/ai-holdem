@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { AIDifficulty } from "@/lib/poker/types";
+import type { AIDifficulty, BotDescriptor } from "@/lib/poker/types";
 
 export type GameStatus = "waiting" | "playing" | "complete" | "error";
 
@@ -64,11 +64,17 @@ export interface PersistAIActionInput extends PersistHumanActionInput {
   readonly aiState: unknown;
   readonly legalActions: unknown;
   readonly choice: string;
-  readonly probabilities: Readonly<Record<string, number>>;
-  readonly confidence: number;
+  readonly bot?: BotDescriptor;
+  readonly probabilities: Readonly<Record<string, number>> | null;
+  readonly confidence: number | null;
   readonly raiseSizeChoice: string | null;
   readonly raiseSizeProbabilities: Readonly<Record<string, number>> | null;
   readonly rawResponse: unknown;
+  readonly matchedRule?: string | null;
+  readonly promptVersion?: string | null;
+  readonly durationMs?: number | null;
+  readonly usage?: unknown | null;
+  readonly cost?: number | null;
 }
 
 export type SeatStatus = "open" | "claimed" | "bot";
@@ -78,7 +84,8 @@ export interface GamePlayerSeatAssignment {
   readonly seat: number;
   readonly name: string;
   readonly status: SeatStatus;
-  readonly controller: "human" | "typesafe_ai";
+  readonly controller: "human" | "bot";
+  readonly bot: BotDescriptor | null;
   readonly aiDifficulty: AIDifficulty | null;
   readonly playerToken: string | null;
   readonly isHost: boolean;
@@ -92,7 +99,8 @@ export interface CreateGameSessionInput extends CreateGameInput {
     readonly enginePlayerId: string | null;
     readonly seat: number;
     readonly name: string;
-    readonly controller: "human" | "typesafe_ai";
+    readonly controller: "human" | "bot" | "typesafe_ai";
+    readonly bot?: BotDescriptor | null;
     readonly aiDifficulty?: AIDifficulty | null;
     readonly stack: number;
     readonly status?: SeatStatus;
@@ -108,7 +116,8 @@ export interface HandActionHistoryItem {
   readonly action: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
   readonly amount: number | null;
   readonly player: string;
-  readonly controller: "human" | "typesafe_ai";
+  readonly controller: "human" | "bot";
+  readonly bot: BotDescriptor | null;
 }
 
 export interface CompletedAIDecisionInspection {
@@ -117,10 +126,16 @@ export interface CompletedAIDecisionInspection {
   readonly legalActions: unknown;
   readonly choice: string;
   readonly probabilities: unknown;
-  readonly confidence: number;
+  readonly bot: BotDescriptor;
+  readonly confidence: number | null;
   readonly raiseSizeChoice: string | null;
   readonly raiseSizeProbabilities: unknown;
   readonly rawResponse: unknown;
+  readonly matchedRule: string | null;
+  readonly promptVersion: string | null;
+  readonly durationMs: number | null;
+  readonly usage: unknown | null;
+  readonly cost: number | null;
 }
 
 export interface HandHistory {
@@ -206,6 +221,33 @@ function optionalAIDifficulty(value: unknown): AIDifficulty | null {
   throw new Error("Supabase returned an invalid AI difficulty");
 }
 
+const legacyJevBot: BotDescriptor = {
+  id: "jev",
+  label: "TypeSafe Jev",
+  provider: "typesafe",
+  modelId: "jev-latest",
+};
+
+function botDescriptorFrom(
+  record: Record<string, unknown>,
+  style: "snake" | "camel",
+): BotDescriptor | null {
+  const id = record[style === "snake" ? "bot_id" : "botId"];
+  const label = record[style === "snake" ? "bot_label" : "botLabel"];
+  const provider = record[style === "snake" ? "bot_provider" : "botProvider"];
+  const modelId = record[style === "snake" ? "bot_model_id" : "botModelId"];
+  if (id === null || id === undefined) return null;
+  if (
+    typeof id !== "string" ||
+    typeof label !== "string" ||
+    (provider !== "typesafe" && provider !== "openrouter" && provider !== "rules") ||
+    (modelId !== null && modelId !== undefined && typeof modelId !== "string")
+  ) {
+    throw new Error("Supabase returned an invalid bot descriptor");
+  }
+  return { id, label, provider, modelId: typeof modelId === "string" ? modelId : null };
+}
+
 function requiredString(record: Record<string, unknown>, key: string): string {
   const value = record[key];
   if (typeof value !== "string") {
@@ -282,7 +324,7 @@ function toHandHistory(value: unknown): HandHistory | null {
     if (
       !["preflop", "flop", "turn", "river"].includes(street) ||
       !["fold", "check", "call", "bet", "raise", "all_in"].includes(action) ||
-      (controller !== "human" && controller !== "typesafe_ai")
+      (controller !== "human" && controller !== "bot" && controller !== "typesafe_ai")
     ) {
       throw new Error("Supabase returned an invalid hand action domain value");
     }
@@ -301,7 +343,11 @@ function toHandHistory(value: unknown): HandHistory | null {
       action,
       amount,
       player: requiredString(item, "player"),
-      controller,
+      controller: controller === "human" ? "human" : "bot",
+      bot:
+        controller === "human"
+          ? null
+          : (botDescriptorFrom(item, "camel") ?? legacyJevBot),
     } as HandActionHistoryItem;
   });
 
@@ -319,7 +365,10 @@ function toHandHistory(value: unknown): HandHistory | null {
       throw new Error("Supabase returned an invalid AI sizing choice");
     }
     const confidence = item.confidence;
-    if (typeof confidence !== "number" || confidence < 0 || confidence > 1) {
+    if (
+      confidence !== null &&
+      (typeof confidence !== "number" || confidence < 0 || confidence > 1)
+    ) {
       throw new Error("Supabase returned an invalid AI confidence");
     }
     return {
@@ -328,10 +377,16 @@ function toHandHistory(value: unknown): HandHistory | null {
       legalActions: item.legalActions,
       choice: requiredString(item, "choice"),
       probabilities: item.probabilities,
+      bot: botDescriptorFrom(item, "camel") ?? legacyJevBot,
       confidence,
       raiseSizeChoice,
       raiseSizeProbabilities: item.raiseSizeProbabilities,
       rawResponse: item.rawResponse,
+      matchedRule: typeof item.matchedRule === "string" ? item.matchedRule : null,
+      promptVersion: typeof item.promptVersion === "string" ? item.promptVersion : null,
+      durationMs: typeof item.durationMs === "number" ? item.durationMs : null,
+      usage: item.usage ?? null,
+      cost: typeof item.cost === "number" ? item.cost : null,
     };
   });
   return { status, actions, aiDecisions };
@@ -367,7 +422,11 @@ export class SupabaseGameRepository {
         throw new Error("Supabase returned an invalid seat status");
       }
       const controller = requiredString(row, "controller");
-      if (controller !== "human" && controller !== "typesafe_ai") {
+      if (
+        controller !== "human" &&
+        controller !== "bot" &&
+        controller !== "typesafe_ai"
+      ) {
         throw new Error("Supabase returned an invalid player controller");
       }
 
@@ -376,7 +435,11 @@ export class SupabaseGameRepository {
         seat: requiredNonNegativeInteger(row, "seat"),
         name: requiredString(row, "name"),
         status,
-        controller,
+        controller: controller === "human" ? "human" : "bot",
+        bot:
+          controller === "human"
+            ? null
+            : (botDescriptorFrom(row, "snake") ?? legacyJevBot),
         aiDifficulty: optionalAIDifficulty(row.ai_difficulty),
         playerToken:
           typeof row.player_token === "string" ? row.player_token : null,
@@ -395,7 +458,8 @@ export class SupabaseGameRepository {
     readonly seat: number;
     readonly status: SeatStatus;
     readonly name?: string;
-    readonly controller?: "human" | "typesafe_ai";
+    readonly controller?: "human" | "bot" | "typesafe_ai";
+    readonly bot?: BotDescriptor | null;
     readonly aiDifficulty?: AIDifficulty | null;
     readonly playerToken?: string | null;
     readonly isHost?: boolean;
@@ -404,7 +468,15 @@ export class SupabaseGameRepository {
   }): Promise<void> {
     const values: Record<string, unknown> = { status: input.status };
     if (input.name !== undefined) values.name = input.name;
-    if (input.controller !== undefined) values.controller = input.controller;
+    if (input.controller !== undefined) {
+      values.controller = input.controller === "typesafe_ai" ? "bot" : input.controller;
+    }
+    if (input.bot !== undefined) {
+      values.bot_id = input.bot?.id ?? null;
+      values.bot_label = input.bot?.label ?? null;
+      values.bot_provider = input.bot?.provider ?? null;
+      values.bot_model_id = input.bot?.modelId ?? null;
+    }
     if (input.aiDifficulty !== undefined) {
       values.ai_difficulty = input.aiDifficulty;
     }
@@ -462,9 +534,20 @@ export class SupabaseGameRepository {
           engine_player_id: player.enginePlayerId,
           seat: player.seat,
           name: player.name,
-          controller: player.controller,
+          controller: player.controller === "typesafe_ai" ? "bot" : player.controller,
           stack: player.stack,
         };
+
+        const bot =
+          player.controller === "typesafe_ai"
+            ? legacyJevBot
+            : (player.bot ?? null);
+        if (bot) {
+          row.bot_id = bot.id;
+          row.bot_label = bot.label;
+          row.bot_provider = bot.provider;
+          row.bot_model_id = bot.modelId;
+        }
 
         if (player.status !== undefined) {
           row.status = player.status;
@@ -712,11 +795,20 @@ export class SupabaseGameRepository {
         p_ai_state: input.aiState,
         p_legal_actions: input.legalActions,
         p_choice: input.choice,
+        p_bot_id: (input.bot ?? legacyJevBot).id,
+        p_bot_label: (input.bot ?? legacyJevBot).label,
+        p_bot_provider: (input.bot ?? legacyJevBot).provider,
+        p_bot_model_id: (input.bot ?? legacyJevBot).modelId,
         p_probabilities: input.probabilities,
         p_confidence: input.confidence,
         p_raise_size_choice: input.raiseSizeChoice,
         p_raise_size_probabilities: input.raiseSizeProbabilities,
         p_raw_response: input.rawResponse,
+        p_matched_rule: input.matchedRule ?? null,
+        p_prompt_version: input.promptVersion ?? null,
+        p_duration_ms: input.durationMs ?? null,
+        p_usage: input.usage ?? null,
+        p_cost: input.cost ?? null,
         p_auto_reveal_player_engine_id: input.autoRevealPlayerEngineId ?? null,
         p_auto_reveal_reason: input.autoRevealReason ?? null,
       },

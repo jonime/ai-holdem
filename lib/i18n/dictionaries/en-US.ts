@@ -147,6 +147,7 @@ const dictionary = {
     startGame: "Unable to start game",
     updateSettings: "Unable to update table settings",
     advanceAi: "Unable to advance TypeSafe AI",
+    retryBot: "Retry bot",
     submitAction: "Unable to submit action",
     nextHand: "Unable to start next hand",
     revealCards: "Unable to show cards",

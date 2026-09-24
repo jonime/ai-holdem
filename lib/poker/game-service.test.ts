@@ -383,7 +383,7 @@ describe("assignBotToSeat", () => {
         gameId: "game-1",
         seat: 1,
         status: "bot",
-        controller: "typesafe_ai",
+        controller: "bot",
         aiDifficulty: "hard",
         playerToken: null,
       }),
@@ -939,7 +939,7 @@ describe("stepTypesafeAction", () => {
         { evaluate: vi.fn() },
         "game-1",
       ),
-    ).rejects.toThrow("not a TypeSafe AI turn");
+    ).rejects.toThrow("not a bot turn");
   });
 });
 

@@ -5,6 +5,7 @@ import { assignBotToSeat } from "@/lib/poker/game-service";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { publishSeatEvent } from "@/lib/realtime/publish";
 import type { AIDifficulty } from "@/lib/poker/types";
+import { getBotCatalog } from "@/lib/bots/registry";
 
 interface AssignBotRouteContext {
   readonly params: Promise<{ gameId: string; seat: string }>;
@@ -23,6 +24,19 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
     body && typeof body === "object" && "difficulty" in body
       ? (body as Record<string, unknown>).difficulty
       : undefined;
+  const requestedBotId =
+    body && typeof body === "object" && "botId" in body
+      ? (body as Record<string, unknown>).botId
+      : undefined;
+  if (requestedBotId !== undefined && typeof requestedBotId !== "string") {
+    return NextResponse.json({ error: "Invalid bot ID" }, { status: 400 });
+  }
+  const bot = getBotCatalog().find(
+    (candidate) => candidate.id === (requestedBotId ?? "jev"),
+  );
+  if (!bot) {
+    return NextResponse.json({ error: "Unknown bot ID" }, { status: 400 });
+  }
   if (
     requestedDifficulty !== undefined &&
     requestedDifficulty !== "easy" &&
@@ -43,6 +57,7 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
       seat,
       playerToken,
       difficulty,
+      bot,
     );
     void publishSeatEvent(gameId, "seat_bot_assigned", assignment);
     return NextResponse.json({ seat: assignment }, { status: 200 });

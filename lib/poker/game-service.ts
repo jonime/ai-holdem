@@ -1,8 +1,10 @@
 import { pokerEngineAdapter } from "./adapter";
 import { createPokerAIState } from "./ai-state";
+import { createSizingOptions } from "@/lib/typesafe/questions";
 import { applyHumanAction, type HumanActionSubmission } from "./human-actions";
 import type {
   AIDifficulty,
+  BotDescriptor,
   GameConfig,
   PokerGameState,
   PublicPokerGame,
@@ -18,10 +20,10 @@ import type {
   UpdateSeatCountInput,
 } from "@/lib/supabase/queries";
 import { GameConflictError } from "@/lib/supabase/queries";
-import {
-  decidePokerAction,
-  type TypesafeDecisionClient,
-} from "@/lib/typesafe/decision";
+import type { TypesafeDecisionClient } from "@/lib/typesafe/decision";
+import { JevPokerBot } from "@/lib/bots/jev";
+import type { BotRegistry } from "@/lib/bots/registry";
+import type { PokerBot } from "@/lib/bots/types";
 
 export interface CreateDemoGameOptions {
   readonly seatCount?: number;
@@ -107,7 +109,8 @@ export interface SeatAssignment {
   readonly seat: number;
   readonly name?: string;
   readonly status: SeatStatus;
-  readonly controller: "human" | "typesafe_ai";
+  readonly controller: "human" | "bot";
+  readonly bot?: BotDescriptor | null;
   readonly aiDifficulty?: AIDifficulty | null;
   readonly playerToken: string | null;
   readonly isHost: boolean;
@@ -122,7 +125,8 @@ export interface SeatAssignmentRepository {
     readonly seat: number;
     readonly status: SeatStatus;
     readonly name?: string;
-    readonly controller?: "human" | "typesafe_ai";
+    readonly controller?: "human" | "bot";
+    readonly bot?: BotDescriptor | null;
     readonly aiDifficulty?: AIDifficulty | null;
     readonly playerToken?: string | null;
     readonly isHost?: boolean;
@@ -181,19 +185,23 @@ export interface PublicGame {
 export interface PublicAIDecision {
   readonly action: "fold" | "check" | "call" | "bet" | "raise";
   readonly amount: number | null;
-  readonly probabilities: Readonly<Record<string, number>>;
-  readonly confidence: number;
+  readonly bot: BotDescriptor;
+  readonly probabilities: Readonly<Record<string, number>> | null;
+  readonly confidence: number | null;
   readonly sizing: {
     readonly choice: import("@/lib/typesafe/questions").SizingChoice;
-    readonly probabilities: Readonly<Record<string, number>>;
-    readonly confidence: number;
+    readonly probabilities: Readonly<Record<string, number>> | null;
+    readonly confidence: number | null;
   } | null;
+  readonly matchedRule: string | null;
 }
 
-export interface TypesafeStepResult {
+export interface BotStepResult {
   readonly game: PublicGame;
   readonly aiDecision: PublicAIDecision;
 }
+
+export type TypesafeStepResult = BotStepResult;
 
 export class GameNotFoundError extends Error {
   constructor(gameId: string) {
@@ -238,6 +246,7 @@ export async function createDemoGame(
         seat,
         name: player?.name ?? `Seat ${seat + 1}`,
         controller: player?.controller ?? "human",
+        bot: player?.bot ?? null,
         aiDifficulty: player?.aiDifficulty ?? null,
         stack: player?.stack ?? config.startingStack ?? 10_000,
         status: player?.status ?? "open",
@@ -292,11 +301,12 @@ function playerConfigForAssignment(
     name:
       assignment.name ??
       (assignment.status === "bot"
-        ? "TypeSafe AI"
+        ? (assignment.bot?.label ?? "TypeSafe Jev")
         : `Player ${assignment.seat + 1}`),
     controller: assignment.controller,
+    bot: assignment.controller === "bot" ? assignment.bot : null,
     aiDifficulty:
-      assignment.controller === "typesafe_ai"
+      assignment.bot?.provider === "typesafe"
         ? (assignment.aiDifficulty ?? "medium")
         : null,
     stack: startingStack,
@@ -339,8 +349,9 @@ async function withOpenSeatPlaceholders(
               ...player,
               name: assignment.name ?? player.name,
               controller: assignment.controller,
+              bot: assignment.controller === "bot" ? assignment.bot : null,
               aiDifficulty:
-                assignment.controller === "typesafe_ai"
+                assignment.bot?.provider === "typesafe"
                   ? (assignment.aiDifficulty ?? "medium")
                   : null,
               status: assignment.status,
@@ -368,6 +379,7 @@ async function reconcileState(
         name: `Seat ${assignment.seat + 1}`,
         status: "open",
         controller: "human",
+        bot: null,
         aiDifficulty: null,
         playerToken: null,
         isHost: false,
@@ -379,6 +391,7 @@ async function reconcileState(
         name: openAssignment.name,
         status: "open",
         controller: "human",
+        bot: null,
         aiDifficulty: null,
         playerToken: null,
         isHost: false,
@@ -435,8 +448,9 @@ async function reconcileState(
               ...player,
               name: assignment.name ?? player.name,
               controller: assignment.controller,
+              bot: assignment.controller === "bot" ? assignment.bot : null,
               aiDifficulty:
-                assignment.controller === "typesafe_ai"
+                assignment.bot?.provider === "typesafe"
                   ? (assignment.aiDifficulty ?? "medium")
                   : null,
             }
@@ -490,7 +504,7 @@ function autoRevealForCompletedState(
   const winner = state.config.players.find(
     (player) => player.id === snapshot.winnerIds[0],
   );
-  return winner?.controller === "typesafe_ai"
+  return winner && winner.controller !== "human"
     ? { playerId: winner.id, reason: "bot_uncontested" }
     : null;
 }
@@ -752,6 +766,12 @@ export async function assignBotToSeat(
   seat: number,
   hostToken: string,
   difficulty: AIDifficulty = "medium",
+  bot: BotDescriptor = {
+    id: "jev",
+    label: "TypeSafe Jev",
+    provider: "typesafe",
+    modelId: "jev-latest",
+  },
 ): Promise<SeatAssignment> {
   const seatAssignments = await repository.getSeatAssignments(gameId);
   const assignment = seatAssignments.find((entry) => entry.seat === seat);
@@ -769,13 +789,14 @@ export async function assignBotToSeat(
   const existingBotCount = seatAssignments.filter(
     (entry) => entry.status === "bot",
   ).length;
-  const name = `TypeSafe AI #${existingBotCount + 1}`;
+  const name = `${bot.label} #${existingBotCount + 1}`;
 
   const updatedAssignment: SeatAssignment = {
     ...assignment,
     status: "bot",
-    controller: "typesafe_ai",
-    aiDifficulty: difficulty,
+    controller: "bot",
+    bot,
+    aiDifficulty: bot.provider === "typesafe" ? difficulty : null,
     name,
     playerToken: null,
     isHost: false,
@@ -786,8 +807,9 @@ export async function assignBotToSeat(
     gameId,
     seat,
     status: "bot",
-    controller: "typesafe_ai",
-    aiDifficulty: difficulty,
+    controller: "bot",
+    bot,
+    aiDifficulty: bot.provider === "typesafe" ? difficulty : null,
     name,
     playerToken: null,
     isHost: false,
@@ -838,6 +860,7 @@ export async function releaseSeat(
     status: isHandInProgress ? assignment.status : "open",
     name: isHandInProgress ? assignment.name : `Seat ${seat + 1}`,
     controller: isHandInProgress ? assignment.controller : "human",
+    bot: isHandInProgress ? assignment.bot : null,
     aiDifficulty: isHandInProgress ? assignment.aiDifficulty : null,
     playerToken: isHandInProgress ? assignment.playerToken : null,
     isHost: false,
@@ -850,6 +873,7 @@ export async function releaseSeat(
     status: updatedAssignment.status,
     name: updatedAssignment.name,
     controller: updatedAssignment.controller,
+    bot: updatedAssignment.bot,
     aiDifficulty: updatedAssignment.aiDifficulty,
     playerToken: updatedAssignment.playerToken,
     isHost: false,
@@ -988,7 +1012,7 @@ export async function submitHumanAction(
   };
 }
 
-export async function stepTypesafeAction(
+async function stepResolvedBotAction(
   repository: GameReader &
     AIActionWriter &
     Partial<
@@ -997,22 +1021,27 @@ export async function stepTypesafeAction(
         GameHostReader &
         HandRevealReader
     >,
-  client: TypesafeDecisionClient,
+  bot: PokerBot,
+  botDescriptor: BotDescriptor,
   gameId: string,
+  expectedVersion: number,
   viewerToken: string | null = null,
-): Promise<TypesafeStepResult> {
+): Promise<BotStepResult> {
   const game = await repository.getGame(gameId);
   if (!game) {
     throw new GameNotFoundError(gameId);
   }
+  if (game.version !== expectedVersion) {
+    throw new GameConflictError(gameId, expectedVersion);
+  }
 
   const stateBefore = restorePersistedState(game.currentState);
   const snapshotBefore = pokerEngineAdapter.snapshot(stateBefore);
-  const aiPlayer = stateBefore.config.players.find(
+  const botPlayer = stateBefore.config.players.find(
     (player) => player.id === snapshotBefore.currentActorId,
   );
-  if (!aiPlayer || aiPlayer.controller !== "typesafe_ai") {
-    throw new Error("It is not a TypeSafe AI turn");
+  if (!botPlayer || botPlayer.controller === "human") {
+    throw new Error("It is not a bot turn");
   }
   if (!snapshotBefore.street || snapshotBefore.street === "complete") {
     throw new Error("The current hand is not accepting actions");
@@ -1021,21 +1050,22 @@ export async function stepTypesafeAction(
   const history = repository.getHandHistory
     ? await repository.getHandHistory(gameId, snapshotBefore.handNumber)
     : null;
-  const aiState = createPokerAIState(stateBefore, aiPlayer.id, {
-    difficulty: aiPlayer.aiDifficulty ?? "medium",
+  const aiState = createPokerAIState(stateBefore, botPlayer.id, {
+    difficulty: botPlayer.aiDifficulty ?? "medium",
     actionHistory: history?.actions ?? [],
   });
-  const decision = await decidePokerAction(client, aiState);
+  const context = { ...aiState, sizingOptions: createSizingOptions(aiState) };
+  const decision = await bot.decide(context);
   const stateAfter = pokerEngineAdapter.applyAction(
     stateBefore,
-    aiPlayer.id,
+    botPlayer.id,
     decision.action,
   );
   const snapshotAfter = pokerEngineAdapter.snapshot(stateAfter);
   const persistedGame = await repository.persistAIAction({
     gameId,
-    expectedVersion: game.version,
-    playerEngineId: aiPlayer.id,
+    expectedVersion,
+    playerEngineId: botPlayer.id,
     currentState: stateAfter,
     stateSchemaVersion: stateAfter.stateSchemaVersion,
     handNumber: snapshotAfter.handNumber,
@@ -1049,10 +1079,17 @@ export async function stepTypesafeAction(
     aiState,
     legalActions: aiState.legalActions,
     choice: decision.action.type,
-    probabilities: decision.probabilities,
-    confidence: decision.confidence,
-    raiseSizeChoice: decision.sizing?.choice ?? null,
-    raiseSizeProbabilities: decision.sizing?.probabilities ?? null,
+    bot: botDescriptor,
+    probabilities: decision.diagnostics.probabilities,
+    confidence: decision.diagnostics.confidence,
+    raiseSizeChoice: decision.diagnostics.sizing?.choice ?? null,
+    raiseSizeProbabilities:
+      decision.diagnostics.sizing?.probabilities ?? null,
+    matchedRule: decision.diagnostics.matchedRule,
+    promptVersion: decision.diagnostics.promptVersion,
+    durationMs: decision.diagnostics.durationMs,
+    usage: decision.diagnostics.usage,
+    cost: decision.diagnostics.cost,
     rawResponse: decision.rawResponse,
     ...(() => {
       const autoReveal = autoRevealForCompletedState(
@@ -1093,11 +1130,62 @@ export async function stepTypesafeAction(
       action: decision.action.type,
       amount:
         "amount" in decision.action ? (decision.action.amount ?? null) : null,
-      probabilities: decision.probabilities,
-      confidence: decision.confidence,
-      sizing: decision.sizing ?? null,
+      bot: botDescriptor,
+      probabilities: decision.diagnostics.probabilities,
+      confidence: decision.diagnostics.confidence,
+      sizing: decision.diagnostics.sizing,
+      matchedRule: decision.diagnostics.matchedRule,
     },
   };
+}
+
+export async function stepBotAction(
+  repository: Parameters<typeof stepResolvedBotAction>[0],
+  registry: BotRegistry,
+  gameId: string,
+  expectedVersion: number,
+  viewerToken: string | null = null,
+): Promise<BotStepResult> {
+  const game = await repository.getGame(gameId);
+  if (!game) throw new GameNotFoundError(gameId);
+  if (game.version !== expectedVersion) {
+    throw new GameConflictError(gameId, expectedVersion);
+  }
+  const state = restorePersistedState(game.currentState);
+  const actorId = pokerEngineAdapter.snapshot(state).currentActorId;
+  const player = state.config.players.find((candidate) => candidate.id === actorId);
+  if (!player || player.controller === "human") {
+    throw new Error("It is not a bot turn");
+  }
+  const botId = player.bot?.id ?? "jev";
+  const resolved = registry.get(botId);
+  return stepResolvedBotAction(
+    repository,
+    resolved.bot,
+    resolved.descriptor,
+    gameId,
+    expectedVersion,
+    viewerToken,
+  );
+}
+
+/** Legacy test seam retained while callers migrate to the bot registry. */
+export async function stepTypesafeAction(
+  repository: Parameters<typeof stepResolvedBotAction>[0],
+  client: TypesafeDecisionClient,
+  gameId: string,
+  viewerToken: string | null = null,
+): Promise<BotStepResult> {
+  const game = await repository.getGame(gameId);
+  if (!game) throw new GameNotFoundError(gameId);
+  return stepResolvedBotAction(
+    repository,
+    new JevPokerBot(client),
+    { id: "jev", label: "TypeSafe Jev", provider: "typesafe", modelId: "jev-latest" },
+    gameId,
+    game.version,
+    viewerToken,
+  );
 }
 
 export async function startNextHand(

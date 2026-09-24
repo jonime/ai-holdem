@@ -75,7 +75,7 @@ export function PokerTable({
   const checkCallAction = legalAction("check") ?? legalAction("call");
   const botOnlyGame = game.poker.players
     .filter((player) => player.status === "claimed" || player.status === "bot")
-    .every((player) => player.controller === "typesafe_ai");
+    .every((player) => player.controller === "bot");
   const selectedAmount = sizedAction
     ? Math.min(
         sizedAction.maxAmount,

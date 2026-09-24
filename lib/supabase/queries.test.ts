@@ -142,7 +142,11 @@ describe("SupabaseGameRepository", () => {
           engine_player_id: "ai",
           seat: 1,
           name: "TypeSafe AI",
-          controller: "typesafe_ai",
+          controller: "bot",
+          bot_id: "jev",
+          bot_label: "TypeSafe Jev",
+          bot_provider: "typesafe",
+          bot_model_id: "jev-latest",
           ai_difficulty: "hard",
           stack: 10_000,
         },
@@ -158,14 +162,14 @@ describe("SupabaseGameRepository", () => {
       gameId: "game-1",
       seat: 1,
       status: "bot",
-      controller: "typesafe_ai",
+      controller: "bot",
       aiDifficulty: "easy",
       enginePlayerId: "bot-game-1-1",
     });
 
     expect(update).toHaveBeenCalledWith({
       status: "bot",
-      controller: "typesafe_ai",
+      controller: "bot",
       ai_difficulty: "easy",
       engine_player_id: "bot-game-1-1",
     });

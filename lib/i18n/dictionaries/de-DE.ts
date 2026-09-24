@@ -151,6 +151,7 @@ const dictionary = {
     startGame: "Spiel konnte nicht gestartet werden",
     updateSettings: "Tischeinstellungen konnten nicht aktualisiert werden",
     advanceAi: "TypeSafe-KI konnte nicht fortgesetzt werden",
+    retryBot: "Bot erneut versuchen",
     submitAction: "Aktion konnte nicht gesendet werden",
     nextHand: "Nächste Hand konnte nicht gestartet werden",
     revealCards: "Karten konnten nicht aufgedeckt werden",

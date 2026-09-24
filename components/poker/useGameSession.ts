@@ -17,6 +17,7 @@ import { useI18n } from "@/components/poker/I18nProvider";
 import type {
   AIDecision,
   AIDifficulty,
+  BotDescriptor,
   Game,
   HandHistory,
   LegalAction,
@@ -35,6 +36,7 @@ export function useGameSession(gameId?: string) {
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [botCatalog, setBotCatalog] = useState<readonly BotDescriptor[]>([]);
   const automaticallyAdvancedVersions = useRef(new Set<number>());
   const latestLoadRequest = useRef(0);
   const realtimeRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(
@@ -90,6 +92,12 @@ export function useGameSession(gameId?: string) {
   }, [gameId, loadGame, t]);
 
   useGameChannel(gameId, game?.version ?? null, scheduleRealtimeRefresh);
+
+  useEffect(() => {
+    void requestJson<{ bots: readonly BotDescriptor[] }>("/api/bots")
+      .then((body) => setBotCatalog(body.bots))
+      .catch(() => undefined);
+  }, []);
 
   useEffect(() => {
     if (!gameId) {
@@ -213,9 +221,10 @@ export function useGameSession(gameId?: string) {
   );
 
   const assignBot = useCallback(
-    async (seat: number, difficulty: AIDifficulty) => {
+    async (seat: number, difficulty: AIDifficulty, botId = "jev") => {
       await postSeatAction(`/api/games/${game?.id}/seats/${seat}/assign-bot`, {
         difficulty,
+        botId,
       });
     },
     [game, postSeatAction],
@@ -312,13 +321,17 @@ export function useGameSession(gameId?: string) {
       current.poker.players.some(
         (player) =>
           player.id === current.poker.currentActorId &&
-          player.controller === "typesafe_ai",
+          player.controller === "bot",
       );
       attempts += 1
     ) {
       const body = await requestJson<{ game: Game; aiDecision: AIDecision }>(
         `/api/games/${current.id}/step`,
-        { method: "POST" },
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expectedVersion: current.version }),
+        },
       );
       current = body.game;
       setGame(current);
@@ -332,6 +345,13 @@ export function useGameSession(gameId?: string) {
     try {
       await advanceAiTurns(nextGame);
     } catch (requestError) {
+      if (
+        requestError instanceof Error &&
+        requestError.message === "Game version conflict" &&
+        gameId
+      ) {
+        await loadGame(gameId).catch(() => undefined);
+      }
       setError(
         requestError instanceof Error
           ? requestError.message
@@ -342,6 +362,30 @@ export function useGameSession(gameId?: string) {
     }
   });
 
+  const retryBotTurn = useCallback(async () => {
+    if (!game) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await advanceAiTurns(game);
+    } catch (requestError) {
+      if (
+        requestError instanceof Error &&
+        requestError.message === "Game version conflict"
+      ) {
+        await loadGame(game.id);
+      } else {
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : t("errors.advanceAi"),
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [advanceAiTurns, game, loadGame, t]);
+
   useEffect(() => {
     if (
       !game ||
@@ -351,7 +395,7 @@ export function useGameSession(gameId?: string) {
       !game.poker.players.some(
         (player) =>
           player.id === game.poker.currentActorId &&
-          player.controller === "typesafe_ai",
+          player.controller === "bot",
       )
     ) {
       return;
@@ -467,6 +511,7 @@ export function useGameSession(gameId?: string) {
   }, []);
 
   return {
+    botCatalog,
     game,
     history,
     selectedHistoryHand,
@@ -484,6 +529,7 @@ export function useGameSession(gameId?: string) {
     submitAction,
     beginNextHand,
     revealCards,
+    retryBotTurn,
     selectHistoryHand,
   };
 }

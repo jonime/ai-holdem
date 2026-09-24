@@ -1,12 +1,23 @@
-export type PlayerController = "human" | "typesafe_ai";
+export type PlayerController = "human" | "bot";
 export type SeatStatus = "open" | "claimed" | "bot";
 export type AIDifficulty = "easy" | "medium" | "hard";
+
+export type BotProvider = "typesafe" | "openrouter" | "rules";
+
+export interface BotDescriptor {
+  readonly id: string;
+  readonly label: string;
+  readonly provider: BotProvider;
+  readonly modelId: string | null;
+}
 
 export interface PokerPlayerConfig {
   readonly id: string;
   readonly seat: number;
   readonly name: string;
-  readonly controller: PlayerController;
+  /** `typesafe_ai` is accepted only while restoring legacy state. */
+  readonly controller: PlayerController | "typesafe_ai";
+  readonly bot?: BotDescriptor | null;
   readonly aiDifficulty?: AIDifficulty | null;
   readonly stack: number;
   readonly status?: SeatStatus;
@@ -89,6 +100,7 @@ export interface PublicPokerPlayer {
   readonly id: string;
   readonly name: string;
   readonly controller: PlayerController;
+  readonly bot?: BotDescriptor | null;
   readonly aiDifficulty: AIDifficulty | null;
   readonly seat: number;
   readonly status: SeatStatus;

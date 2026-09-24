@@ -70,6 +70,7 @@ export interface BroadcastSeat {
   readonly name?: string;
   readonly status: SeatAssignment["status"];
   readonly controller: SeatAssignment["controller"];
+  readonly bot?: SeatAssignment["bot"];
   readonly aiDifficulty?: SeatAssignment["aiDifficulty"];
   readonly isHost: boolean;
   readonly leaving?: boolean;
@@ -83,6 +84,7 @@ export function toBroadcastSeat(assignment: SeatAssignment): BroadcastSeat {
     ...(assignment.name === undefined ? {} : { name: assignment.name }),
     status: assignment.status,
     controller: assignment.controller,
+    ...(assignment.bot === undefined ? {} : { bot: assignment.bot }),
     ...(assignment.aiDifficulty === undefined
       ? {}
       : { aiDifficulty: assignment.aiDifficulty }),

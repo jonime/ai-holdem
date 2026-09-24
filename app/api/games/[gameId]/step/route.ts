@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server";
 
-import { isFakeTypesafeModeEnabled } from "@/lib/env/server";
 import { getPlayerTokenFromRequest } from "@/lib/identity/player-token";
 import {
   GameNotFoundError,
-  stepTypesafeAction,
+  stepBotAction,
 } from "@/lib/poker/game-service";
+import { ServerBotRegistry } from "@/lib/bots/registry";
+import { BotProviderError } from "@/lib/bots/types";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
-import { TypesafeSystemOneClient } from "@/lib/typesafe/client";
 import { TypesafeRequestError } from "@/lib/typesafe/client";
-import { FakeTypesafeClient } from "@/lib/typesafe/fake-client";
 import { TypesafeResponseError } from "@/lib/typesafe/types";
 import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
 
@@ -20,14 +19,21 @@ interface StepRouteContext {
 
 export async function POST(request: Request, context: StepRouteContext) {
   const { gameId } = await context.params;
+  const body: unknown = await request.json().catch(() => null);
+  const expectedVersion =
+    body && typeof body === "object" && "expectedVersion" in body
+      ? (body as Record<string, unknown>).expectedVersion
+      : null;
+  if (!Number.isSafeInteger(expectedVersion) || (expectedVersion as number) < 0) {
+    return NextResponse.json({ error: "Invalid expected version" }, { status: 400 });
+  }
 
   try {
-    const result = await stepTypesafeAction(
+    const result = await stepBotAction(
       createSupabaseGameRepository(),
-      isFakeTypesafeModeEnabled()
-        ? new FakeTypesafeClient()
-        : new TypesafeSystemOneClient(),
+      new ServerBotRegistry(),
       gameId,
+      expectedVersion as number,
       getPlayerTokenFromRequest(request),
     );
     void publishGameEvent(
@@ -54,7 +60,9 @@ export async function POST(request: Request, context: StepRouteContext) {
     }
     if (
       error instanceof TypesafeRequestError ||
-      error instanceof TypesafeResponseError
+      error instanceof TypesafeResponseError ||
+      error instanceof BotProviderError ||
+      (error instanceof Error && error.message === "External inference is disabled")
     ) {
       return NextResponse.json(
         { error: "AI decision failed" },
@@ -63,12 +71,12 @@ export async function POST(request: Request, context: StepRouteContext) {
     }
     if (
       error instanceof Error &&
-      error.message === "It is not a TypeSafe AI turn"
+      error.message === "It is not a bot turn"
     ) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
 
-    console.error("Unable to step TypeSafe AI", error);
+    console.error("Unable to step bot", error);
     return NextResponse.json({ error: "AI decision failed" }, { status: 500 });
   }
 }

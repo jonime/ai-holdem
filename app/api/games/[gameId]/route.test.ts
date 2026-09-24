@@ -27,6 +27,7 @@ vi.mock("@/lib/poker/game-service", () => ({
   getPublicGame: (...args: unknown[]) => getPublicGameMock(...args),
   startNextHand: (...args: unknown[]) => startNextHandMock(...args),
   stepTypesafeAction: (...args: unknown[]) => stepTypesafeActionMock(...args),
+  stepBotAction: (...args: unknown[]) => stepTypesafeActionMock(...args),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -108,7 +109,13 @@ describe.each([
       expect(await response.json()).toMatchObject({ game });
       expect(service).toHaveBeenCalledWith(
         ...(name === "step"
-          ? [expect.any(Object), expect.any(Object), "game-1", viewerToken]
+          ? [
+              expect.any(Object),
+              expect.any(Object),
+              "game-1",
+              1,
+              viewerToken,
+            ]
           : [expect.any(Object), "game-1", 1, viewerToken]),
       );
       expect(publishGameEvent).toHaveBeenCalledWith(

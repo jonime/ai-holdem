@@ -4,10 +4,12 @@ import type {
   PublicPokerGame,
   PublicPokerPlayer,
   TableSettings,
+  BotDescriptor,
 } from "@/lib/poker/types";
 
 export type { LegalAction, PublicPokerGame, PublicPokerPlayer };
 export type { AIDifficulty, TableSettings };
+export type { BotDescriptor };
 
 export interface Game {
   readonly id: string;
@@ -20,13 +22,15 @@ export interface Game {
 export interface AIDecision {
   readonly action: string;
   readonly amount: number | null;
-  readonly probabilities: Readonly<Record<string, number>>;
-  readonly confidence: number;
+  readonly probabilities: Readonly<Record<string, number>> | null;
+  readonly bot: BotDescriptor;
+  readonly confidence: number | null;
   readonly sizing: {
     readonly choice: string;
-    readonly probabilities: Readonly<Record<string, number>>;
-    readonly confidence: number;
+    readonly probabilities: Readonly<Record<string, number>> | null;
+    readonly confidence: number | null;
   } | null;
+  readonly matchedRule: string | null;
 }
 
 export interface HandActionHistoryItem {
@@ -35,7 +39,8 @@ export interface HandActionHistoryItem {
   readonly action: string;
   readonly amount: number | null;
   readonly player: string;
-  readonly controller: "human" | "typesafe_ai";
+  readonly controller: "human" | "bot";
+  readonly bot: BotDescriptor | null;
 }
 
 export type LatestPlayerAction = Pick<
@@ -49,7 +54,9 @@ export interface CompletedAIDecisionInspection {
   readonly legalActions: unknown;
   readonly choice: string;
   readonly probabilities: unknown;
-  readonly confidence: number;
+  readonly confidence: number | null;
+  readonly bot: BotDescriptor;
+  readonly matchedRule: string | null;
   readonly rawResponse: unknown;
 }
 
