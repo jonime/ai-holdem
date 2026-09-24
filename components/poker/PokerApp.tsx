@@ -226,10 +226,8 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           onClaimSeatAt={(seat) => void claimSeatAt(seat, playerName)}
           onAssignBot={(seat, difficulty) => void assignBot(seat, difficulty)}
           onReleaseSeat={(seat) => void releaseSeat(seat)}
-          onStartWaitingGame={() => void startWaitingGame()}
-          onUpdateTableSettings={(settings) =>
-            void updateTableSettings(settings)
-          }
+          onStartWaitingGame={(settings) => void startWaitingGame(settings)}
+          onSeatCountChange={(settings) => void updateTableSettings(settings)}
         />
       ) : (
         <div className="game-layout">

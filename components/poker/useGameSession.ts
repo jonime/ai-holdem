@@ -221,30 +221,56 @@ export function useGameSession(gameId?: string) {
     [game, postSeatAction],
   );
 
-  const startWaitingGame = useCallback(async () => {
-    if (!game) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const body = await requestJson<{ game: Game }>(
-        `/api/games/${game.id}/start`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ expectedVersion: game.version }),
-        },
-      );
-      setGame(body.game);
-    } catch (requestError) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : t("errors.startGame"),
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [game, t]);
+  const startWaitingGame = useCallback(
+    async (settings: TableSettings) => {
+      if (!game) return;
+      setLoading(true);
+      setError(null);
+      try {
+        let currentGame = game;
+        const settingsChanged =
+          settings.seatCount !== currentGame.poker.seatCount ||
+          settings.smallBlind !== currentGame.poker.smallBlind ||
+          settings.bigBlind !== currentGame.poker.bigBlind ||
+          settings.startingStack !== currentGame.poker.startingStack ||
+          settings.botsShowUncontestedWins !==
+            (currentGame.poker.botsShowUncontestedWins ?? false);
+        if (settingsChanged) {
+          const settingsBody = await requestJson<{ game: Game }>(
+            `/api/games/${currentGame.id}/settings`,
+            {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ...settings,
+                expectedVersion: currentGame.version,
+              }),
+            },
+          );
+          currentGame = settingsBody.game;
+          setGame(currentGame);
+        }
+        const body = await requestJson<{ game: Game }>(
+          `/api/games/${currentGame.id}/start`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ expectedVersion: currentGame.version }),
+          },
+        );
+        setGame(body.game);
+      } catch (requestError) {
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : t("errors.startGame"),
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [game, t],
+  );
 
   const updateTableSettings = useCallback(
     async (settings: TableSettings) => {

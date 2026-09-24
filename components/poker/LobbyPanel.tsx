@@ -18,7 +18,7 @@ export function LobbyPanel({
   onAssignBot,
   onReleaseSeat,
   onStartWaitingGame,
-  onUpdateTableSettings,
+  onSeatCountChange,
 }: {
   readonly game: Game;
   readonly loading: boolean;
@@ -28,8 +28,8 @@ export function LobbyPanel({
   readonly onClaimSeatAt: (seat: number) => void;
   readonly onAssignBot: (seat: number, difficulty: AIDifficulty) => void;
   readonly onReleaseSeat: (seat: number) => void;
-  readonly onStartWaitingGame: () => void;
-  readonly onUpdateTableSettings: (settings: TableSettings) => void;
+  readonly onStartWaitingGame: (settings: TableSettings) => void;
+  readonly onSeatCountChange: (settings: TableSettings) => void;
 }) {
   const { t } = useI18n();
   const canManage = game.viewerIsHost;
@@ -61,16 +61,6 @@ export function LobbyPanel({
     parsedSettings.bigBlind > parsedSettings.smallBlind &&
     Number.isSafeInteger(parsedSettings.startingStack) &&
     parsedSettings.startingStack >= parsedSettings.bigBlind;
-  const settingsChanged =
-    parsedSettings.seatCount !== game.poker.seatCount ||
-    parsedSettings.smallBlind !== game.poker.smallBlind ||
-    parsedSettings.bigBlind !== game.poker.bigBlind ||
-    parsedSettings.startingStack !== game.poker.startingStack;
-  const settingsChangedWithReveal =
-    settingsChanged ||
-    parsedSettings.botsShowUncontestedWins !==
-      (game.poker.botsShowUncontestedWins ?? false);
-
   const updateDraft = (key: keyof typeof settingsDraft, value: string) => {
     setSettingsDraft((current) => ({ ...current, [key]: value }));
   };
@@ -96,23 +86,26 @@ export function LobbyPanel({
           />
         </label>
         {canManage ? (
-          <form
-            className="table-settings-form"
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (settingsValid && settingsChangedWithReveal) {
-                onUpdateTableSettings(parsedSettings);
-              }
-            }}
-          >
+          <div className="table-settings-form">
             <label className="lobby-field compact-field">
               <span>{t("lobby.seats")}</span>
               <select
                 value={settingsDraft.seatCount}
                 disabled={loading}
-                onChange={(event) =>
-                  updateDraft("seatCount", event.target.value)
-                }
+                onChange={(event) => {
+                  const seatCount = Number(event.target.value);
+                  updateDraft("seatCount", event.target.value);
+                  if (seatCount !== game.poker.seatCount) {
+                    onSeatCountChange({
+                      seatCount,
+                      smallBlind: game.poker.smallBlind,
+                      bigBlind: game.poker.bigBlind,
+                      startingStack: game.poker.startingStack,
+                      botsShowUncontestedWins:
+                        game.poker.botsShowUncontestedWins ?? false,
+                    });
+                  }
+                }}
               >
                 {[2, 3, 4, 5, 6].map((count) => (
                   <option key={count} value={count}>
@@ -173,13 +166,6 @@ export function LobbyPanel({
                   : t("lobby.checkValues")}
               </small>
             </label>
-            <button
-              className="apply-settings"
-              type="submit"
-              disabled={loading || !settingsValid || !settingsChangedWithReveal}
-            >
-              {t("lobby.applySettings")}
-            </button>
             <label className="lobby-toggle">
               <input
                 type="checkbox"
@@ -194,7 +180,7 @@ export function LobbyPanel({
               />
               <span>{t("lobby.botsShowUncontestedWins")}</span>
             </label>
-          </form>
+          </div>
         ) : (
           <div
             className="table-settings-summary"
@@ -326,9 +312,12 @@ export function LobbyPanel({
         <button
           type="button"
           disabled={
-            !canManage || filledSeatCount(game.poker.players) < 2 || loading
+            !canManage ||
+            filledSeatCount(game.poker.players) < 2 ||
+            !settingsValid ||
+            loading
           }
-          onClick={onStartWaitingGame}
+          onClick={() => onStartWaitingGame(parsedSettings)}
         >
           {t("lobby.startHand")}
         </button>
