@@ -15,12 +15,17 @@ Repository: [github.com/jonime/ai-holdem](https://github.com/jonime/ai-holdem)
 - Keeps AI hole cards, TypeSafe input, and raw responses private until the
 	relevant hand completes.
 
+This repo treats documentation as part of the implementation. If setup steps,
+commands, env vars, or workflows change, update the docs in the same change.
+This is a security-sensitive project: do not weaken validation, secret handling,
+privacy boundaries, or version-checked mutation rules in the name of speed.
+
 ## Local Setup
 
-Use Node.js 24 or newer and npm.
+Use Node.js 24 or newer and install dependencies from the lockfile.
 
 ```sh
-npm install
+npm ci
 cp .env.example .env
 ```
 
@@ -31,10 +36,15 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SECRET_KEY=
 TYPESAFE_API_KEY=
+OPENROUTER_API_KEY=
+OPENROUTER_BOT_PROFILES=[]
+EXTERNAL_INFERENCE_ENABLED=true
 ```
 
-`SUPABASE_SECRET_KEY` and `TYPESAFE_API_KEY` are server-only. Do not prefix
-them with `NEXT_PUBLIC_` and do not commit `.env`.
+`SUPABASE_SECRET_KEY`, `TYPESAFE_API_KEY`, and `OPENROUTER_API_KEY` are
+server-only. Do not prefix them with `NEXT_PUBLIC_` and do not commit `.env`.
+`EXTERNAL_INFERENCE_ENABLED` can be set to `false` in low-cost or offline
+settings, while `OPENROUTER_BOT_PROFILES` is a JSON array of model definitions.
 
 Game updates use Supabase Realtime Broadcast as a refetch signal. No additional
 SQL migration is required for Broadcast. The demo intentionally uses public
@@ -43,6 +53,11 @@ authorization boundary for production. Broadcast is best-effort: a successful
 database mutation remains successful when delivery is unavailable, and clients
 always refetch authoritative HTTP state. Missing browser Supabase credentials
 prevent the Realtime client from starting but do not expose server credentials.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contributor workflow and
+checklist. Keep this README, [AGENTS.md](AGENTS.md), and [CONTRIBUTING.md](CONTRIBUTING.md)
+kept in sync with the repo. If a workflow, command, setup step, or env variable
+changes, update the docs in the same change.
 
 Run every SQL file in [supabase/migrations](supabase/migrations) in filename
 order using the Supabase SQL Editor, or let the GitHub integration below push
@@ -107,7 +122,7 @@ npm run test:e2e:reset
 
 1. Import the existing Git repository in Vercel.
 2. Keep the default Next.js build settings (`npm run build`).
-3. Add the four environment variables above for Production and Preview.
+3. Add the environment variables listed above for Production and Preview.
 4. Deploy.
 
 The application uses the Supabase Data API from Next.js server routes, so keep

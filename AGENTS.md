@@ -18,19 +18,40 @@ for cards, turns, legal actions, betting, pots, and winners. Supabase persists
 game state and version-checked mutations; Realtime Broadcast only tells clients
 to refetch authoritative state.
 
+This repo is security-sensitive and architecture-sensitive. Treat the current
+code, tests, and live behavior as the source of truth. Do not rely on older
+plans, assumptions, or stale notes when they conflict with the implementation.
+Changes that weaken validation, privacy boundaries, or concurrency guarantees are
+not acceptable.
+
 The files in `plans/` explain the design sequence and security decisions. Use
-them for context, but treat the current code and tests as the source of truth
-when a plan describes an earlier state.
+them for context, but prefer the current code and tests when a plan describes an
+earlier state.
 
 ## Setup
 
 - Use Node.js 24 or newer. The repository includes `.nvmrc` for Node 24.
 - Install exactly from the lockfile with `npm ci` (use `npm install` only when
 	intentionally changing dependencies).
-- Copy `.env.example` to `.env` and provide the four documented values.
+- Copy `.env.example` to `.env` and provide the documented values, including the
+	optional OpenRouter settings used for external inference and deterministic bot
+	profiles.
 - Apply every file in `supabase/migrations/` in filename order to a Supabase
 	project. Never edit an already-applied migration; add a new timestamped one.
 - Start the app with `npm run dev`; it listens on `http://localhost:3001`.
+
+## Documentation Maintenance
+
+- Treat project docs as part of the implementation. Stale guidance is a product
+	bug.
+- Keep `AGENTS.md`, `README.md`, `CONTRIBUTING.md`, and any other project docs
+	synchronized with the live codebase and current workflows.
+- When a repo rule, setup step, environment variable, command, or workflow
+	changes, update the relevant docs in the same change.
+- Do not leave outdated instructions in place just because the code still works
+	by accident; fix the docs with the change.
+- If the implementation and the docs disagree, the implementation wins; the docs
+	must be corrected immediately.
 
 ## Required Checks
 
