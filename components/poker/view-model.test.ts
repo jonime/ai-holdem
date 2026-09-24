@@ -34,7 +34,7 @@ describe("view-model", () => {
       {
         id: "p2",
         name: "B",
-        controller: "typesafe_ai",
+        controller: "bot",
         aiDifficulty: "medium",
         seat: 1,
         status: "bot",
@@ -66,7 +66,7 @@ describe("view-model", () => {
       {
         id: "p4",
         name: "D",
-        controller: "typesafe_ai",
+        controller: "bot",
         aiDifficulty: "hard",
         seat: 3,
         status: "bot",
@@ -82,7 +82,7 @@ describe("view-model", () => {
       {
         id: "p5",
         name: "E",
-        controller: "typesafe_ai",
+        controller: "bot",
         aiDifficulty: "easy",
         seat: 4,
         status: "bot",

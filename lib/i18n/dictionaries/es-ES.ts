@@ -151,6 +151,7 @@ const dictionary = {
     startGame: "No se pudo iniciar la partida",
     updateSettings: "No se pudieron actualizar los ajustes de la mesa",
     advanceAi: "No se pudo avanzar la IA de TypeSafe",
+    retryBot: "Reintentar bot",
     submitAction: "No se pudo enviar la acción",
     nextHand: "No se pudo iniciar la siguiente mano",
     revealCards: "No se pudieron mostrar las cartas",

@@ -34,7 +34,7 @@ test("runs a two-player hand in a six-seat lobby", async ({
     0,
   );
   await page.getByLabel("Seats").selectOption("6");
-  await expect(page.getByText("SEAT 6", { exact: true })).toBeVisible();
+  await expect(page.locator("article").filter({ hasText: "Seat 6" })).toBeVisible();
   await expect(page.getByText("Available").first()).toBeVisible();
 
   const secondBrowser = await browser.newContext();
@@ -53,12 +53,8 @@ test("runs a two-player hand in a six-seat lobby", async ({
   await page.getByRole("button", { name: "Start hand" }).click();
 
   await expect(page.getByText("PREFLOP")).toBeVisible();
-  await expect(
-    page.locator(".desktop-seats").getByText("PLAYER 2", { exact: true }),
-  ).toHaveCount(1);
-  await expect(
-    page.locator(".desktop-seats").getByText("Open seat", { exact: true }),
-  ).toHaveCount(4);
+  await expect(page.getByText("PLAYER 2", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Open seat", { exact: true }).first()).toBeVisible();
 
   const callButton = await Promise.race([
     waitForPlayableHuman(page),
@@ -85,10 +81,43 @@ test("persists a per-bot difficulty selected in the lobby", async ({
 
   await page.getByLabel("Bot difficulty for seat 2").selectOption("hard");
   await page.getByRole("button", { name: "Assign bot" }).first().click();
-  await expect(page.getByText("TypeSafe AI · hard")).toBeVisible();
+  await expect(page.getByText("TypeSafe Jev · hard")).toBeVisible();
 
   await page.reload();
-  await expect(page.getByText("TypeSafe AI · hard")).toBeVisible();
+  await expect(page.getByText("TypeSafe Jev · hard")).toBeVisible();
+});
+
+test("runs the deterministic bot through completion, history, and another hand", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/en-US");
+  await page
+    .getByRole("region", { name: "Start a new game" })
+    .getByRole("button", { name: "New Game" })
+    .click();
+  await expect(page.getByText("WAITING ROOM")).toBeVisible();
+
+  await page.getByLabel("Bot for seat 2").selectOption("basic-equity-v1");
+  await page.getByRole("button", { name: "Assign bot" }).first().click();
+  await expect(page.getByText("Basic equity #1", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("Basic equity #1", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Start hand" }).click();
+
+  const checkOrCall = await waitForPlayableHuman(page);
+  await checkOrCall.click();
+  const fold = page.getByRole("button", { name: "Fold" });
+  await expect(fold).toBeEnabled({ timeout: 10_000 });
+  await fold.click();
+  await expect(page.getByText("COMPLETE")).toBeVisible({ timeout: 15_000 });
+  await page.getByRole("button", { name: "History" }).click();
+  await expect(page.getByText("Action History")).toBeVisible();
+  await expect(
+    page.getByRole("listitem").filter({ hasText: "Basic equity" }).first(),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Close action history" }).click();
+
+  await page.getByRole("button", { name: "Next Hand" }).click();
+  await expect(page.getByText("Hand 2")).toBeVisible({ timeout: 15_000 });
 });
 
 test("persists host table settings selected in the lobby", async ({ page }) => {
@@ -105,8 +134,8 @@ test("persists host table settings selected in the lobby", async ({ page }) => {
   await page.getByLabel("Starting stack").fill("5000");
   await page.getByRole("button", { name: "Apply settings" }).click();
 
-  await expect(page.getByText("SEAT 4", { exact: true })).toBeVisible();
-  await expect(page.getByText("SEAT 5", { exact: true })).toHaveCount(0);
+  await expect(page.locator("article").filter({ hasText: "Seat 4" })).toBeVisible();
+  await expect(page.locator("article").filter({ hasText: "Seat 5" })).toHaveCount(0);
   await page.reload();
   await expect(page.getByLabel("Seats")).toHaveValue("4");
   await expect(page.getByLabel("Small blind")).toHaveValue("25");

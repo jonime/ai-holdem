@@ -21,7 +21,15 @@ export class TypesafeSystemOneClient {
   constructor(private readonly fetcher: FetchLike = fetch) {}
 
   async evaluate(request: SystemOneRequest): Promise<unknown> {
-    const { typesafeApiKey } = getTypesafeServerEnv();
+    let typesafeApiKey: string;
+    try {
+      ({ typesafeApiKey } = getTypesafeServerEnv());
+    } catch (error) {
+      if (error instanceof Error && error.message === "External inference is disabled") {
+        throw error;
+      }
+      throw new TypesafeRequestError("TypeSafe credentials are not configured");
+    }
     const response = await this.fetcher(systemOneEndpoint, {
       method: "POST",
       headers: {

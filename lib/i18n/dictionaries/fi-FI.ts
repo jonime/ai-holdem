@@ -149,6 +149,7 @@ const dictionary = {
     startGame: "Pelin aloittaminen epäonnistui",
     updateSettings: "Pöydän asetusten päivitys epäonnistui",
     advanceAi: "TypeSafe AI:n vuoron edistäminen epäonnistui",
+    retryBot: "Yritä bottia uudelleen",
     submitAction: "Toiminnon lähettäminen epäonnistui",
     nextHand: "Seuraavan käden aloittaminen epäonnistui",
     revealCards: "Kortteja ei voitu näyttää",

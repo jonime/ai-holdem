@@ -29,7 +29,7 @@ export function Seat({
   readonly gameWinner: boolean;
 }) {
   const { dictionary, locale, t } = useI18n();
-  const isAi = player.controller === "typesafe_ai";
+  const isAi = player.controller === "bot";
   const isOpen = player.status === "open";
   const isBusted = player.stack === 0 && !player.inHand;
   const role =

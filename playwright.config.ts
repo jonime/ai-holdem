@@ -29,8 +29,10 @@ function getLocalSupabaseEnvironment(): Record<string, string> {
     NEXT_PUBLIC_SUPABASE_URL: url,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: publishableKey,
     SUPABASE_SECRET_KEY: secretKey,
-    TYPESAFE_API_KEY: "e2e-not-used",
-    TYPESAFE_FAKE_MODE: "true",
+    TYPESAFE_API_KEY: "",
+    OPENROUTER_API_KEY: "",
+    OPENROUTER_BOT_PROFILES: "[]",
+    EXTERNAL_INFERENCE_ENABLED: "false",
   };
 }
 

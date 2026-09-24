@@ -7,14 +7,14 @@ function DecisionSummary({
   probabilities,
   confidence,
 }: {
-  readonly probabilities: Readonly<Record<string, number>>;
-  readonly confidence: number;
+  readonly probabilities: Readonly<Record<string, number>> | null;
+  readonly confidence: number | null;
 }) {
   const { t } = useI18n();
   return (
     <div className={styles.decisionSummary}>
       <div className={`${styles.probabilityList} ${styles.compact}`}>
-        {Object.entries(probabilities).map(([choice, probability]) => (
+        {Object.entries(probabilities ?? {}).map(([choice, probability]) => (
           <div className={styles.probability} key={choice}>
             <span>{choice}</span>
             <div className={styles.probabilityTrack}>
@@ -24,9 +24,9 @@ function DecisionSummary({
           </div>
         ))}
       </div>
-      <span className={styles.confidenceChip}>
+      {confidence !== null ? <span className={styles.confidenceChip}>
         {t("history.confidence", { percent: Math.round(confidence * 100) })}
-      </span>
+      </span> : null}
     </div>
   );
 }
@@ -54,7 +54,7 @@ export function ActionHistory({
   }
 
   const aiActionSequences = history.actions
-    .filter((action) => action.controller === "typesafe_ai")
+    .filter((action) => action.controller === "bot")
     .map((action) => action.sequence);
   const liveDecisionBySequence = new Map(
     aiActionSequences.map((sequence, index) => [
@@ -84,13 +84,13 @@ export function ActionHistory({
         <ol className={styles.historyList}>
           {history.actions.map((action) => {
             const inspection =
-              action.controller === "typesafe_ai"
+              action.controller === "bot"
                 ? history.aiDecisions.find(
                     (decision) => decision.actionSequence === action.sequence,
                   )
                 : undefined;
             const liveDecision =
-              action.controller === "typesafe_ai" && !inspection
+              action.controller === "bot" && !inspection
                 ? liveDecisionBySequence.get(action.sequence)
                 : undefined;
             const actionLabel = `${action.action}${action.amount !== null ? ` ${formatChips(action.amount, locale)}` : ""}`;
@@ -99,10 +99,11 @@ export function ActionHistory({
               <li
                 key={action.sequence}
                 className={
-                  action.controller === "typesafe_ai" ? styles.aiHistory : ""
+                  action.controller === "bot" ? styles.aiHistory : ""
                 }
               >
                 <span>{action.player}</span>
+                {action.bot ? <small>{action.bot.label}</small> : null}
                 <b>{actionLabel}</b>
                 <small>{action.street}</small>
                 {inspection ? (

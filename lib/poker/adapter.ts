@@ -351,15 +351,25 @@ export const pokerEngineAdapter = {
         return {
           id: config.id,
           name: config.name,
-          controller: config.controller,
+          controller: config.controller === "human" ? "human" : "bot",
+          bot:
+            config.controller === "human"
+              ? null
+              : (config.bot ?? {
+                  id: "jev",
+                  label: "TypeSafe Jev",
+                  provider: "typesafe",
+                  modelId: "jev-latest",
+                }),
           aiDifficulty:
-            config.controller === "typesafe_ai"
+            config.controller !== "human" &&
+            (config.bot?.provider ?? "typesafe") === "typesafe"
               ? (config.aiDifficulty ?? "medium")
               : null,
           seat: config.seat,
           status:
             config.status ??
-            (config.controller === "typesafe_ai" ? "bot" : "claimed"),
+            (config.controller !== "human" ? "bot" : "claimed"),
           playerToken: isViewer ? (config.playerToken ?? null) : null,
           isHost: config.isHost ?? false,
           leaving: config.leaving ?? false,

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useI18n } from "@/components/poker/I18nProvider";
 import type {
   AIDifficulty,
+  BotDescriptor,
   Game,
   TableSettings,
 } from "@/components/poker/types";
@@ -11,6 +12,7 @@ import styles from "@/components/poker/LobbyPanel.module.css";
 
 export function LobbyPanel({
   game,
+  botCatalog,
   loading,
   playerName,
   setPlayerName,
@@ -22,12 +24,17 @@ export function LobbyPanel({
   onSeatCountChange,
 }: {
   readonly game: Game;
+  readonly botCatalog: readonly BotDescriptor[];
   readonly loading: boolean;
   readonly playerName: string;
   readonly setPlayerName: (value: string) => void;
   readonly viewerToken: string | null;
   readonly onClaimSeatAt: (seat: number) => void;
-  readonly onAssignBot: (seat: number, difficulty: AIDifficulty) => void;
+  readonly onAssignBot: (
+    seat: number,
+    difficulty: AIDifficulty,
+    botId: string,
+  ) => void;
   readonly onReleaseSeat: (seat: number) => void;
   readonly onStartWaitingGame: (settings: TableSettings) => void;
   readonly onSeatCountChange: (settings: TableSettings) => void;
@@ -37,6 +44,9 @@ export function LobbyPanel({
   const occupiedSeats = filledSeatCount(game.poker.players);
   const [botDifficulties, setBotDifficulties] = useState<
     Readonly<Record<number, AIDifficulty>>
+  >({});
+  const [selectedBots, setSelectedBots] = useState<
+    Readonly<Record<number, string>>
   >({});
   const [settingsDraft, setSettingsDraft] = useState({
     seatCount: String(game.poker.seatCount),
@@ -181,6 +191,13 @@ export function LobbyPanel({
               />
               <span>{t("lobby.botsShowUncontestedWins")}</span>
             </label>
+            <button
+              type="button"
+              disabled={loading || !settingsValid}
+              onClick={() => onSeatCountChange(parsedSettings)}
+            >
+              {t("lobby.applySettings")}
+            </button>
           </div>
         ) : (
           <div
@@ -229,11 +246,9 @@ export function LobbyPanel({
                 <strong>{player?.name ?? t("lobby.openSeat")}</strong>
                 <span>
                   {player?.status === "bot"
-                    ? t("lobby.typesafeAi", {
-                        difficulty: t(
-                          `lobby.${player.aiDifficulty ?? "medium"}`,
-                        ),
-                      })
+                    ? player.bot?.provider === "typesafe"
+                      ? `${player.bot.label} · ${t(`lobby.${player.aiDifficulty ?? "medium"}`)}`
+                      : (player.bot?.label ?? player.name)
                     : player?.status === "claimed"
                       ? t("lobby.humanPlayer")
                       : t("lobby.available")}
@@ -251,6 +266,26 @@ export function LobbyPanel({
                   {seatCanManage ? (
                     <div className={styles.botAssignmentControls}>
                       <select
+                        aria-label={`Bot for seat ${seat + 1}`}
+                        value={selectedBots[seat] ?? "jev"}
+                        disabled={loading}
+                        onChange={(event) =>
+                          setSelectedBots((current) => ({
+                            ...current,
+                            [seat]: event.target.value,
+                          }))
+                        }
+                      >
+                        {botCatalog.map((bot) => (
+                          <option key={bot.id} value={bot.id}>
+                            {bot.label}
+                          </option>
+                        ))}
+                      </select>
+                      {(botCatalog.find(
+                        (bot) => bot.id === (selectedBots[seat] ?? "jev"),
+                      )?.provider ?? "typesafe") === "typesafe" ? (
+                      <select
                         aria-label={t("lobby.botDifficulty", {
                           seat: seat + 1,
                         })}
@@ -267,11 +302,16 @@ export function LobbyPanel({
                         <option value="medium">{t("lobby.medium")}</option>
                         <option value="hard">{t("lobby.hard")}</option>
                       </select>
+                      ) : null}
                       <button
                         type="button"
                         disabled={loading}
                         onClick={() =>
-                          onAssignBot(seat, botDifficulties[seat] ?? "medium")
+                          onAssignBot(
+                            seat,
+                            botDifficulties[seat] ?? "medium",
+                            selectedBots[seat] ?? "jev",
+                          )
                         }
                       >
                         {t("lobby.assignBot")}

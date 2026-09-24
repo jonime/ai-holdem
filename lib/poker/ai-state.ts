@@ -15,7 +15,7 @@ export interface PokerAIActionHistoryItem {
   readonly action: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
   readonly amount: number | null;
   readonly player: string;
-  readonly controller: "human" | "typesafe_ai";
+  readonly controller: "human" | "bot";
 }
 
 export interface CreatePokerAIStateOptions {

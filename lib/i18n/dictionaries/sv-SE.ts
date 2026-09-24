@@ -149,6 +149,7 @@ const dictionary = {
     startGame: "Det gick inte att starta spelet",
     updateSettings: "Det gick inte att uppdatera bordsinställningarna",
     advanceAi: "Det gick inte att låta TypeSafe AI gå vidare",
+    retryBot: "Försök med botten igen",
     submitAction: "Det gick inte att skicka åtgärden",
     nextHand: "Det gick inte att starta nästa giv",
     revealCards: "Kunde inte visa korten",

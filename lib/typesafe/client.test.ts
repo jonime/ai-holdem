@@ -3,9 +3,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { TypesafeSystemOneClient } from "./client";
 
 const originalApiKey = process.env.TYPESAFE_API_KEY;
+const originalExternalInference = process.env.EXTERNAL_INFERENCE_ENABLED;
 
 afterEach(() => {
   process.env.TYPESAFE_API_KEY = originalApiKey;
+  process.env.EXTERNAL_INFERENCE_ENABLED = originalExternalInference;
 });
 
 describe("TypesafeSystemOneClient", () => {
@@ -53,5 +55,17 @@ describe("TypesafeSystemOneClient", () => {
     await expect(
       client.evaluate({ model: "jev-latest", state: {}, questions: {} }),
     ).rejects.toThrow("HTTP 422");
+  });
+
+  it("enforces the external-inference guard before calling TypeSafe", async () => {
+    process.env.EXTERNAL_INFERENCE_ENABLED = "false";
+    process.env.TYPESAFE_API_KEY = "inherited-key-must-not-be-used";
+    const fetcher = vi.fn();
+    const client = new TypesafeSystemOneClient(fetcher);
+
+    await expect(
+      client.evaluate({ model: "jev-latest", state: {}, questions: {} }),
+    ).rejects.toThrow("External inference is disabled");
+    expect(fetcher).not.toHaveBeenCalled();
   });
 });

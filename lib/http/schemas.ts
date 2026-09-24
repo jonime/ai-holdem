@@ -19,7 +19,16 @@ export const legalActionSchema = z.union([
 export const publicPlayerSchema = z.object({
   id: z.string(),
   name: z.string(),
-  controller: z.enum(["human", "typesafe_ai"]),
+  controller: z.enum(["human", "bot"]),
+  bot: z
+    .object({
+      id: z.string(),
+      label: z.string(),
+      provider: z.enum(["typesafe", "openrouter", "rules"]),
+      modelId: z.string().nullable(),
+    })
+    .nullable()
+    .default(null),
   aiDifficulty: z.enum(["easy", "medium", "hard"]).nullable(),
   seat: z.number().int().nonnegative(),
   status: z.enum(["open", "claimed", "bot"]),
@@ -101,8 +110,14 @@ const publicAIDecisionSchema = z
   .object({
     action: z.enum(["fold", "check", "call", "bet", "raise"]),
     amount: z.number().int().nonnegative().nullable(),
-    probabilities: z.record(z.string(), z.number().finite()),
-    confidence: z.number().finite(),
+    bot: z.object({
+      id: z.string(),
+      label: z.string(),
+      provider: z.enum(["typesafe", "openrouter", "rules"]),
+      modelId: z.string().nullable(),
+    }),
+    probabilities: z.record(z.string(), z.number().finite()).nullable(),
+    confidence: z.number().finite().nullable(),
     sizing: z
       .object({
         choice: z.enum([
@@ -113,11 +128,12 @@ const publicAIDecisionSchema = z
           "all_in",
           "not_applicable",
         ]),
-        probabilities: z.record(z.string(), z.number().finite()),
-        confidence: z.number().finite(),
+        probabilities: z.record(z.string(), z.number().finite()).nullable(),
+        confidence: z.number().finite().nullable(),
       })
       .strict()
       .nullable(),
+    matchedRule: z.string().nullable(),
   })
   .strict();
 
@@ -127,7 +143,16 @@ const broadcastSeatSchema = z
     seat: z.number().int().nonnegative(),
     name: z.string().optional(),
     status: z.enum(["open", "claimed", "bot"]),
-    controller: z.enum(["human", "typesafe_ai"]),
+    controller: z.enum(["human", "bot"]),
+    bot: z
+      .object({
+        id: z.string(),
+        label: z.string(),
+        provider: z.enum(["typesafe", "openrouter", "rules"]),
+        modelId: z.string().nullable(),
+      })
+      .nullable()
+      .optional(),
     aiDifficulty: z.enum(["easy", "medium", "hard"]).nullable().optional(),
     playerToken: z.null(),
     isHost: z.boolean(),
@@ -185,7 +210,15 @@ export const handActionHistoryItemSchema = z.object({
   action: z.string(),
   amount: z.number().nullable(),
   player: z.string(),
-  controller: z.enum(["human", "typesafe_ai"]),
+  controller: z.enum(["human", "bot"]),
+  bot: z
+    .object({
+      id: z.string(),
+      label: z.string(),
+      provider: z.enum(["typesafe", "openrouter", "rules"]),
+      modelId: z.string().nullable(),
+    })
+    .nullable(),
 });
 
 export const completedAIDecisionInspectionSchema = z.object({
@@ -194,7 +227,14 @@ export const completedAIDecisionInspectionSchema = z.object({
   legalActions: z.unknown(),
   choice: z.string(),
   probabilities: z.unknown(),
-  confidence: z.number().finite(),
+  confidence: z.number().finite().nullable(),
+  bot: z.object({
+    id: z.string(),
+    label: z.string(),
+    provider: z.enum(["typesafe", "openrouter", "rules"]),
+    modelId: z.string().nullable(),
+  }),
+  matchedRule: z.string().nullable(),
   rawResponse: z.unknown(),
 });
 

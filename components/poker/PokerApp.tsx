@@ -29,6 +29,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
 
   const {
     game,
+    botCatalog,
     history,
     selectedHistoryHand,
     liveDecisions,
@@ -42,6 +43,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     submitAction,
     beginNextHand,
     revealCards,
+    retryBotTurn,
     selectHistoryHand,
   } = useGameSession(gameId);
 
@@ -213,6 +215,15 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
       {error ? (
         <p className={styles.errorBanner} role="alert">
           {error}
+          {game?.poker.players.some(
+            (player) =>
+              player.id === game.poker.currentActorId &&
+              player.controller === "bot",
+          ) ? (
+            <button type="button" disabled={loading} onClick={() => void retryBotTurn()}>
+              {t("errors.retryBot")}
+            </button>
+          ) : null}
         </p>
       ) : null}
       {!game ? (
@@ -220,12 +231,15 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
       ) : game.status === "waiting" ? (
         <LobbyPanel
           game={game}
+          botCatalog={botCatalog}
           loading={loading}
           playerName={playerName}
           setPlayerName={setPlayerName}
           viewerToken={viewerToken}
           onClaimSeatAt={(seat) => void claimSeatAt(seat, playerName)}
-          onAssignBot={(seat, difficulty) => void assignBot(seat, difficulty)}
+          onAssignBot={(seat, difficulty, botId) =>
+            void assignBot(seat, difficulty, botId)
+          }
           onReleaseSeat={(seat) => void releaseSeat(seat)}
           onStartWaitingGame={(settings) => void startWaitingGame(settings)}
           onSeatCountChange={(settings) => void updateTableSettings(settings)}
