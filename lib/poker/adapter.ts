@@ -367,6 +367,10 @@ export const pokerEngineAdapter = {
           stack: seat?.stack ?? config.stack,
           folded: player?.folded ?? false,
           allIn: player?.allIn ?? false,
+          bestHand:
+            publicAtCompletion && player && !player.folded
+              ? (sourcePlayer?.handRank?.category ?? null)
+              : null,
           cardsRevealed:
             Boolean(player) &&
             (revealedIds.has(config.id) ||

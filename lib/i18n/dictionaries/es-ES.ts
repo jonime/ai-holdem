@@ -107,6 +107,17 @@ const dictionary = {
     allIn: "All-in",
     thinking: "Pensando",
     waiting: "Esperando",
+    handCategories: {
+      "high-card": "Carta alta",
+      "one-pair": "Pareja",
+      "two-pair": "Dobles parejas",
+      "three-of-a-kind": "Trío",
+      straight: "Escalera",
+      flush: "Color",
+      "full-house": "Full",
+      "four-of-a-kind": "Póker",
+      "straight-flush": "Escalera de color",
+    },
   },
   history: {
     actionHistory: "Historial de acciones",

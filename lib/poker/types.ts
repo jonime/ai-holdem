@@ -54,6 +54,16 @@ export type LegalAction =
     };
 
 export type PokerStreet = "preflop" | "flop" | "turn" | "river" | "complete";
+export type PokerHandCategory =
+  | "high-card"
+  | "one-pair"
+  | "two-pair"
+  | "three-of-a-kind"
+  | "straight"
+  | "flush"
+  | "full-house"
+  | "four-of-a-kind"
+  | "straight-flush";
 
 export interface PokerGameState {
   readonly stateSchemaVersion: 1;
@@ -89,6 +99,7 @@ export interface PublicPokerPlayer {
   readonly stack: number;
   readonly folded: boolean;
   readonly allIn: boolean;
+  readonly bestHand?: PokerHandCategory | null;
   readonly cardsRevealed?: boolean;
   readonly holeCards: readonly string[] | null;
 }

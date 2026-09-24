@@ -105,6 +105,17 @@ const dictionary = {
     allIn: "All-in",
     thinking: "Miettii",
     waiting: "Odottaa",
+    handCategories: {
+      "high-card": "Hai-kortti",
+      "one-pair": "Pari",
+      "two-pair": "Kaksi paria",
+      "three-of-a-kind": "Kolmoset",
+      straight: "Suora",
+      flush: "Väri",
+      "full-house": "Täyskäsi",
+      "four-of-a-kind": "Neloset",
+      "straight-flush": "Värisuora",
+    },
   },
   history: {
     actionHistory: "Toimintahistoria",

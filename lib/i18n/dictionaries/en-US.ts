@@ -103,6 +103,17 @@ const dictionary = {
     allIn: "All-in",
     thinking: "Thinking",
     waiting: "Waiting",
+    handCategories: {
+      "high-card": "High card",
+      "one-pair": "Pair",
+      "two-pair": "Two pair",
+      "three-of-a-kind": "Three of a kind",
+      straight: "Straight",
+      flush: "Flush",
+      "full-house": "Full house",
+      "four-of-a-kind": "Four of a kind",
+      "straight-flush": "Straight flush",
+    },
   },
   history: {
     actionHistory: "Action history",

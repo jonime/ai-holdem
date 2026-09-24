@@ -106,20 +106,22 @@ export function Seat({
         )}
       </div>
       <span className="seat-status">
-        {describeSeatStatus(
-          {
-            leaving: player.leaving,
-            inHand: player.inHand,
-            folded: player.folded,
-            allIn: player.allIn,
-            stack: player.stack,
-            active,
-          },
-          latestAction,
-          dictionary.seat,
-          dictionary.actions,
-          locale,
-        )}
+        {player.bestHand
+          ? dictionary.seat.handCategories[player.bestHand]
+          : describeSeatStatus(
+              {
+                leaving: player.leaving,
+                inHand: player.inHand,
+                folded: player.folded,
+                allIn: player.allIn,
+                stack: player.stack,
+                active,
+              },
+              latestAction,
+              dictionary.seat,
+              dictionary.actions,
+              locale,
+            )}
       </span>
     </section>
   );

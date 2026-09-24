@@ -117,6 +117,23 @@ describe("pokerEngineAdapter", () => {
     expect(projection.legalActions).toEqual([]);
   });
 
+  it("shows each non-folded player's best hand after a showdown", () => {
+    const state = playToShowdown(startHand());
+    const projection = pokerEngineAdapter.publicProjection(state, null);
+
+    expect(projection.completionReason).toBe("showdown");
+    expect(
+      projection.players
+        .filter((player) => !player.folded)
+        .every((player) => player.bestHand !== null),
+    ).toBe(true);
+    expect(
+      projection.players
+        .filter((player) => player.folded)
+        .every((player) => player.bestHand === null),
+    ).toBe(true);
+  });
+
   it("preserves the viewer's private cards after JSON restoration", () => {
     const state = startHand();
     const restoredState = pokerEngineAdapter.restore(

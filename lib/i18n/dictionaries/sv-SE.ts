@@ -105,6 +105,17 @@ const dictionary = {
     allIn: "All-in",
     thinking: "Tänker",
     waiting: "Väntar",
+    handCategories: {
+      "high-card": "Högt kort",
+      "one-pair": "Par",
+      "two-pair": "Två par",
+      "three-of-a-kind": "Triss",
+      straight: "Stege",
+      flush: "Färg",
+      "full-house": "Kåk",
+      "four-of-a-kind": "Fyrtal",
+      "straight-flush": "Färgstege",
+    },
   },
   history: {
     actionHistory: "Åtgärdshistorik",

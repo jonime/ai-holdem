@@ -30,6 +30,20 @@ export const publicPlayerSchema = z.object({
   stack: z.number().int().nonnegative(),
   folded: z.boolean(),
   allIn: z.boolean(),
+  bestHand: z
+    .enum([
+      "high-card",
+      "one-pair",
+      "two-pair",
+      "three-of-a-kind",
+      "straight",
+      "flush",
+      "full-house",
+      "four-of-a-kind",
+      "straight-flush",
+    ])
+    .nullable()
+    .default(null),
   cardsRevealed: z.boolean().default(false),
   holeCards: z.array(z.string()).nullable(),
 });
