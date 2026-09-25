@@ -254,9 +254,9 @@
 }
 .lobbyFooter button {
   margin-left: auto;
-  border-color: #9b3e2a;
-  background: var(--coral);
-  color: #fff9ef;
+  border-color: var(--button-primary-shadow);
+  background: var(--button-primary-background);
+  color: var(--button-primary-color);
 }
 .lobbyFooter span {
   color: #667b75;

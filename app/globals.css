@@ -8,6 +8,10 @@
   --sun: #f0b74d;
   --coral: #db694b;
   --line: #bed0c8;
+  --button-primary-background: #b84c32;
+  --button-primary-background-hover: #a9432d;
+  --button-primary-color: #fff9ef;
+  --button-primary-shadow: #7c2f20;
 }
 
 * {
