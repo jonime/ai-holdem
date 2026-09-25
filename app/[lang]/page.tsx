@@ -75,7 +75,8 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
           width={270}
           height={270}
           sizes="(max-width: 450px) 60vw, 270px"
-          priority
+          preload
+          fetchPriority="high"
         />
         <h1>{APP_NAME}</h1>
         <p>{dictionary.home.intro}</p>
