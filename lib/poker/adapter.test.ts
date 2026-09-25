@@ -65,6 +65,22 @@ function playToShowdown(initialState: PokerGameState): PokerGameState {
   throw new Error("Expected the hand to complete within 20 actions");
 }
 
+function playToStreet(
+  initialState: PokerGameState,
+  target: "flop" | "turn" | "river",
+): PokerGameState {
+  let state = initialState;
+  for (let actionCount = 0; actionCount < 20; actionCount += 1) {
+    if (pokerEngineAdapter.snapshot(state).street === target) return state;
+    state = pokerEngineAdapter.applyAction(
+      state,
+      currentActor(state),
+      passiveAction(state),
+    );
+  }
+  throw new Error(`Expected to reach ${target}`);
+}
+
 describe("pokerEngineAdapter", () => {
   it("starts a deterministic heads-up hand and resolves a fold", () => {
     let state = pokerEngineAdapter.startHand(
@@ -105,6 +121,63 @@ describe("pokerEngineAdapter", () => {
       bigBlindSeat: 1,
     });
     expect(projection).not.toHaveProperty("engineState");
+  });
+
+  it("describes the player's exact made hand without exposing opponents", () => {
+    const deck = createDeterministicDeck([
+      "Qs",
+      "As",
+      "9h",
+      "Kd",
+      "2c",
+      "Qd",
+      "9c",
+      "4h",
+      "3c",
+      "3s",
+      "5c",
+      "Jh",
+    ]);
+    const river = playToStreet(
+      pokerEngineAdapter.startHand(
+        pokerEngineAdapter.createGame(headsUpConfig),
+        deck,
+      ),
+      "river",
+    );
+
+    expect(pokerEngineAdapter.describePlayerHand(river, "ai")).toEqual({
+      madeHand: "two-pair",
+      bestFive: expect.arrayContaining(["Qs", "Qd", "9h", "9c", "Jh"]),
+      usesHoleCards: true,
+      draws: { flushDraw: false, straightCompletionRanks: [] },
+    });
+  });
+
+  it("reports deterministic flush and straight-completion draws", () => {
+    const deck = createDeterministicDeck([
+      "As",
+      "2h",
+      "Ks",
+      "3d",
+      "4c",
+      "Qs",
+      "Js",
+      "2d",
+    ]);
+    const flop = playToStreet(
+      pokerEngineAdapter.startHand(
+        pokerEngineAdapter.createGame(headsUpConfig),
+        deck,
+      ),
+      "flop",
+    );
+
+    expect(pokerEngineAdapter.describePlayerHand(flop, "ai")).toMatchObject({
+      madeHand: "high-card",
+      usesHoleCards: true,
+      draws: { flushDraw: true, straightCompletionRanks: ["T"] },
+    });
   });
 
   it("hides all hole cards for an unseated spectator", () => {

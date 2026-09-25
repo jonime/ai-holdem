@@ -76,6 +76,16 @@ export type PokerHandCategory =
   | "four-of-a-kind"
   | "straight-flush";
 
+export interface PokerHandStrength {
+  readonly madeHand: PokerHandCategory | null;
+  readonly bestFive: readonly string[];
+  readonly usesHoleCards: boolean;
+  readonly draws: {
+    readonly flushDraw: boolean;
+    readonly straightCompletionRanks: readonly string[];
+  };
+}
+
 export interface PokerGameState {
   readonly stateSchemaVersion: 1;
   readonly config: GameConfig;

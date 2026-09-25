@@ -1,4 +1,5 @@
 import { decidePokerAction, type TypesafeDecisionClient } from "@/lib/typesafe/decision";
+import { typesafePokerPolicyVersion } from "@/lib/typesafe/questions";
 
 import { emptyDiagnostics, type BotContext, type BotDecision, type PokerBot } from "./types";
 
@@ -19,6 +20,7 @@ export class JevPokerBot implements PokerBot {
               confidence: decision.sizing.confidence,
             }
           : null,
+        promptVersion: typesafePokerPolicyVersion,
       }),
       rawResponse: decision.rawResponse,
     };
