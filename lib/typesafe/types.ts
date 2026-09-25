@@ -20,8 +20,10 @@ export interface AIDecision {
   readonly sizing?: {
     readonly choice: SizingChoice;
     readonly probabilities: Readonly<Record<string, number>>;
-    readonly confidence: number;
+      readonly confidence: number;
   };
+  readonly candidateChoice: string;
+  readonly candidateProbabilities: Readonly<Record<string, number>>;
   readonly rawResponse: unknown;
 }
 

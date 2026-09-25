@@ -981,22 +981,21 @@ describe("stepTypesafeAction", () => {
           persistAIAction,
         },
         {
-          evaluate: async () => ({
-            answers: {
-              action: {
-                type: "choice",
-                choice: "check",
-                probabilities: { fold: 0, check: 1, raise: 0 },
-                confidence: 1,
+          evaluate: async (request) => {
+            const choices = Object.keys(request.questions.move.criteria);
+            return {
+              answers: {
+                move: {
+                  type: "choice",
+                  choice: "check",
+                  probabilities: Object.fromEntries(
+                    choices.map((choice) => [choice, choice === "check" ? 1 : 0]),
+                  ),
+                  confidence: 1,
+                },
               },
-              sizing: {
-                type: "choice",
-                choice: "one_third_pot",
-                probabilities: { one_third_pot: 1 },
-                confidence: 1,
-              },
-            },
-          }),
+            };
+          },
         },
         "game-1",
         viewerToken,
@@ -1029,7 +1028,26 @@ describe("stepTypesafeAction", () => {
           action: "check",
           choice: "check",
           aiState: expect.objectContaining({
-            actionHistory: [expect.objectContaining({ action: "call" })],
+            hero: expect.objectContaining({
+              seat: 1,
+              controller: "bot",
+              handStrength: expect.any(Object),
+            }),
+            actionHistory: [
+              expect.objectContaining({
+                action: "call",
+                actorSeat: 0,
+                actor: "opponent",
+              }),
+            ],
+          }),
+          promptVersion: "typesafe-poker-v2",
+          rawResponse: expect.objectContaining({
+            policyVersion: "typesafe-poker-v2",
+            decision: expect.objectContaining({
+              selectedCandidate: "check",
+              candidateProbabilities: expect.any(Object),
+            }),
           }),
         }),
       );
@@ -1555,31 +1573,19 @@ describe("deterministic persisted hand harness", () => {
     };
     const passiveTypesafeClient = {
       evaluate: async (request: SystemOneRequest) => {
-        const actionQuestion = request.questions.action;
-        if (!actionQuestion) {
-          throw new Error("Expected a TypeSafe action question");
+        const moveQuestion = request.questions.move;
+        if (!moveQuestion) {
+          throw new Error("Expected a TypeSafe move question");
         }
-        const options = Object.keys(actionQuestion.criteria);
-        const sizingOptions = Object.keys(request.questions.sizing.criteria);
+        const options = Object.keys(moveQuestion.criteria);
         const choice = options.includes("check") ? "check" : "call";
         return {
           answers: {
-            action: {
+            move: {
               type: "choice",
               choice,
               probabilities: Object.fromEntries(
                 options.map((option) => [option, option === choice ? 1 : 0]),
-              ),
-              confidence: 1,
-            },
-            sizing: {
-              type: "choice",
-              choice: sizingOptions[0],
-              probabilities: Object.fromEntries(
-                sizingOptions.map((option, index) => [
-                  option,
-                  index === 0 ? 1 : 0,
-                ]),
               ),
               confidence: 1,
             },

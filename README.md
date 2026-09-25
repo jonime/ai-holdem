@@ -100,6 +100,33 @@ npm test
 npm run build
 ```
 
+### TypeSafe policy evaluation
+
+Run the deterministic, cost-free policy benchmark with seeded deals and each
+seat assignment:
+
+```sh
+npm run benchmark:policy
+```
+
+It compares the frozen v1 policy surrogate and the v2 exact-move policy
+surrogate against `basic-equity-v1` plus scripted passive and aggressive
+opponents. The JSON report includes big blinds won per 100 hands, a 95%
+uncertainty interval, action frequencies, failures, and decision latency. This
+is a regression harness for policy mechanics, not evidence that Jev plays
+stronger poker.
+
+Live Jev evaluation is deliberately separate from CI because it makes one paid
+TypeSafe request per decision:
+
+```sh
+EXTERNAL_INFERENCE_ENABLED=true TYPESAFE_API_KEY=... npm run benchmark:typesafe:live
+```
+
+The live command uses seeded, seat-swapped deals and emits the same metrics.
+Only statistically supported live comparisons should be used to claim stronger
+play; passing unit tests or the mocked benchmark is insufficient.
+
 ### Local Supabase E2E
 
 Start the local Supabase stack with `supabase start`, then run:

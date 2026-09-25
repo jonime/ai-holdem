@@ -35,6 +35,12 @@ For routing, rendering, deployment-facing, or environment-sensitive changes, als
 npm run build
 ```
 
+TypeSafe policy changes should also run `npm run benchmark:policy`. This mocked,
+seeded benchmark is cost-free and safe for local regression checks. Live Jev
+evaluation is opt-in only via `npm run benchmark:typesafe:live`; it requires
+external inference and a TypeSafe API key, performs one paid request per bot
+turn, and is not part of CI.
+
 ## Documentation standards
 
 Docs are part of the implementation.

@@ -2,9 +2,11 @@ import {
   assertCompleteDeck,
   assertTableState,
   cardToString,
+  compareHandRanks,
   createDeck,
   createShuffledDeck,
   createTable,
+  evaluateHand,
   getLegalActions as getEngineLegalActions,
   parseCard,
   projectTable,
@@ -21,6 +23,7 @@ import {
   type PokerPlayerConfig,
   type PokerGameSnapshot,
   type PokerGameState,
+  type PokerHandStrength,
   type PublicPokerGame,
   PokerRuleError,
 } from "./types";
@@ -125,6 +128,82 @@ function validateAction(
   }
 }
 
+const rankNameByValue: Readonly<Record<number, string>> = {
+  2: "2",
+  3: "3",
+  4: "4",
+  5: "5",
+  6: "6",
+  7: "7",
+  8: "8",
+  9: "9",
+  10: "T",
+  11: "J",
+  12: "Q",
+  13: "K",
+  14: "A",
+};
+
+const rankValueByName: Readonly<Record<string, number>> = Object.fromEntries(
+  Object.entries(rankNameByValue).map(([value, rank]) => [rank, Number(value)]),
+);
+
+function straightCompletionRanks(cards: readonly Card[]): readonly string[] {
+  const values = new Set(cards.map((card) => rankValueByName[card.rank]));
+  if (values.has(14)) values.add(1);
+  const completions = new Set<number>();
+  for (let high = 5; high <= 14; high += 1) {
+    const window = Array.from({ length: 5 }, (_, index) => high - index);
+    const missing = window.filter((value) => !values.has(value));
+    if (missing.length === 1) {
+      completions.add(missing[0] === 1 ? 14 : missing[0]);
+    }
+  }
+  return [...completions]
+    .sort((left, right) => left - right)
+    .map((value) => rankNameByValue[value]);
+}
+
+function describeHand(
+  holeCards: readonly Card[],
+  communityCards: readonly Card[],
+): PokerHandStrength {
+  const knownCards = [...holeCards, ...communityCards];
+  const rank = knownCards.length >= 5 ? evaluateHand(knownCards) : null;
+  const bestFive = rank?.cards.map(cardToString) ?? [];
+  const holeCardNames = new Set(holeCards.map(cardToString));
+  const boardRank =
+    communityCards.length === 5 ? evaluateHand(communityCards) : null;
+  const suitCounts = knownCards.reduce<Record<string, number>>((counts, card) => {
+    counts[card.suit] = (counts[card.suit] ?? 0) + 1;
+    return counts;
+  }, {});
+  const drawsRemain = communityCards.length >= 3 && communityCards.length < 5;
+  const alreadyStraight =
+    rank?.category === "straight" || rank?.category === "straight-flush";
+
+  return {
+    madeHand: rank?.category ?? null,
+    bestFive,
+    usesHoleCards:
+      rank !== null &&
+      (boardRank === null
+        ? bestFive.some((card) => holeCardNames.has(card))
+        : compareHandRanks(rank, boardRank) > 0),
+    draws: {
+      flushDraw:
+        drawsRemain &&
+        rank?.category !== "flush" &&
+        rank?.category !== "straight-flush" &&
+        Math.max(0, ...Object.values(suitCounts)) === 4,
+      straightCompletionRanks:
+        drawsRemain && !alreadyStraight
+          ? straightCompletionRanks(knownCards)
+          : [],
+    },
+  };
+}
+
 export function createDeterministicDeck(
   cards: readonly string[] = [],
 ): readonly Card[] {
@@ -227,6 +306,20 @@ export const pokerEngineAdapter = {
     return actor
       ? getEngineLegalActions(table, actor.playerId).map(toLegalAction)
       : [];
+  },
+
+  describePlayerHand(
+    state: PokerGameState,
+    playerId: string,
+  ): PokerHandStrength {
+    const table = engineStateFrom(state);
+    const player = table.hand?.players.find(
+      (candidate) => candidate.playerId === playerId,
+    );
+    if (!table.hand || !player) {
+      throw new PokerRuleError("Player is not in the active hand");
+    }
+    return describeHand(player.holeCards, table.hand.communityCards);
   },
 
   applyAction(

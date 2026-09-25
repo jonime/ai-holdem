@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createPokerAIState } from "@/lib/poker/ai-state";
+import { createPokerAIState, type PokerAIState } from "@/lib/poker/ai-state";
 import {
   createDeterministicDeck,
   pokerEngineAdapter,
@@ -8,7 +8,12 @@ import {
 import type { GameConfig } from "@/lib/poker/types";
 
 import { decidePokerAction } from "./decision";
-import { createPokerDecisionRequest, createSizingOptions } from "./questions";
+import {
+  createMoveOptions,
+  createPokerDecisionRequest,
+  createTypesafeSizingOptions,
+  typesafePokerPolicyVersion,
+} from "./questions";
 import { TypesafeResponseError } from "./types";
 
 const gameConfig: GameConfig = {
@@ -26,6 +31,17 @@ const gameConfig: GameConfig = {
   ],
 };
 
+const limpHistory = [
+  {
+    sequence: 1,
+    street: "preflop" as const,
+    action: "call" as const,
+    amount: 50,
+    player: "You",
+    controller: "human" as const,
+  },
+];
+
 function aiTurnState() {
   const started = pokerEngineAdapter.startHand(
     pokerEngineAdapter.createGame(gameConfig),
@@ -37,220 +53,251 @@ function aiTurnState() {
   });
 }
 
-function response(action: string, sizing = "one_third_pot"): unknown {
+function state(options: Partial<Pick<PokerAIState, "difficulty">> = {}) {
+  return {
+    ...createPokerAIState(aiTurnState(), "typesafe-ai", {
+      difficulty: options.difficulty ?? "medium",
+      actionHistory: limpHistory,
+      equitySamples: 10,
+      typesafePolicyV2: true,
+    }),
+    ...options,
+  };
+}
+
+function responseFor(
+  pokerState: PokerAIState,
+  selected: string,
+  probabilities?: Readonly<Record<string, number>>,
+): unknown {
+  const choices = createMoveOptions(pokerState).map((option) => option.choice);
   return {
     model: "jev-latest",
     answers: {
-      action: {
+      move: {
         type: "choice",
-        choice: action,
-        probabilities: { fold: 0.1, check: 0.6, raise: 0.3 },
-        confidence: 0.6,
-      },
-      sizing: {
-        type: "choice",
-        choice: sizing,
-        probabilities: {
-          one_third_pot: 0.6,
-          one_half_pot: 0.2,
-          two_thirds_pot: 0.1,
-          full_pot: 0.05,
-          all_in: 0.05,
-        },
-        confidence: 0.6,
+        choice: selected,
+        probabilities:
+          probabilities ??
+          Object.fromEntries(
+            choices.map((choice) => [choice, choice === selected ? 1 : 0]),
+          ),
+        confidence: 0.8,
       },
     },
   };
 }
 
 describe("TypeSafe poker decision", () => {
-  it("creates structured state without opponent hole cards", () => {
-    const state = createPokerAIState(aiTurnState(), "typesafe-ai", {
-      difficulty: "hard",
-    });
+  it("creates private structured context with corrected numerical labels", () => {
+    const pokerState = state({ difficulty: "hard" });
 
-    expect(state.hero.holeCards).toHaveLength(2);
-    expect(state.opponents).toEqual([
-      expect.objectContaining({ id: "human", status: "active" }),
+    expect(pokerState.hero).toMatchObject({
+      seat: 1,
+      controller: "bot",
+      handStrength: expect.any(Object),
+    });
+    expect(pokerState.hero.holeCards).toHaveLength(2);
+    expect(pokerState.opponents).toEqual([
+      expect.objectContaining({
+        seat: 0,
+        controller: "human",
+        status: "active",
+      }),
     ]);
-    expect(JSON.stringify(state)).not.toContain("engineState");
-    expect(JSON.stringify(state)).not.toContain('holeCards":[]');
-    expect(state.legalActions.map((action) => action.type)).toEqual([
-      "fold",
-      "check",
-      "raise",
+    expect(pokerState.analysis).toMatchObject({
+      equityBasis: "random_opponent_hands",
+      callCost: 0,
+      potOddsToCall: 0,
+    });
+    expect(JSON.stringify(pokerState)).not.toContain("engineState");
+    expect(JSON.stringify(pokerState)).not.toContain("playerToken");
+    expect(JSON.stringify(pokerState)).not.toContain('"bot":');
+    expect(pokerState.hero).not.toHaveProperty("id");
+    expect(pokerState.hero).not.toHaveProperty("name");
+    expect(pokerState.opponents[0]).not.toHaveProperty("id");
+    expect(pokerState.opponents[0]).not.toHaveProperty("name");
+    expect(pokerState.actionHistory).toEqual([
+      expect.objectContaining({
+        actorSeat: 0,
+        actor: "opponent",
+        controller: "human",
+      }),
     ]);
+    expect(pokerState.actionHistory[0]).not.toHaveProperty("player");
   });
 
-  it("asks only for current legal action criteria", () => {
-    const state = createPokerAIState(aiTurnState(), "typesafe-ai", {
-      actionHistory: [
-        {
-          sequence: 1,
-          street: "preflop",
-          action: "call",
-          amount: 50,
-          player: "You",
-          controller: "human",
-        },
-      ],
-    });
-    const request = createPokerDecisionRequest(state);
+  it("asks one complete-move question and removes fold when checking is free", () => {
+    const pokerState = state();
+    const request = createPokerDecisionRequest(pokerState);
+    const choices = Object.keys(request.questions.move.criteria);
 
-    expect(request.questions.action.criteria).toEqual({
-      check: expect.any(String),
-      fold: expect.any(String),
-      raise: expect.any(String),
-    });
-    expect(state.actionHistory).toHaveLength(1);
-    expect(state.analysis.showdownEquity).toBeGreaterThan(0);
-    expect(JSON.stringify(state)).not.toContain("playerToken");
+    expect(Object.keys(request.questions)).toEqual(["move"]);
+    expect(choices).toContain("check");
+    expect(choices.some((choice) => choice.startsWith("raise_to_"))).toBe(true);
+    expect(choices).not.toContain("fold");
+    expect(request.questions.move.instructions).toContain(
+      "against random opponent hands",
+    );
   });
 
-  it("creates unique, legal, pot-relative sizing choices", () => {
-    const state = createPokerAIState(aiTurnState(), "typesafe-ai", {
+  it("offers unopened preflop raises at 2, 2.5, and 3 big blinds plus all-in", () => {
+    const started = pokerEngineAdapter.startHand(
+      pokerEngineAdapter.createGame(gameConfig),
+      createDeterministicDeck(),
+    );
+    const openingState = createPokerAIState(started, "human", {
       equitySamples: 10,
+      typesafePolicyV2: true,
     });
-    const raise = state.legalActions.find((action) => action.type === "raise");
-    if (raise?.type !== "raise") throw new Error("Expected a legal raise");
-    const options = createSizingOptions(state);
+    const options = createTypesafeSizingOptions(openingState);
+
+    expect(options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ choice: "two_big_blinds", amount: 200 }),
+        expect.objectContaining({
+          choice: "two_and_half_big_blinds",
+          amount: 250,
+        }),
+        expect.objectContaining({ choice: "three_big_blinds", amount: 300 }),
+        expect.objectContaining({ choice: "all_in", amount: 10_000 }),
+      ]),
+    );
+    expect(options.every((option) => option.description.includes("additional chips"))).toBe(true);
+  });
+
+  it("clamps and deduplicates sizing boundaries while preserving all-in", () => {
+    const base = state();
+    const bounded: PokerAIState = {
+      ...base,
+      legalActions: [
+        { type: "fold" },
+        { type: "call", amount: 100 },
+        { type: "raise", minAmount: 240, maxAmount: 250 },
+      ],
+    };
+    const options = createTypesafeSizingOptions(bounded);
     const amounts = options.flatMap((option) =>
       option.amount === null ? [] : [option.amount],
     );
 
-    expect(new Set(amounts).size).toBe(amounts.length);
-    expect(amounts.every((amount) => amount >= raise.minAmount)).toBe(true);
-    expect(amounts.every((amount) => amount <= raise.maxAmount)).toBe(true);
-    expect(
-      options.some((option) => option.description.includes("exactly")),
-    ).toBe(true);
+    expect(amounts).toEqual([...new Set(amounts)]);
+    expect(amounts.every((amount) => amount >= 240 && amount <= 250)).toBe(true);
+    expect(options).toContainEqual(expect.objectContaining({ choice: "all_in", amount: 250 }));
   });
 
-  it("converts a valid raise choice into a legal engine action", async () => {
-    const state = createPokerAIState(aiTurnState(), "typesafe-ai", {
-      difficulty: "hard",
-    });
-    const decision = await decidePokerAction(
-      { evaluate: async () => response("raise", "one_third_pot") },
-      state,
-    );
-
-    expect(decision.action.type).toBe("raise");
-    if (decision.action.type !== "raise")
-      throw new Error("Expected raise action");
-    const legalRaise = state.legalActions.find(
-      (action) => action.type === "raise",
-    );
-    expect(legalRaise?.type).toBe("raise");
-    if (legalRaise?.type !== "raise") throw new Error("Expected legal raise");
-    expect(decision.action.amount).toBeGreaterThanOrEqual(legalRaise.minAmount);
-    expect(decision.action.amount).toBeLessThanOrEqual(legalRaise.maxAmount);
-    expect(decision.sizing?.choice).toBe("one_third_pot");
+  it("maps every exact candidate to its engine-legal action", async () => {
+    const pokerState = state({ difficulty: "hard" });
+    for (const candidate of createMoveOptions(pokerState)) {
+      const decision = await decidePokerAction(
+        { evaluate: async () => responseFor(pokerState, candidate.choice) },
+        pokerState,
+      );
+      expect(decision.action).toEqual(candidate.action);
+      expect(decision.candidateChoice).toBe(candidate.choice);
+      expect(decision.rawResponse).toMatchObject({
+        policyVersion: typesafePokerPolicyVersion,
+        decision: {
+          selectedCandidate: candidate.choice,
+          candidateProbabilities: expect.any(Object),
+        },
+      });
+    }
   });
 
-  it("rejects unavailable actions and malformed responses", async () => {
-    const state = createPokerAIState(aiTurnState(), "typesafe-ai");
+  it("rejects missing, incomplete, extra, and unavailable response choices", async () => {
+    const pokerState = state();
+    const choices = createMoveOptions(pokerState).map((option) => option.choice);
 
     await expect(
-      decidePokerAction({ evaluate: async () => response("bet") }, state),
+      decidePokerAction({ evaluate: async () => ({ answers: {} }) }, pokerState),
     ).rejects.toBeInstanceOf(TypesafeResponseError);
     await expect(
-      decidePokerAction({ evaluate: async () => ({ answers: {} }) }, state),
+      decidePokerAction(
+        {
+          evaluate: async () => responseFor(pokerState, choices[0], { [choices[0]]: 1 }),
+        },
+        pokerState,
+      ),
     ).rejects.toBeInstanceOf(TypesafeResponseError);
-  });
-
-  it("rejects invalid chosen probabilities and impossible sizing choices", async () => {
-    const state = createPokerAIState(aiTurnState(), "typesafe-ai");
-
+    await expect(
+      decidePokerAction(
+        {
+          evaluate: async () =>
+            responseFor(pokerState, choices[0], {
+              ...Object.fromEntries(choices.map((choice) => [choice, choice === choices[0] ? 1 : 0])),
+              impossible: 0,
+            }),
+        },
+        pokerState,
+      ),
+    ).rejects.toBeInstanceOf(TypesafeResponseError);
     await expect(
       decidePokerAction(
         {
           evaluate: async () => ({
             answers: {
-              action: {
+              move: {
                 type: "choice",
-                choice: "raise",
-                probabilities: { fold: 0.5, check: 0.5, raise: 0.5 },
-                confidence: 0.7,
-              },
-              sizing: {
-                type: "choice",
-                choice: "all_in",
-                probabilities: { all_in: 2 },
-                confidence: 0.5,
+                choice: "fold",
+                probabilities: Object.fromEntries(choices.map((choice) => [choice, 1])),
+                confidence: 1,
               },
             },
           }),
         },
-        state,
-      ),
-    ).rejects.toBeInstanceOf(TypesafeResponseError);
-
-    await expect(
-      decidePokerAction(
-        {
-          evaluate: async () => ({
-            answers: {
-              action: {
-                type: "choice",
-                choice: "call",
-                probabilities: { fold: 1, check: 0, raise: 0 },
-                confidence: 0.7,
-              },
-              sizing: {
-                type: "choice",
-                choice: "impossible",
-                probabilities: { impossible: 1 },
-                confidence: 0.5,
-              },
-            },
-          }),
-        },
-        state,
+        pokerState,
       ),
     ).rejects.toBeInstanceOf(TypesafeResponseError);
   });
 
-  it("uses difficulty to control probability sampling", async () => {
-    const base = createPokerAIState(aiTurnState(), "typesafe-ai", {
-      equitySamples: 10,
-    });
-    const probabilisticResponse = {
-      answers: {
-        action: {
-          type: "choice",
-          choice: "check",
-          probabilities: { fold: 0, check: 0.25, raise: 0.75 },
-          confidence: 0.8,
-        },
-        sizing: {
-          type: "choice",
-          choice: "one_third_pot",
-          probabilities: { one_third_pot: 1 },
-          confidence: 1,
-        },
-      },
+  it("uses the selected move for medium and hard, and randomizes easy only among filtered moves", async () => {
+    const base = state();
+    const choices = createMoveOptions(base).map((option) => option.choice);
+    const selected = choices.at(-1) as string;
+    const probabilities = Object.fromEntries(
+      choices.map((choice) => [choice, choice === selected ? 1 : 0]),
+    );
+    const client = {
+      evaluate: async () => responseFor(base, selected, probabilities),
     };
-    const client = { evaluate: async () => probabilisticResponse };
 
-    const hard = await decidePokerAction(
-      client,
-      { ...base, difficulty: "hard" },
-      { random: () => 0.99 },
-    );
-    const medium = await decidePokerAction(
-      client,
-      { ...base, difficulty: "medium" },
-      { random: () => 0.99 },
-    );
-    const easy = await decidePokerAction(
-      client,
-      { ...base, difficulty: "easy" },
-      { random: () => 0.01 },
-    );
+    const medium = await decidePokerAction(client, { ...base, difficulty: "medium" }, { random: () => 0 });
+    const hard = await decidePokerAction(client, { ...base, difficulty: "hard" }, { random: () => 0 });
+    const easy = await decidePokerAction(client, { ...base, difficulty: "easy" }, { random: () => 0 });
 
-    expect(hard.action.type).toBe("check");
-    expect(medium.action.type).toBe("raise");
-    expect(easy.action.type).toBe("fold");
+    expect(medium.candidateChoice).toBe(selected);
+    expect(hard.candidateChoice).toBe(selected);
+    expect(createMoveOptions(base).map((option) => option.choice)).toContain(easy.candidateChoice);
+    expect(easy.action.type).not.toBe("fold");
+  });
+
+  it("uses the engine's stack-capped call and contestable pot for pot odds", () => {
+    const shortConfig: GameConfig = {
+      smallBlind: 50,
+      bigBlind: 100,
+      players: [
+        { id: "short", name: "Short", controller: "typesafe_ai", seat: 0, stack: 250 },
+        { id: "deep", name: "Deep", controller: "human", seat: 1, stack: 10_000 },
+      ],
+    };
+    let current = pokerEngineAdapter.startHand(
+      pokerEngineAdapter.createGame(shortConfig),
+      createDeterministicDeck(),
+    );
+    current = pokerEngineAdapter.applyAction(current, "short", { type: "call", amount: 50 });
+    current = pokerEngineAdapter.applyAction(current, "deep", { type: "raise", amount: 500 });
+    const pokerState = createPokerAIState(current, "short", {
+      equitySamples: 10,
+      typesafePolicyV2: true,
+    });
+
+    expect(pokerState.legalActions).toContainEqual({ type: "call", amount: 150 });
+    expect(pokerState.hero.amountToCall).toBe(150);
+    expect(pokerState.analysis).toMatchObject({
+      callCost: 150,
+      contestablePotAfterCall: 500,
+      potOddsToCall: 0.3,
+    });
   });
 });

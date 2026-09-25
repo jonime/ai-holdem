@@ -1210,6 +1210,7 @@ async function stepResolvedBotAction(
   const aiState = createPokerAIState(stateBefore, botPlayer.id, {
     difficulty: botPlayer.aiDifficulty ?? "medium",
     actionHistory: history?.actions ?? [],
+    typesafePolicyV2: botDescriptor.provider === "typesafe",
   });
   const context = { ...aiState, sizingOptions: createSizingOptions(aiState) };
   const decision = await bot.decide(context);

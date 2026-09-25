@@ -1,9 +1,10 @@
 import type { PokerAIState } from "@/lib/poker/ai-state";
-import type { LegalAction, PokerAction } from "@/lib/poker/types";
 
 import {
+  createMoveOptions,
   createPokerDecisionRequest,
-  createSizingOptions,
+  typesafePokerPolicyVersion,
+  type MoveOption,
   type SizingChoice,
 } from "./questions";
 import type { AIDecision } from "./types";
@@ -19,6 +20,12 @@ export interface DecidePokerActionOptions {
   readonly random?: () => number;
 }
 
+interface ChoiceAnswer {
+  readonly choice: string;
+  readonly probabilities: Readonly<Record<string, number>>;
+  readonly confidence: number;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -26,11 +33,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function choiceAnswer(
   response: unknown,
   key: string,
-): {
-  choice: string;
-  probabilities: Record<string, number>;
-  confidence: number;
-} {
+  choices: readonly string[],
+): ChoiceAnswer {
   if (
     !isRecord(response) ||
     !isRecord(response.answers) ||
@@ -42,7 +46,9 @@ function choiceAnswer(
   if (
     answer.type !== "choice" ||
     typeof answer.choice !== "string" ||
+    !choices.includes(answer.choice) ||
     typeof answer.confidence !== "number" ||
+    !Number.isFinite(answer.confidence) ||
     answer.confidence < 0 ||
     answer.confidence > 1 ||
     !isRecord(answer.probabilities)
@@ -51,7 +57,8 @@ function choiceAnswer(
   }
   const probabilities: Record<string, number> = {};
   let total = 0;
-  for (const [option, probability] of Object.entries(answer.probabilities)) {
+  for (const choice of choices) {
+    const probability = answer.probabilities[choice];
     if (
       typeof probability !== "number" ||
       !Number.isFinite(probability) ||
@@ -62,8 +69,13 @@ function choiceAnswer(
         `Malformed TypeSafe ${key} probabilities`,
       );
     }
-    probabilities[option] = probability;
+    probabilities[choice] = probability;
     total += probability;
+  }
+  if (Object.keys(answer.probabilities).some((choice) => !choices.includes(choice))) {
+    throw new TypesafeResponseError(
+      `TypeSafe ${key} probabilities include an unavailable choice`,
+    );
   }
   if (!Number.isFinite(total) || total <= 0) {
     throw new TypesafeResponseError(
@@ -82,20 +94,17 @@ function sampleChoice(
   probabilities: Readonly<Record<string, number>>,
   preferredChoice: string,
   random: () => number,
-  uniformMix: number,
 ): string {
   const total = choices.reduce(
     (sum, choice) => sum + (probabilities[choice] ?? 0),
     0,
   );
-  if (total <= 0) {
-    return choices.includes(preferredChoice) ? preferredChoice : choices[0];
-  }
+  if (total <= 0) return preferredChoice;
   const uniformProbability = 1 / choices.length;
   const weighted = choices.map(
     (choice) =>
-      (1 - uniformMix) * ((probabilities[choice] ?? 0) / total) +
-      uniformMix * uniformProbability,
+      0.5 * ((probabilities[choice] ?? 0) / total) +
+      0.5 * uniformProbability,
   );
   const target = Math.min(0.999999999, Math.max(0, random()));
   let cumulative = 0;
@@ -106,46 +115,30 @@ function sampleChoice(
   return choices.at(-1) ?? preferredChoice;
 }
 
-function selectChoice(
-  state: PokerAIState,
-  choices: readonly string[],
-  answer: ReturnType<typeof choiceAnswer>,
-  random: () => number,
-): string {
-  if (!choices.includes(answer.choice)) {
-    throw new TypesafeResponseError(
-      `TypeSafe selected an unavailable choice: ${answer.choice}`,
-    );
+function aggregateActionProbabilities(
+  options: readonly MoveOption[],
+  probabilities: Readonly<Record<string, number>>,
+): Readonly<Record<string, number>> {
+  const result: Record<string, number> = {};
+  for (const option of options) {
+    result[option.action.type] =
+      (result[option.action.type] ?? 0) + (probabilities[option.choice] ?? 0);
   }
-  if (state.difficulty === "hard") return answer.choice;
-  return sampleChoice(
-    choices,
-    answer.probabilities,
-    answer.choice,
-    random,
-    state.difficulty === "easy" ? 0.5 : 0,
-  );
+  return result;
 }
 
-function actionFromChoice(
-  choice: string,
-  legalActions: readonly LegalAction[],
-  sizingAmount: number | null,
-): PokerAction {
-  const legalAction = legalActions.find((action) => action.type === choice);
-  if (!legalAction) {
-    throw new TypesafeResponseError(
-      `TypeSafe selected an illegal action: ${choice}`,
-    );
+function aggregateSizingProbabilities(
+  options: readonly MoveOption[],
+  probabilities: Readonly<Record<string, number>>,
+): Readonly<Record<string, number>> {
+  const result: Record<string, number> = {};
+  for (const option of options) {
+    if (option.sizingChoice === "not_applicable") continue;
+    result[option.sizingChoice] =
+      (result[option.sizingChoice] ?? 0) +
+      (probabilities[option.choice] ?? 0);
   }
-  if (legalAction.type === "fold" || legalAction.type === "check")
-    return legalAction;
-  if (legalAction.type === "call")
-    return { type: "call", amount: legalAction.amount };
-  if (sizingAmount === null) {
-    throw new TypesafeResponseError("TypeSafe selected no actionable sizing");
-  }
-  return { type: legalAction.type, amount: sizingAmount };
+  return result;
 }
 
 export async function decidePokerAction(
@@ -153,61 +146,69 @@ export async function decidePokerAction(
   state: PokerAIState,
   options: DecidePokerActionOptions = {},
 ): Promise<AIDecision> {
+  const moveOptions = createMoveOptions(state);
+  const choices = moveOptions.map((option) => option.choice);
+  if (choices.length === 0) {
+    throw new TypesafeResponseError("No legal TypeSafe move candidates");
+  }
   const response = await client.evaluate(createPokerDecisionRequest(state));
-  const actionAnswer = choiceAnswer(response, "action");
-  const sizingAnswer = choiceAnswer(response, "sizing");
-  const random = options.random ?? Math.random;
-  const legalActionChoices = state.legalActions.map((action) => action.type);
-  const actionChoice = selectChoice(
-    state,
-    legalActionChoices,
-    actionAnswer,
-    random,
+  const answer = choiceAnswer(response, "move", choices);
+  const selectedChoice =
+    state.difficulty === "easy"
+      ? sampleChoice(
+          choices,
+          answer.probabilities,
+          answer.choice,
+          options.random ?? Math.random,
+        )
+      : answer.choice;
+  const selected = moveOptions.find(
+    (candidate) => candidate.choice === selectedChoice,
   );
-  const sizingOptions = createSizingOptions(state);
-  const sizingChoices = sizingOptions.map((option) => option.choice);
-  if (!sizingOptions.some((option) => option.choice === sizingAnswer.choice)) {
+  if (!selected) {
     throw new TypesafeResponseError(
-      `TypeSafe selected an unavailable sizing choice: ${sizingAnswer.choice}`,
+      `TypeSafe selected an unavailable move: ${selectedChoice}`,
     );
   }
-  const sizingChoice = selectChoice(
-    state,
-    sizingChoices,
-    sizingAnswer,
-    random,
-  ) as SizingChoice;
-  const sizingOption = sizingOptions.find(
-    (option) => option.choice === sizingChoice,
+
+  const actionProbabilities = aggregateActionProbabilities(
+    moveOptions,
+    answer.probabilities,
   );
-  const sizingAmount = sizingOption?.amount ?? null;
-  if (
-    sizingOption === undefined &&
-    (actionChoice === "bet" || actionChoice === "raise")
-  ) {
-    throw new TypesafeResponseError(
-      `TypeSafe selected an unavailable sizing option: ${sizingChoice}`,
-    );
-  }
-  const action = actionFromChoice(
-    actionChoice,
-    state.legalActions,
-    sizingAmount,
+  const sizingProbabilities = aggregateSizingProbabilities(
+    moveOptions,
+    answer.probabilities,
   );
+  const aggressive =
+    selected.action.type === "bet" || selected.action.type === "raise";
 
   return {
-    action,
-    probabilities: actionAnswer.probabilities,
-    confidence: actionAnswer.confidence,
-    ...(action.type === "bet" || action.type === "raise"
+    action: selected.action,
+    probabilities: actionProbabilities,
+    confidence: answer.confidence,
+    ...(aggressive
       ? {
           sizing: {
-            choice: sizingChoice,
-            probabilities: sizingAnswer.probabilities,
-            confidence: sizingAnswer.confidence,
+            choice: selected.sizingChoice as SizingChoice,
+            probabilities: sizingProbabilities,
+            confidence: answer.confidence,
           },
         }
       : {}),
-    rawResponse: response,
+    candidateChoice: selected.choice,
+    candidateProbabilities: answer.probabilities,
+    rawResponse: {
+      policyVersion: typesafePokerPolicyVersion,
+      providerResponse: response,
+      decision: {
+        selectedCandidate: selected.choice,
+        candidateProbabilities: answer.probabilities,
+        candidates: moveOptions.map((candidate) => ({
+          choice: candidate.choice,
+          action: candidate.action,
+          sizingChoice: candidate.sizingChoice,
+        })),
+      },
+    },
   };
 }

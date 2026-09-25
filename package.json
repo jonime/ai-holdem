@@ -12,6 +12,8 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
+    "benchmark:policy": "vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/typesafe-policy.benchmark.ts",
+    "benchmark:typesafe:live": "TYPESAFE_LIVE_BENCHMARK=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/typesafe-live.live.ts",
     "test:e2e": "playwright test",
     "test:e2e:reset": "supabase db reset --local --yes && playwright test",
     "check": "npm run lint && npm run typecheck && npm test"
