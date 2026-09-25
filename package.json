@@ -5,6 +5,12 @@
   "engines": {
     "node": ">=24"
   },
+  "browserslist": [
+    "chrome >= 120",
+    "edge >= 120",
+    "firefox >= 120",
+    "safari >= 17"
+  ],
   "scripts": {
     "dev": "next dev --port 3001",
     "build": "next build",
