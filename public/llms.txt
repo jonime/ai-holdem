@@ -1,0 +1,21 @@
+# AI Hold'em
+
+> AI Hold'em is an open-source browser-based Texas Hold'em demo where people play with provider-backed or deterministic AI poker bots under rules enforced by an authoritative poker engine.
+
+The application supports two to six seats, private table links, configurable blinds and stacks, live state refreshes, action and hand history, and privacy-aware public projections. It is a technical demonstration, not a real-money gambling service. The application JSON routes are internal and are not currently a versioned public API.
+
+## Product
+
+- [AI Hold'em](https://ai-holdem.vercel.app/en-US): Create a table and learn how human and AI seats play together.
+- [Developer resources](https://ai-holdem.vercel.app/en-US/developers): Architecture, integration status, source documentation, and discovery resources.
+
+## Documentation
+
+- [Source repository](https://github.com/jonime/ai-holdem): TypeScript source, tests, setup instructions, and architecture documentation.
+- [Project README](https://github.com/jonime/ai-holdem#readme): Local setup, deployment, security boundaries, and system overview.
+- [Contribution guide](https://github.com/jonime/ai-holdem/blob/main/CONTRIBUTING.md): Development workflow and required checks.
+
+## Optional
+
+- [XML sitemap](https://ai-holdem.vercel.app/sitemap.xml): Index of localized public pages.
+- [TypeSafe](https://typesafe.ai/): Provider used by one available AI poker seat.

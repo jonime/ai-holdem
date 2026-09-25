@@ -49,4 +49,15 @@ describe("translation dictionaries", () => {
       expect(placeholderMap(dictionary)).toEqual(placeholderMap(enUs));
     },
   );
+
+  it.each(Object.entries(dictionaries))(
+    "%s keeps linkable product names in the homepage copy",
+    (_locale, dictionary) => {
+      expect(dictionary.home.engineBody).toContain(
+        dictionary.home.engineLinkLabel,
+      );
+      expect(dictionary.home.privacyBody).toContain("TypeSafe System One");
+      expect(dictionary.home.privacyBody).toContain("OpenRouter");
+    },
+  );
 });

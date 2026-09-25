@@ -5,6 +5,8 @@ constrained action and the poker engine remains authoritative for every rule.
 
 Repository: [github.com/jonime/ai-holdem](https://github.com/jonime/ai-holdem)
 
+Public app: [ai-holdem.vercel.app](https://ai-holdem.vercel.app)
+
 ## What It Does
 
 - Persists games, hands, actions, and AI decision audits in Supabase.
@@ -108,6 +110,32 @@ npm run lint
 npm run typecheck
 npm test
 npm run build
+```
+
+## Agent and Search Discovery
+
+The public homepage serves substantial server-rendered HTML to browsers and a
+clean Markdown representation when the request prefers `text/markdown`. The
+negotiated responses use `Vary: Accept`; unsupported homepage media types
+receive `406 Not Acceptable`. Unknown pages keep a real `404` status and return
+a Markdown error with a discovery link when Markdown is requested.
+
+Public discovery resources are available at predictable URLs:
+
+- `/llms.txt` — the spec-formatted agent map for the product and documentation.
+- `/sitemap.xml` — localized homepage and developer-resource URLs.
+- `/robots.txt` — crawler permission and sitemap location.
+- `/{locale}/developers` — architecture, integration status, and source links.
+
+Verify content negotiation and machine-readable files against a running app:
+
+```sh
+curl -sS -L -i -H 'Accept: text/markdown' http://localhost:3001/
+curl -sS -L -i -H 'Accept: text/html' http://localhost:3001/
+curl -sS -i -H 'Accept: text/markdown' http://localhost:3001/missing
+curl -sS http://localhost:3001/llms.txt
+curl -sS http://localhost:3001/sitemap.xml
+curl -sS http://localhost:3001/robots.txt
 ```
 
 ### TypeSafe policy evaluation
