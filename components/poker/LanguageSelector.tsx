@@ -12,6 +12,11 @@ const languageNames: Record<Locale, string> = {
   "es-ES": "Español",
   "de-DE": "Deutsch",
   "sv-SE": "Svenska",
+  "fr-FR": "Français",
+  "pt-BR": "Português (Brasil)",
+  "it-IT": "Italiano",
+  "nl-NL": "Nederlands",
+  "pl-PL": "Polski",
 };
 
 const sortedLocales = [...SUPPORTED_LOCALES].sort((left, right) =>
