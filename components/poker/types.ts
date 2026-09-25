@@ -69,6 +69,14 @@ export interface HandHistory {
 export type GameFeedEvent =
   | { readonly type: "handStarted"; readonly handNumber: number }
   | {
+      readonly type: "blind";
+      readonly handNumber: number;
+      readonly player: string;
+      readonly controller: "human" | "bot";
+      readonly blind: "small" | "big";
+      readonly amount: number;
+    }
+  | {
       readonly type: "action";
       readonly handNumber: number;
       readonly player: string;

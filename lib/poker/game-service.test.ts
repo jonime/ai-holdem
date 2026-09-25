@@ -1785,7 +1785,7 @@ describe("deterministic persisted hand harness", () => {
 
 describe("getGameFeed", () => {
   it("builds hand-started, action, and win events from persisted feed rows", async () => {
-    let state = pokerEngineAdapter.startHand(
+    const initialState = pokerEngineAdapter.startHand(
       pokerEngineAdapter.createGame({
         smallBlind: 50,
         bigBlind: 100,
@@ -1808,6 +1808,7 @@ describe("getGameFeed", () => {
       }),
       createDeterministicDeck(),
     );
+    let state = initialState;
     state = pokerEngineAdapter.applyAction(state, "human", { type: "fold" });
 
     const repository = {
@@ -1816,6 +1817,7 @@ describe("getGameFeed", () => {
           {
             handNumber: 1,
             status: "complete" as const,
+            initialState,
             finalState: state,
             actions: [
               {
@@ -1837,6 +1839,22 @@ describe("getGameFeed", () => {
     expect(feed.events).toEqual([
       { type: "handStarted", handNumber: 1 },
       {
+        type: "blind",
+        handNumber: 1,
+        player: "You",
+        controller: "human",
+        blind: "small",
+        amount: 50,
+      },
+      {
+        type: "blind",
+        handNumber: 1,
+        player: "TypeSafe AI",
+        controller: "bot",
+        blind: "big",
+        amount: 100,
+      },
+      {
         type: "action",
         handNumber: 1,
         player: "You",
@@ -1853,5 +1871,92 @@ describe("getGameFeed", () => {
         uncontested: true,
       },
     ]);
+  });
+
+  it("adds blinds to an active hand without a final state", async () => {
+    const initialState = pokerEngineAdapter.startHand(
+      pokerEngineAdapter.createGame({
+        smallBlind: 25,
+        bigBlind: 50,
+        players: [
+          {
+            id: "human",
+            name: "You",
+            controller: "human",
+            seat: 0,
+            stack: 1_000,
+          },
+          {
+            id: "bot",
+            name: "Bot",
+            controller: "bot",
+            seat: 1,
+            stack: 1_000,
+          },
+        ],
+      }),
+      createDeterministicDeck(),
+    );
+    const repository = {
+      getGameFeed: async () => ({
+        hands: [
+          {
+            handNumber: 2,
+            status: "playing" as const,
+            initialState,
+            finalState: null,
+            actions: [],
+          },
+        ],
+      }),
+    };
+
+    await expect(getGameFeed(repository, "game-1")).resolves.toEqual({
+      events: [
+        { type: "handStarted", handNumber: 2 },
+        expect.objectContaining({
+          type: "blind",
+          blind: "small",
+          amount: 25,
+        }),
+        expect.objectContaining({
+          type: "blind",
+          blind: "big",
+          amount: 50,
+        }),
+      ],
+    });
+  });
+
+  it("keeps actions when blind synthesis cannot restore the initial state", async () => {
+    const repository = {
+      getGameFeed: async () => ({
+        hands: [
+          {
+            handNumber: 3,
+            status: "playing" as const,
+            initialState: { stateSchemaVersion: 99 },
+            finalState: null,
+            actions: [
+              {
+                sequence: 1,
+                street: "preflop" as const,
+                action: "check" as const,
+                amount: null,
+                player: "You",
+                controller: "human" as const,
+              },
+            ],
+          },
+        ],
+      }),
+    };
+
+    await expect(getGameFeed(repository, "game-1")).resolves.toEqual({
+      events: [
+        { type: "handStarted", handNumber: 3 },
+        expect.objectContaining({ type: "action", action: "check" }),
+      ],
+    });
   });
 });

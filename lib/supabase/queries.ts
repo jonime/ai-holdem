@@ -162,6 +162,7 @@ export interface GameFeedActionItem {
 export interface GameFeedHand {
   readonly handNumber: number;
   readonly status: "playing" | "complete" | "error";
+  readonly initialState: unknown;
   readonly finalState: unknown;
   readonly actions: readonly GameFeedActionItem[];
 }
@@ -441,6 +442,9 @@ function toGameFeed(value: unknown): GameFeed {
     if (status !== "playing" && status !== "complete" && status !== "error") {
       throw new Error("Supabase returned an invalid game feed hand status");
     }
+    if (item.initialState != null && !isRecord(item.initialState)) {
+      throw new Error("Supabase returned an invalid game feed initial state");
+    }
     if (!Array.isArray(item.actions)) {
       throw new Error("Supabase returned invalid game feed actions");
     }
@@ -484,6 +488,7 @@ function toGameFeed(value: unknown): GameFeed {
     return {
       handNumber: requiredInteger(item, "handNumber"),
       status,
+      initialState: item.initialState ?? null,
       finalState: item.finalState ?? null,
       actions,
     } satisfies GameFeedHand;

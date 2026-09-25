@@ -47,6 +47,13 @@ export function feedEventLabel(
       return (event.uncontested ? labels.winUncontested : labels.win)
         .replace("{player}", event.player)
         .replace("{amount}", formatChips(event.amount, locale));
+    case "blind":
+      return (event.blind === "small"
+        ? labels.smallBlind
+        : labels.bigBlind
+      )
+        .replace("{player}", event.player)
+        .replace("{amount}", formatChips(event.amount, locale));
     case "action": {
       const amount =
         event.amount !== null ? formatChips(event.amount, locale) : "";

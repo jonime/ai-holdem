@@ -237,6 +237,65 @@ describe("SupabaseGameRepository", () => {
     expect(history?.aiDecisions).toEqual([]);
   });
 
+  it("loads the initial hand state used by the game feed", async () => {
+    const initialState = { stateSchemaVersion: 1, engineState: {} };
+    const { client } = createClient({
+      updateResult: [
+        {
+          handNumber: 1,
+          status: "playing",
+          initialState,
+          finalState: null,
+          actions: [],
+        },
+      ],
+    });
+    const repository = new SupabaseGameRepository(client);
+
+    await expect(repository.getGameFeed("game-1")).resolves.toEqual({
+      hands: [
+        expect.objectContaining({ handNumber: 1, initialState, actions: [] }),
+      ],
+    });
+  });
+
+  it("rejects a non-object initial state in the game feed", async () => {
+    const { client } = createClient({
+      updateResult: [
+        {
+          handNumber: 1,
+          status: "playing",
+          initialState: "invalid",
+          finalState: null,
+          actions: [],
+        },
+      ],
+    });
+    const repository = new SupabaseGameRepository(client);
+
+    await expect(repository.getGameFeed("game-1")).rejects.toThrow(
+      "invalid game feed initial state",
+    );
+  });
+
+  it("keeps legacy game feed rows that predate initial-state projection", async () => {
+    const { client } = createClient({
+      updateResult: [
+        {
+          handNumber: 1,
+          status: "playing",
+          finalState: null,
+          actions: [],
+        },
+      ],
+    });
+    const repository = new SupabaseGameRepository(client);
+
+    await expect(repository.getGameFeed("game-1")).resolves.toEqual({
+      hands: [expect.objectContaining({ initialState: null })],
+    });
+  });
+
   it("updates a game once through the version-checked RPC", async () => {
     const updatedGame = { ...persistedGame, version: 5 };
     const { client, rpc } = createClient({ updateResult: [updatedGame] });

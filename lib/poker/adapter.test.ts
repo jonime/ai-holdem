@@ -82,6 +82,34 @@ function playToStreet(
 }
 
 describe("pokerEngineAdapter", () => {
+  it("projects blind postings in small-then-big order", () => {
+    const { blindPostings: recordedPostings, ...legacyState } = startHand();
+    expect(recordedPostings).toHaveLength(2);
+
+    expect(pokerEngineAdapter.blindPostings(legacyState)).toEqual([
+      { playerId: "human", blind: "small", amount: 50 },
+      { playerId: "ai", blind: "big", amount: 100 },
+    ]);
+  });
+
+  it("reports the amount actually posted by a short-stacked blind", () => {
+    const state = pokerEngineAdapter.startHand(
+      pokerEngineAdapter.createGame({
+        ...headsUpConfig,
+        players: [
+          { ...headsUpConfig.players[0], stack: 25 },
+          headsUpConfig.players[1],
+        ],
+      }),
+      createDeterministicDeck(),
+    );
+
+    expect(pokerEngineAdapter.blindPostings(state)).toEqual([
+      { playerId: "human", blind: "small", amount: 25 },
+      { playerId: "ai", blind: "big", amount: 100 },
+    ]);
+  });
+
   it("starts a deterministic heads-up hand and resolves a fold", () => {
     let state = pokerEngineAdapter.startHand(
       pokerEngineAdapter.createGame(headsUpConfig),
