@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ReactElement } from "react";
 
 import { LanguageSelector } from "@/components/poker/LanguageSelector";
 import { NewGameForm } from "@/components/poker/NewGameForm";
@@ -12,10 +12,11 @@ import { notFound } from "next/navigation";
 import styles from "./page.module.css";
 
 type LinkedTerm = Readonly<{ label: string; href: string }>;
+type LinkedPart = string | ReactElement;
 
-function linkTerms(text: string, terms: readonly LinkedTerm[]): ReactNode[] {
-  return terms.reduce<ReactNode[]>((parts, term, termIndex) => {
-    return parts.flatMap((part, partIndex) => {
+function linkTerms(text: string, terms: readonly LinkedTerm[]): LinkedPart[] {
+  return terms.reduce<LinkedPart[]>((parts, term, termIndex) => {
+    return parts.flatMap<LinkedPart>((part, partIndex) => {
       if (typeof part !== "string" || !part.includes(term.label)) return [part];
       const fragments = part.split(term.label);
       return fragments.flatMap((fragment, fragmentIndex) => [
