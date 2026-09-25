@@ -20,18 +20,18 @@
   padding: 8px 14px;
   border: 0;
   border-radius: 5px;
-  background: var(--coral);
-  color: #fff9ef;
+  background: var(--button-primary-background);
+  color: var(--button-primary-color);
   font-size: 13px;
   font-weight: 700;
-  box-shadow: 3px 3px 0 #9b3e2a;
+  box-shadow: 3px 3px 0 var(--button-primary-shadow);
 }
 
 .exitGame:hover,
 .exitGame:focus-visible {
   transform: translate(-1px, -1px);
-  background: #e27b55;
-  box-shadow: 5px 5px 0 #9b3e2a;
+  background: var(--button-primary-background-hover);
+  box-shadow: 5px 5px 0 var(--button-primary-shadow);
 }
 
 @media (max-width: 560px) {
