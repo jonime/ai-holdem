@@ -5,17 +5,9 @@ import { Space_Grotesk } from "next/font/google";
 import { I18nProvider } from "@/components/poker/I18nProvider";
 import { hasLocale, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { getDictionary } from "@/lib/i18n/server";
+import { getSiteOrigin } from "@/lib/site";
 
 import "../globals.css";
-
-const metadataBase = new URL(
-  process.env.NEXT_PUBLIC_APP_URL ??
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "http://localhost:3001"),
-);
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -40,9 +32,27 @@ export async function generateMetadata({
   if (!hasLocale(lang)) notFound();
   const dictionary = await getDictionary(lang);
   return {
-    metadataBase,
-    title: dictionary.metadata.title,
+    metadataBase: new URL(getSiteOrigin()),
+    applicationName: "AI Hold'em",
+    title: {
+      default: dictionary.metadata.title,
+      template: `%s | ${dictionary.metadata.title}`,
+    },
     description: dictionary.metadata.description,
+    keywords: [
+      "AI Hold'em",
+      "AI poker",
+      "Texas Hold'em demo",
+      "TypeSafe AI",
+      "poker bot",
+    ],
+    alternates: {
+      canonical: `/${lang}`,
+      languages: Object.fromEntries(
+        SUPPORTED_LOCALES.map((locale) => [locale, `/${locale}`]),
+      ),
+    },
+    robots: { index: true, follow: true },
     icons: {
       icon: "/ai-holdem-logo.png",
       shortcut: "/ai-holdem-logo.png",
@@ -52,6 +62,9 @@ export async function generateMetadata({
     openGraph: {
       title: dictionary.metadata.title,
       description: dictionary.metadata.description,
+      siteName: "AI Hold'em",
+      url: `/${lang}`,
+      type: "website",
       images: [
         { url: "/ai-holdem-logo.png", alt: dictionary.metadata.logoAlt },
       ],

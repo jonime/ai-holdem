@@ -1,0 +1,52 @@
+.page {
+  min-height: 100vh;
+  padding: clamp(18px, 4vw, 64px);
+}
+
+.card {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 52px);
+  border: 1px solid #9db5aa;
+  background: #f6f5ee;
+  box-shadow: 6px 7px 0 rgba(16, 59, 51, 0.18);
+}
+
+.eyebrow {
+  margin-bottom: 10px;
+  color: var(--coral);
+  font-family: var(--font-space-grotesk), sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card h1,
+.card h2 {
+  font-family: var(--font-space-grotesk), sans-serif;
+}
+
+.card h1 {
+  margin-bottom: 24px;
+}
+
+.card h2 {
+  margin: 32px 0 10px;
+}
+
+.card p,
+.card li {
+  color: #405d57;
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.card a {
+  color: var(--felt-dark);
+  font-weight: 700;
+}
+
+.back {
+  display: inline-block;
+  margin-top: 22px;
+}
