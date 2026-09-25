@@ -293,10 +293,38 @@ export const pokerEngineAdapter = {
     deck: readonly Card[] = createShuffledDeck(),
   ): PokerGameState {
     assertCompleteDeck(deck);
-    return withEngineState(
-      state.config,
-      transitionOrThrow(engineStateFrom(state), { type: "start-hand", deck }),
-    );
+    const result = transition(engineStateFrom(state), {
+      type: "start-hand",
+      deck,
+    });
+    if (!result.ok) {
+      throw new PokerRuleError(
+        `${result.error.code}: ${result.error.message}`,
+      );
+    }
+    const blindPostings = result.events.flatMap((event) => {
+      if (
+        event.type !== "forced-bet-posted" ||
+        (event.kind !== "small-blind" && event.kind !== "big-blind")
+      ) {
+        return [];
+      }
+      return [
+        {
+          playerId: event.playerId,
+          blind:
+            event.kind === "small-blind"
+              ? ("small" as const)
+              : ("big" as const),
+          amount: event.amount,
+        },
+      ];
+    });
+
+    return {
+      ...withEngineState(state.config, result.state),
+      blindPostings,
+    };
   },
 
   getLegalActions(state: PokerGameState): readonly LegalAction[] {
@@ -349,6 +377,52 @@ export const pokerEngineAdapter = {
         playerId,
         action: toEngineAction(action),
       }),
+    );
+  },
+
+  blindPostings(state: PokerGameState): readonly {
+    readonly playerId: string;
+    readonly blind: "small" | "big";
+    readonly amount: number;
+  }[] {
+    if (Array.isArray(state.blindPostings)) {
+      const validPostings = state.blindPostings.filter(
+        (posting) =>
+          posting &&
+          typeof posting.playerId === "string" &&
+          (posting.blind === "small" || posting.blind === "big") &&
+          Number.isSafeInteger(posting.amount) &&
+          posting.amount >= 0,
+      );
+      if (validPostings.length === state.blindPostings.length) {
+        return validPostings;
+      }
+    }
+
+    const hand = engineStateFrom(state).hand;
+    if (!hand) return [];
+
+    const postingForSeat = (
+      seat: number,
+      blind: "small" | "big",
+    ) => {
+      const player = hand.players.find((candidate) => candidate.seat === seat);
+      return player
+        ? {
+            playerId: player.playerId,
+            blind,
+            amount: player.committedStreet,
+          }
+        : null;
+    };
+
+    const postings = [
+      postingForSeat(hand.smallBlindSeat, "small"),
+      postingForSeat(hand.bigBlindSeat, "big"),
+    ];
+    return postings.filter(
+      (posting): posting is NonNullable<typeof posting> =>
+        posting !== null && posting.amount > 0,
     );
   },
 

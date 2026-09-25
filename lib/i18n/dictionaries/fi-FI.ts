@@ -146,6 +146,8 @@ const dictionary = {
     empty: "Ei toimintoja vielä.",
     loading: "Ladataan toimintoja...",
     hand: "Käsi {hand}",
+    smallBlind: "{player} asettaa pienen blindin {amount}",
+    bigBlind: "{player} asettaa ison blindin {amount}",
     fold: "{player} kippaa",
     check: "{player} sekkaa",
     call: "{player} maksaa {amount}",

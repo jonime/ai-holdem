@@ -252,6 +252,14 @@ const gameFeedEventSchema = z.discriminatedUnion("type", [
     handNumber: z.number().int().nonnegative(),
   }),
   z.object({
+    type: z.literal("blind"),
+    handNumber: z.number().int().nonnegative(),
+    player: z.string(),
+    controller: z.enum(["human", "bot"]),
+    blind: z.enum(["small", "big"]),
+    amount: z.number().int().nonnegative(),
+  }),
+  z.object({
     type: z.literal("action"),
     handNumber: z.number().int().nonnegative(),
     player: z.string(),

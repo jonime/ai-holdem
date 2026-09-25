@@ -145,6 +145,8 @@ const dictionary = {
     empty: "Ancora nessuna azione.",
     loading: "Caricamento delle azioni...",
     hand: "Mano n. {hand}",
+    smallBlind: "{player} mette il piccolo buio {amount}",
+    bigBlind: "{player} mette il grande buio {amount}",
     fold: "{player} passa",
     check: "{player} fa check",
     call: "{player} vede {amount}",

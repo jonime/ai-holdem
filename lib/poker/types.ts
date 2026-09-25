@@ -90,6 +90,13 @@ export interface PokerGameState {
   readonly stateSchemaVersion: 1;
   readonly config: GameConfig;
   readonly engineState: unknown;
+  readonly blindPostings?: readonly PokerBlindPosting[];
+}
+
+export interface PokerBlindPosting {
+  readonly playerId: string;
+  readonly blind: "small" | "big";
+  readonly amount: number;
 }
 
 export interface PokerGameSnapshot {

@@ -146,6 +146,8 @@ const dictionary = {
     empty: "Inga åtgärder ännu.",
     loading: "Åtgärder laddas...",
     hand: "Giv {hand}",
+    smallBlind: "{player} lägger lilla mörken {amount}",
+    bigBlind: "{player} lägger stora mörken {amount}",
     fold: "{player} lägger sig",
     check: "{player} passar",
     call: "{player} synar {amount}",

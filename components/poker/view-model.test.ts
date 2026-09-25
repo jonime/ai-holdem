@@ -6,6 +6,7 @@ import {
   canManageTable,
   describeHandResult,
   describeSeatStatus,
+  feedEventLabel,
   filledSeatCount,
   findGameWinnerId,
   parseProbabilities,
@@ -13,6 +14,29 @@ import {
 } from "./view-model";
 
 describe("view-model", () => {
+  it("labels small and big blind feed events with localized chip amounts", () => {
+    expect(
+      feedEventLabel({
+        type: "blind",
+        handNumber: 1,
+        player: "Alice",
+        controller: "human",
+        blind: "small",
+        amount: 1_000,
+      }),
+    ).toBe("Alice posts small blind 1,000");
+    expect(
+      feedEventLabel({
+        type: "blind",
+        handNumber: 1,
+        player: "Bot",
+        controller: "bot",
+        blind: "big",
+        amount: 2_000,
+      }),
+    ).toBe("Bot posts big blind 2,000");
+  });
+
   it("arranges seats around the viewer for small and larger tables", () => {
     const players: PublicPokerPlayer[] = [
       {

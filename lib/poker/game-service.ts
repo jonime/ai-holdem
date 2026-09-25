@@ -158,6 +158,14 @@ export interface GameFeedReader {
 export type PublicFeedEvent =
   | { readonly type: "handStarted"; readonly handNumber: number }
   | {
+      readonly type: "blind";
+      readonly handNumber: number;
+      readonly player: string;
+      readonly controller: "human" | "bot";
+      readonly blind: "small" | "big";
+      readonly amount: number;
+    }
+  | {
       readonly type: "action";
       readonly handNumber: number;
       readonly player: string;
@@ -1039,6 +1047,27 @@ export async function getGameFeed(
 
   for (const hand of feed.hands) {
     events.push({ type: "handStarted", handNumber: hand.handNumber });
+
+    try {
+      const initialState = restorePersistedState(hand.initialState);
+      const playerById = new Map(
+        initialState.config.players.map((player) => [player.id, player]),
+      );
+      for (const posting of pokerEngineAdapter.blindPostings(initialState)) {
+        const player = playerById.get(posting.playerId);
+        if (!player) continue;
+        events.push({
+          type: "blind",
+          handNumber: hand.handNumber,
+          player: player.name,
+          controller: player.controller === "human" ? "human" : "bot",
+          blind: posting.blind,
+          amount: posting.amount,
+        });
+      }
+    } catch {
+      // A malformed legacy snapshot must not hide the persisted action feed.
+    }
 
     for (const action of hand.actions) {
       events.push({
