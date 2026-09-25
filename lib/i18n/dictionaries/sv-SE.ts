@@ -24,6 +24,13 @@ const dictionary = {
     exit: "Avsluta",
     confirmExit: "Lämna bordet och återgå till startsidan?",
   },
+  connection: {
+    live: "Live",
+    checking: "Söker efter uppdateringar",
+    offline: "Offline",
+    error: "Det gick inte att uppdatera",
+    refreshNow: "Uppdatera nu",
+  },
   lobby: {
     waitingRoom: "Väntrum",
     chooseTable: "Välj ditt bord",

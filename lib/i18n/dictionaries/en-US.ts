@@ -22,6 +22,13 @@ const dictionary = {
     exit: "Exit",
     confirmExit: "Leave this table and return to the home screen?",
   },
+  connection: {
+    live: "Live",
+    checking: "Checking for updates",
+    offline: "Offline",
+    error: "Unable to refresh",
+    refreshNow: "Refresh now",
+  },
   lobby: {
     waitingRoom: "Waiting room",
     chooseTable: "Choose your table",

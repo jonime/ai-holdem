@@ -44,7 +44,6 @@ test("runs a two-player hand in a six-seat lobby", async ({
   await secondPage.getByRole("button", { name: "Sit here" }).first().click();
   await expect(secondPage.getByText("Player 2", { exact: true })).toBeVisible();
 
-  await page.reload();
   await expect(page.getByText("Player 2", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Start hand" })).toBeEnabled();
   await expect(
@@ -87,6 +86,53 @@ test("persists a per-bot difficulty selected in the lobby", async ({
   await expect(page.getByText("TypeSafe Jev · hard")).toBeVisible();
 });
 
+test("recovers through polling and after coming back online", async ({
+  browser,
+  page,
+}) => {
+  test.setTimeout(30_000);
+  await page.goto("/en-US");
+  await page
+    .getByRole("region", { name: "Start a new game" })
+    .getByRole("button", { name: "New Game" })
+    .click();
+  await expect(page.getByText("WAITING ROOM")).toBeVisible();
+
+  const spectatorContext = await browser.newContext();
+  await spectatorContext.routeWebSocket(
+    /\/realtime\/v1\/websocket/,
+    () => undefined,
+  );
+  const spectator = await spectatorContext.newPage();
+  await spectator.goto(page.url());
+  await expect(spectator.getByText("WAITING ROOM")).toBeVisible();
+
+  await page.getByLabel("Seats").selectOption("4");
+  await page.getByRole("button", { name: "Apply settings" }).click();
+  await expect(
+    spectator
+      .getByLabel("Table settings")
+      .getByText("4", { exact: true }),
+  ).toBeVisible({ timeout: 8_000 });
+
+  await spectatorContext.setOffline(true);
+  await expect(spectator.getByText("Offline", { exact: true })).toBeVisible();
+  await page.getByLabel("Starting stack").fill("5000");
+  const settingsResponse = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/settings") &&
+      response.request().method() === "PATCH",
+  );
+  await page.getByRole("button", { name: "Apply settings" }).click();
+  await settingsResponse;
+  await spectatorContext.setOffline(false);
+  await expect(spectator.getByText("5,000", { exact: true })).toBeVisible({
+    timeout: 8_000,
+  });
+
+  await spectatorContext.close();
+});
+
 test("runs the deterministic bot through completion, history, and another hand", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/en-US");
@@ -96,11 +142,11 @@ test("runs the deterministic bot through completion, history, and another hand",
     .click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
-  await page.getByLabel("Bot for seat 2").selectOption("basic-equity-v1");
+  await page.getByLabel("Bot for seat 2").selectOption("equity-rules-v2");
   await page.getByRole("button", { name: "Assign bot" }).first().click();
-  await expect(page.getByText("Basic equity #1", { exact: true })).toBeVisible();
+  await expect(page.getByText("Equity Rules #1", { exact: true })).toBeVisible();
   await page.reload();
-  await expect(page.getByText("Basic equity #1", { exact: true })).toBeVisible();
+  await expect(page.getByText("Equity Rules #1", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Start hand" }).click();
 
   const checkOrCall = await waitForPlayableHuman(page);
@@ -112,7 +158,7 @@ test("runs the deterministic bot through completion, history, and another hand",
   await page.getByRole("button", { name: "History" }).click();
   await expect(page.getByText("Action History")).toBeVisible();
   await expect(
-    page.getByRole("listitem").filter({ hasText: "Basic equity" }).first(),
+    page.getByRole("listitem").filter({ hasText: "Equity Rules" }).first(),
   ).toBeVisible();
   await page.getByRole("button", { name: "Close action history" }).click();
 

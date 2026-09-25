@@ -75,6 +75,9 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     liveDecisions,
     loading,
     error,
+    connectionStatus,
+    refreshing,
+    refreshGame,
     claimSeatAt,
     assignBot,
     releaseSeat,
@@ -269,6 +272,25 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             </button>
           ) : null}
         </p>
+      ) : null}
+      {game ? (
+        <div
+          className={`${styles.connectionStatus} ${styles[connectionStatus]}`}
+          role="status"
+          aria-live="polite"
+        >
+          <span aria-hidden="true" className={styles.connectionDot} />
+          <span>{t(`connection.${connectionStatus}`)}</span>
+          {connectionStatus === "error" ? (
+            <button
+              type="button"
+              disabled={refreshing}
+              onClick={refreshGame}
+            >
+              {t("connection.refreshNow")}
+            </button>
+          ) : null}
+        </div>
       ) : null}
       {!game ? (
         <div className="route-loading" aria-label={t("table.waiting")} />

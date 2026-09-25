@@ -24,6 +24,13 @@ const dictionary = {
     exit: "Poistu",
     confirmExit: "Poistutaanko pöydästä ja palataanko aloitusnäkymään?",
   },
+  connection: {
+    live: "Yhteys toimii",
+    checking: "Tarkistetaan päivityksiä",
+    offline: "Ei verkkoyhteyttä",
+    error: "Päivitys epäonnistui",
+    refreshNow: "Päivitä nyt",
+  },
   lobby: {
     waitingRoom: "Odotushuone",
     chooseTable: "Valitse pöytä",

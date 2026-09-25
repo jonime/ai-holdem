@@ -16,6 +16,17 @@ import {
   historyEnvelopeSchema,
 } from "@/lib/http/schemas";
 import { useGameChannel } from "@/lib/realtime/useGameChannel";
+import {
+  RefreshCoordinator,
+  connectionStatus,
+  createRefreshTimeout,
+  pollingInterval,
+  type RefreshConnectionStatus,
+} from "@/lib/realtime/refresh-coordinator";
+import {
+  reconcileGame,
+  type AppliedGameResponse,
+} from "@/lib/realtime/game-state";
 import { useI18n } from "@/components/poker/I18nProvider";
 
 import type {
@@ -42,62 +53,148 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   const [feed, setFeed] = useState<GameFeed | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshFailed, setRefreshFailed] = useState(false);
+  const [online, setOnline] = useState(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine,
+  );
+  const [visible, setVisible] = useState(() =>
+    typeof document === "undefined" ? true : document.visibilityState === "visible",
+  );
   const [botCatalog, setBotCatalog] = useState<readonly BotDescriptor[]>([]);
   const automaticallyAdvancedVersions = useRef(new Set<number>());
-  const latestLoadRequest = useRef(0);
-  const realtimeRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-  const realtimeRefreshInFlight = useRef(false);
-  const realtimeRefreshPending = useRef(false);
+  const activeGameId = useRef(gameId);
+  const nextResponseSequence = useRef(0);
+  const lastAppliedResponse = useRef<AppliedGameResponse | null>(null);
+  const refreshCoordinator = useRef<RefreshCoordinator | null>(null);
+  const refreshAbortControllers = useRef(new Set<AbortController>());
   const router = useRouter();
   const { locale, t } = useI18n();
 
-  const loadGame = useCallback(async (targetGameId: string) => {
-    const requestNumber = ++latestLoadRequest.current;
-    const body = await requestJson<{ game: Game }>(
-      `/api/games/${targetGameId}`,
-      undefined,
-      gameEnvelopeSchema,
-    );
-    if (requestNumber === latestLoadRequest.current) {
-      setGame((current) =>
-        current && current.version > body.game.version ? current : body.game,
-      );
-    }
-    return body.game;
-  }, []);
+  useEffect(() => {
+    activeGameId.current = gameId;
+  }, [gameId]);
 
-  const scheduleRealtimeRefresh = useCallback(() => {
-    function schedule() {
-      if (!gameId) return;
-      if (realtimeRefreshInFlight.current) {
-        realtimeRefreshPending.current = true;
+  const applyGame = useCallback(
+    (incoming: Game, sequence: number, targetGameId = incoming.id) => {
+      if (activeGameId.current !== targetGameId || incoming.id !== targetGameId) {
         return;
       }
-      if (realtimeRefreshTimer.current) return;
+      setGame((current) => {
+        const reconciled = reconcileGame(
+          current,
+          incoming,
+          lastAppliedResponse.current,
+          sequence,
+        );
+        lastAppliedResponse.current = reconciled.applied;
+        return reconciled.game;
+      });
+    },
+    [],
+  );
 
-      realtimeRefreshTimer.current = setTimeout(() => {
-        realtimeRefreshTimer.current = null;
-        realtimeRefreshInFlight.current = true;
-        void loadGame(gameId)
-          .catch(() => {
-            setError(t("errors.refreshGame"));
-          })
-          .finally(() => {
-            realtimeRefreshInFlight.current = false;
-            if (realtimeRefreshPending.current) {
-              realtimeRefreshPending.current = false;
-              schedule();
-            }
-          });
-      }, 75);
+  const loadGame = useCallback(
+    async (targetGameId: string) => {
+      const sequence = ++nextResponseSequence.current;
+      const { controller, cancel } = createRefreshTimeout();
+      refreshAbortControllers.current.add(controller);
+      try {
+        const body = await requestJson<{ game: Game }>(
+          `/api/games/${targetGameId}`,
+          { cache: "no-store", signal: controller.signal },
+          gameEnvelopeSchema,
+        );
+        applyGame(body.game, sequence, targetGameId);
+        return body.game;
+      } finally {
+        cancel();
+        refreshAbortControllers.current.delete(controller);
+      }
+    },
+    [applyGame],
+  );
+
+  const performRefresh = useCallback(async () => {
+    if (!gameId || !navigator.onLine) return;
+    setRefreshing(true);
+    try {
+      await loadGame(gameId);
+      setRefreshFailed(false);
+    } catch (requestError) {
+      if (!(requestError instanceof DOMException && requestError.name === "AbortError")) {
+        setRefreshFailed(true);
+      } else if (activeGameId.current === gameId) {
+        setRefreshFailed(true);
+      }
+    } finally {
+      if (activeGameId.current === gameId) setRefreshing(false);
     }
+  }, [gameId, loadGame]);
 
-    schedule();
-  }, [gameId, loadGame, t]);
+  useEffect(() => {
+    const coordinator = new RefreshCoordinator(performRefresh);
+    const abortControllers = refreshAbortControllers.current;
+    refreshCoordinator.current = coordinator;
+    return () => {
+      coordinator.dispose();
+      if (refreshCoordinator.current === coordinator) {
+        refreshCoordinator.current = null;
+      }
+      for (const controller of abortControllers) controller.abort();
+      abortControllers.clear();
+    };
+  }, [gameId, performRefresh]);
 
-  useGameChannel(gameId, game?.version ?? null, scheduleRealtimeRefresh);
+  const scheduleRealtimeRefresh = useCallback(() => {
+    refreshCoordinator.current?.schedule();
+  }, []);
+
+  const realtimeStatus = useGameChannel(
+    gameId,
+    game?.version ?? null,
+    scheduleRealtimeRefresh,
+  );
+
+  useEffect(() => {
+    refreshCoordinator.current?.pollEvery(
+      pollingInterval(realtimeStatus === "subscribed", online, visible),
+    );
+  }, [online, realtimeStatus, visible]);
+
+  useEffect(() => {
+    if (realtimeStatus === "subscribed" && online && visible) {
+      refreshCoordinator.current?.schedule(0);
+    }
+  }, [online, realtimeStatus, visible]);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setOnline(true);
+      refreshCoordinator.current?.schedule(0);
+    };
+    const handleOffline = () => setOnline(false);
+    const handleVisibility = () => {
+      const nextVisible = document.visibilityState === "visible";
+      setVisible(nextVisible);
+      if (nextVisible && navigator.onLine) refreshCoordinator.current?.schedule(0);
+    };
+    const handleFocus = () => {
+      if (document.visibilityState === "visible" && navigator.onLine) {
+        refreshCoordinator.current?.schedule(0);
+      }
+    };
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, []);
 
   useEffect(() => {
     void requestJson<{ bots: readonly BotDescriptor[] }>("/api/bots")
@@ -122,16 +219,6 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       cancelled = true;
     };
   }, [gameId, loadGame, t]);
-
-  useEffect(() => {
-    return () => {
-      if (realtimeRefreshTimer.current) {
-        clearTimeout(realtimeRefreshTimer.current);
-        realtimeRefreshTimer.current = null;
-      }
-      realtimeRefreshPending.current = false;
-    };
-  }, [gameId]);
 
   useEffect(() => {
     if (!game || !historyOpen) {
@@ -275,6 +362,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
           settings.botsShowUncontestedWins !==
             (currentGame.poker.botsShowUncontestedWins ?? false);
         if (settingsChanged) {
+          const settingsSequence = ++nextResponseSequence.current;
           const settingsBody = await requestJson<{ game: Game }>(
             `/api/games/${currentGame.id}/settings`,
             {
@@ -287,8 +375,9 @@ export function useGameSession(gameId?: string, historyOpen = false) {
             },
           );
           currentGame = settingsBody.game;
-          setGame(currentGame);
+          applyGame(currentGame, settingsSequence);
         }
+        const startSequence = ++nextResponseSequence.current;
         const body = await requestJson<{ game: Game }>(
           `/api/games/${currentGame.id}/start`,
           {
@@ -297,7 +386,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
             body: JSON.stringify({ expectedVersion: currentGame.version }),
           },
         );
-        setGame(body.game);
+        applyGame(body.game, startSequence);
       } catch (requestError) {
         setError(
           requestError instanceof Error
@@ -308,7 +397,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
         setLoading(false);
       }
     },
-    [game, t],
+    [applyGame, game, t],
   );
 
   const updateTableSettings = useCallback(
@@ -317,6 +406,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       setLoading(true);
       setError(null);
       try {
+        const sequence = ++nextResponseSequence.current;
         const body = await requestJson<{ game: Game }>(
           `/api/games/${game.id}/settings`,
           {
@@ -328,7 +418,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
             }),
           },
         );
-        setGame(body.game);
+        applyGame(body.game, sequence);
       } catch (requestError) {
         setError(
           requestError instanceof Error
@@ -339,35 +429,39 @@ export function useGameSession(gameId?: string, historyOpen = false) {
         setLoading(false);
       }
     },
-    [game, t],
+    [applyGame, game, t],
   );
 
-  const advanceAiTurns = useCallback(async (nextGame: Game) => {
-    let current = nextGame;
-    for (
-      let attempts = 0;
-      attempts < 12 &&
-      current.status === "playing" &&
-      current.poker.players.some(
-        (player) =>
-          player.id === current.poker.currentActorId &&
-          player.controller === "bot",
-      );
-      attempts += 1
-    ) {
-      const body = await requestJson<{ game: Game; aiDecision: AIDecision }>(
-        `/api/games/${current.id}/step`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ expectedVersion: current.version }),
-        },
-      );
-      current = body.game;
-      setGame(current);
-      setLiveDecisions((previous) => [...previous, body.aiDecision]);
-    }
-  }, []);
+  const advanceAiTurns = useCallback(
+    async (nextGame: Game) => {
+      let current = nextGame;
+      for (
+        let attempts = 0;
+        attempts < 12 &&
+        current.status === "playing" &&
+        current.poker.players.some(
+          (player) =>
+            player.id === current.poker.currentActorId &&
+            player.controller === "bot",
+        );
+        attempts += 1
+      ) {
+        const sequence = ++nextResponseSequence.current;
+        const body = await requestJson<{ game: Game; aiDecision: AIDecision }>(
+          `/api/games/${current.id}/step`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ expectedVersion: current.version }),
+          },
+        );
+        current = body.game;
+        applyGame(current, sequence);
+        setLiveDecisions((previous) => [...previous, body.aiDecision]);
+      }
+    },
+    [applyGame],
+  );
 
   const automaticallyAdvanceAiTurn = useEffectEvent(async (nextGame: Game) => {
     setLoading(true);
@@ -448,6 +542,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       setLoading(true);
       setError(null);
       try {
+        const sequence = ++nextResponseSequence.current;
         const body = await requestJson<{ game: Game }>(
           `/api/games/${game.id}/action`,
           {
@@ -464,7 +559,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
             }),
           },
         );
-        setGame(body.game);
+        applyGame(body.game, sequence);
         await advanceAiTurns(body.game);
       } catch (requestError) {
         setError(
@@ -476,7 +571,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
         setLoading(false);
       }
     },
-    [advanceAiTurns, game, t],
+    [advanceAiTurns, applyGame, game, t],
   );
 
   const beginNextHand = useCallback(async () => {
@@ -486,6 +581,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     setLiveDecisions([]);
     setSelectedHistoryHand(null);
     try {
+      const sequence = ++nextResponseSequence.current;
       const body = await requestJson<{ game: Game }>(
         `/api/games/${game.id}/next-hand`,
         {
@@ -494,7 +590,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
           body: JSON.stringify({ expectedVersion: game.version }),
         },
       );
-      setGame(body.game);
+      applyGame(body.game, sequence);
       await advanceAiTurns(body.game);
     } catch (requestError) {
       setError(
@@ -505,13 +601,14 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     } finally {
       setLoading(false);
     }
-  }, [advanceAiTurns, game, t]);
+  }, [advanceAiTurns, applyGame, game, t]);
 
   const revealCards = useCallback(async () => {
     if (!game) return;
     setLoading(true);
     setError(null);
     try {
+      const sequence = ++nextResponseSequence.current;
       const body = await requestJson<{ game: Game }>(
         `/api/games/${game.id}/reveal`,
         {
@@ -524,7 +621,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
         },
         gameEnvelopeSchema,
       );
-      setGame(body.game);
+      applyGame(body.game, sequence);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -534,7 +631,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     } finally {
       setLoading(false);
     }
-  }, [game, t]);
+  }, [applyGame, game, t]);
 
   const selectHistoryHand = useCallback((handNumber: number) => {
     setSelectedHistoryHand(handNumber);
@@ -547,6 +644,15 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     historyOpen &&
     requestedHistoryHand !== null &&
     history?.handNumber !== requestedHistoryHand;
+  const liveConnectionStatus: RefreshConnectionStatus = connectionStatus({
+    subscribed: realtimeStatus === "subscribed",
+    online,
+    refreshing,
+    refreshFailed,
+  });
+  const refreshGame = useCallback(() => {
+    refreshCoordinator.current?.schedule(0);
+  }, []);
 
   return {
     botCatalog,
@@ -559,6 +665,9 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     liveDecisions,
     loading,
     error,
+    connectionStatus: liveConnectionStatus,
+    refreshing,
+    refreshGame,
     setSelectedHistoryHand,
     createGame,
     loadGame,
