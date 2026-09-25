@@ -23,6 +23,13 @@ const dictionary = {
     exit: "Esci",
     confirmExit: "Lasciare questo tavolo e tornare alla schermata iniziale?",
   },
+  connection: {
+    live: "In diretta",
+    checking: "Controllo aggiornamenti",
+    offline: "Offline",
+    error: "Impossibile aggiornare",
+    refreshNow: "Aggiorna ora",
+  },
   lobby: {
     waitingRoom: "Sala d’attesa",
     chooseTable: "Scegli il tuo tavolo",

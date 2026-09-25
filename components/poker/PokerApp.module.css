@@ -12,6 +12,59 @@
   color: #77321f;
 }
 
+.connectionStatus {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 1220px;
+  min-height: 28px;
+  margin: 0 auto 10px;
+  gap: 7px;
+  color: #526560;
+  font:
+    700 11px/1 ui-monospace,
+    Menlo,
+    monospace;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.connectionDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #6f817b;
+}
+
+.live .connectionDot {
+  background: #2c8b60;
+}
+
+.checking .connectionDot {
+  background: #bd7b21;
+}
+
+.offline .connectionDot,
+.error .connectionDot {
+  background: var(--coral);
+}
+
+.connectionStatus button {
+  padding: 3px 7px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.connectionStatus button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .gameLayout {
   max-width: 1220px;
   margin: auto;

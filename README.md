@@ -54,6 +54,10 @@ authorization boundary for production. Broadcast is best-effort: a successful
 database mutation remains successful when delivery is unavailable, and clients
 always refetch authoritative HTTP state. Missing browser Supabase credentials
 prevent the Realtime client from starting but do not expose server credentials.
+Open tables also poll the authoritative game endpoint every 30 seconds while
+Realtime is connected and every 5 seconds while it is unavailable. Polling
+pauses in hidden or offline tabs, then refreshes immediately when the tab is
+visible or online again.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the contributor workflow and
 checklist. Keep this README, [AGENTS.md](AGENTS.md), and [CONTRIBUTING.md](CONTRIBUTING.md)

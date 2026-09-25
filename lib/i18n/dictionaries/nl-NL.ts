@@ -23,6 +23,13 @@ const dictionary = {
     exit: "Verlaten",
     confirmExit: "Deze tafel verlaten en teruggaan naar het startscherm?",
   },
+  connection: {
+    live: "Live",
+    checking: "Controleren op updates",
+    offline: "Offline",
+    error: "Vernieuwen mislukt",
+    refreshNow: "Nu vernieuwen",
+  },
   lobby: {
     waitingRoom: "Wachtkamer",
     chooseTable: "Kies je tafel",
