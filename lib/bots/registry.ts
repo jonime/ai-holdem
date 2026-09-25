@@ -34,6 +34,7 @@ export const legacyBasicEquityBotDescriptor: BotDescriptor = {
 export function getBotCatalog(): readonly BotDescriptor[] {
   return [
     jevBotDescriptor,
+    legacyBasicEquityBotDescriptor,
     equityRulesV2BotDescriptor,
     ...getOpenRouterProfiles().map((profile) => ({
       id: profile.id,

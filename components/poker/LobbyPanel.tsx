@@ -20,6 +20,7 @@ export function LobbyPanel({
   onClaimSeatAt,
   onAssignBot,
   onReleaseSeat,
+  onApplyTableSettings,
   onStartWaitingGame,
 }: {
   readonly game: Game;
@@ -35,6 +36,7 @@ export function LobbyPanel({
     botId: string,
   ) => void;
   readonly onReleaseSeat: (seat: number) => void;
+  readonly onApplyTableSettings: (settings: TableSettings) => void;
   readonly onStartWaitingGame: (settings: TableSettings) => void;
 }) {
   const { t } = useI18n();
@@ -181,6 +183,13 @@ export function LobbyPanel({
               />
               <span>{t("lobby.botsShowUncontestedWins")}</span>
             </label>
+            <button
+              type="button"
+              disabled={!settingsValid || loading}
+              onClick={() => onApplyTableSettings(parsedSettings)}
+            >
+              {t("lobby.applySettings")}
+            </button>
           </div>
         ) : (
           <div

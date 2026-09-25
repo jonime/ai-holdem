@@ -78,6 +78,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     claimSeatAt,
     assignBot,
     releaseSeat,
+    updateTableSettings,
     startWaitingGame,
     submitAction,
     beginNextHand,
@@ -284,6 +285,9 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             void assignBot(seat, difficulty, botId)
           }
           onReleaseSeat={(seat) => void releaseSeat(seat)}
+          onApplyTableSettings={(settings) =>
+            void updateTableSettings(settings)
+          }
           onStartWaitingGame={(settings) => void startWaitingGame(settings)}
         />
       ) : (
