@@ -53,6 +53,9 @@ export function LobbyPanel({
     startingStack: String(game.poker.startingStack),
     botsShowUncontestedWins: game.poker.botsShowUncontestedWins ?? false,
   });
+  const supportsDifficulty = (
+    provider: BotDescriptor["provider"] | undefined,
+  ) => provider === "typesafe" || provider === "rules";
   const parsedSettings: TableSettings = {
     seatCount: Number(settingsDraft.seatCount),
     smallBlind: Number(settingsDraft.smallBlind),
@@ -226,7 +229,7 @@ export function LobbyPanel({
                 <strong>{player?.name ?? t("lobby.openSeat")}</strong>
                 <span>
                   {player?.status === "bot"
-                    ? player.bot?.provider === "typesafe"
+                    ? supportsDifficulty(player.bot?.provider)
                       ? `${player.bot.label} · ${t(`lobby.${player.aiDifficulty ?? "medium"}`)}`
                       : (player.bot?.label ?? player.name)
                     : player?.status === "claimed"
@@ -262,9 +265,11 @@ export function LobbyPanel({
                           </option>
                         ))}
                       </select>
-                      {(botCatalog.find(
-                        (bot) => bot.id === (selectedBots[seat] ?? "jev"),
-                      )?.provider ?? "typesafe") === "typesafe" ? (
+                      {supportsDifficulty(
+                        botCatalog.find(
+                          (bot) => bot.id === (selectedBots[seat] ?? "jev"),
+                        )?.provider,
+                      ) ? (
                         <select
                           aria-label={t("lobby.botDifficulty", {
                             seat: seat + 1,

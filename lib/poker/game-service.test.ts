@@ -547,6 +547,144 @@ describe("assignBotToSeat", () => {
       assignBotToSeat(repository, "game-1", 1, "spectator-token"),
     ).rejects.toThrow("Only the host can assign bots");
   });
+
+  it("preserves rules difficulty after rehydrating a saved game", async () => {
+    const state = pokerEngineAdapter.createGame({
+      smallBlind: 50,
+      bigBlind: 100,
+      seatCount: 2,
+      players: [
+        {
+          id: "human",
+          name: "You",
+          controller: "human",
+          seat: 0,
+          stack: 10_000,
+          status: "claimed",
+          playerToken: "host-token",
+          isHost: true,
+        },
+        {
+          id: "rules-bot",
+          name: "Equity Rules",
+          controller: "bot",
+          seat: 1,
+          stack: 10_000,
+          status: "bot",
+          bot: {
+            id: "equity-rules-v2",
+            label: "Equity Rules",
+            provider: "rules",
+            modelId: null,
+          },
+          aiDifficulty: "hard",
+          playerToken: null,
+          isHost: false,
+        },
+      ],
+    });
+
+    const publicGame = await getPublicGame(
+      {
+        getGame: vi.fn().mockResolvedValue({
+          id: "game-1",
+          status: "waiting",
+          currentState: state,
+          stateSchemaVersion: 1,
+          handNumber: 0,
+          version: 0,
+        }),
+        getHostToken: vi.fn().mockResolvedValue("host-token"),
+        getSeatAssignments: vi.fn().mockResolvedValue([
+          {
+            gameId: "game-1",
+            seat: 0,
+            name: "You",
+            status: "claimed",
+            controller: "human",
+            aiDifficulty: null,
+            playerToken: "host-token",
+            isHost: true,
+            leaving: false,
+            enginePlayerId: "human",
+          },
+          {
+            gameId: "game-1",
+            seat: 1,
+            name: "Equity Rules",
+            status: "bot",
+            controller: "bot",
+            bot: {
+              id: "equity-rules-v2",
+              label: "Equity Rules",
+              provider: "rules",
+              modelId: null,
+            },
+            aiDifficulty: "hard",
+            playerToken: null,
+            isHost: false,
+            leaving: false,
+            enginePlayerId: "rules-bot",
+          },
+        ]),
+      },
+      "game-1",
+      "host-token",
+    );
+
+    expect(
+      publicGame.poker.players.find((player) => player.seat === 1),
+    ).toMatchObject({
+      aiDifficulty: "hard",
+      bot: expect.objectContaining({ provider: "rules" }),
+    });
+  });
+
+  it("persists difficulty for rules bots and keeps OpenRouter null", async () => {
+    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
+    const repository = {
+      getSeatAssignments: vi.fn().mockResolvedValue([
+        { seat: 0, status: "claimed", playerToken: "host-token", isHost: true },
+        { seat: 1, status: "open", playerToken: null, isHost: false },
+        { seat: 2, status: "open", playerToken: null, isHost: false },
+      ]),
+      updateSeatAssignment,
+    };
+
+    await assignBotToSeat(repository, "game-1", 1, "host-token", "hard", {
+      id: "equity-rules-v2",
+      label: "Equity Rules v2",
+      provider: "rules",
+      modelId: null,
+    });
+
+    expect(updateSeatAssignment).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        seat: 1,
+        status: "bot",
+        aiDifficulty: "hard",
+        bot: expect.objectContaining({ provider: "rules" }),
+      }),
+    );
+
+    await assignBotToSeat(repository, "game-1", 2, "host-token", "hard", {
+      id: "openrouter-gpt-4o-mini",
+      label: "OpenRouter GPT",
+      provider: "openrouter",
+      modelId: "gpt-4o-mini",
+    });
+
+    expect(updateSeatAssignment).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        seat: 2,
+        status: "bot",
+        aiDifficulty: null,
+        bot: expect.objectContaining({ provider: "openrouter" }),
+      }),
+    );
+  });
 });
 
 describe("releaseSeat", () => {
@@ -989,7 +1127,10 @@ describe("stepTypesafeAction", () => {
                   type: "choice",
                   choice: "check",
                   probabilities: Object.fromEntries(
-                    choices.map((choice) => [choice, choice === "check" ? 1 : 0]),
+                    choices.map((choice) => [
+                      choice,
+                      choice === "check" ? 1 : 0,
+                    ]),
                   ),
                   confidence: 1,
                 },

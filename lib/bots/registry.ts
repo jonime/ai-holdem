@@ -1,10 +1,11 @@
 import "server-only";
 
 import { getOpenRouterProfiles } from "@/lib/env/server";
-import { TypesafeSystemOneClient } from "@/lib/typesafe/client";
 import type { BotDescriptor } from "@/lib/poker/types";
+import { TypesafeSystemOneClient } from "@/lib/typesafe/client";
 
 import { BasicEquityBot } from "./basic-equity";
+import { EquityRulesV2Bot } from "./equity-rules-v2";
 import { JevPokerBot } from "./jev";
 import { OpenRouterPokerBot } from "./openrouter";
 import type { PokerBot } from "./types";
@@ -16,7 +17,14 @@ export const jevBotDescriptor: BotDescriptor = {
   modelId: "jev-latest",
 };
 
-export const basicBotDescriptor: BotDescriptor = {
+export const equityRulesV2BotDescriptor: BotDescriptor = {
+  id: "equity-rules-v2",
+  label: "Equity Rules",
+  provider: "rules",
+  modelId: null,
+};
+
+export const legacyBasicEquityBotDescriptor: BotDescriptor = {
   id: "basic-equity-v1",
   label: "Basic equity",
   provider: "rules",
@@ -26,7 +34,7 @@ export const basicBotDescriptor: BotDescriptor = {
 export function getBotCatalog(): readonly BotDescriptor[] {
   return [
     jevBotDescriptor,
-    basicBotDescriptor,
+    equityRulesV2BotDescriptor,
     ...getOpenRouterProfiles().map((profile) => ({
       id: profile.id,
       label: profile.label,
@@ -36,19 +44,38 @@ export function getBotCatalog(): readonly BotDescriptor[] {
   ];
 }
 
+export function resolveBotDescriptor(botId: string): BotDescriptor {
+  const descriptor =
+    getBotCatalog().find((candidate) => candidate.id === botId) ??
+    (botId === legacyBasicEquityBotDescriptor.id
+      ? legacyBasicEquityBotDescriptor
+      : null);
+
+  if (!descriptor) throw new Error(`Unknown bot: ${botId}`);
+  return descriptor;
+}
+
 export interface BotRegistry {
-  get(botId: string): { readonly descriptor: BotDescriptor; readonly bot: PokerBot };
+  get(botId: string): {
+    readonly descriptor: BotDescriptor;
+    readonly bot: PokerBot;
+  };
 }
 
 export class ServerBotRegistry implements BotRegistry {
   get(botId: string) {
-    const descriptor = getBotCatalog().find((candidate) => candidate.id === botId);
-    if (!descriptor) throw new Error(`Unknown bot: ${botId}`);
-    if (descriptor.provider === "rules") {
+    const descriptor = resolveBotDescriptor(botId);
+    if (descriptor.id === legacyBasicEquityBotDescriptor.id) {
       return { descriptor, bot: new BasicEquityBot() };
     }
+    if (descriptor.provider === "rules") {
+      return { descriptor, bot: new EquityRulesV2Bot() };
+    }
     if (descriptor.provider === "typesafe") {
-      return { descriptor, bot: new JevPokerBot(new TypesafeSystemOneClient()) };
+      return {
+        descriptor,
+        bot: new JevPokerBot(new TypesafeSystemOneClient()),
+      };
     }
     return {
       descriptor,

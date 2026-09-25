@@ -13,10 +13,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Purpose
 
 This is a TypeScript demo of heads-up no-limit Texas Hold'em. Humans and
-TypeSafe AI occupy seats, while `@hivetech/poker-engine` remains authoritative
-for cards, turns, legal actions, betting, pots, and winners. Supabase persists
-game state and version-checked mutations; Realtime Broadcast only tells clients
-to refetch authoritative state.
+provider-backed AI seats occupy the table, including TypeSafe, deterministic
+offline `Equity Rules`, and OpenRouter-backed models, while
+`@hivetech/poker-engine` remains authoritative for cards, turns, legal actions,
+betting, pots, and winners. Supabase persists game state and version-checked
+mutations; Realtime Broadcast only tells clients to refetch authoritative state.
 
 This repo is security-sensitive and architecture-sensitive. Treat the current
 code, tests, and live behavior as the source of truth. Do not rely on older

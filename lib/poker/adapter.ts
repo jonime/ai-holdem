@@ -174,10 +174,13 @@ function describeHand(
   const holeCardNames = new Set(holeCards.map(cardToString));
   const boardRank =
     communityCards.length === 5 ? evaluateHand(communityCards) : null;
-  const suitCounts = knownCards.reduce<Record<string, number>>((counts, card) => {
-    counts[card.suit] = (counts[card.suit] ?? 0) + 1;
-    return counts;
-  }, {});
+  const suitCounts = knownCards.reduce<Record<string, number>>(
+    (counts, card) => {
+      counts[card.suit] = (counts[card.suit] ?? 0) + 1;
+      return counts;
+    },
+    {},
+  );
   const drawsRemain = communityCards.length >= 3 && communityCards.length < 5;
   const alreadyStraight =
     rank?.category === "straight" || rank?.category === "straight-flush";
@@ -456,7 +459,8 @@ export const pokerEngineAdapter = {
                 }),
           aiDifficulty:
             config.controller !== "human" &&
-            (config.bot?.provider ?? "typesafe") === "typesafe"
+            ((config.bot?.provider ?? "typesafe") === "typesafe" ||
+              (config.bot?.provider ?? "typesafe") === "rules")
               ? (config.aiDifficulty ?? "medium")
               : null,
           seat: config.seat,

@@ -7,13 +7,14 @@ Repository: [github.com/jonime/ai-holdem](https://github.com/jonime/ai-holdem)
 
 ## What It Does
 
-- Persists games, hands, actions, and TypeSafe decision audits in Supabase.
+- Persists games, hands, actions, and AI decision audits in Supabase.
 - Validates each human action against the authoritative engine.
-- Lets TypeSafe act only through server-side, validated System One Choices.
+- Lets TypeSafe and the deterministic offline Equity Rules bot act only
+	through server-side validated choices.
 - Shows legal actions, probability distributions, confidence, action history,
 	and the winner.
-- Keeps AI hole cards, TypeSafe input, and raw responses private until the
-	relevant hand completes.
+- Keeps AI hole cards, TypeSafe input, raw responses, and private bot state
+	confidential until the relevant hand completes.
 
 This repo treats documentation as part of the implementation. If setup steps,
 commands, env vars, or workflows change, update the docs in the same change.
@@ -92,6 +93,11 @@ npm run dev
 ```
 
 The development server defaults to http://localhost:3001.
+
+Use the built-in offline bot catalog for deterministic play without external
+inference: `Equity Rules` is the default non-LLM rules option, while
+`TypeSafe Jev` and `OpenRouter` profiles remain available as provider-specific
+choices.
 
 ```sh
 npm run lint

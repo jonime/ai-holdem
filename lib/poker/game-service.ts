@@ -323,6 +323,12 @@ function enginePlayerIdForAssignment(
   );
 }
 
+function supportsDifficulty(
+  provider: BotDescriptor["provider"] | null | undefined,
+) {
+  return provider === "typesafe" || provider === "rules";
+}
+
 function playerConfigForAssignment(
   gameId: string,
   assignment: SeatAssignment,
@@ -338,10 +344,9 @@ function playerConfigForAssignment(
         : `Player ${assignment.seat + 1}`),
     controller: assignment.controller,
     bot: assignment.controller === "bot" ? assignment.bot : null,
-    aiDifficulty:
-      assignment.bot?.provider === "typesafe"
-        ? (assignment.aiDifficulty ?? "medium")
-        : null,
+    aiDifficulty: supportsDifficulty(assignment.bot?.provider)
+      ? (assignment.aiDifficulty ?? "medium")
+      : null,
     stack: startingStack,
     status: assignment.status,
     playerToken: assignment.playerToken,
@@ -379,10 +384,9 @@ async function withOpenSeatPlaceholders(
           name: assignment.name ?? player.name,
           controller: assignment.controller,
           bot: assignment.controller === "bot" ? assignment.bot : null,
-          aiDifficulty:
-            assignment.bot?.provider === "typesafe"
-              ? (assignment.aiDifficulty ?? "medium")
-              : null,
+          aiDifficulty: supportsDifficulty(assignment.bot?.provider)
+            ? (assignment.aiDifficulty ?? "medium")
+            : null,
           status: assignment.status,
           playerToken: assignment.playerToken,
           isHost: assignment.isHost,
@@ -513,10 +517,9 @@ async function reconcileState(
               name: assignment.name ?? player.name,
               controller: assignment.controller,
               bot: assignment.controller === "bot" ? assignment.bot : null,
-              aiDifficulty:
-                assignment.bot?.provider === "typesafe"
-                  ? (assignment.aiDifficulty ?? "medium")
-                  : null,
+              aiDifficulty: supportsDifficulty(assignment.bot?.provider)
+                ? (assignment.aiDifficulty ?? "medium")
+                : null,
             }
           : player;
       }),
@@ -885,7 +888,7 @@ export async function assignBotToSeat(
     status: "bot",
     controller: "bot",
     bot,
-    aiDifficulty: bot.provider === "typesafe" ? difficulty : null,
+    aiDifficulty: supportsDifficulty(bot.provider) ? difficulty : null,
     name,
     playerToken: null,
     isHost: false,
@@ -898,7 +901,7 @@ export async function assignBotToSeat(
     status: "bot",
     controller: "bot",
     bot,
-    aiDifficulty: bot.provider === "typesafe" ? difficulty : null,
+    aiDifficulty: supportsDifficulty(bot.provider) ? difficulty : null,
     name,
     playerToken: null,
     isHost: false,
