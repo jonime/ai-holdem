@@ -14,7 +14,12 @@ describe("i18n routing helpers", () => {
     expect(hasLocale("es-ES")).toBe(true);
     expect(hasLocale("de-DE")).toBe(true);
     expect(hasLocale("sv-SE")).toBe(true);
-    expect(hasLocale("fr-FR")).toBe(false);
+    expect(hasLocale("fr-FR")).toBe(true);
+    expect(hasLocale("pt-BR")).toBe(true);
+    expect(hasLocale("it-IT")).toBe(true);
+    expect(hasLocale("nl-NL")).toBe(true);
+    expect(hasLocale("pl-PL")).toBe(true);
+    expect(hasLocale("ja-JP")).toBe(false);
     expect(addLocalePrefix("/game/example", DEFAULT_LOCALE)).toBe(
       "/en-US/game/example",
     );
