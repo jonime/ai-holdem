@@ -1,38 +1,172 @@
 import "server-only";
 
 import type { Locale } from "./index";
-import enUsDictionary, { type Dictionary } from "./dictionaries/en-US";
-import fiFiDictionary from "./dictionaries/fi-FI";
-import esEsDictionary from "./dictionaries/es-ES";
-import deDeDictionary from "./dictionaries/de-DE";
-import svSeDictionary from "./dictionaries/sv-SE";
-import frFrDictionary from "./dictionaries/fr-FR";
-import ptBrDictionary from "./dictionaries/pt-BR";
-import itItDictionary from "./dictionaries/it-IT";
-import nlNlDictionary from "./dictionaries/nl-NL";
-import plPlDictionary from "./dictionaries/pl-PL";
+import type {
+  GameDictionary,
+  LandingClientDictionary,
+  LandingServerDictionary,
+  MetadataDictionary,
+} from "./types";
 
-export async function getDictionary(locale: Locale): Promise<Dictionary> {
-  switch (locale) {
-    case "en-US":
-      return enUsDictionary;
-    case "fi-FI":
-      return fiFiDictionary;
-    case "es-ES":
-      return esEsDictionary;
-    case "de-DE":
-      return deDeDictionary;
-    case "sv-SE":
-      return svSeDictionary;
-    case "fr-FR":
-      return frFrDictionary;
-    case "pt-BR":
-      return ptBrDictionary;
-    case "it-IT":
-      return itItDictionary;
-    case "nl-NL":
-      return nlNlDictionary;
-    case "pl-PL":
-      return plPlDictionary;
-  }
+const metadataDictionaries: Record<Locale, () => Promise<MetadataDictionary>> =
+  {
+    "en-US": () =>
+      import("./dictionaries/metadata/en-US").then((module) => module.default),
+    "fi-FI": () =>
+      import("./dictionaries/metadata/fi-FI").then((module) => module.default),
+    "es-ES": () =>
+      import("./dictionaries/metadata/es-ES").then((module) => module.default),
+    "de-DE": () =>
+      import("./dictionaries/metadata/de-DE").then((module) => module.default),
+    "sv-SE": () =>
+      import("./dictionaries/metadata/sv-SE").then((module) => module.default),
+    "fr-FR": () =>
+      import("./dictionaries/metadata/fr-FR").then((module) => module.default),
+    "pt-BR": () =>
+      import("./dictionaries/metadata/pt-BR").then((module) => module.default),
+    "it-IT": () =>
+      import("./dictionaries/metadata/it-IT").then((module) => module.default),
+    "nl-NL": () =>
+      import("./dictionaries/metadata/nl-NL").then((module) => module.default),
+    "pl-PL": () =>
+      import("./dictionaries/metadata/pl-PL").then((module) => module.default),
+  };
+
+const landingServerDictionaries: Record<
+  Locale,
+  () => Promise<LandingServerDictionary>
+> = {
+  "en-US": () =>
+    import("./dictionaries/landing-server/en-US").then(
+      (module) => module.default,
+    ),
+  "fi-FI": () =>
+    import("./dictionaries/landing-server/fi-FI").then(
+      (module) => module.default,
+    ),
+  "es-ES": () =>
+    import("./dictionaries/landing-server/es-ES").then(
+      (module) => module.default,
+    ),
+  "de-DE": () =>
+    import("./dictionaries/landing-server/de-DE").then(
+      (module) => module.default,
+    ),
+  "sv-SE": () =>
+    import("./dictionaries/landing-server/sv-SE").then(
+      (module) => module.default,
+    ),
+  "fr-FR": () =>
+    import("./dictionaries/landing-server/fr-FR").then(
+      (module) => module.default,
+    ),
+  "pt-BR": () =>
+    import("./dictionaries/landing-server/pt-BR").then(
+      (module) => module.default,
+    ),
+  "it-IT": () =>
+    import("./dictionaries/landing-server/it-IT").then(
+      (module) => module.default,
+    ),
+  "nl-NL": () =>
+    import("./dictionaries/landing-server/nl-NL").then(
+      (module) => module.default,
+    ),
+  "pl-PL": () =>
+    import("./dictionaries/landing-server/pl-PL").then(
+      (module) => module.default,
+    ),
+};
+
+const landingClientDictionaries: Record<
+  Locale,
+  () => Promise<LandingClientDictionary>
+> = {
+  "en-US": () =>
+    import("./dictionaries/landing-client/en-US").then(
+      (module) => module.default,
+    ),
+  "fi-FI": () =>
+    import("./dictionaries/landing-client/fi-FI").then(
+      (module) => module.default,
+    ),
+  "es-ES": () =>
+    import("./dictionaries/landing-client/es-ES").then(
+      (module) => module.default,
+    ),
+  "de-DE": () =>
+    import("./dictionaries/landing-client/de-DE").then(
+      (module) => module.default,
+    ),
+  "sv-SE": () =>
+    import("./dictionaries/landing-client/sv-SE").then(
+      (module) => module.default,
+    ),
+  "fr-FR": () =>
+    import("./dictionaries/landing-client/fr-FR").then(
+      (module) => module.default,
+    ),
+  "pt-BR": () =>
+    import("./dictionaries/landing-client/pt-BR").then(
+      (module) => module.default,
+    ),
+  "it-IT": () =>
+    import("./dictionaries/landing-client/it-IT").then(
+      (module) => module.default,
+    ),
+  "nl-NL": () =>
+    import("./dictionaries/landing-client/nl-NL").then(
+      (module) => module.default,
+    ),
+  "pl-PL": () =>
+    import("./dictionaries/landing-client/pl-PL").then(
+      (module) => module.default,
+    ),
+};
+
+const gameDictionaries: Record<Locale, () => Promise<GameDictionary>> = {
+  "en-US": () =>
+    import("./dictionaries/game/en-US").then((module) => module.default),
+  "fi-FI": () =>
+    import("./dictionaries/game/fi-FI").then((module) => module.default),
+  "es-ES": () =>
+    import("./dictionaries/game/es-ES").then((module) => module.default),
+  "de-DE": () =>
+    import("./dictionaries/game/de-DE").then((module) => module.default),
+  "sv-SE": () =>
+    import("./dictionaries/game/sv-SE").then((module) => module.default),
+  "fr-FR": () =>
+    import("./dictionaries/game/fr-FR").then((module) => module.default),
+  "pt-BR": () =>
+    import("./dictionaries/game/pt-BR").then((module) => module.default),
+  "it-IT": () =>
+    import("./dictionaries/game/it-IT").then((module) => module.default),
+  "nl-NL": () =>
+    import("./dictionaries/game/nl-NL").then((module) => module.default),
+  "pl-PL": () =>
+    import("./dictionaries/game/pl-PL").then((module) => module.default),
+};
+
+export async function getMetadataDictionary(
+  locale: Locale,
+): Promise<MetadataDictionary> {
+  return metadataDictionaries[locale]();
+}
+
+export async function getLandingServerDictionary(
+  locale: Locale,
+): Promise<LandingServerDictionary> {
+  return landingServerDictionaries[locale]();
+}
+
+export async function getLandingClientDictionary(
+  locale: Locale,
+): Promise<LandingClientDictionary> {
+  return landingClientDictionaries[locale]();
+}
+
+export async function getGameDictionary(
+  locale: Locale,
+): Promise<GameDictionary> {
+  return gameDictionaries[locale]();
 }

@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Space_Grotesk } from "next/font/google";
 
-import { I18nProvider } from "@/components/poker/I18nProvider";
 import { hasLocale, SUPPORTED_LOCALES } from "@/lib/i18n";
-import { getDictionary } from "@/lib/i18n/server";
+import { getMetadataDictionary } from "@/lib/i18n/server";
 import { getSiteOrigin } from "@/lib/site";
 
 import "../globals.css";
@@ -30,15 +29,15 @@ export async function generateMetadata({
 }: LocaleLayoutProps): Promise<Metadata> {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
-  const dictionary = await getDictionary(lang);
+  const dictionary = await getMetadataDictionary(lang);
   return {
     metadataBase: new URL(getSiteOrigin()),
     applicationName: "AI Hold'em",
     title: {
-      default: dictionary.metadata.title,
-      template: `%s | ${dictionary.metadata.title}`,
+      default: dictionary.title,
+      template: `%s | ${dictionary.title}`,
     },
-    description: dictionary.metadata.description,
+    description: dictionary.description,
     keywords: [
       "AI Hold'em",
       "AI poker",
@@ -60,19 +59,19 @@ export async function generateMetadata({
     },
     manifest: "/manifest.webmanifest",
     openGraph: {
-      title: dictionary.metadata.title,
-      description: dictionary.metadata.description,
+      title: dictionary.title,
+      description: dictionary.description,
       siteName: "AI Hold'em",
       url: `/${lang}`,
       type: "website",
       images: [
-        { url: "/ai-holdem-logo.png", alt: dictionary.metadata.logoAlt },
+        { url: "/ai-holdem-logo.png", alt: dictionary.logoAlt },
       ],
     },
     twitter: {
       card: "summary",
-      title: dictionary.metadata.title,
-      description: dictionary.metadata.description,
+      title: dictionary.title,
+      description: dictionary.description,
       images: ["/ai-holdem-logo.png"],
     },
   };
@@ -84,15 +83,10 @@ export default async function LocaleLayout({
 }: LocaleLayoutProps) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
-  const dictionary = await getDictionary(lang);
 
   return (
     <html lang={lang}>
-      <body className={spaceGrotesk.variable}>
-        <I18nProvider locale={lang} dictionary={dictionary}>
-          {children}
-        </I18nProvider>
-      </body>
+      <body className={spaceGrotesk.variable}>{children}</body>
     </html>
   );
 }

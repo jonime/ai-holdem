@@ -112,6 +112,15 @@ npm test
 npm run build
 ```
 
+## Translations
+
+Every route is served under `/{locale}/` for ten supported locales. Dictionaries
+live in `lib/i18n/dictionaries/` as `server-only` modules split by route group
+(`metadata`, `landing-server`, `landing-client`, `game`). Server Components load
+them directly through `lib/i18n/server`; client components receive either narrow
+string props (landing page) or the game route's `I18nProvider`. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for how to add keys or locales.
+
 ## Agent and Search Discovery
 
 The public homepage serves substantial server-rendered HTML to browsers and a

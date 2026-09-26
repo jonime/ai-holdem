@@ -79,6 +79,11 @@ Supabase or TypeSafe services.
 	TypeSafe inputs, or raw responses.
 - Keep `SUPABASE_SECRET_KEY` and `TYPESAFE_API_KEY` server-only. Never add a
 	`NEXT_PUBLIC_` prefix or import server modules into client components.
+- Translations are server-owned. Every dictionary module is `server-only`;
+	Server Components load them through `lib/i18n/server`, and client components
+	receive either narrow string props (landing page) or the game route's
+	`I18nProvider`. Never import dictionary values into client components or
+	shared client utilities.
 - Anonymous player tokens support this demo's seat ownership; they are not
 	production authentication. Knowing a game URL intentionally permits viewing.
 
@@ -91,6 +96,9 @@ Supabase or TypeSafe services.
 - `lib/supabase/`: persistence parsing and repository implementation.
 - `lib/typesafe/`: System One HTTP client and constrained decision validation.
 - `lib/realtime/`: server publishing and client refetch subscriptions.
+- `lib/i18n/`: locale helpers, server-only dictionary loaders, and per-locale
+	dictionaries split by route group (`metadata`, `landing-server`,
+	`landing-client`, `game`) under `lib/i18n/dictionaries/`.
 - `components/poker/`: client game, lobby, and spectator experience.
 - `supabase/migrations/`: ordered schema and atomic RPC changes.
 

@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 
-import { useI18n } from "@/components/poker/I18nProvider";
 import styles from "@/components/poker/LanguageSelector.module.css";
 import { SUPPORTED_LOCALES, type Locale } from "@/lib/i18n";
 
@@ -23,13 +22,18 @@ const sortedLocales = [...SUPPORTED_LOCALES].sort((left, right) =>
   languageNames[left].localeCompare(languageNames[right]),
 );
 
-export function LanguageSelector() {
+export function LanguageSelector({
+  locale,
+  label,
+}: {
+  readonly locale: Locale;
+  readonly label: string;
+}) {
   const router = useRouter();
-  const { locale, t } = useI18n();
 
   return (
     <label className={styles.languageSelector}>
-      <span>{t("home.language")}</span>
+      <span>{label}</span>
       <select
         value={locale}
         onChange={(event) => router.push(`/${event.target.value}`)}
