@@ -112,21 +112,10 @@
   margin: 12px 0 4px;
 }
 .handSelector button {
-  padding: 5px 7px;
-  border: 1px solid #9cb9ad;
-  border-radius: 3px;
-  background: transparent;
-  color: #47645d;
   font:
     700 10px/1 ui-monospace,
     monospace;
   text-transform: uppercase;
-}
-.handSelector button:hover,
-.selectedHand {
-  border-color: #0e5a4d;
-  background: #0e5a4d;
-  color: #f3f6eb;
 }
 .historyInspection {
   grid-column: 1 / -1;
@@ -159,21 +148,10 @@
   margin-top: 12px;
 }
 .copyButton {
-  padding: 5px 7px;
-  border: 1px solid #7fa99a;
-  border-radius: 3px;
-  background: #eef5ec;
-  color: #173a34;
   font:
     700 10px/1 ui-monospace,
     monospace;
-  cursor: pointer;
   text-transform: uppercase;
-}
-.copyButton:hover {
-  border-color: #b4d4c2;
-  background: #28534a;
-  color: #dcece0;
 }
 .inspectionEntry pre {
   max-height: 260px;

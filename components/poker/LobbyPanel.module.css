@@ -67,9 +67,6 @@
   align-items: end;
   gap: 10px;
 }
-.playerNameControl button {
-  min-height: 40px;
-}
 .playerNameField input,
 .lobbyField input,
 .lobbyField select,
@@ -87,7 +84,7 @@
 }
 .tableSettingsForm {
   display: grid;
-  grid-template-columns: 72px minmax(210px, 1fr) minmax(145px, 0.7fr) auto;
+  grid-template-columns: 72px minmax(210px, 1fr) minmax(145px, 0.7fr);
   gap: 12px;
   align-items: end;
 }
@@ -244,15 +241,6 @@
   background: #fffef9;
   color: #173a34;
 }
-.lobbySeat button,
-.lobbyFooter button {
-  padding: 7px 9px;
-  border: 1px solid #507a6d;
-  border-radius: 3px;
-  background: #fffef9;
-  color: #173a34;
-  font-weight: 700;
-}
 .lobbySeat > button {
   margin-left: auto;
 }
@@ -263,9 +251,6 @@
 }
 .lobbyFooter button {
   margin-left: auto;
-  border-color: var(--button-primary-shadow);
-  background: var(--button-primary-background);
-  color: var(--button-primary-color);
 }
 .lobbyFooter span {
   color: #667b75;

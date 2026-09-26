@@ -41,24 +41,6 @@
   font-size: 17px;
 }
 
-.newGame {
-  padding: 15px 24px;
-  border: 0;
-  border-radius: 5px;
-  background: var(--button-primary-background);
-  color: var(--button-primary-color);
-  font-size: 18px;
-  font-weight: 700;
-  box-shadow: 3px 3px 0 var(--button-primary-shadow);
-}
-
-.newGame:hover,
-.newGame:focus-visible {
-  transform: translate(-1px, -1px);
-  background: var(--button-primary-background-hover);
-  box-shadow: 5px 5px 0 var(--button-primary-shadow);
-}
-
 .attribution {
   display: flex;
   flex-wrap: wrap;

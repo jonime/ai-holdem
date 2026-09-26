@@ -30,7 +30,6 @@ const dictionary = {
     bigBlind: "Iso blindi",
     startingStack: "Aloituspino",
     checkValues: "Tarkista arvot",
-    applySettings: "Käytä asetuksia",
     seat: "Paikka {seat}",
     open: "Avoin",
     filled: "Täynnä",

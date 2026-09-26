@@ -26,18 +26,12 @@
 }
 .tableMetaActions button {
   height: 36px;
-  display: inline-flex;
-  align-items: center;
 }
 .standUpToggle,
 .historyToggle {
-  border-radius: 3px;
-  background: transparent;
   font: inherit;
 }
 .standUpToggle {
-  border: 1px solid #3f5c56;
-  padding: 5px 8px;
   color: #9fb8ae;
   font-size: 11px;
 }
@@ -47,8 +41,6 @@
 }
 .historyToggle {
   margin-left: auto;
-  border: 1px solid #5c7f76;
-  padding: 6px 10px;
   color: #d7e8df;
 }
 .historyToggle:hover {
@@ -56,11 +48,7 @@
   color: var(--sun);
 }
 .feedToggle {
-  border-radius: 3px;
-  background: transparent;
   font: inherit;
-  border: 1px solid #5c7f76;
-  padding: 6px 10px;
   color: #d7e8df;
 }
 .feedToggle:hover {
@@ -138,16 +126,6 @@
 .actionControls button {
   flex: 1 1 0;
   min-width: 0;
-  border: 1px solid #507a6d;
-  border-radius: 3px;
-  padding: 9px 12px;
-  background: #f9fbf6;
-  color: #173a34;
-  font-weight: 700;
-}
-.actionControls button:hover:not(:disabled),
-.amountPresets button:hover {
-  background: #d7eadc;
 }
 .amountControl {
   min-height: 92px;
@@ -175,13 +153,6 @@
 }
 .amountPresets button {
   flex: 1 1 0;
-  border: 1px solid #8eaaa0;
-  border-radius: 3px;
-  padding: 6px 8px;
-  background: #fffef9;
-  color: #35554e;
-  font-size: 12px;
-  font-weight: 700;
 }
 .mobileSeats {
   display: none;

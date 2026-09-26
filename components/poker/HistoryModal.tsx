@@ -1,4 +1,5 @@
 import { ActionHistory } from "@/components/poker/ActionHistory";
+import { Button } from "@/components/Button";
 import type { AIDecision, HandHistory } from "@/components/poker/types";
 import { useI18n } from "@/components/poker/I18nProvider";
 import styles from "@/components/poker/HistoryModal.module.css";
@@ -30,14 +31,14 @@ export function HistoryModal({
     >
       <div className={styles.historyBackdrop} onClick={onClose} />
       <div className={styles.historyDialog}>
-        <button
-          type="button"
+        <Button
+          variant="icon"
           className={styles.historyClose}
           onClick={onClose}
           aria-label={t("history.close")}
         >
           ×
-        </button>
+        </Button>
         <ActionHistory
           availableHands={availableHands}
           handNumber={handNumber}

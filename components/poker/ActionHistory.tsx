@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { Button } from "@/components/Button";
 import type { AIDecision, HandHistory } from "@/components/poker/types";
 import { formatChips, parseProbabilities } from "@/components/poker/view-model";
 import { useI18n } from "@/components/poker/I18nProvider";
@@ -50,14 +51,14 @@ function CopyRawDecisionButton({ value }: { readonly value: string }) {
   };
 
   return (
-    <button
-      type="button"
+    <Button
+      size="small"
       className={styles.copyButton}
       aria-label={t(copied ? "history.copied" : "history.copyRawDecision")}
       onClick={() => void copyDecision()}
     >
       {t(copied ? "history.copied" : "history.copyRawDecision")}
-    </button>
+    </Button>
   );
 }
 
@@ -109,13 +110,14 @@ export function ActionHistory({
       <h2>{t("history.title")}</h2>
       <div className={styles.handSelector} aria-label={t("history.selectHand")}>
         {availableHands.map((availableHand) => (
-          <button
-            className={availableHand === handNumber ? styles.selectedHand : ""}
+          <Button
+            size="small"
+            variant={availableHand === handNumber ? "primary" : "secondary"}
             key={availableHand}
             onClick={() => onSelectHand(availableHand)}
           >
             {t("history.hand", { hand: availableHand })}
-          </button>
+          </Button>
         ))}
       </div>
       {history.actions.length === 0 ? (

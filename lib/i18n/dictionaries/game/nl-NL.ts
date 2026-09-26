@@ -30,7 +30,6 @@ const dictionary = {
     bigBlind: "Big blind",
     startingStack: "Beginstack",
     checkValues: "Waarden controleren",
-    applySettings: "Instellingen toepassen",
     seat: "Plaats {seat}",
     open: "Vrij",
     filled: "Bezet",

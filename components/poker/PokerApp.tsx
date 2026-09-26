@@ -6,6 +6,7 @@ import {
   ActionFeedModal,
   ActionFeedPanel,
 } from "@/components/poker/ActionFeedPanel";
+import { Button } from "@/components/Button";
 import { HistoryModal } from "@/components/poker/HistoryModal";
 import { useI18n } from "@/components/poker/I18nProvider";
 import { LobbyPanel } from "@/components/poker/LobbyPanel";
@@ -82,7 +83,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     updatePlayerName,
     assignBot,
     releaseSeat,
-    updateTableSettings,
     startWaitingGame,
     submitAction,
     beginNextHand,
@@ -269,13 +269,13 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               player.id === game.poker.currentActorId &&
               player.controller === "bot",
           ) ? (
-            <button
-              type="button"
+            <Button
+              size="small"
               disabled={loading}
               onClick={() => void retryBotTurn()}
             >
               {t("errors.retryBot")}
-            </button>
+            </Button>
           ) : null}
         </p>
       ) : null}
@@ -306,9 +306,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             void assignBot(seat, difficulty, botId)
           }
           onReleaseSeat={(seat) => void releaseSeat(seat)}
-          onApplyTableSettings={(settings) =>
-            void updateTableSettings(settings)
-          }
           onStartWaitingGame={(settings) => void startWaitingGame(settings)}
         />
       ) : (
@@ -430,18 +427,21 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                   />
                 </label>
                 <div className={styles.joinActions}>
-                  <button
-                    type="button"
+                  <Button
                     disabled={loading}
                     onClick={() => setJoinDialogOpen(false)}
                   >
                     {t("table.joinCancel")}
-                  </button>
-                  <button type="submit" disabled={loading}>
+                  </Button>
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    disabled={loading}
+                  >
                     {loading
                       ? t("table.claimingSeat")
                       : t("table.joinConfirm")}
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>

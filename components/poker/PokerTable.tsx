@@ -1,4 +1,5 @@
 import { PlayingCard } from "@/components/poker/PlayingCard";
+import { Button } from "@/components/Button";
 import { Seat } from "@/components/poker/Seat";
 import styles from "@/components/poker/PokerTable.module.css";
 import type {
@@ -123,31 +124,34 @@ export function PokerTable({
         </span>
         <div className={styles.tableMetaActions}>
           {human?.playerToken === viewerToken ? (
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="small"
               className={styles.standUpToggle}
               disabled={loading || human.leaving}
               onClick={onStandUp}
             >
               {human.leaving ? t("table.leaving") : t("table.standUp")}
-            </button>
+            </Button>
           ) : null}
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="small"
             className={styles.historyToggle}
             onClick={onOpenHistory}
           >
             {t("table.history")}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
+            size="small"
             className={styles.feedToggle}
             onClick={onToggleFeed}
             aria-pressed={!feedCollapsed}
             aria-label={t(feedCollapsed ? "feed.expand" : "feed.collapse")}
           >
             {t(feedCollapsed ? "feed.title" : "feed.hide")}
-          </button>
+          </Button>
         </div>
       </div>
       <div className={styles.felt}>
@@ -224,8 +228,8 @@ export function PokerTable({
         {isSpectator ? (
           <div className={styles.actionControls}>
             {botOnlyGame && !gameOver ? (
-              <button
-                type="button"
+              <Button
+                variant="primary"
                 disabled={
                   loading ||
                   game.poker.street !== "complete" ||
@@ -234,30 +238,28 @@ export function PokerTable({
                 onClick={onBeginNextHand}
               >
                 {t("table.nextHand")}
-              </button>
+              </Button>
             ) : !botOnlyGame &&
               game.poker.players.some((player) => player.status === "open") ? (
-              <button
-                type="button"
+              <Button
+                variant="primary"
                 disabled={loading}
                 onClick={onClaimFirstOpenSeat}
               >
                 {loading ? t("table.claimingSeat") : t("table.sitOpenSeat")}
-              </button>
+              </Button>
             ) : null}
           </div>
         ) : (
           <>
             <div className={styles.actionControls}>
-              <button
-                type="button"
+              <Button
                 disabled={!isHumanTurn || loading || !legalAction("fold")}
                 onClick={() => submitFixedAction("fold")}
               >
                 {t("table.fold")}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
                 disabled={
                   loading ||
                   gameOver ||
@@ -282,9 +284,8 @@ export function PokerTable({
                         amount: formatChips(checkCallAction.amount, locale),
                       })
                     : t("table.check")}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
                 disabled={
                   loading ||
                   (isFoldEndedHand
@@ -314,7 +315,7 @@ export function PokerTable({
                         },
                       )
                     : t("table.bet")}
-              </button>
+              </Button>
             </div>
             <div className={styles.amountControl}>
               <div className={styles.amountHeading}>
@@ -338,26 +339,26 @@ export function PokerTable({
               />
               <div className={styles.amountPresets}>
                 {[0.5, 0.75, 1].map((fraction) => (
-                  <button
+                  <Button
                     key={fraction}
-                    type="button"
+                    size="small"
                     disabled={!sizedAction || !isHumanTurn || loading}
                     onClick={() => setAmount(potPresetAmount(fraction))}
                   >
                     {fraction === 1
                       ? t("table.pot")
                       : t("table.potPercent", { percent: fraction * 100 })}
-                  </button>
+                  </Button>
                 ))}
-                <button
-                  type="button"
+                <Button
+                  size="small"
                   disabled={!sizedAction || !isHumanTurn || loading}
                   onClick={() => {
                     if (sizedAction) setAmount(sizedAction.maxAmount);
                   }}
                 >
                   {t("table.max")}
-                </button>
+                </Button>
               </div>
             </div>
           </>

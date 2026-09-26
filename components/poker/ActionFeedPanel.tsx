@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { Button } from "@/components/Button";
 import type { GameFeed, GameFeedEvent } from "@/components/poker/types";
 import { useI18n } from "@/components/poker/I18nProvider";
 import { feedEventLabel } from "@/components/poker/view-model";
@@ -119,14 +120,14 @@ export function ActionFeedModal({
           <div className={styles.titleGroup}>
             <h2>{t("feed.title")}</h2>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="icon"
             className={styles.modalClose}
             onClick={onClose}
             aria-label={t("feed.close")}
           >
             ×
-          </button>
+          </Button>
         </div>
         <FeedBody feed={feed} loading={loading} />
       </div>

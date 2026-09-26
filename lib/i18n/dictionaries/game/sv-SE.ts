@@ -30,7 +30,6 @@ const dictionary = {
     bigBlind: "Stor mörk",
     startingStack: "Startstack",
     checkValues: "Kontrollera värden",
-    applySettings: "Tillämpa inställningar",
     seat: "Plats {seat}",
     open: "Ledig",
     filled: "Upptagen",

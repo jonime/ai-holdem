@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { Button } from "@/components/Button";
 import { useI18n } from "@/components/poker/I18nProvider";
 import type {
   AIDifficulty,
@@ -21,7 +22,6 @@ export function LobbyPanel({
   onClaimSeatAt,
   onAssignBot,
   onReleaseSeat,
-  onApplyTableSettings,
   onStartWaitingGame,
 }: {
   readonly game: Game;
@@ -38,7 +38,6 @@ export function LobbyPanel({
     botId: string,
   ) => void;
   readonly onReleaseSeat: (seat: number) => void;
-  readonly onApplyTableSettings: (settings: TableSettings) => void;
   readonly onStartWaitingGame: (settings: TableSettings) => void;
 }) {
   const { t } = useI18n();
@@ -100,7 +99,15 @@ export function LobbyPanel({
         <p>{t("lobby.instructions")}</p>
       </header>
       <div className={styles.lobbySetup}>
-        <div className={styles.playerNameControl}>
+        <form
+          className={styles.playerNameControl}
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (viewerPlayer && playerNameChanged && !loading) {
+              onSavePlayerName(viewerPlayer.seat);
+            }
+          }}
+        >
           <label className={`${styles.lobbyField} ${styles.playerNameField}`}>
             <span>{t("lobby.yourName")}</span>
             <input
@@ -112,15 +119,14 @@ export function LobbyPanel({
             />
           </label>
           {viewerPlayer ? (
-            <button
-              type="button"
+            <Button
+              type="submit"
               disabled={loading || !playerNameChanged}
-              onClick={() => onSavePlayerName(viewerPlayer.seat)}
             >
               {loading ? t("lobby.savingName") : t("lobby.saveName")}
-            </button>
+            </Button>
           ) : null}
-        </div>
+        </form>
         {canManage ? (
           <div className={styles.tableSettingsForm}>
             <label className={styles.lobbyField}>
@@ -205,13 +211,6 @@ export function LobbyPanel({
               />
               <span>{t("lobby.botsShowUncontestedWins")}</span>
             </label>
-            <button
-              type="button"
-              disabled={!settingsValid || loading}
-              onClick={() => onApplyTableSettings(parsedSettings)}
-            >
-              {t("lobby.applySettings")}
-            </button>
           </div>
         ) : (
           <div
@@ -270,13 +269,13 @@ export function LobbyPanel({
               </div>
               {player?.status === "open" ? (
                 <div className={styles.lobbyActions}>
-                  <button
-                    type="button"
+                  <Button
+                    size="small"
                     disabled={loading}
                     onClick={() => onClaimSeatAt(seat)}
                   >
                     {t("lobby.sitHere")}
-                  </button>
+                  </Button>
                   {seatCanManage ? (
                     <div className={styles.botAssignmentControls}>
                       <select
@@ -319,8 +318,8 @@ export function LobbyPanel({
                           <option value="hard">{t("lobby.hard")}</option>
                         </select>
                       ) : null}
-                      <button
-                        type="button"
+                      <Button
+                        size="small"
                         disabled={loading}
                         onClick={() =>
                           onAssignBot(
@@ -331,29 +330,29 @@ export function LobbyPanel({
                         }
                       >
                         {t("lobby.assignBot")}
-                      </button>
+                      </Button>
                     </div>
                   ) : null}
                 </div>
               ) : null}
               {player?.playerToken === viewerToken &&
               player.status === "claimed" ? (
-                <button
-                  type="button"
+                <Button
+                  size="small"
                   disabled={loading}
                   onClick={() => onReleaseSeat(seat)}
                 >
                   {t("lobby.standUp")}
-                </button>
+                </Button>
               ) : null}
               {seatCanManage && player?.status === "bot" ? (
-                <button
-                  type="button"
+                <Button
+                  size="small"
                   disabled={loading}
                   onClick={() => onReleaseSeat(seat)}
                 >
                   {t("lobby.removeBot")}
-                </button>
+                </Button>
               ) : null}
             </article>
           );
@@ -367,8 +366,8 @@ export function LobbyPanel({
           })}
         </span>
         {canManage ? (
-          <button
-            type="button"
+          <Button
+            variant="primary"
             disabled={
               filledSeatCount(game.poker.players) < 2 ||
               !settingsValid ||
@@ -377,7 +376,7 @@ export function LobbyPanel({
             onClick={() => onStartWaitingGame(parsedSettings)}
           >
             {t("lobby.startHand")}
-          </button>
+          </Button>
         ) : null}
         {!canManage ? <span>{t("lobby.waitingForHost")}</span> : null}
       </div>

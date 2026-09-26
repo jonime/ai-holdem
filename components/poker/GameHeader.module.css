@@ -16,24 +16,6 @@
   font-weight: 700;
 }
 
-.exitGame {
-  padding: 8px 14px;
-  border: 0;
-  border-radius: 5px;
-  background: var(--button-primary-background);
-  color: var(--button-primary-color);
-  font-size: 13px;
-  font-weight: 700;
-  box-shadow: 3px 3px 0 var(--button-primary-shadow);
-}
-
-.exitGame:hover,
-.exitGame:focus-visible {
-  transform: translate(-1px, -1px);
-  background: var(--button-primary-background-hover);
-  box-shadow: 5px 5px 0 var(--button-primary-shadow);
-}
-
 @media (max-width: 560px) {
   .gameHeader {
     padding-top: 8px;

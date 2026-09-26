@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { LanguageMenu } from "@/components/LanguageMenu";
+import { Button } from "@/components/Button";
 import { APP_NAME } from "@/lib/constants";
 import { hasLocale } from "@/lib/i18n";
 import {
@@ -58,9 +59,9 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
         <h1>{APP_NAME}</h1>
         <p>{landing.intro}</p>
         <form method="post" action={`/${lang}/new-game`}>
-          <button className={styles.newGame} type="submit">
+          <Button variant="primary" size="large" type="submit">
             {landing.newGame}
-          </button>
+          </Button>
         </form>
       </section>
       <nav
