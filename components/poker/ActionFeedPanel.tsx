@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { ReactNode } from "react";
-
 import type { GameFeed, GameFeedEvent } from "@/components/poker/types";
 import { useI18n } from "@/components/poker/I18nProvider";
 import { feedEventLabel } from "@/components/poker/view-model";
@@ -79,11 +77,9 @@ function FeedBody({
 export function ActionFeedPanel({
   feed,
   loading,
-  connectionIndicator,
 }: {
   readonly feed: GameFeed | null;
   readonly loading: boolean;
-  readonly connectionIndicator: ReactNode;
 }) {
   const { t } = useI18n();
 
@@ -92,7 +88,6 @@ export function ActionFeedPanel({
       <div className={styles.header}>
         <div className={styles.titleGroup}>
           <h2>{t("feed.title")}</h2>
-          {connectionIndicator}
         </div>
       </div>
       <FeedBody feed={feed} loading={loading} />
@@ -104,12 +99,10 @@ export function ActionFeedModal({
   feed,
   loading,
   onClose,
-  connectionIndicator,
 }: {
   readonly feed: GameFeed | null;
   readonly loading: boolean;
   readonly onClose: () => void;
-  readonly connectionIndicator: ReactNode;
 }) {
   const { t } = useI18n();
 
@@ -125,7 +118,6 @@ export function ActionFeedModal({
         <div className={styles.header}>
           <div className={styles.titleGroup}>
             <h2>{t("feed.title")}</h2>
-            {connectionIndicator}
           </div>
           <button
             type="button"

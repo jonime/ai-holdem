@@ -19,40 +19,9 @@ import {
   availableHistoryHands,
   resolveViewer,
 } from "@/components/poker/view-model";
-import type { RefreshConnectionStatus } from "@/lib/realtime/refresh-coordinator";
 
 const playerNameStorageKey = "ai-holdem-player-name";
 const feedCollapsedStorageKey = "ai-holdem-feed-collapsed";
-
-function ConnectionIndicator({
-  status,
-  refreshing,
-  onRefresh,
-  standalone = false,
-}: {
-  readonly status: RefreshConnectionStatus;
-  readonly refreshing: boolean;
-  readonly onRefresh: () => void;
-  readonly standalone?: boolean;
-}) {
-  const { t } = useI18n();
-
-  return (
-    <div
-      className={`${styles.connectionStatus} ${styles[status]} ${standalone ? styles.standaloneConnectionStatus : ""}`}
-      role="status"
-      aria-live="polite"
-    >
-      <span aria-hidden="true" className={styles.connectionDot} />
-      <span>{t(`connection.${status}`)}</span>
-      {status === "error" ? (
-        <button type="button" disabled={refreshing} onClick={onRefresh}>
-          {t("connection.refreshNow")}
-        </button>
-      ) : null}
-    </div>
-  );
-}
 
 export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const { t } = useI18n();
@@ -107,9 +76,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     liveDecisions,
     loading,
     error,
-    connectionStatus,
-    refreshing,
-    refreshGame,
     claimSeatAt,
     assignBot,
     releaseSeat,
@@ -305,14 +271,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           ) : null}
         </p>
       ) : null}
-      {game?.status === "waiting" ? (
-        <ConnectionIndicator
-          status={connectionStatus}
-          refreshing={refreshing}
-          onRefresh={refreshGame}
-          standalone
-        />
-      ) : null}
       {!game ? (
         <div className="route-loading" aria-label={t("table.waiting")} />
       ) : game.status === "waiting" ? (
@@ -378,13 +336,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                   <ActionFeedPanel
                     feed={feed}
                     loading={feedLoading}
-                    connectionIndicator={
-                      <ConnectionIndicator
-                        status={connectionStatus}
-                        refreshing={refreshing}
-                        onRefresh={refreshGame}
-                      />
-                    }
                   />
                 </div>
               </div>
@@ -395,13 +346,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               feed={feed}
               loading={feedLoading}
               onClose={closeFeedModal}
-              connectionIndicator={
-                <ConnectionIndicator
-                  status={connectionStatus}
-                  refreshing={refreshing}
-                  onRefresh={refreshGame}
-                />
-              }
             />
           ) : null}
           {historyOpen && displayedHistoryHand ? (
