@@ -16,9 +16,7 @@
   display: flex;
   align-items: center;
   width: fit-content;
-  max-width: 1220px;
   min-height: 28px;
-  margin: 0 auto 10px;
   gap: 7px;
   color: #526560;
   font:
@@ -27,6 +25,11 @@
     monospace;
   letter-spacing: 0.4px;
   text-transform: uppercase;
+}
+
+.standaloneConnectionStatus {
+  max-width: 1220px;
+  margin: 0 auto 10px;
 }
 
 .connectionDot {

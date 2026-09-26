@@ -23,6 +23,13 @@
   font-size: 15px;
 }
 
+.titleGroup {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+}
+
 .modalClose {
   border: 1px solid #a9c1b7;
   background: #fff;
