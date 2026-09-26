@@ -1,40 +1,64 @@
 import { describe, expect, it } from "vitest";
 
+import enUsGame from "@/lib/i18n/dictionaries/game/en-US";
+import fiFiGame from "@/lib/i18n/dictionaries/game/fi-FI";
 import type { PublicPokerPlayer } from "@/lib/poker/types";
 import {
   arrangeSeats,
   canManageTable,
+  cardLabel,
   describeHandResult,
   describeSeatStatus,
   feedEventLabel,
   filledSeatCount,
   findGameWinnerId,
+  formatChips,
   parseProbabilities,
   resolveViewer,
 } from "./view-model";
 
+const smallBlindEvent = {
+  type: "blind",
+  handNumber: 1,
+  player: "Alice",
+  controller: "human",
+  blind: "small",
+  amount: 1_000,
+} as const;
+
 describe("view-model", () => {
   it("labels small and big blind feed events with localized chip amounts", () => {
     expect(
-      feedEventLabel({
-        type: "blind",
-        handNumber: 1,
-        player: "Alice",
-        controller: "human",
-        blind: "small",
-        amount: 1_000,
-      }),
+      feedEventLabel(smallBlindEvent, "en-US", enUsGame.feed),
     ).toBe("Alice posts small blind 1,000");
     expect(
-      feedEventLabel({
-        type: "blind",
-        handNumber: 1,
-        player: "Bot",
-        controller: "bot",
-        blind: "big",
-        amount: 2_000,
-      }),
+      feedEventLabel(
+        {
+          type: "blind",
+          handNumber: 1,
+          player: "Bot",
+          controller: "bot",
+          blind: "big",
+          amount: 2_000,
+        },
+        "en-US",
+        enUsGame.feed,
+      ),
     ).toBe("Bot posts big blind 2,000");
+    expect(
+      feedEventLabel(smallBlindEvent, "fi-FI", fiFiGame.feed),
+    ).toBe(
+      `Alice asettaa pienen blindin ${formatChips(1_000, "fi-FI")}`,
+    );
+  });
+
+  it("labels cards with the supplied suit names instead of an English fallback", () => {
+    expect(cardLabel("As", enUsGame.cards)).toBe("A of spades");
+    expect(cardLabel("As", fiFiGame.cards)).toBe("A pata");
+    expect(cardLabel("7z", enUsGame.cards)).toBe(
+      "7 of unknown suit",
+    );
+    expect(cardLabel("7z", fiFiGame.cards)).toBe("7 tuntematon maa");
   });
 
   it("arranges seats around the viewer for small and larger tables", () => {
@@ -160,7 +184,15 @@ describe("view-model", () => {
   });
 
   it("describes split-pot results and permissions", () => {
-    expect(describeHandResult(["Alice", "Bob"])).toBe("Split pot: Alice & Bob");
+    expect(
+      describeHandResult(["Alice", "Bob"], enUsGame.history),
+    ).toBe("Split pot: Alice & Bob");
+    expect(
+      describeHandResult(["Alice", "Bob"], fiFiGame.history),
+    ).toBe("Jaettu potti: Alice & Bob");
+    expect(
+      describeHandResult(null, enUsGame.history),
+    ).toBe("Hand complete");
 
     expect(canManageTable([], "viewer")).toBe(true);
     expect(
@@ -246,35 +278,82 @@ describe("view-model", () => {
       status: "claimed" as const,
     };
 
-    expect(describeSeatStatus({ ...playerBase, leaving: true })).toBe(
+    const status = (
+      player: typeof playerBase & { readonly active?: boolean },
+      latestAction: { action: string; amount: number | null } | null = null,
+    ) =>
+      describeSeatStatus(
+        {
+          leaving: player.leaving,
+          inHand: player.inHand,
+          folded: player.folded,
+          allIn: player.allIn,
+          stack: player.stack,
+          active: player.active,
+        },
+        latestAction,
+        enUsGame.seat,
+        enUsGame.actions,
+        "en-US",
+      );
+
+    expect(status({ ...playerBase, leaving: true })).toBe(
       "Leaving after this hand",
     );
-    expect(describeSeatStatus({ ...playerBase, inHand: false })).toBe(
+    expect(status({ ...playerBase, inHand: false })).toBe(
       "Waiting for next hand",
     );
-    expect(describeSeatStatus({ ...playerBase, inHand: false, stack: 0 })).toBe(
-      "Busted",
-    );
-    expect(describeSeatStatus({ ...playerBase, folded: true })).toBe("Folded");
-    expect(describeSeatStatus({ ...playerBase, allIn: true })).toBe("All-in");
-    expect(describeSeatStatus({ ...playerBase, active: true })).toBe(
-      "Thinking",
-    );
-    expect(describeSeatStatus({ ...playerBase, active: false })).toBe(
-      "Waiting",
-    );
     expect(
-      describeSeatStatus(
+      status({ ...playerBase, inHand: false, stack: 0 }),
+    ).toBe("Busted");
+    expect(status({ ...playerBase, folded: true })).toBe("Folded");
+    expect(status({ ...playerBase, allIn: true })).toBe("All-in");
+    expect(status({ ...playerBase, active: true })).toBe("Thinking");
+    expect(status({ ...playerBase, active: false })).toBe("Waiting");
+    expect(
+      status(
         { ...playerBase, active: false },
         { action: "call", amount: 900 },
       ),
     ).toBe("Call 900");
     expect(
-      describeSeatStatus(
+      status(
         { ...playerBase, active: false },
         { action: "raise", amount: 1800 },
       ),
     ).toBe("Raise 1,800");
+    expect(
+      describeSeatStatus(
+        {
+          leaving: false,
+          inHand: true,
+          folded: true,
+          allIn: false,
+          stack: 1000,
+          active: false,
+        },
+        null,
+        fiFiGame.seat,
+        fiFiGame.actions,
+        "fi-FI",
+      ),
+    ).toBe("Kipannut");
+    expect(
+      describeSeatStatus(
+        {
+          leaving: false,
+          inHand: true,
+          folded: false,
+          allIn: false,
+          stack: 1000,
+          active: false,
+        },
+        { action: "raise", amount: 1800 },
+        fiFiGame.seat,
+        fiFiGame.actions,
+        "fi-FI",
+      ),
+    ).toBe(`Korota ${formatChips(1800, "fi-FI")}`);
   });
 
   it("keeps terminal seat states ahead of the latest action", () => {
@@ -287,9 +366,15 @@ describe("view-model", () => {
       active: false,
     };
 
-    expect(describeSeatStatus(player, { action: "fold", amount: null })).toBe(
-      "Folded",
-    );
+    expect(
+      describeSeatStatus(
+        player,
+        { action: "fold", amount: null },
+        enUsGame.seat,
+        enUsGame.actions,
+        "en-US",
+      ),
+    ).toBe("Folded");
   });
 
   it("guards parseProbabilities against junk input", () => {

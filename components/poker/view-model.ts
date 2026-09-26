@@ -8,7 +8,7 @@ import type {
   LatestPlayerAction,
 } from "@/components/poker/types";
 import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
-import dictionary, { type Dictionary } from "@/lib/i18n/dictionaries/en-US";
+import type { GameDictionary } from "@/lib/i18n/types";
 
 export function formatChips(
   value: number,
@@ -32,8 +32,8 @@ export function shortCardLabel(card: string): string {
 
 export function feedEventLabel(
   event: GameFeedEvent,
-  locale: Locale = DEFAULT_LOCALE,
-  labels: Dictionary["feed"] = dictionary.feed,
+  locale: Locale,
+  labels: GameDictionary["feed"],
 ): string {
   switch (event.type) {
     case "handStarted":
@@ -68,7 +68,7 @@ export function feedEventLabel(
 
 export function cardLabel(
   card: string,
-  labels: Dictionary["cards"] = dictionary.cards,
+  labels: GameDictionary["cards"],
 ): string {
   const suit = card.at(-1) ?? "";
   const rank = card.slice(0, -1);
@@ -180,7 +180,7 @@ export function filledSeatCount(
 
 export function describeHandResult(
   winnerNames: readonly string[] | null | undefined,
-  labels: Dictionary["history"] = dictionary.history,
+  labels: GameDictionary["history"],
 ): string | null {
   if (!winnerNames || winnerNames.length === 0) {
     return labels.handComplete;
@@ -214,10 +214,10 @@ export function describeSeatStatus(
   > & {
     readonly active?: boolean;
   },
-  latestAction: LatestPlayerAction | null = null,
-  labels: Dictionary["seat"] = dictionary.seat,
-  actions: Dictionary["actions"] = dictionary.actions,
-  locale: Locale = DEFAULT_LOCALE,
+  latestAction: LatestPlayerAction | null,
+  labels: GameDictionary["seat"],
+  actions: GameDictionary["actions"],
+  locale: Locale,
 ): string {
   if (player.leaving) {
     return labels.leaving;
@@ -244,8 +244,8 @@ export function describeSeatStatus(
 
 export function formatActionLabel(
   action: LatestPlayerAction,
-  locale: Locale = DEFAULT_LOCALE,
-  labels: Dictionary["actions"] = dictionary.actions,
+  locale: Locale,
+  labels: GameDictionary["actions"],
 ): string {
   const label = labels[action.action as keyof typeof labels] ?? action.action;
   return action.amount === null

@@ -1,27 +1,57 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const captured = vi.hoisted(() => ({
+  selector: [] as unknown[],
+  form: [] as unknown[],
+}));
 
 vi.mock("next/image", () => ({
   default: () => <span>AI Hold&apos;em logo</span>,
 }));
 vi.mock("next/navigation", () => ({ notFound: vi.fn() }));
 vi.mock("@/components/poker/LanguageSelector", () => ({
-  LanguageSelector: () => <div>Language</div>,
+  LanguageSelector: (props: unknown) => {
+    captured.selector.push(props);
+    return <div>Language</div>;
+  },
 }));
 vi.mock("@/components/poker/NewGameForm", () => ({
-  NewGameForm: () => <button>New Game</button>,
+  NewGameForm: (props: unknown) => {
+    captured.form.push(props);
+    return <button>New Game</button>;
+  },
 }));
+
+import enUsLandingClient from "@/lib/i18n/dictionaries/landing-client/en-US";
+import fiFiLandingClient from "@/lib/i18n/dictionaries/landing-client/fi-FI";
+import type { LandingClientDictionary } from "@/lib/i18n/types";
 
 import Home from "./page";
 
+type SelectorProps = Readonly<{ locale: string; label: string }>;
+type FormProps = Readonly<{
+  locale: string;
+  messages: LandingClientDictionary["newGame"];
+}>;
+
+async function renderHome(locale: "en-US" | "fi-FI"): Promise<string> {
+  return renderToStaticMarkup(
+    await Home({
+      params: Promise.resolve({ lang: locale }),
+      searchParams: Promise.resolve({}),
+    }),
+  );
+}
+
 describe("homepage", () => {
+  beforeEach(() => {
+    captured.selector.length = 0;
+    captured.form.length = 0;
+  });
+
   it("renders substantial content and sequential headings without JavaScript", async () => {
-    const html = renderToStaticMarkup(
-      await Home({
-        params: Promise.resolve({ lang: "en-US" }),
-        searchParams: Promise.resolve({}),
-      }),
-    );
+    const html = await renderHome("en-US");
     const text = html
       .replace(/<script[\s\S]*?<\/script>/g, "")
       .replace(/<[^>]+>/g, " ")
@@ -39,4 +69,38 @@ describe("homepage", () => {
     );
     expect(html.match(/https:\/\/typesafe\.ai\//g)).toHaveLength(1);
   });
+
+  it.each([
+    ["en-US", enUsLandingClient],
+    ["fi-FI", fiFiLandingClient],
+  ] as const)(
+    "%s passes only narrow landing-client strings across the client boundary",
+    async (locale, dictionary) => {
+      await renderHome(locale);
+
+      expect(captured.selector).toHaveLength(1);
+      expect(captured.form).toHaveLength(1);
+      // Deep equality against the landing-client dictionary proves neither
+      // component received server prose, the full landing dictionary, or game
+      // sections.
+      expect(captured.selector).toEqual([
+        { locale, label: dictionary.language },
+      ]);
+      expect(captured.form).toEqual([{ locale, messages: dictionary.newGame }]);
+
+      const [selector] = captured.selector as [SelectorProps];
+      expect(typeof selector.label).toBe("string");
+
+      const [form] = captured.form as [FormProps];
+      expect(Object.keys(form.messages).sort()).toEqual([
+        "anonymous",
+        "createGameError",
+        "newGame",
+        "yourName",
+      ]);
+      for (const value of Object.values(form.messages)) {
+        expect(typeof value).toBe("string");
+      }
+    },
+  );
 });

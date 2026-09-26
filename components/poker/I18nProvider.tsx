@@ -3,12 +3,19 @@
 import { createContext, useContext } from "react";
 
 import type { Locale } from "@/lib/i18n";
-import type { Dictionary } from "@/lib/i18n/dictionaries/en-US";
+import type { GameDictionary } from "@/lib/i18n/types";
 
 type TranslationValue = string | number;
 type TranslationKey = string;
 
-function lookup(dictionary: Dictionary, key: TranslationKey): string {
+/**
+ * Route-scoped provider for the game route (`/[lang]/game/[gameId]`), which
+ * serves the combined lobby/table/history/feed/cards/errors dictionary to
+ * its client components. The landing page deliberately has no provider and
+ * receives narrow string props instead.
+ */
+
+function lookup(dictionary: GameDictionary, key: TranslationKey): string {
   const value = key.split(".").reduce<unknown>((current, part) => {
     if (!current || typeof current !== "object") return undefined;
     return (current as Record<string, unknown>)[part];
@@ -23,7 +30,7 @@ function interpolate(value: string, values?: Readonly<Record<string, Translation
 
 export type I18nContextValue = {
   readonly locale: Locale;
-  readonly dictionary: Dictionary;
+  readonly dictionary: GameDictionary;
   readonly t: (key: TranslationKey, values?: Readonly<Record<string, TranslationValue>>) => string;
 };
 
