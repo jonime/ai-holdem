@@ -1,0 +1,61 @@
+export const metadata = {
+  title: "À propos",
+  description: "Découvrez le fonctionnement des bots, des difficultés, des règles et de la confidentialité dans AI Hold'em.",
+}
+
+# À propos d'AI Hold'em
+
+AI Hold'em est une démonstration open source de Texas Hold'em pour deux à six places humaines ou bots. L'URL d'une table peut être partagée : toute personne qui la connaît peut observer la partie. Il s'agit d'une démonstration technique, pas d'un service de jeu d'argent réel.
+
+## Bots de poker
+
+### Equity Rules
+
+Equity Rules est un bot déterministe sans inférence externe. Il choisit son action selon l'équité calculée, la cote du pot, les cartes, la texture du tableau, la position, les tapis et l'historique des actions.
+
+#### Difficulté
+
+- **Facile** utilise des seuils plus prudents et désactive les bluffs et semi-bluffs.
+- **Moyen** abaisse les seuils et active les semi-bluffs.
+- **Difficile** utilise les seuils les plus bas et active les semi-bluffs ainsi que certains bluffs purs.
+
+La difficulté ne modifie que sa politique de décision, jamais les cartes distribuées, les informations disponibles ou les actions autorisées par le moteur.
+
+### TypeSafe Jev
+
+TypeSafe Jev envoie le contexte structuré et l'ensemble des coups légaux à [TypeSafe System One](https://typesafe.ai/). System One évalue les choix, puis le coup retenu est validé avant d'être appliqué.
+
+#### Difficulté
+
+- **Facile** échantillonne un mélange équilibré entre les probabilités du fournisseur et une distribution uniforme des choix légaux. Son jeu est donc plus varié et parfois plus faible.
+- **Moyen** utilise le coup préféré du fournisseur.
+- **Difficile** utilise actuellement lui aussi le coup préféré du fournisseur. Il n'existe aujourd'hui aucune autre différence locale entre moyen et difficile.
+
+La difficulté agit uniquement sur la sélection du coup. Elle ne donne jamais d'autres cartes, d'informations cachées ou d'actions légales supplémentaires.
+
+### Profils OpenRouter
+
+Chaque profil [OpenRouter](https://openrouter.ai/) configuré fournit un libellé et un modèle. Le modèle reçoit un contexte limité et doit retourner une action légale et une taille de mise structurées.
+
+#### Profils et personnalisation
+
+Les profils OpenRouter n'ont actuellement aucun sélecteur de difficulté. Ils constituent l'emplacement naturel de futurs choix de style, de modèle ou de raisonnement, sans promettre encore d'interface précise. Chaque profil reste limité aux mêmes informations et actions légales.
+
+## Règles imposées par le moteur de poker
+
+[`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) fait autorité pour le paquet, les tours, les actions légales, les mises, les pots et les gagnants. Humains et bots ne font que proposer des coups. Le serveur valide et applique chaque proposition via l'adaptateur avant un enregistrement avec contrôle de version.
+
+Les réglages des bots et les futures personnalisations restent après cette frontière et ne peuvent pas contourner les règles.
+
+## Confidentialité et transparence
+
+Les cartes privées actives ne sont révélées qu'au navigateur propriétaire de la place. Les spectateurs ne reçoivent ni prompts ni réponses brutes. Les bots connectés à un fournisseur lui envoient leur contexte de décision visible ; Equity Rules n'utilise aucune inférence externe.
+
+## En savoir plus
+
+- [Démarrer une partie](/fr-FR)
+- [Ressources pour développeurs](/fr-FR/developers)
+- [Code source](https://github.com/jonime/ai-holdem)
+- [TypeSafe](https://typesafe.ai/)
+- [OpenRouter](https://openrouter.ai/)
+- [Moteur de poker](https://www.npmjs.com/package/@hivetech/poker-engine)

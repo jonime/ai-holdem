@@ -81,9 +81,12 @@ Supabase or TypeSafe services.
 	`NEXT_PUBLIC_` prefix or import server modules into client components.
 - Translations are server-owned. Every dictionary module is `server-only`;
 	Server Components load them through `lib/i18n/server`, and client components
-	receive either narrow string props (landing page) or the game route's
-	`I18nProvider`. Never import dictionary values into client components or
-	shared client utilities.
+	receive the game route's `I18nProvider`. The cached landing route uses only
+	server-rendered locale links and a plain anonymous-game POST form. Never import
+	dictionary values into client components or shared client utilities.
+- The About route is Markdown-authored but remains server-only. Load its MDX
+	through `lib/about/server`; do not add `use client`, client providers, runtime
+	content fetching, or imports from the About documents into client modules.
 - Anonymous player tokens support this demo's seat ownership; they are not
 	production authentication. Knowing a game URL intentionally permits viewing.
 
@@ -98,7 +101,10 @@ Supabase or TypeSafe services.
 - `lib/realtime/`: server publishing and client refetch subscriptions.
 - `lib/i18n/`: locale helpers, server-only dictionary loaders, and per-locale
 	dictionaries split by route group (`metadata`, `landing-server`,
-	`landing-client`, `game`) under `lib/i18n/dictionaries/`.
+	`game`) under `lib/i18n/dictionaries/`.
+- `content/about/`: localized MDX for the server-only About route; every locale
+	exports its own title and description metadata and follows the same heading
+	structure.
 - `components/poker/`: client game, lobby, and spectator experience.
 - `supabase/migrations/`: ordered schema and atomic RPC changes.
 

@@ -59,6 +59,16 @@ describe("agent content proxy", () => {
     expect(response.headers.get("vary")).toBe("Accept");
   });
 
+  it("recognizes About as an HTML-only page for Markdown negotiation", async () => {
+    const response = proxy(request("/fi-FI/about", "text/markdown"));
+
+    expect(response.status).toBe(406);
+    expect(response.headers.get("vary")).toBe("Accept");
+    expect(await response.text()).toBe(
+      "No Markdown representation is available.\n",
+    );
+  });
+
   it("does not intercept machine-readable static files", () => {
     const response = proxy(request("/llms.txt", "text/markdown"));
 

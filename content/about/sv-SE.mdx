@@ -1,0 +1,61 @@
+export const metadata = {
+  title: "Om projektet",
+  description: "Läs om hur bottar, svårighetsgrader, pokerregler och integritetsgränser fungerar i AI Hold'em.",
+}
+
+# Om AI Hold'em
+
+AI Hold'em är en Texas Hold'em-demo med öppen källkod där två till sex platser kan fyllas av människor eller bottar. Bordets URL kan delas och alla som känner till den kan se spelet. Detta är en teknisk demonstration, inte en speltjänst med riktiga pengar.
+
+## Pokerbottar
+
+### Equity Rules
+
+Equity Rules är en deterministisk bott utan extern inferens. Den väljer drag med hjälp av beräknad showdown-equity, pottodds, kort, bordstextur, position, stackar och handlingshistorik.
+
+#### Svårighetsgrad
+
+- **Lätt** använder försiktigare trösklar och stänger av bluffar och semibluffar.
+- **Medel** sänker trösklarna och aktiverar semibluffar.
+- **Svår** använder de lägsta trösklarna och aktiverar semibluffar samt utvalda rena bluffar.
+
+Svårighetsgraden ändrar bara beslutsstrategin, inte de utdelade korten, tillgänglig information eller motorns tillåtna handlingar.
+
+### TypeSafe Jev
+
+TypeSafe Jev skickar strukturerad spelkontext och fullständiga lagliga dragalternativ till [TypeSafe System One](https://typesafe.ai/). System One bedömer alternativen och det valda draget valideras innan spelet ändras.
+
+#### Svårighetsgrad
+
+- **Lätt** samplar från en jämn blandning av leverantörens sannolikheter och en likformig fördelning över lagliga val. Spelet blir mer varierat och kan vara svagare.
+- **Medel** använder leverantörens föredragna drag.
+- **Svår** använder för närvarande också leverantörens föredragna drag. Det finns i dag ingen ytterligare lokal skillnad mellan medel och svår.
+
+Svårighetsgraden påverkar bara dragvalet och ger aldrig andra kort, dold information eller fler lagliga handlingar.
+
+### OpenRouter-profiler
+
+Varje konfigurerad [OpenRouter](https://openrouter.ai/)-profil anger visningsnamn och modell. Modellen får begränsad spelkontext och måste returnera en strukturerad laglig handling och insatsstorlek.
+
+#### Profiler och anpassning
+
+OpenRouter-profiler har för närvarande ingen svårighetsväljare. Profiler är en naturlig plats för framtida val av spelstil, modell eller resonemang, men ingen särskild anpassningsvy utlovas ännu. Alla profiler begränsas till samma information och lagliga handlingar.
+
+## Regler som upprätthålls av pokermotorn
+
+[`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) styr kortlek, turer, lagliga handlingar, satsningar, potter och vinnare. Människor och bottar föreslår bara drag. Servern validerar och tillämpar varje förslag genom adaptern innan versionskontrollerad lagring.
+
+Bottinställningar och framtida profilanpassning ligger efter denna gräns och kan inte kringgå reglerna.
+
+## Integritet och transparens
+
+Aktiva privata kort visas bara för webbläsaren som äger platsen. Åskådare får inte leverantörsprompter eller råa svar. Leverantörsbottar skickar sin synliga beslutskontext till leverantören; Equity Rules använder ingen extern inferens.
+
+## Läs mer
+
+- [Starta ett spel](/sv-SE)
+- [Utvecklarresurser](/sv-SE/developers)
+- [Källkod](https://github.com/jonime/ai-holdem)
+- [TypeSafe](https://typesafe.ai/)
+- [OpenRouter](https://openrouter.ai/)
+- [Pokermotor](https://www.npmjs.com/package/@hivetech/poker-engine)

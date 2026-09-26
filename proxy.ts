@@ -33,10 +33,14 @@ function contentPage(pathname: string): "home" | "developers" | undefined {
 function isKnownApplicationPath(pathname: string): boolean {
   const segments = pathname.split("/").filter(Boolean);
   return (
-    segments.length === 3 &&
-    hasLocale(segments[0]) &&
-    segments[1] === "game" &&
-    Boolean(segments[2])
+    (segments.length === 3 &&
+      hasLocale(segments[0]) &&
+      segments[1] === "game" &&
+      Boolean(segments[2])) ||
+    (segments.length === 2 &&
+      hasLocale(segments[0]) &&
+      segments[1] === "about") ||
+    (segments.length === 1 && segments[0] === "about")
   );
 }
 

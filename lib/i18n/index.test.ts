@@ -6,6 +6,11 @@ import {
   hasLocale,
   removeLocalePrefix,
 } from "./index";
+import {
+  LANGUAGE_LABELS,
+  LANGUAGE_NAMES,
+  SORTED_LOCALES,
+} from "./languages";
 
 describe("i18n routing helpers", () => {
   it("recognizes the supported locales and canonicalizes paths", () => {
@@ -26,5 +31,15 @@ describe("i18n routing helpers", () => {
     expect(addLocalePrefix("/en-US", DEFAULT_LOCALE)).toBe("/en-US");
     expect(removeLocalePrefix("/en-US/game/example")).toBe("/game/example");
     expect(removeLocalePrefix("/en-US")).toBe("/");
+  });
+
+  it("provides a native name for every locale", () => {
+    expect(Object.keys(LANGUAGE_NAMES).sort()).toEqual(
+      [...SORTED_LOCALES].sort(),
+    );
+    expect(Object.keys(LANGUAGE_LABELS).sort()).toEqual(
+      [...SORTED_LOCALES].sort(),
+    );
+    expect(SORTED_LOCALES).toHaveLength(10);
   });
 });

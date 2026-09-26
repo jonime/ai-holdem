@@ -11,6 +11,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly" as const,
       priority: locale === "en-US" ? 1 : 0.8,
     })),
+    ...SUPPORTED_LOCALES.map((locale) => ({
+      url: `${origin}/${locale}/about`,
+      changeFrequency: "monthly" as const,
+      priority: locale === "en-US" ? 0.8 : 0.7,
+    })),
     {
       url: `${origin}/en-US/developers`,
       changeFrequency: "monthly" as const,

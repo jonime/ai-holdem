@@ -1,0 +1,61 @@
+export const metadata = {
+  title: "About",
+  description: "Learn how AI Hold'em bots, difficulty settings, poker rules, and privacy boundaries work.",
+}
+
+# About AI Hold'em
+
+AI Hold'em is an open-source Texas Hold'em demonstration where two to six human and bot seats can share a table. Table URLs are shareable: anyone who knows the URL can watch the game. This is a technical demonstration, not a real-money gambling service.
+
+## Poker bots
+
+### Equity Rules
+
+Equity Rules is a deterministic bot that runs without external inference. It uses calculated showdown equity, pot odds, hole cards, board texture, position, stack sizes, and action history to select a move.
+
+#### Difficulty
+
+- **Easy** uses more conservative thresholds and disables bluffs and semi-bluffs.
+- **Medium** lowers the thresholds and enables semi-bluffs.
+- **Hard** uses the lowest thresholds and enables semi-bluffs plus selective pure bluffs.
+
+Difficulty changes only its decision policy. It does not change the shuffled cards, available information, or engine-defined legal actions.
+
+### TypeSafe Jev
+
+TypeSafe Jev sends structured game context and complete legal move candidates to [TypeSafe System One](https://typesafe.ai/). System One evaluates the candidates, and the selected move is validated before it can change the game.
+
+#### Difficulty
+
+- **Easy** samples from an even blend of the provider's probabilities and a uniform distribution across legal choices. Its play is therefore more varied and can be weaker.
+- **Medium** uses the provider's preferred move.
+- **Hard** currently also uses the provider's preferred move. There is no additional local selection difference between medium and hard today.
+
+Difficulty affects move selection only. It never gives the bot different cards, hidden information, or extra legal actions.
+
+### OpenRouter profiles
+
+Each configured [OpenRouter](https://openrouter.ai/) profile supplies a display label and model. The model receives constrained game context and must return a structured legal action and sizing choice.
+
+#### Profiles and customization
+
+OpenRouter profiles do not currently have a difficulty selector. Profiles are the natural place for future choices such as playing style, model, or reasoning configuration, but no particular customization interface is promised yet. Whatever a profile chooses, it remains limited to the same information and engine-defined legal actions.
+
+## Rules enforced by the poker engine
+
+The [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) package remains authoritative for the deck, turns, legal actions, betting, pots, and winners. Humans and bots only propose moves. The server validates and applies each proposal through the engine adapter before saving it with a version check.
+
+Bot settings and future profile customization remain downstream of this boundary, so they cannot bypass the poker rules.
+
+## Privacy and transparency
+
+Active hole cards are revealed only to the browser that owns the seat. Spectators do not receive provider prompts or raw provider responses. Provider-backed bots send their bot-visible decision context to their provider; Equity Rules performs no external inference.
+
+## Learn more
+
+- [Start a game](/en-US)
+- [Developer resources](/en-US/developers)
+- [Source code](https://github.com/jonime/ai-holdem)
+- [TypeSafe](https://typesafe.ai/)
+- [OpenRouter](https://openrouter.ai/)
+- [Poker engine](https://www.npmjs.com/package/@hivetech/poker-engine)

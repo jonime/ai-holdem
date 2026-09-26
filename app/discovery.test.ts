@@ -22,6 +22,9 @@ describe("machine-readable discovery", () => {
       expect.objectContaining({ url: "https://example.test/en-US" }),
     );
     expect(entries).toContainEqual(
+      expect.objectContaining({ url: "https://example.test/fi-FI/about" }),
+    );
+    expect(entries).toContainEqual(
       expect.objectContaining({
         url: "https://example.test/en-US/developers",
       }),
@@ -43,6 +46,9 @@ describe("machine-readable discovery", () => {
     const contents = await readFile(path, "utf8");
 
     expect(contents.startsWith("# AI Hold'em\n\n> ")).toBe(true);
+    expect(contents).toContain(
+      "[About AI Hold'em](https://ai-holdem.vercel.app/en-US/about)",
+    );
     expect(contents).toMatch(/\n## Developer|\n## Product/);
     for (const section of contents.split(/\n## /).slice(1)) {
       expect(section).toMatch(/\n\n- \[[^\]]+\]\(https:\/\//);

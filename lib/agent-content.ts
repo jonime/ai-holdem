@@ -1,17 +1,10 @@
 export const HOME_MARKDOWN = `# AI Hold'em
 
-AI Hold'em is a browser-based Texas Hold'em demo where people can share a table with provider-backed or deterministic AI poker players. Create a table, invite another person, assign bots to open seats, choose the blinds and starting stacks, and play complete no-limit Hold'em hands in the browser.
+Create a table, then invite someone to take an open seat.
 
-## How the table works
+## Learn more
 
-The poker engine is authoritative for cards, turn order, legal actions, betting, pots, and winners. Every human or AI proposal is validated before it changes the game. Tables support two to six seats, configurable bot difficulty, action history, hand history, card reveals, and live refreshes backed by durable game state.
-
-## AI decisions and privacy
-
-AI Hold'em includes TypeSafe System One, configurable OpenRouter models, and the deterministic offline Equity Rules bot. The application keeps active private cards and provider inputs away from spectators, and reveals only the information appropriate for each seat and completed hand. This is a technical demo, not a real-money gambling service.
-
-## Developer resources
-
+- [About AI Hold'em](/en-US/about)
 - [Developer resources](/en-US/developers)
 - [Agent and site map](/llms.txt)
 - [XML sitemap](/sitemap.xml)
@@ -37,5 +30,5 @@ The JSON endpoints under \`/api/games\` support the web application itself. They
 
 export const NOT_FOUND_MARKDOWN = `# 404: Page not found
 
-AI Hold'em could not find the requested page. Use the [agent and site map](/llms.txt) to find the homepage, developer resources, and other public files.
+AI Hold'em could not find the requested page. Use the [agent and site map](/llms.txt) to find the homepage, About page, developer resources, and other public files.
 `;

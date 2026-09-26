@@ -3,7 +3,6 @@ import "server-only";
 import type { Locale } from "./index";
 import type {
   GameDictionary,
-  LandingClientDictionary,
   LandingServerDictionary,
   MetadataDictionary,
 } from "./types";
@@ -78,52 +77,6 @@ const landingServerDictionaries: Record<
     ),
 };
 
-const landingClientDictionaries: Record<
-  Locale,
-  () => Promise<LandingClientDictionary>
-> = {
-  "en-US": () =>
-    import("./dictionaries/landing-client/en-US").then(
-      (module) => module.default,
-    ),
-  "fi-FI": () =>
-    import("./dictionaries/landing-client/fi-FI").then(
-      (module) => module.default,
-    ),
-  "es-ES": () =>
-    import("./dictionaries/landing-client/es-ES").then(
-      (module) => module.default,
-    ),
-  "de-DE": () =>
-    import("./dictionaries/landing-client/de-DE").then(
-      (module) => module.default,
-    ),
-  "sv-SE": () =>
-    import("./dictionaries/landing-client/sv-SE").then(
-      (module) => module.default,
-    ),
-  "fr-FR": () =>
-    import("./dictionaries/landing-client/fr-FR").then(
-      (module) => module.default,
-    ),
-  "pt-BR": () =>
-    import("./dictionaries/landing-client/pt-BR").then(
-      (module) => module.default,
-    ),
-  "it-IT": () =>
-    import("./dictionaries/landing-client/it-IT").then(
-      (module) => module.default,
-    ),
-  "nl-NL": () =>
-    import("./dictionaries/landing-client/nl-NL").then(
-      (module) => module.default,
-    ),
-  "pl-PL": () =>
-    import("./dictionaries/landing-client/pl-PL").then(
-      (module) => module.default,
-    ),
-};
-
 const gameDictionaries: Record<Locale, () => Promise<GameDictionary>> = {
   "en-US": () =>
     import("./dictionaries/game/en-US").then((module) => module.default),
@@ -157,12 +110,6 @@ export async function getLandingServerDictionary(
   locale: Locale,
 ): Promise<LandingServerDictionary> {
   return landingServerDictionaries[locale]();
-}
-
-export async function getLandingClientDictionary(
-  locale: Locale,
-): Promise<LandingClientDictionary> {
-  return landingClientDictionaries[locale]();
 }
 
 export async function getGameDictionary(

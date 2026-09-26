@@ -1,39 +1,12 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const captured = vi.hoisted(() => ({
-  selector: [] as unknown[],
-  form: [] as unknown[],
-}));
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("next/image", () => ({
   default: () => <span>AI Hold&apos;em logo</span>,
 }));
 vi.mock("next/navigation", () => ({ notFound: vi.fn() }));
-vi.mock("@/components/poker/LanguageSelector", () => ({
-  LanguageSelector: (props: unknown) => {
-    captured.selector.push(props);
-    return <div>Language</div>;
-  },
-}));
-vi.mock("@/components/poker/NewGameForm", () => ({
-  NewGameForm: (props: unknown) => {
-    captured.form.push(props);
-    return <button>New Game</button>;
-  },
-}));
-
-import enUsLandingClient from "@/lib/i18n/dictionaries/landing-client/en-US";
-import fiFiLandingClient from "@/lib/i18n/dictionaries/landing-client/fi-FI";
-import type { LandingClientDictionary } from "@/lib/i18n/types";
 
 import Home from "./page";
-
-type SelectorProps = Readonly<{ locale: string; label: string }>;
-type FormProps = Readonly<{
-  locale: string;
-  messages: LandingClientDictionary["newGame"];
-}>;
 
 async function renderHome(locale: "en-US" | "fi-FI"): Promise<string> {
   return renderToStaticMarkup(
@@ -45,62 +18,30 @@ async function renderHome(locale: "en-US" | "fi-FI"): Promise<string> {
 }
 
 describe("homepage", () => {
-  beforeEach(() => {
-    captured.selector.length = 0;
-    captured.form.length = 0;
-  });
-
-  it("renders substantial content and sequential headings without JavaScript", async () => {
+  it("renders the focused game launcher and compact resource navigation", async () => {
     const html = await renderHome("en-US");
-    const text = html
-      .replace(/<script[\s\S]*?<\/script>/g, "")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    expect(text.length).toBeGreaterThanOrEqual(500);
     expect(html.match(/<h1/g)).toHaveLength(1);
-    expect(html).toMatch(/<h1[^>]*>AI Hold&#x27;em<\/h1>[\s\S]*<h2/);
-    expect(html).toMatch(/<h2[^>]*>[^<]+<\/h2>[\s\S]*<h3/);
-    expect(html).toContain("https://typesafe.ai/");
-    expect(html).toContain("https://openrouter.ai/");
-    expect(html).toContain(
-      "https://www.npmjs.com/package/@hivetech/poker-engine",
-    );
-    expect(html.match(/https:\/\/typesafe\.ai\//g)).toHaveLength(1);
+    expect(html).not.toContain("<h2");
+    expect(html).not.toContain("<h3");
+    expect(html).toContain('href="/en-US/about"');
+    expect(html).toContain('href="/en-US/developers"');
+    expect(html).toContain("https://github.com/jonime/ai-holdem");
+    expect(html).not.toContain("https://typesafe.ai/");
+    expect(html).not.toContain("https://openrouter.ai/");
+    expect(html).not.toContain("@hivetech/poker-engine");
+    expect(html).toContain('<form action="/en-US/new-game" method="post">');
+    expect(html).toContain('type="submit"');
+    expect(html).not.toContain("<input");
   });
 
-  it.each([
-    ["en-US", enUsLandingClient],
-    ["fi-FI", fiFiLandingClient],
-  ] as const)(
-    "%s passes only narrow landing-client strings across the client boundary",
-    async (locale, dictionary) => {
-      await renderHome(locale);
+  it("renders a localized no-JavaScript language menu", async () => {
+    const html = await renderHome("fi-FI");
 
-      expect(captured.selector).toHaveLength(1);
-      expect(captured.form).toHaveLength(1);
-      // Deep equality against the landing-client dictionary proves neither
-      // component received server prose, the full landing dictionary, or game
-      // sections.
-      expect(captured.selector).toEqual([
-        { locale, label: dictionary.language },
-      ]);
-      expect(captured.form).toEqual([{ locale, messages: dictionary.newGame }]);
-
-      const [selector] = captured.selector as [SelectorProps];
-      expect(typeof selector.label).toBe("string");
-
-      const [form] = captured.form as [FormProps];
-      expect(Object.keys(form.messages).sort()).toEqual([
-        "anonymous",
-        "createGameError",
-        "newGame",
-        "yourName",
-      ]);
-      for (const value of Object.values(form.messages)) {
-        expect(typeof value).toBe("string");
-      }
-    },
-  );
+    expect(html).toContain("Kieli: Suomi");
+    expect(html).toContain('href="/en-US"');
+    expect(html).toContain('href="/fi-FI"');
+    expect(html).toContain('aria-current="page"');
+    expect(html).toContain('action="/fi-FI/new-game"');
+    expect(html).toContain("Uusi peli");
+  });
 });

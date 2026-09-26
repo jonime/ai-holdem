@@ -116,10 +116,16 @@ npm run build
 
 Every route is served under `/{locale}/` for ten supported locales. Dictionaries
 live in `lib/i18n/dictionaries/` as `server-only` modules split by route group
-(`metadata`, `landing-server`, `landing-client`, `game`). Server Components load
-them directly through `lib/i18n/server`; client components receive either narrow
-string props (landing page) or the game route's `I18nProvider`. See
+(`metadata`, `landing-server`, `game`). Server Components load them directly
+through `lib/i18n/server`; client game components receive the game route's
+`I18nProvider`. The landing page uses a server-rendered language menu and a plain
+HTML form that creates an anonymous game without JavaScript. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for how to add keys or locales.
+
+The localized About page is Markdown-authored under `content/about/`. Its MDX
+documents compile directly into Server Components and export their own localized
+title and description. The route has no client component boundary or runtime
+content fetch.
 
 ## Agent and Search Discovery
 
@@ -134,6 +140,7 @@ Public discovery resources are available at predictable URLs:
 - `/llms.txt` — the spec-formatted agent map for the product and documentation.
 - `/sitemap.xml` — localized homepage and developer-resource URLs.
 - `/robots.txt` — crawler permission and sitemap location.
+- `/{locale}/about` — localized bot, difficulty, poker-engine, and privacy guide.
 - `/{locale}/developers` — architecture, integration status, and source links.
 
 Verify content negotiation and machine-readable files against a running app:

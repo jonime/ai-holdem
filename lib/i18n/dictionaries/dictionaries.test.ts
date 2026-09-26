@@ -10,16 +10,6 @@ import nlNlGame from "./game/nl-NL";
 import plPlGame from "./game/pl-PL";
 import ptBrGame from "./game/pt-BR";
 import svSeGame from "./game/sv-SE";
-import deDeLandingClient from "./landing-client/de-DE";
-import enUsLandingClient from "./landing-client/en-US";
-import esEsLandingClient from "./landing-client/es-ES";
-import fiFiLandingClient from "./landing-client/fi-FI";
-import frFrLandingClient from "./landing-client/fr-FR";
-import itItLandingClient from "./landing-client/it-IT";
-import nlNlLandingClient from "./landing-client/nl-NL";
-import plPlLandingClient from "./landing-client/pl-PL";
-import ptBrLandingClient from "./landing-client/pt-BR";
-import svSeLandingClient from "./landing-client/sv-SE";
 import deDeLandingServer from "./landing-server/de-DE";
 import enUsLandingServer from "./landing-server/en-US";
 import esEsLandingServer from "./landing-server/es-ES";
@@ -67,19 +57,6 @@ const landingServerDictionaries = {
   "sv-SE": svSeLandingServer,
 };
 
-const landingClientDictionaries = {
-  "de-DE": deDeLandingClient,
-  "en-US": enUsLandingClient,
-  "es-ES": esEsLandingClient,
-  "fi-FI": fiFiLandingClient,
-  "fr-FR": frFrLandingClient,
-  "it-IT": itItLandingClient,
-  "nl-NL": nlNlLandingClient,
-  "pl-PL": plPlLandingClient,
-  "pt-BR": ptBrLandingClient,
-  "sv-SE": svSeLandingClient,
-};
-
 const gameDictionaries = {
   "de-DE": deDeGame,
   "en-US": enUsGame,
@@ -123,13 +100,6 @@ describe("translation dictionaries", () => {
     },
   );
 
-  it.each(Object.entries(landingClientDictionaries))(
-    "%s landing client preserves every leaf key and interpolation placeholder",
-    (_locale, dictionary) => {
-      expect(leafMap(dictionary)).toEqual(leafMap(enUsLandingClient));
-    },
-  );
-
   it.each(Object.entries(gameDictionaries))(
     "%s game preserves every leaf key and interpolation placeholder",
     (_locale, dictionary) => {
@@ -137,19 +107,7 @@ describe("translation dictionaries", () => {
     },
   );
 
-  it.each(Object.entries(landingServerDictionaries))(
-    "%s keeps linkable product names in the homepage copy",
-    (_locale, dictionary) => {
-      expect(dictionary.engineBody).toContain(dictionary.engineLinkLabel);
-      expect(dictionary.privacyBody).toContain("TypeSafe System One");
-      expect(dictionary.privacyBody).toContain("OpenRouter");
-    },
-  );
-
-  it("keeps createGame in the game dictionary and createGameError in the landing client dictionary", () => {
+  it("keeps createGame in the game dictionary", () => {
     expect(Object.keys(enUsGame.errors)).toContain("createGame");
-    expect(Object.keys(enUsLandingClient.newGame)).toContain(
-      "createGameError",
-    );
   });
 });

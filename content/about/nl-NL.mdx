@@ -1,0 +1,61 @@
+export const metadata = {
+  title: "Over",
+  description: "Lees hoe bots, moeilijkheidsgraden, pokerregels en privacygrenzen in AI Hold'em werken.",
+}
+
+# Over AI Hold'em
+
+AI Hold'em is een opensourcedemonstratie van Texas Hold'em voor tafels met twee tot zes menselijke of botplaatsen. De tafel-URL kan worden gedeeld: iedereen die de URL kent kan het spel bekijken. Dit is een technische demonstratie, geen gokdienst met echt geld.
+
+## Pokerbots
+
+### Equity Rules
+
+Equity Rules is een deterministische bot zonder externe inferentie. De bot kiest een zet met berekende showdown-equity, pot odds, kaarten, boardtextuur, positie, stacks en actiegeschiedenis.
+
+#### Moeilijkheid
+
+- **Makkelijk** gebruikt voorzichtigere drempels en schakelt blufs en semiblufs uit.
+- **Gemiddeld** verlaagt de drempels en schakelt semiblufs in.
+- **Moeilijk** gebruikt de laagste drempels en schakelt semiblufs en selectieve pure blufs in.
+
+De moeilijkheid verandert alleen het beslissingsbeleid, niet de gedeelde kaarten, beschikbare informatie of door de engine toegestane acties.
+
+### TypeSafe Jev
+
+TypeSafe Jev stuurt gestructureerde spelcontext en alle volledige legale zetkandidaten naar [TypeSafe System One](https://typesafe.ai/). System One beoordeelt ze en de gekozen zet wordt gevalideerd voordat deze het spel verandert.
+
+#### Moeilijkheid
+
+- **Makkelijk** kiest uit een gelijke mix van de waarschijnlijkheden van de provider en een uniforme verdeling over legale keuzes. Het spel is daardoor gevarieerder en kan zwakker zijn.
+- **Gemiddeld** gebruikt de voorkeurszet van de provider.
+- **Moeilijk** gebruikt momenteel ook de voorkeurszet. Er is nu lokaal geen extra selectieverschil tussen gemiddeld en moeilijk.
+
+De moeilijkheid beïnvloedt alleen de zetkeuze en geeft nooit andere kaarten, verborgen informatie of extra legale acties.
+
+### OpenRouter-profielen
+
+Elk geconfigureerd [OpenRouter](https://openrouter.ai/)-profiel levert een weergavenaam en model. Het model krijgt beperkte spelcontext en moet een gestructureerde legale actie en inzetgrootte retourneren.
+
+#### Profielen en aanpassing
+
+OpenRouter-profielen hebben momenteel geen moeilijkheidskeuze. Profielen zijn de natuurlijke plek voor toekomstige stijl-, model- of redeneeropties, maar er wordt nog geen specifieke interface beloofd. Elk profiel blijft beperkt tot dezelfde informatie en legale acties.
+
+## Regels afgedwongen door de pokerengine
+
+[`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) bepaalt deck, beurten, legale acties, inzetten, potten en winnaars. Mensen en bots stellen alleen zetten voor. De server valideert en past ieder voorstel via de adapter toe voordat het met versiecontrole wordt opgeslagen.
+
+Botinstellingen en toekomstige profielaanpassingen blijven achter deze grens en kunnen de regels niet omzeilen.
+
+## Privacy en transparantie
+
+Actieve privékaarten worden alleen getoond aan de browser die de plaats bezit. Toeschouwers ontvangen geen providerprompts of ruwe antwoorden. Providerbots sturen hun zichtbare besliscontext naar de provider; Equity Rules gebruikt geen externe inferentie.
+
+## Meer informatie
+
+- [Start een spel](/nl-NL)
+- [Ontwikkelaarsbronnen](/nl-NL/developers)
+- [Broncode](https://github.com/jonime/ai-holdem)
+- [TypeSafe](https://typesafe.ai/)
+- [OpenRouter](https://openrouter.ai/)
+- [Pokerengine](https://www.npmjs.com/package/@hivetech/poker-engine)

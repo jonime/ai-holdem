@@ -10,16 +10,6 @@ import nlNlGame from "./dictionaries/game/nl-NL";
 import plPlGame from "./dictionaries/game/pl-PL";
 import ptBrGame from "./dictionaries/game/pt-BR";
 import svSeGame from "./dictionaries/game/sv-SE";
-import deDeLandingClient from "./dictionaries/landing-client/de-DE";
-import enUsLandingClient from "./dictionaries/landing-client/en-US";
-import esEsLandingClient from "./dictionaries/landing-client/es-ES";
-import fiFiLandingClient from "./dictionaries/landing-client/fi-FI";
-import frFrLandingClient from "./dictionaries/landing-client/fr-FR";
-import itItLandingClient from "./dictionaries/landing-client/it-IT";
-import nlNlLandingClient from "./dictionaries/landing-client/nl-NL";
-import plPlLandingClient from "./dictionaries/landing-client/pl-PL";
-import ptBrLandingClient from "./dictionaries/landing-client/pt-BR";
-import svSeLandingClient from "./dictionaries/landing-client/sv-SE";
 import deDeLandingServer from "./dictionaries/landing-server/de-DE";
 import enUsLandingServer from "./dictionaries/landing-server/en-US";
 import esEsLandingServer from "./dictionaries/landing-server/es-ES";
@@ -43,13 +33,11 @@ import svSeMetadata from "./dictionaries/metadata/sv-SE";
 import { SUPPORTED_LOCALES, type Locale } from "./index";
 import type {
   GameDictionary,
-  LandingClientDictionary,
   LandingServerDictionary,
   MetadataDictionary,
 } from "./types";
 import {
   getGameDictionary,
-  getLandingClientDictionary,
   getLandingServerDictionary,
   getMetadataDictionary,
 } from "./server";
@@ -83,22 +71,6 @@ const landingServerDictionaries: Record<
   "sv-SE": svSeLandingServer,
 };
 
-const landingClientDictionaries: Record<
-  Locale,
-  LandingClientDictionary
-> = {
-  "de-DE": deDeLandingClient,
-  "en-US": enUsLandingClient,
-  "es-ES": esEsLandingClient,
-  "fi-FI": fiFiLandingClient,
-  "fr-FR": frFrLandingClient,
-  "it-IT": itItLandingClient,
-  "nl-NL": nlNlLandingClient,
-  "pl-PL": plPlLandingClient,
-  "pt-BR": ptBrLandingClient,
-  "sv-SE": svSeLandingClient,
-};
-
 const gameDictionaries: Record<Locale, GameDictionary> = {
   "de-DE": deDeGame,
   "en-US": enUsGame,
@@ -127,15 +99,6 @@ describe("dictionary loaders", () => {
     async (locale) => {
       await expect(getLandingServerDictionary(locale)).resolves.toEqual(
         landingServerDictionaries[locale],
-      );
-    },
-  );
-
-  it.each(SUPPORTED_LOCALES)(
-    "resolves the %s landing client dictionary",
-    async (locale) => {
-      await expect(getLandingClientDictionary(locale)).resolves.toEqual(
-        landingClientDictionaries[locale],
       );
     },
   );

@@ -1,0 +1,61 @@
+export const metadata = {
+  title: "Tietoja",
+  description: "Lue, miten AI Hold'emin botit, vaikeustasot, pokerisäännöt ja yksityisyysrajat toimivat.",
+}
+
+# Tietoja AI Hold'emista
+
+AI Hold'em on avoimen lähdekoodin Texas Hold'em -demo, jossa samassa pöydässä voi olla kahdesta kuuteen ihmisten tai bottien paikkaa. Pöydän URL-osoitteen voi jakaa, ja jokainen osoitteen tietävä voi seurata peliä. Tämä on tekninen demo, ei oikean rahan rahapelipalvelu.
+
+## Pokeribotit
+
+### Equity Rules
+
+Equity Rules on deterministinen botti, joka ei käytä ulkoista päättelypalvelua. Se valitsee toimintonsa lasketun showdown-todennäköisyyden, pottikertoimien, taskukorttien, pöydän rakenteen, position, pinojen ja toimintohistorian perusteella.
+
+#### Vaikeustaso
+
+- **Helppo** käyttää varovaisempia kynnyksiä eikä bluffaa tai semibluffaa.
+- **Keskitaso** laskee kynnyksiä ja sallii semibluffit.
+- **Vaikea** käyttää alimpia kynnyksiä sekä sallii semibluffit ja harkitut puhtaat bluffit.
+
+Vaikeustaso muuttaa vain päätöksentekoa. Se ei muuta jaettuja kortteja, käytettävissä olevia tietoja tai pokerimoottorin sallimia toimintoja.
+
+### TypeSafe Jev
+
+TypeSafe Jev lähettää jäsennellyn pelitilanteen ja täydelliset sallitut toimintovaihtoehdot [TypeSafe System Onelle](https://typesafe.ai/). System One arvioi vaihtoehdot, ja valittu toiminto tarkistetaan ennen pelin muuttamista.
+
+#### Vaikeustaso
+
+- **Helppo** arpoo valinnan jakaumasta, jossa palvelun todennäköisyydet ja kaikkien sallittujen vaihtoehtojen tasajakauma painavat yhtä paljon. Peli on siksi vaihtelevampaa ja voi olla heikompaa.
+- **Keskitaso** käyttää palvelun ensisijaista valintaa.
+- **Vaikea** käyttää tällä hetkellä myös palvelun ensisijaista valintaa. Keskitason ja vaikean välillä ei nyt ole muuta paikallista valintaeroa.
+
+Vaikeustaso vaikuttaa vain toiminnon valintaan. Se ei anna botille eri kortteja, piilotettua tietoa tai ylimääräisiä sallittuja toimintoja.
+
+### OpenRouter-profiilit
+
+Jokainen määritetty [OpenRouter](https://openrouter.ai/)-profiili sisältää näyttönimen ja mallin. Malli saa rajatun pelitilanteen ja sen on palautettava rakenteinen sallittu toiminto sekä panostuskoko.
+
+#### Profiilit ja mukautus
+
+OpenRouter-profiileilla ei vielä ole vaikeustason valintaa. Profiilit ovat luonteva paikka tuleville pelityylin, mallin tai päättelyasetusten valinnoille, mutta mitään tiettyä mukautusliittymää ei vielä luvata. Profiili voi käyttää vain samoja tietoja ja pokerimoottorin sallimia toimintoja.
+
+## Pokerimoottori valvoo sääntöjä
+
+[`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) määrää korttipakan, vuorot, sallitut toiminnot, panostuksen, potit ja voittajat. Ihmiset ja botit vain ehdottavat toimintoja. Palvelin tarkistaa ja toteuttaa jokaisen ehdotuksen moottorisovittimen kautta ennen versiolla tarkistettua tallennusta.
+
+Bottiasetukset ja tuleva profiilien mukautus ovat tämän rajan alapuolella, joten niillä ei voi ohittaa pokerisääntöjä.
+
+## Yksityisyys ja läpinäkyvyys
+
+Aktiiviset taskukortit näytetään vain paikan omistavalle selaimelle. Katsojat eivät saa palveluntarjoajan kehotteita tai raakavastauksia. Palveluntarjoajaan liitetyt botit lähettävät botin näkemän päätöstilanteen palveluntarjoajalle; Equity Rules ei käytä ulkoista päättelyä.
+
+## Lue lisää
+
+- [Aloita peli](/fi-FI)
+- [Kehittäjäresurssit](/fi-FI/developers)
+- [Lähdekoodi](https://github.com/jonime/ai-holdem)
+- [TypeSafe](https://typesafe.ai/)
+- [OpenRouter](https://openrouter.ai/)
+- [Pokerimoottori](https://www.npmjs.com/package/@hivetech/poker-engine)

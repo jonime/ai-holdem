@@ -49,17 +49,22 @@ Translations are physically split by route and usage under `lib/i18n/dictionarie
 |---|---|
 | `metadata/<locale>.ts` | `generateMetadata` in the locale layout |
 | `landing-server/<locale>.ts` | landing page Server Component prose |
-| `landing-client/<locale>.ts` | `LanguageSelector` and `NewGameForm` props |
 | `game/<locale>.ts` | combined lobby/table/history/feed/cards/errors dictionary |
+
+The About route is the exception to the TypeScript dictionary layout: its long-form
+content lives in `content/about/<locale>.mdx`, including a localized `metadata`
+export. `lib/about/server.ts` is the server-only locale loader. Keep the heading
+structure and links aligned across all ten documents when changing About copy.
 
 There are ten locales (`en-US`, `fi-FI`, `es-ES`, `de-DE`, `sv-SE`, `fr-FR`, `pt-BR`, `it-IT`, `nl-NL`, `pl-PL`). The English module exports `as const`; every other locale uses `satisfies` with the corresponding type from `lib/i18n/types.ts`. Every dictionary module imports `server-only`.
 
 - To add a key, add it to the English dictionary and to every other locale in the same directory; `lib/i18n/dictionaries/dictionaries.test.ts` compares leaf-key paths and placeholders against English.
 - To add a locale, add `<locale>.ts` to each dictionary directory, register it in `SUPPORTED_LOCALES` in `lib/i18n/index.ts`, and add its dynamic import entry to the matching map in `lib/i18n/server.ts`.
-- Server Components load dictionaries directly through the loaders in `lib/i18n/server` (`getMetadataDictionary`, `getLandingServerDictionary`, `getLandingClientDictionary`, `getGameDictionary`).
-- Client Components receive either narrow string props (the landing page passes `label` and `messages`) or the game route's `I18nProvider`, which serves the combined game dictionary from `app/[lang]/game/[gameId]/layout.tsx`.
+- Server Components load dictionaries directly through the loaders in `lib/i18n/server` (`getMetadataDictionary`, `getLandingServerDictionary`, `getGameDictionary`).
+- The landing page is cached server output: `LanguageMenu` uses locale links and the new-game control is a plain POST form. Keep request cookies and game creation in `app/[lang]/new-game/route.ts`, outside the cached page.
+- Client game components receive the game route's `I18nProvider`, which serves the combined game dictionary from `app/[lang]/game/[gameId]/layout.tsx`.
 - Never import dictionary values from client components or shared client utilities (such as `components/poker/view-model.ts`); pass the needed strings explicitly.
-- For a future About page, add `dictionaries/about-server/<locale>.ts` plus a server-only loader and render its content directly; do not register it in the game dictionary or any shared provider.
+- Long-form About content stays in MDX and is rendered directly by its Server Component route; do not register it in the game dictionary or any shared provider.
 - A future shared interactive component receives its own narrow strings through props.
 
 ## Documentation standards
