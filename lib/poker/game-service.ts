@@ -37,7 +37,7 @@ export interface CreateDemoGameOptions {
 
 const maxPlayerNameLength = 30;
 
-function sanitizePlayerName(
+export function sanitizePlayerName(
   raw: string | null | undefined,
   fallback: string,
 ): string {
@@ -62,7 +62,7 @@ export function createDemoGameConfig(
       {
         id: "human",
         seat: 0,
-        name: sanitizePlayerName(options.hostName, "You"),
+        name: sanitizePlayerName(options.hostName, "Player 1"),
         controller: "human",
         stack: startingStack,
         status: "claimed",
@@ -855,6 +855,49 @@ export async function claimSeat(
     playerToken,
     isHost: updatedAssignment.isHost,
     enginePlayerId: updatedAssignment.enginePlayerId,
+  });
+
+  return updatedAssignment;
+}
+
+export async function updatePlayerName(
+  repository: SeatAssignmentRepository & GameReader,
+  gameId: string,
+  seat: number,
+  playerToken: string,
+  playerName: string,
+): Promise<SeatAssignment> {
+  const [game, seatAssignments] = await Promise.all([
+    repository.getGame(gameId),
+    repository.getSeatAssignments(gameId),
+  ]);
+
+  if (!game) {
+    throw new GameNotFoundError(gameId);
+  }
+
+  const assignment = seatAssignments.find((entry) => entry.seat === seat);
+  if (!assignment) {
+    throw new Error("Seat does not exist");
+  }
+  if (
+    assignment.status !== "claimed" ||
+    assignment.controller !== "human" ||
+    assignment.playerToken !== playerToken
+  ) {
+    throw new Error("Seat does not belong to this player");
+  }
+  if (game.status !== "waiting") {
+    throw new Error("Player names can only be changed before the game starts");
+  }
+
+  const name = sanitizePlayerName(playerName, `Player ${seat + 1}`);
+  const updatedAssignment = { ...assignment, name };
+  await repository.updateSeatAssignment({
+    gameId,
+    seat,
+    status: assignment.status,
+    name,
   });
 
   return updatedAssignment;

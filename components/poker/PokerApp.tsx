@@ -30,8 +30,10 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
       ? ""
       : (window.localStorage.getItem(playerNameStorageKey) ?? ""),
   );
+  const [playerNameEdited, setPlayerNameEdited] = useState(false);
   const [amount, setAmount] = useState<number | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [feedCollapsed, setFeedCollapsed] = useState(() =>
     typeof window === "undefined"
       ? false
@@ -77,6 +79,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     loading,
     error,
     claimSeatAt,
+    updatePlayerName,
     assignBot,
     releaseSeat,
     updateTableSettings,
@@ -93,6 +96,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     game?.poker.players ?? [],
     viewerToken,
   );
+
+  const displayedPlayerName =
+    viewerPlayer?.controller === "human" && !playerNameEdited
+      ? viewerPlayer.name
+      : playerName;
   const sizedAction = game?.poker.legalActions.find(
     (
       action,
@@ -278,10 +286,22 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           game={game}
           botCatalog={botCatalog}
           loading={loading}
-          playerName={playerName}
-          setPlayerName={setPlayerName}
+          playerName={displayedPlayerName}
+          setPlayerName={(name) => {
+            setPlayerName(name);
+            setPlayerNameEdited(true);
+          }}
           viewerToken={viewerToken}
-          onClaimSeatAt={(seat) => void claimSeatAt(seat, playerName)}
+          onSavePlayerName={(seat) => {
+            void updatePlayerName(seat, displayedPlayerName).then((updated) => {
+              if (updated) setPlayerNameEdited(false);
+            });
+          }}
+          onClaimSeatAt={(seat) => {
+            void claimSeatAt(seat, displayedPlayerName).then((claimed) => {
+              if (claimed) setPlayerNameEdited(false);
+            });
+          }}
           onAssignBot={(seat, difficulty, botId) =>
             void assignBot(seat, difficulty, botId)
           }
@@ -310,12 +330,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               loading={loading}
               setAmount={setAmount}
               onClaimFirstOpenSeat={() => {
-                const openSeat = game.poker.players.find(
-                  (player) => player.status === "open",
-                );
-                if (openSeat) {
-                  void claimSeatAt(openSeat.seat, playerName);
-                }
+                setJoinDialogOpen(true);
               }}
               onStandUp={() => {
                 if (human) void releaseSeat(human.seat);
@@ -362,6 +377,74 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                   : []
               }
             />
+          ) : null}
+          {joinDialogOpen && isSpectator ? (
+            <div
+              className={styles.joinModal}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="join-table-title"
+            >
+              <button
+                type="button"
+                className={styles.joinBackdrop}
+                aria-label={t("table.joinCancel")}
+                onClick={() => setJoinDialogOpen(false)}
+              />
+              <form
+                className={styles.joinDialog}
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const openSeat = game.poker.players.find(
+                    (player) => player.status === "open",
+                  );
+                  if (!openSeat) {
+                    setJoinDialogOpen(false);
+                    return;
+                  }
+                  void claimSeatAt(
+                    openSeat.seat,
+                    displayedPlayerName,
+                  ).then((joined) => {
+                    if (joined) {
+                      setPlayerNameEdited(false);
+                      setJoinDialogOpen(false);
+                    }
+                  });
+                }}
+              >
+                <h2 id="join-table-title">{t("table.joinTitle")}</h2>
+                <p>{t("table.joinInstructions")}</p>
+                <label>
+                  <span>{t("lobby.yourName")}</span>
+                  <input
+                    autoFocus
+                    type="text"
+                    value={displayedPlayerName}
+                    maxLength={30}
+                    placeholder={t("lobby.anonymous")}
+                    onChange={(event) => {
+                      setPlayerName(event.target.value);
+                      setPlayerNameEdited(true);
+                    }}
+                  />
+                </label>
+                <div className={styles.joinActions}>
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={() => setJoinDialogOpen(false)}
+                  >
+                    {t("table.joinCancel")}
+                  </button>
+                  <button type="submit" disabled={loading}>
+                    {loading
+                      ? t("table.claimingSeat")
+                      : t("table.joinConfirm")}
+                  </button>
+                </div>
+              </form>
+            </div>
           ) : null}
         </div>
       )}

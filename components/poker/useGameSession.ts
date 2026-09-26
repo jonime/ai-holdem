@@ -290,28 +290,30 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   }, [locale, router, t]);
 
   const postSeatAction = useCallback(
-    async (path: string, body?: unknown) => {
-      if (!game) return;
+    async (path: string, body?: unknown, method = "POST") => {
+      if (!game) return false;
       setLoading(true);
       setError(null);
       try {
         await requestJson(
           path,
           body === undefined
-            ? { method: "POST" }
+            ? { method }
             : {
-                method: "POST",
+                method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
               },
         );
         await loadGame(game.id);
+        return true;
       } catch (requestError) {
         setError(
           requestError instanceof Error
             ? requestError.message
             : t("errors.seatUpdate"),
         );
+        return false;
       } finally {
         setLoading(false);
       }
@@ -323,9 +325,25 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     async (seat: number, playerName: string) => {
       const trimmedName = playerName.trim();
       window.localStorage.setItem("ai-holdem-player-name", trimmedName);
-      await postSeatAction(`/api/games/${game?.id}/seats/${seat}/claim`, {
+      return postSeatAction(`/api/games/${game?.id}/seats/${seat}/claim`, {
         ...(trimmedName ? { name: trimmedName } : {}),
       });
+    },
+    [game, postSeatAction],
+  );
+
+  const updatePlayerName = useCallback(
+    async (seat: number, playerName: string) => {
+      const trimmedName = playerName.trim();
+      const updated = await postSeatAction(
+        `/api/games/${game?.id}/seats/${seat}/name`,
+        { name: trimmedName },
+        "PATCH",
+      );
+      if (updated) {
+        window.localStorage.setItem("ai-holdem-player-name", trimmedName);
+      }
+      return updated;
     },
     [game, postSeatAction],
   );
@@ -672,6 +690,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     createGame,
     loadGame,
     claimSeatAt,
+    updatePlayerName,
     releaseSeat,
     assignBot,
     startWaitingGame,

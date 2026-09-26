@@ -19,6 +19,7 @@ export function shouldRefreshForGameEvent(
   if (event.gameId !== gameId) return false;
   const isSeatEvent =
     event.type === "seat_claimed" ||
+    event.type === "seat_name_updated" ||
     event.type === "seat_released" ||
     event.type === "seat_bot_assigned";
   return (

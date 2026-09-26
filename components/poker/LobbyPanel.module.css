@@ -61,6 +61,15 @@
 .playerNameField {
   width: min(300px, 100%);
 }
+.playerNameControl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+}
+.playerNameControl button {
+  min-height: 40px;
+}
 .playerNameField input,
 .lobbyField input,
 .lobbyField select,

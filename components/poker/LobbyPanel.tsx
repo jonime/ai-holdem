@@ -17,6 +17,7 @@ export function LobbyPanel({
   playerName,
   setPlayerName,
   viewerToken,
+  onSavePlayerName,
   onClaimSeatAt,
   onAssignBot,
   onReleaseSeat,
@@ -29,6 +30,7 @@ export function LobbyPanel({
   readonly playerName: string;
   readonly setPlayerName: (value: string) => void;
   readonly viewerToken: string | null;
+  readonly onSavePlayerName: (seat: number) => void;
   readonly onClaimSeatAt: (seat: number) => void;
   readonly onAssignBot: (
     seat: number,
@@ -41,6 +43,15 @@ export function LobbyPanel({
 }) {
   const { t } = useI18n();
   const canManage = game.viewerIsHost;
+  const viewerPlayer = game.poker.players.find(
+    (player) =>
+      player.status === "claimed" && player.playerToken === viewerToken,
+  );
+  const normalizedPlayerName =
+    playerName.trim() ||
+    (viewerPlayer ? `Player ${viewerPlayer.seat + 1}` : "");
+  const playerNameChanged =
+    viewerPlayer !== undefined && normalizedPlayerName !== viewerPlayer.name;
   const occupiedSeats = filledSeatCount(game.poker.players);
   const [botDifficulties, setBotDifficulties] = useState<
     Readonly<Record<number, AIDifficulty>>
@@ -89,16 +100,27 @@ export function LobbyPanel({
         <p>{t("lobby.instructions")}</p>
       </header>
       <div className={styles.lobbySetup}>
-        <label className={`${styles.lobbyField} ${styles.playerNameField}`}>
-          <span>{t("lobby.yourName")}</span>
-          <input
-            type="text"
-            value={playerName}
-            maxLength={30}
-            placeholder={t("lobby.anonymous")}
-            onChange={(event) => setPlayerName(event.target.value)}
-          />
-        </label>
+        <div className={styles.playerNameControl}>
+          <label className={`${styles.lobbyField} ${styles.playerNameField}`}>
+            <span>{t("lobby.yourName")}</span>
+            <input
+              type="text"
+              value={playerName}
+              maxLength={30}
+              placeholder={t("lobby.anonymous")}
+              onChange={(event) => setPlayerName(event.target.value)}
+            />
+          </label>
+          {viewerPlayer ? (
+            <button
+              type="button"
+              disabled={loading || !playerNameChanged}
+              onClick={() => onSavePlayerName(viewerPlayer.seat)}
+            >
+              {loading ? t("lobby.savingName") : t("lobby.saveName")}
+            </button>
+          ) : null}
+        </div>
         {canManage ? (
           <div className={styles.tableSettingsForm}>
             <label className={styles.lobbyField}>

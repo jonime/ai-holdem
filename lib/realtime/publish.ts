@@ -19,6 +19,7 @@ export type GameEventType =
   | "hand_started"
   | "hand_completed"
   | "seat_claimed"
+  | "seat_name_updated"
   | "seat_released"
   | "seat_bot_assigned"
   | "seat_count_updated"
@@ -145,7 +146,10 @@ export async function publishSeatEvent(
   gameId: string,
   type: Extract<
     GameEventType,
-    "seat_claimed" | "seat_released" | "seat_bot_assigned"
+    | "seat_claimed"
+    | "seat_name_updated"
+    | "seat_released"
+    | "seat_bot_assigned"
   >,
   assignment: SeatAssignment,
 ): Promise<PublishGameEventResult> {

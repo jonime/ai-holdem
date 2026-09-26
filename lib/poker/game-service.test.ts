@@ -13,6 +13,7 @@ import {
   startNextHand,
   submitHumanAction,
   updateSeatCount,
+  updatePlayerName,
   updateTableSettings,
   validateTableSettings,
 } from "./game-service";
@@ -51,6 +52,7 @@ describe("createDemoGame", () => {
           expect.objectContaining({
             enginePlayerId: "human",
             controller: "human",
+            name: "Player 1",
           }),
           expect.objectContaining({
             enginePlayerId: null,
@@ -493,6 +495,86 @@ describe("claimSeat", () => {
         enginePlayerId: "human",
       }),
     );
+  });
+});
+
+describe("updatePlayerName", () => {
+  const waitingGame: PersistedGame = {
+    id: "game-1",
+    status: "waiting",
+    currentState: {},
+    stateSchemaVersion: 1,
+    handNumber: 0,
+    version: 0,
+  };
+  const ownedSeat = {
+    gameId: "game-1",
+    seat: 1,
+    name: "Player 2",
+    status: "claimed" as const,
+    controller: "human" as const,
+    playerToken: "player-token",
+    isHost: false,
+  };
+
+  it("updates the owned human seat and normalizes the name", async () => {
+    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
+    const assignment = await updatePlayerName(
+      {
+        getGame: vi.fn().mockResolvedValue(waitingGame),
+        getSeatAssignments: vi.fn().mockResolvedValue([ownedSeat]),
+        updateSeatAssignment,
+      },
+      "game-1",
+      1,
+      "player-token",
+      "  Ada  ",
+    );
+
+    expect(assignment.name).toBe("Ada");
+    expect(updateSeatAssignment).toHaveBeenCalledWith({
+      gameId: "game-1",
+      seat: 1,
+      status: "claimed",
+      name: "Ada",
+    });
+  });
+
+  it("uses the seat fallback for an empty name", async () => {
+    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
+    const assignment = await updatePlayerName(
+      {
+        getGame: vi.fn().mockResolvedValue(waitingGame),
+        getSeatAssignments: vi.fn().mockResolvedValue([ownedSeat]),
+        updateSeatAssignment,
+      },
+      "game-1",
+      1,
+      "player-token",
+      "   ",
+    );
+
+    expect(assignment.name).toBe("Player 2");
+  });
+
+  it("rejects another player's seat and games that have started", async () => {
+    const repository = {
+      getGame: vi.fn().mockResolvedValue(waitingGame),
+      getSeatAssignments: vi.fn().mockResolvedValue([ownedSeat]),
+      updateSeatAssignment: vi.fn(),
+    };
+
+    await expect(
+      updatePlayerName(repository, "game-1", 1, "other-token", "Grace"),
+    ).rejects.toThrow("Seat does not belong to this player");
+
+    repository.getGame.mockResolvedValue({
+      ...waitingGame,
+      status: "playing",
+    });
+    await expect(
+      updatePlayerName(repository, "game-1", 1, "player-token", "Grace"),
+    ).rejects.toThrow("Player names can only be changed before the game starts");
   });
 });
 

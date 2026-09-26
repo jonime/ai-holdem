@@ -190,7 +190,12 @@ const aiDecisionEventSchema = realtimeEnvelopeBaseSchema
 
 const seatEventSchema = realtimeEnvelopeBaseSchema
   .extend({
-    type: z.enum(["seat_claimed", "seat_released", "seat_bot_assigned"]),
+    type: z.enum([
+      "seat_claimed",
+      "seat_name_updated",
+      "seat_released",
+      "seat_bot_assigned",
+    ]),
     game: broadcastGameSchema,
     seat: broadcastSeatSchema,
   })
