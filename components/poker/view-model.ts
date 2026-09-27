@@ -63,6 +63,36 @@ export function feedEventLabel(
   }
 }
 
+export function latestActionsForStreet(
+  events: readonly GameFeedEvent[],
+  players: readonly Pick<PublicPokerPlayer, "id" | "name">[],
+  handNumber: number,
+  street: PokerStreet | null,
+): Readonly<Record<string, LatestPlayerAction>> {
+  if (street === null || street === "complete") {
+    return {};
+  }
+
+  const latestActions: Record<string, LatestPlayerAction> = {};
+  for (const event of events) {
+    if (
+      event.type !== "action" ||
+      event.handNumber !== handNumber ||
+      event.street !== street
+    ) {
+      continue;
+    }
+    const player = players.find((candidate) => candidate.name === event.player);
+    if (player) {
+      latestActions[player.id] = {
+        action: event.action,
+        amount: event.amount,
+      };
+    }
+  }
+  return latestActions;
+}
+
 export function cardLabel(
   card: string,
   labels: GameDictionary["cards"],

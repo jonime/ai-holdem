@@ -19,6 +19,7 @@ import {
   arrangeSeatsLinear,
   availableHistoryHands,
   resolveViewer,
+  latestActionsForStreet,
 } from "@/components/poker/view-model";
 
 const playerNameStorageKey = "ai-holdem-player-name";
@@ -136,15 +137,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const availableHands = game
     ? availableHistoryHands(game.poker.handNumber)
     : [];
-  const latestActions = Object.fromEntries(
-    (currentHistory?.actions ?? [])
-      .filter((action) => action.street === game?.poker.street)
-      .flatMap((action) => {
-        const player = game?.poker.players.find(
-          (candidate) => candidate.name === action.player,
-        );
-        return player ? [[player.id, action] as const] : [];
-      }),
+  const latestActions = latestActionsForStreet(
+    feed?.events ?? [],
+    game?.poker.players ?? [],
+    game?.poker.handNumber ?? 0,
+    game?.poker.street ?? null,
   );
 
   useEffect(() => {
@@ -345,10 +342,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             {feedCollapsed ? null : (
               <div className={styles.feedColumn}>
                 <div className={styles.desktopFeed}>
-                  <ActionFeedPanel
-                    feed={feed}
-                    loading={feedLoading}
-                  />
+                  <ActionFeedPanel feed={feed} loading={feedLoading} />
                 </div>
               </div>
             )}
@@ -399,15 +393,14 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                     setJoinDialogOpen(false);
                     return;
                   }
-                  void claimSeatAt(
-                    openSeat.seat,
-                    displayedPlayerName,
-                  ).then((joined) => {
-                    if (joined) {
-                      setPlayerNameEdited(false);
-                      setJoinDialogOpen(false);
-                    }
-                  });
+                  void claimSeatAt(openSeat.seat, displayedPlayerName).then(
+                    (joined) => {
+                      if (joined) {
+                        setPlayerNameEdited(false);
+                        setJoinDialogOpen(false);
+                      }
+                    },
+                  );
                 }}
               >
                 <h2 id="join-table-title">{t("table.joinTitle")}</h2>
@@ -433,14 +426,8 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                   >
                     {t("table.joinCancel")}
                   </Button>
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    disabled={loading}
-                  >
-                    {loading
-                      ? t("table.claimingSeat")
-                      : t("table.joinConfirm")}
+                  <Button variant="primary" type="submit" disabled={loading}>
+                    {loading ? t("table.claimingSeat") : t("table.joinConfirm")}
                   </Button>
                 </div>
               </form>

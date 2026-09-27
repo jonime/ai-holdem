@@ -16,6 +16,7 @@ import {
   formatChips,
   parseProbabilities,
   resolveViewer,
+  latestActionsForStreet,
 } from "./view-model";
 
 const smallBlindEvent = {
@@ -28,6 +29,46 @@ const smallBlindEvent = {
 } as const;
 
 describe("view-model", () => {
+  it("returns each player's latest action on the current hand and street", () => {
+    const players = [
+      { id: "jev-3", name: "TypeSafe Jev #3" },
+      { id: "jev-4", name: "TypeSafe Jev #4" },
+    ];
+    const events = [
+      {
+        type: "action",
+        handNumber: 3,
+        player: "TypeSafe Jev #3",
+        controller: "bot",
+        action: "bet",
+        amount: 400,
+        street: "flop",
+      },
+      {
+        type: "action",
+        handNumber: 2,
+        player: "TypeSafe Jev #3",
+        controller: "bot",
+        action: "raise",
+        amount: 800,
+        street: "flop",
+      },
+      {
+        type: "action",
+        handNumber: 3,
+        player: "TypeSafe Jev #4",
+        controller: "bot",
+        action: "fold",
+        amount: null,
+        street: "flop",
+      },
+    ] as const;
+
+    expect(latestActionsForStreet(events, players, 3, "flop")).toEqual({
+      "jev-3": { action: "bet", amount: 400 },
+      "jev-4": { action: "fold", amount: null },
+    });
+  });
   it("describes only the bot settings supported by its configuration", () => {
     expect(
       describeBotConfiguration(
