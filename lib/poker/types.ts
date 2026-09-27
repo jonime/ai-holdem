@@ -1,6 +1,7 @@
 export type PlayerController = "human" | "bot";
 export type SeatStatus = "open" | "claimed" | "bot";
 export type AIDifficulty = "easy" | "medium" | "hard";
+export type BotPlaystyleId = "balanced" | "tight" | "aggressive";
 
 export type BotProvider = "typesafe" | "openrouter" | "rules";
 
@@ -9,6 +10,10 @@ export interface BotDescriptor {
   readonly label: string;
   readonly provider: BotProvider;
   readonly modelId: string | null;
+  readonly configuration?: {
+    readonly difficulty: boolean;
+    readonly playstyle: boolean;
+  };
 }
 
 export interface PokerPlayerConfig {
@@ -19,6 +24,7 @@ export interface PokerPlayerConfig {
   readonly controller: PlayerController | "typesafe_ai";
   readonly bot?: BotDescriptor | null;
   readonly aiDifficulty?: AIDifficulty | null;
+  readonly botProfileId?: BotPlaystyleId | null;
   readonly stack: number;
   readonly status?: SeatStatus;
   readonly playerToken?: string | null;
@@ -119,6 +125,7 @@ export interface PublicPokerPlayer {
   readonly controller: PlayerController;
   readonly bot?: BotDescriptor | null;
   readonly aiDifficulty: AIDifficulty | null;
+  readonly botProfileId?: BotPlaystyleId | null;
   readonly seat: number;
   readonly status: SeatStatus;
   readonly playerToken: string | null;

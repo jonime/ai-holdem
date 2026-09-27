@@ -1,7 +1,8 @@
 export const metadata = {
   title: "Over",
-  description: "Lees hoe bots, moeilijkheidsgraden, pokerregels en privacygrenzen in AI Hold'em werken.",
-}
+  description:
+    "Lees hoe bots, moeilijkheidsgraden, pokerregels en privacygrenzen in AI Hold'em werken.",
+};
 
 # Over AI Hold'em
 
@@ -39,7 +40,13 @@ Elk geconfigureerd [OpenRouter](https://openrouter.ai/)-profiel levert een weerg
 
 #### Profielen en aanpassing
 
-OpenRouter-profielen hebben momenteel geen moeilijkheidskeuze. Profielen zijn de natuurlijke plek voor toekomstige stijl-, model- of redeneeropties, maar er wordt nog geen specifieke interface beloofd. Elk profiel blijft beperkt tot dezelfde informatie en legale acties.
+Bij het toewijzen van een OpenRouter-bot kun je een van drie speelstijlen kiezen:
+
+- **Gebalanceerd** streeft naar de hoogste verwachte chipwaarde zonder een bepaalde speelrichting te verkiezen.
+- **Tight** vermijdt marginale voortzettingen met hoge variantie en vereist een groter voordeel voordat een groot deel van de effectieve stack wordt ingezet, maar foldt geen duidelijk winstgevende call.
+- **Agressief** verkiest inzetten of raisen wanneer de verwachte waarden vergelijkbaar zijn, zet druk met geloofwaardige draws en kiest waar passend grotere valuebets.
+
+De speelstijl stuurt de beslissingen van het model, maar verandert niets aan de kaarten, beschikbare informatie of legale acties van de engine.
 
 ## Regels afgedwongen door de pokerengine
 

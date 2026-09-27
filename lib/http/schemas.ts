@@ -26,10 +26,17 @@ export const publicPlayerSchema = z.object({
       label: z.string(),
       provider: z.enum(["typesafe", "openrouter", "rules"]),
       modelId: z.string().nullable(),
+      configuration: z
+        .object({ difficulty: z.boolean(), playstyle: z.boolean() })
+        .optional(),
     })
     .nullable()
     .default(null),
   aiDifficulty: z.enum(["easy", "medium", "hard"]).nullable(),
+  botProfileId: z
+    .enum(["balanced", "tight", "aggressive"])
+    .nullable()
+    .default(null),
   seat: z.number().int().nonnegative(),
   status: z.enum(["open", "claimed", "bot"]),
   playerToken: z.string().nullable(),
@@ -224,6 +231,7 @@ export const handActionHistoryItemSchema = z.object({
       modelId: z.string().nullable(),
     })
     .nullable(),
+  botProfileId: z.enum(["balanced", "tight", "aggressive"]).nullable(),
 });
 
 export const completedAIDecisionInspectionSchema = z.object({
@@ -239,6 +247,7 @@ export const completedAIDecisionInspectionSchema = z.object({
     provider: z.enum(["typesafe", "openrouter", "rules"]),
     modelId: z.string().nullable(),
   }),
+  botProfileId: z.enum(["balanced", "tight", "aggressive"]).nullable(),
   matchedRule: z.string().nullable(),
   rawResponse: z.unknown(),
 });

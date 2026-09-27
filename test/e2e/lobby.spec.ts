@@ -86,6 +86,30 @@ test("persists a per-bot difficulty selected in the lobby", async ({
   await expect(page.getByText("TypeSafe Jev · hard")).toBeVisible();
 });
 
+test("shows the localized OpenRouter playstyle profiles", async ({ page }) => {
+  await page.goto("/en-US");
+  await page
+    .getByRole("region", { name: "Start a new game" })
+    .getByRole("button", { name: "New Game" })
+    .click();
+  await expect(page.getByText("WAITING ROOM")).toBeVisible();
+
+  await page
+    .getByLabel("Bot for seat 2")
+    .selectOption("openrouter-test-model");
+  const playstyle = page.getByLabel("Bot playstyle for seat 2");
+  await expect(playstyle).toBeVisible();
+  await expect(playstyle.locator("option")).toHaveText([
+    /Balanced.*highest expected chip value/,
+    /Tight.*marginal, high-variance/,
+    /Aggressive.*pressure/,
+  ]);
+  await page.screenshot({
+    path: "test-results/openrouter-playstyle-selector.png",
+    fullPage: true,
+  });
+});
+
 test("recovers through polling and after coming back online", async ({
   browser,
   page,

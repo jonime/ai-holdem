@@ -763,6 +763,7 @@ describe("assignBotToSeat", () => {
         seat: 2,
         status: "bot",
         aiDifficulty: null,
+        botProfileId: "balanced",
         bot: expect.objectContaining({ provider: "openrouter" }),
       }),
     );

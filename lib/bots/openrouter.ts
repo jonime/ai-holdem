@@ -2,6 +2,7 @@ import "server-only";
 
 import { getOpenRouterApiKey } from "@/lib/env/server";
 import type { PokerAction } from "@/lib/poker/types";
+import type { BotPlaystyleId } from "@/lib/poker/types";
 import type { SizingChoice } from "@/lib/typesafe/questions";
 
 import {
@@ -11,9 +12,11 @@ import {
   type BotDecision,
   type PokerBot,
 } from "./types";
+import { resolveOpenRouterPlaystyle } from "./openrouter-profiles";
 
 const endpoint = "https://openrouter.ai/api/v1/chat/completions";
-const promptVersion = "openrouter-poker-v1";
+const invariantPolicy =
+  "Use only the supplied information and optimize expected chip value. Choose only a supplied legal action and, when required, a supplied sizing. Never invent hidden cards or absent information. Return only the schema-constrained JSON.";
 
 interface FetchLike {
   (input: string, init: RequestInit): Promise<Response>;
@@ -96,10 +99,19 @@ function parseOutput(
 }
 
 export class OpenRouterPokerBot implements PokerBot {
+  private readonly profileId: BotPlaystyleId;
+  private readonly fetcher: FetchLike;
+
   constructor(
     private readonly modelId: string,
-    private readonly fetcher: FetchLike = fetch,
-  ) {}
+    profileIdOrFetcher: BotPlaystyleId | FetchLike = "balanced",
+    fetcher: FetchLike = fetch,
+  ) {
+    this.profileId =
+      typeof profileIdOrFetcher === "function" ? "balanced" : profileIdOrFetcher;
+    this.fetcher =
+      typeof profileIdOrFetcher === "function" ? profileIdOrFetcher : fetcher;
+  }
 
   async decide(context: BotContext): Promise<BotDecision> {
     const started = performance.now();
@@ -117,8 +129,7 @@ export class OpenRouterPokerBot implements PokerBot {
           messages: [
             {
               role: "system",
-              content:
-                "Choose the highest expected-chip-value legal poker action. Use equity, pot odds, effective stacks, board texture, position, and action history. Never assume hidden cards or information absent from the supplied state. Return only the requested JSON.",
+              content: `${invariantPolicy}\n\nProfile preference: ${resolveOpenRouterPlaystyle(this.profileId).instruction}`,
             },
             { role: "user", content: JSON.stringify(context) },
           ],
@@ -176,7 +187,8 @@ export class OpenRouterPokerBot implements PokerBot {
               confidence: null,
             }
           : null,
-        promptVersion,
+        promptVersion: `openrouter-poker-v2-${this.profileId}`,
+        botProfileId: this.profileId,
         durationMs: Math.round(performance.now() - started),
         usage,
         cost,

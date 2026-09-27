@@ -6,6 +6,7 @@ import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { publishSeatEvent } from "@/lib/realtime/publish";
 import type { AIDifficulty } from "@/lib/poker/types";
 import { getBotCatalog } from "@/lib/bots/registry";
+import { isBotPlaystyleId } from "@/lib/bots/openrouter-profiles";
 
 interface AssignBotRouteContext {
   readonly params: Promise<{ gameId: string; seat: string }>;
@@ -28,6 +29,10 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
     body && typeof body === "object" && "botId" in body
       ? (body as Record<string, unknown>).botId
       : undefined;
+  const requestedProfileId =
+    body && typeof body === "object" && "botProfileId" in body
+      ? (body as Record<string, unknown>).botProfileId
+      : undefined;
   if (requestedBotId !== undefined && typeof requestedBotId !== "string") {
     return NextResponse.json({ error: "Invalid bot ID" }, { status: 400 });
   }
@@ -36,6 +41,19 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
   );
   if (!bot) {
     return NextResponse.json({ error: "Unknown bot ID" }, { status: 400 });
+  }
+  if (
+    requestedProfileId !== undefined &&
+    requestedProfileId !== null &&
+    !isBotPlaystyleId(requestedProfileId)
+  ) {
+    return NextResponse.json({ error: "Invalid bot playstyle" }, { status: 400 });
+  }
+  if (bot.provider !== "openrouter" && requestedProfileId != null) {
+    return NextResponse.json(
+      { error: "Bot playstyle is only supported by OpenRouter bots" },
+      { status: 400 },
+    );
   }
   if (
     requestedDifficulty !== undefined &&
@@ -58,6 +76,9 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
       playerToken,
       difficulty,
       bot,
+      bot.provider === "openrouter"
+        ? (requestedProfileId ?? "balanced")
+        : null,
     );
     void publishSeatEvent(gameId, "seat_bot_assigned", assignment);
     return NextResponse.json({ seat: assignment }, { status: 200 });

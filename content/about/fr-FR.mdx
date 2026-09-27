@@ -1,7 +1,8 @@
 export const metadata = {
   title: "À propos",
-  description: "Découvrez le fonctionnement des bots, des difficultés, des règles et de la confidentialité dans AI Hold'em.",
-}
+  description:
+    "Découvrez le fonctionnement des bots, des difficultés, des règles et de la confidentialité dans AI Hold'em.",
+};
 
 # À propos d'AI Hold'em
 
@@ -39,7 +40,13 @@ Chaque profil [OpenRouter](https://openrouter.ai/) configuré fournit un libell�
 
 #### Profils et personnalisation
 
-Les profils OpenRouter n'ont actuellement aucun sélecteur de difficulté. Ils constituent l'emplacement naturel de futurs choix de style, de modèle ou de raisonnement, sans promettre encore d'interface précise. Chaque profil reste limité aux mêmes informations et actions légales.
+Lorsqu'on attribue un bot OpenRouter, on peut choisir parmi trois styles de jeu :
+
+- **Équilibré** recherche la valeur attendue en jetons la plus élevée, sans préférence de direction.
+- **Serré** évite les continuations marginales à forte variance et exige un avantage plus net avant d'engager une grande partie du tapis effectif, sans toutefois abandonner un call clairement rentable.
+- **Agressif** préfère miser ou relancer lorsque les valeurs attendues sont comparables, met la pression avec des tirages crédibles et choisit des mises de valorisation plus importantes lorsque c'est approprié.
+
+Le style guide les décisions du modèle, mais ne change ni les cartes, ni les informations disponibles, ni les actions légales définies par le moteur.
 
 ## Règles imposées par le moteur de poker
 

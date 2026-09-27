@@ -1,7 +1,8 @@
 export const metadata = {
   title: "Tietoja",
-  description: "Lue, miten AI Hold'emin botit, vaikeustasot, pokerisäännöt ja yksityisyysrajat toimivat.",
-}
+  description:
+    "Lue, miten AI Hold'emin botit, vaikeustasot, pokerisäännöt ja yksityisyysrajat toimivat.",
+};
 
 # Tietoja AI Hold'emista
 
@@ -39,7 +40,13 @@ Jokainen määritetty [OpenRouter](https://openrouter.ai/)-profiili sisältää 
 
 #### Profiilit ja mukautus
 
-OpenRouter-profiileilla ei vielä ole vaikeustason valintaa. Profiilit ovat luonteva paikka tuleville pelityylin, mallin tai päättelyasetusten valinnoille, mutta mitään tiettyä mukautusliittymää ei vielä luvata. Profiili voi käyttää vain samoja tietoja ja pokerimoottorin sallimia toimintoja.
+OpenRouter-botille voi valita yhden kolmesta pelityylistä sitä määritettäessä:
+
+- **Tasapainoinen** tavoittelee suurinta odotettua merkkimäärää suosimatta tiettyä pelisuuntaa.
+- **Tiukka** välttää marginaalisia, suuren varianssin jatkoja ja vaatii vahvemman edun ennen kuin sitoutuu suureen osaan efektiivisestä pinosta, mutta ei luovu selvästi kannattavasta maksusta.
+- **Aggressiivinen** suosii panostamista tai korottamista odotusarvojen ollessa samankaltaisia, painostaa uskottavilla vedoilla ja käyttää tarvittaessa suurempia arvolyöntejä.
+
+Pelityyli ohjaa mallin päätöksiä, mutta ei muuta kortteja, käytettävissä olevia tietoja tai pokerimoottorin sallimia toimintoja.
 
 ## Pokerimoottori valvoo sääntöjä
 

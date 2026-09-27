@@ -1,7 +1,8 @@
 export const metadata = {
   title: "About",
-  description: "Learn how AI Hold'em bots, difficulty settings, poker rules, and privacy boundaries work.",
-}
+  description:
+    "Learn how AI Hold'em bots, difficulty settings, poker rules, and privacy boundaries work.",
+};
 
 # About AI Hold'em
 
@@ -39,7 +40,13 @@ Each configured [OpenRouter](https://openrouter.ai/) profile supplies a display 
 
 #### Profiles and customization
 
-OpenRouter profiles do not currently have a difficulty selector. Profiles are the natural place for future choices such as playing style, model, or reasoning configuration, but no particular customization interface is promised yet. Whatever a profile chooses, it remains limited to the same information and engine-defined legal actions.
+OpenRouter bots can be assigned one of three playstyles:
+
+- **Balanced** seeks the highest expected chip value without a directional preference.
+- **Tight** avoids marginal, high-variance continuations and requires a stronger edge before committing a large part of the effective stack, but does not fold a clearly profitable call.
+- **Aggressive** prefers betting or raising when expected values are comparable, applies pressure with credible draws, and uses larger value bets when appropriate.
+
+Playstyle guides the model's decisions; it does not change the cards, available information, or engine-defined legal actions.
 
 ## Rules enforced by the poker engine
 

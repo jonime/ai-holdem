@@ -1,7 +1,8 @@
 export const metadata = {
   title: "Über das Projekt",
-  description: "Erfahre, wie Bots, Schwierigkeitsgrade, Pokerregeln und Datenschutzgrenzen in AI Hold'em funktionieren.",
-}
+  description:
+    "Erfahre, wie Bots, Schwierigkeitsgrade, Pokerregeln und Datenschutzgrenzen in AI Hold'em funktionieren.",
+};
 
 # Über AI Hold'em
 
@@ -39,7 +40,13 @@ Jedes konfigurierte [OpenRouter](https://openrouter.ai/)-Profil enthält Anzeige
 
 #### Profile und Anpassung
 
-OpenRouter-Profile besitzen derzeit keinen Schwierigkeitsregler. Profile sind der natürliche Ort für künftige Spielstil-, Modell- oder Schlussfolgerungseinstellungen, ohne dass bereits eine bestimmte Oberfläche versprochen wird. Jedes Profil bleibt auf dieselben Informationen und legalen Aktionen beschränkt.
+OpenRouter-Bots können bei der Zuweisung einen von drei Spielstilen erhalten:
+
+- **Ausgewogen** strebt den höchsten erwarteten Chipwert ohne bevorzugte Spielrichtung an.
+- **Tight** vermeidet knappe Entscheidungen mit hoher Varianz und verlangt einen stärkeren Vorteil, bevor ein großer Teil des effektiven Stacks eingesetzt wird; ein klar profitabler Call wird jedoch nicht gefoldet.
+- **Aggressiv** bevorzugt Bet oder Raise bei vergleichbaren Erwartungswerten, setzt mit glaubwürdigen Draws unter Druck und wählt bei passenden Gelegenheiten größere Value-Bets.
+
+Der Spielstil beeinflusst die Entscheidungen des Modells, ändert aber weder Karten noch verfügbare Informationen oder die vom Engine definierten legalen Aktionen.
 
 ## Regeln durch die Poker-Engine
 

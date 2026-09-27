@@ -33,6 +33,7 @@ import type {
   AIDecision,
   AIDifficulty,
   BotDescriptor,
+  BotPlaystyleId,
   Game,
   GameFeed,
   HandHistory,
@@ -356,10 +357,16 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   );
 
   const assignBot = useCallback(
-    async (seat: number, difficulty: AIDifficulty, botId = "jev") => {
+    async (
+      seat: number,
+      difficulty: AIDifficulty,
+      botId = "jev",
+      botProfileId: BotPlaystyleId | null = null,
+    ) => {
       await postSeatAction(`/api/games/${game?.id}/seats/${seat}/assign-bot`, {
         difficulty,
         botId,
+        ...(botProfileId ? { botProfileId } : {}),
       });
     },
     [game, postSeatAction],

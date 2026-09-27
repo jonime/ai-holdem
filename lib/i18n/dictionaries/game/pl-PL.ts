@@ -17,7 +17,8 @@ const dictionary = {
   lobby: {
     waitingRoom: "Poczekalnia",
     chooseTable: "Wybierz stół",
-    instructions: "Zajmij co najmniej dwa miejsca, a następnie rozpocznij rozdanie.",
+    instructions:
+      "Zajmij co najmniej dwa miejsca, a następnie rozpocznij rozdanie.",
     yourName: "Twoje imię",
     anonymous: "Anonimowy",
     saveName: "Zapisz nazwę",
@@ -42,6 +43,10 @@ const dictionary = {
     easy: "Łatwy",
     medium: "Średni",
     hard: "Trudny",
+    botPlaystyleForSeat: "Styl bota dla miejsca {seat}",
+    balanced: "Zrównoważony",
+    tight: "Ostrożny",
+    aggressive: "Agresywny",
     assignBot: "Dodaj bota",
     standUp: "Wstań",
     removeBot: "Usuń bota",

@@ -15,15 +15,15 @@ describe("bot registry", () => {
       provider: "rules",
     });
     expect(
-      new ServerBotRegistry().get("equity-rules-v2").descriptor,
+      new ServerBotRegistry().get({ botId: "equity-rules-v2" }).descriptor,
     ).toMatchObject({
       id: "equity-rules-v2",
       label: "Equity Rules",
       provider: "rules",
     });
-    expect(new ServerBotRegistry().get("basic-equity-v1").bot).toBeInstanceOf(
+    expect(new ServerBotRegistry().get({ botId: "basic-equity-v1" }).bot).toBeInstanceOf(
       BasicEquityBot,
     );
-    expect(() => new ServerBotRegistry().get("missing-bot")).toThrow();
+    expect(() => new ServerBotRegistry().get({ botId: "missing-bot" })).toThrow();
   });
 });

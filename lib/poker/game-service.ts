@@ -5,6 +5,7 @@ import { applyHumanAction, type HumanActionSubmission } from "./human-actions";
 import type {
   AIDifficulty,
   BotDescriptor,
+  BotPlaystyleId,
   GameConfig,
   PokerGameState,
   PublicPokerGame,
@@ -113,6 +114,7 @@ export interface SeatAssignment {
   readonly controller: "human" | "bot";
   readonly bot?: BotDescriptor | null;
   readonly aiDifficulty?: AIDifficulty | null;
+  readonly botProfileId?: BotPlaystyleId | null;
   readonly playerToken: string | null;
   readonly isHost: boolean;
   readonly leaving?: boolean;
@@ -129,6 +131,7 @@ export interface SeatAssignmentRepository {
     readonly controller?: "human" | "bot";
     readonly bot?: BotDescriptor | null;
     readonly aiDifficulty?: AIDifficulty | null;
+    readonly botProfileId?: BotPlaystyleId | null;
     readonly playerToken?: string | null;
     readonly isHost?: boolean;
     readonly leaving?: boolean;
@@ -227,6 +230,7 @@ export interface PublicAIDecision {
   readonly action: "fold" | "check" | "call" | "bet" | "raise";
   readonly amount: number | null;
   readonly bot: BotDescriptor;
+  readonly botProfileId: BotPlaystyleId | null;
   readonly probabilities: Readonly<Record<string, number>> | null;
   readonly confidence: number | null;
   readonly sizing: {
@@ -355,6 +359,10 @@ function playerConfigForAssignment(
     aiDifficulty: supportsDifficulty(assignment.bot?.provider)
       ? (assignment.aiDifficulty ?? "medium")
       : null,
+    botProfileId:
+      assignment.bot?.provider === "openrouter"
+        ? (assignment.botProfileId ?? "balanced")
+        : null,
     stack: startingStack,
     status: assignment.status,
     playerToken: assignment.playerToken,
@@ -395,6 +403,10 @@ async function withOpenSeatPlaceholders(
           aiDifficulty: supportsDifficulty(assignment.bot?.provider)
             ? (assignment.aiDifficulty ?? "medium")
             : null,
+          botProfileId:
+            assignment.bot?.provider === "openrouter"
+              ? (assignment.botProfileId ?? "balanced")
+              : null,
           status: assignment.status,
           playerToken: assignment.playerToken,
           isHost: assignment.isHost,
@@ -439,6 +451,7 @@ async function reconcileState(
         controller: "human",
         bot: null,
         aiDifficulty: null,
+        botProfileId: null,
         playerToken: null,
         isHost: false,
         leaving: false,
@@ -451,6 +464,7 @@ async function reconcileState(
         controller: "human",
         bot: null,
         aiDifficulty: null,
+        botProfileId: null,
         playerToken: null,
         isHost: false,
         leaving: false,
@@ -826,6 +840,7 @@ export async function claimSeat(
       controller: "human",
       bot: null,
       aiDifficulty: null,
+      botProfileId: null,
       playerToken: null,
       isHost: false,
       leaving: false,
@@ -915,6 +930,7 @@ export async function assignBotToSeat(
     provider: "typesafe",
     modelId: "jev-latest",
   },
+  botProfileId: BotPlaystyleId | null = null,
 ): Promise<SeatAssignment> {
   const seatAssignments = await repository.getSeatAssignments(gameId);
   const assignment = seatAssignments.find((entry) => entry.seat === seat);
@@ -940,6 +956,8 @@ export async function assignBotToSeat(
     controller: "bot",
     bot,
     aiDifficulty: supportsDifficulty(bot.provider) ? difficulty : null,
+    botProfileId:
+      bot.provider === "openrouter" ? (botProfileId ?? "balanced") : null,
     name,
     playerToken: null,
     isHost: false,
@@ -953,6 +971,8 @@ export async function assignBotToSeat(
     controller: "bot",
     bot,
     aiDifficulty: supportsDifficulty(bot.provider) ? difficulty : null,
+    botProfileId:
+      bot.provider === "openrouter" ? (botProfileId ?? "balanced") : null,
     name,
     playerToken: null,
     isHost: false,
@@ -1005,6 +1025,7 @@ export async function releaseSeat(
     controller: isHandInProgress ? assignment.controller : "human",
     bot: isHandInProgress ? assignment.bot : null,
     aiDifficulty: isHandInProgress ? assignment.aiDifficulty : null,
+    botProfileId: isHandInProgress ? assignment.botProfileId : null,
     playerToken: isHandInProgress ? assignment.playerToken : null,
     isHost: false,
     leaving: isHandInProgress,
@@ -1018,6 +1039,7 @@ export async function releaseSeat(
     controller: updatedAssignment.controller,
     bot: updatedAssignment.bot,
     aiDifficulty: updatedAssignment.aiDifficulty,
+    botProfileId: updatedAssignment.botProfileId,
     playerToken: updatedAssignment.playerToken,
     isHost: false,
     leaving: updatedAssignment.leaving,
@@ -1363,6 +1385,7 @@ async function stepResolvedBotAction(
       amount:
         "amount" in decision.action ? (decision.action.amount ?? null) : null,
       bot: botDescriptor,
+      botProfileId: decision.diagnostics.botProfileId,
       probabilities: decision.diagnostics.probabilities,
       confidence: decision.diagnostics.confidence,
       sizing: decision.diagnostics.sizing,
@@ -1392,7 +1415,10 @@ export async function stepBotAction(
     throw new Error("It is not a bot turn");
   }
   const botId = player.bot?.id ?? "jev";
-  const resolved = registry.get(botId);
+  const resolved = registry.get({
+    botId,
+    profileId: player.botProfileId,
+  });
   return stepResolvedBotAction(
     repository,
     resolved.bot,

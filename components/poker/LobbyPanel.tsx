@@ -5,6 +5,7 @@ import { useI18n } from "@/components/poker/I18nProvider";
 import type {
   AIDifficulty,
   BotDescriptor,
+  BotPlaystyleId,
   Game,
   TableSettings,
 } from "@/components/poker/types";
@@ -36,6 +37,7 @@ export function LobbyPanel({
     seat: number,
     difficulty: AIDifficulty,
     botId: string,
+    botProfileId: BotPlaystyleId | null,
   ) => void;
   readonly onReleaseSeat: (seat: number) => void;
   readonly onStartWaitingGame: (settings: TableSettings) => void;
@@ -58,6 +60,9 @@ export function LobbyPanel({
   const [selectedBots, setSelectedBots] = useState<
     Readonly<Record<number, string>>
   >({});
+  const [botPlaystyles, setBotPlaystyles] = useState<
+    Readonly<Record<number, BotPlaystyleId>>
+  >({});
   const [settingsDraft, setSettingsDraft] = useState({
     seatCount: String(game.poker.seatCount),
     smallBlind: String(game.poker.smallBlind),
@@ -65,9 +70,6 @@ export function LobbyPanel({
     startingStack: String(game.poker.startingStack),
     botsShowUncontestedWins: game.poker.botsShowUncontestedWins ?? false,
   });
-  const supportsDifficulty = (
-    provider: BotDescriptor["provider"] | undefined,
-  ) => provider === "typesafe" || provider === "rules";
   const parsedSettings: TableSettings = {
     seatCount: Number(settingsDraft.seatCount),
     smallBlind: Number(settingsDraft.smallBlind),
@@ -119,10 +121,7 @@ export function LobbyPanel({
             />
           </label>
           {viewerPlayer ? (
-            <Button
-              type="submit"
-              disabled={loading || !playerNameChanged}
-            >
+            <Button type="submit" disabled={loading || !playerNameChanged}>
               {loading ? t("lobby.savingName") : t("lobby.saveName")}
             </Button>
           ) : null}
@@ -259,9 +258,11 @@ export function LobbyPanel({
                 <strong>{player?.name ?? t("lobby.openSeat")}</strong>
                 <span>
                   {player?.status === "bot"
-                    ? supportsDifficulty(player.bot?.provider)
+                    ? player.bot?.configuration?.difficulty
                       ? `${player.bot.label} · ${t(`lobby.${player.aiDifficulty ?? "medium"}`)}`
-                      : (player.bot?.label ?? player.name)
+                      : player.botProfileId
+                        ? `${player.bot?.label ?? player.name} · ${t(`lobby.${player.botProfileId}`)}`
+                        : (player.bot?.label ?? player.name)
                     : player?.status === "claimed"
                       ? t("lobby.humanPlayer")
                       : t("lobby.available")}
@@ -282,12 +283,21 @@ export function LobbyPanel({
                         aria-label={`Bot for seat ${seat + 1}`}
                         value={selectedBots[seat] ?? "jev"}
                         disabled={loading}
-                        onChange={(event) =>
+                        onChange={(event) => {
                           setSelectedBots((current) => ({
                             ...current,
                             [seat]: event.target.value,
-                          }))
-                        }
+                          }));
+                          const selected = botCatalog.find(
+                            (bot) => bot.id === event.target.value,
+                          );
+                          if (!selected?.configuration?.playstyle) {
+                            setBotPlaystyles((current) => ({
+                              ...current,
+                              [seat]: "balanced",
+                            }));
+                          }
+                        }}
                       >
                         {botCatalog.map((bot) => (
                           <option key={bot.id} value={bot.id}>
@@ -295,11 +305,9 @@ export function LobbyPanel({
                           </option>
                         ))}
                       </select>
-                      {supportsDifficulty(
-                        botCatalog.find(
-                          (bot) => bot.id === (selectedBots[seat] ?? "jev"),
-                        )?.provider,
-                      ) ? (
+                      {botCatalog.find(
+                        (bot) => bot.id === (selectedBots[seat] ?? "jev"),
+                      )?.configuration?.difficulty ? (
                         <select
                           aria-label={t("lobby.botDifficulty", {
                             seat: seat + 1,
@@ -318,6 +326,31 @@ export function LobbyPanel({
                           <option value="hard">{t("lobby.hard")}</option>
                         </select>
                       ) : null}
+                      {botCatalog.find(
+                        (bot) => bot.id === (selectedBots[seat] ?? "jev"),
+                      )?.configuration?.playstyle ? (
+                        <select
+                          aria-label={t("lobby.botPlaystyleForSeat", {
+                            seat: seat + 1,
+                          })}
+                          value={botPlaystyles[seat] ?? "balanced"}
+                          disabled={loading}
+                          onChange={(event) =>
+                            setBotPlaystyles((current) => ({
+                              ...current,
+                              [seat]: event.target.value as BotPlaystyleId,
+                            }))
+                          }
+                        >
+                          {(["balanced", "tight", "aggressive"] as const).map(
+                            (id) => (
+                              <option key={id} value={id}>
+                                {t(`lobby.${id}`)}
+                              </option>
+                            ),
+                          )}
+                        </select>
+                      ) : null}
                       <Button
                         size="small"
                         disabled={loading}
@@ -326,6 +359,11 @@ export function LobbyPanel({
                             seat,
                             botDifficulties[seat] ?? "medium",
                             selectedBots[seat] ?? "jev",
+                            botCatalog.find(
+                              (bot) => bot.id === (selectedBots[seat] ?? "jev"),
+                            )?.configuration?.playstyle
+                              ? (botPlaystyles[seat] ?? "balanced")
+                              : null,
                           )
                         }
                       >

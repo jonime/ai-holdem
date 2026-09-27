@@ -1,7 +1,8 @@
 import "server-only";
 
 import { GAME_FEED_HAND_LIMIT } from "@/lib/constants";
-import type { AIDifficulty, BotDescriptor } from "@/lib/poker/types";
+import type { AIDifficulty, BotDescriptor, BotPlaystyleId } from "@/lib/poker/types";
+import { isBotPlaystyleId } from "@/lib/bots/openrouter-profiles";
 
 export type GameStatus = "waiting" | "playing" | "complete" | "error";
 
@@ -88,6 +89,7 @@ export interface GamePlayerSeatAssignment {
   readonly controller: "human" | "bot";
   readonly bot: BotDescriptor | null;
   readonly aiDifficulty: AIDifficulty | null;
+  readonly botProfileId: BotPlaystyleId | null;
   readonly playerToken: string | null;
   readonly isHost: boolean;
   readonly leaving: boolean;
@@ -103,6 +105,7 @@ export interface CreateGameSessionInput extends CreateGameInput {
     readonly controller: "human" | "bot" | "typesafe_ai";
     readonly bot?: BotDescriptor | null;
     readonly aiDifficulty?: AIDifficulty | null;
+    readonly botProfileId?: BotPlaystyleId | null;
     readonly stack: number;
     readonly status?: SeatStatus;
     readonly playerToken?: string | null;
@@ -119,6 +122,7 @@ export interface HandActionHistoryItem {
   readonly player: string;
   readonly controller: "human" | "bot";
   readonly bot: BotDescriptor | null;
+  readonly botProfileId: BotPlaystyleId | null;
 }
 
 export interface CompletedAIDecisionInspection {
@@ -128,6 +132,7 @@ export interface CompletedAIDecisionInspection {
   readonly choice: string;
   readonly probabilities: unknown;
   readonly bot: BotDescriptor;
+  readonly botProfileId: BotPlaystyleId | null;
   readonly confidence: number | null;
   readonly raiseSizeChoice: string | null;
   readonly raiseSizeProbabilities: unknown;
@@ -247,6 +252,12 @@ function optionalAIDifficulty(value: unknown): AIDifficulty | null {
     return value;
   }
   throw new Error("Supabase returned an invalid AI difficulty");
+}
+
+function optionalBotProfileId(value: unknown): BotPlaystyleId | null {
+  if (value === null || value === undefined) return null;
+  if (isBotPlaystyleId(value)) return value;
+  throw new Error("Supabase returned an invalid bot playstyle");
 }
 
 const legacyJevBot: BotDescriptor = {
@@ -385,6 +396,7 @@ function toHandHistory(value: unknown): HandHistory | null {
         controller === "human"
           ? null
           : (botDescriptorFrom(item, "camel") ?? legacyJevBot),
+      botProfileId: optionalBotProfileId(item.botProfileId),
     } as HandActionHistoryItem;
   });
 
@@ -415,6 +427,7 @@ function toHandHistory(value: unknown): HandHistory | null {
       choice: requiredString(item, "choice"),
       probabilities: item.probabilities,
       bot: botDescriptorFrom(item, "camel") ?? legacyJevBot,
+      botProfileId: optionalBotProfileId(item.botProfileId),
       confidence,
       raiseSizeChoice,
       raiseSizeProbabilities: item.raiseSizeProbabilities,
@@ -545,6 +558,7 @@ export class SupabaseGameRepository {
             ? null
             : (botDescriptorFrom(row, "snake") ?? legacyJevBot),
         aiDifficulty: optionalAIDifficulty(row.ai_difficulty),
+        botProfileId: optionalBotProfileId(row.bot_profile_id),
         playerToken:
           typeof row.player_token === "string" ? row.player_token : null,
         isHost: Boolean(row.is_host),
@@ -565,6 +579,7 @@ export class SupabaseGameRepository {
     readonly controller?: "human" | "bot" | "typesafe_ai";
     readonly bot?: BotDescriptor | null;
     readonly aiDifficulty?: AIDifficulty | null;
+    readonly botProfileId?: BotPlaystyleId | null;
     readonly playerToken?: string | null;
     readonly isHost?: boolean;
     readonly leaving?: boolean;
@@ -584,6 +599,9 @@ export class SupabaseGameRepository {
     }
     if (input.aiDifficulty !== undefined) {
       values.ai_difficulty = input.aiDifficulty;
+    }
+    if (input.botProfileId !== undefined) {
+      values.bot_profile_id = input.botProfileId;
     }
     if (input.playerToken !== undefined) {
       values.player_token = input.playerToken;
@@ -660,6 +678,9 @@ export class SupabaseGameRepository {
         }
         if (player.aiDifficulty !== undefined) {
           row.ai_difficulty = player.aiDifficulty;
+        }
+        if (player.botProfileId !== undefined) {
+          row.bot_profile_id = player.botProfileId;
         }
         if (player.playerToken !== undefined) {
           row.player_token = player.playerToken;

@@ -31,7 +31,13 @@ function getLocalSupabaseEnvironment(): Record<string, string> {
     SUPABASE_SECRET_KEY: secretKey,
     TYPESAFE_API_KEY: "",
     OPENROUTER_API_KEY: "",
-    OPENROUTER_BOT_PROFILES: "[]",
+    OPENROUTER_BOT_PROFILES: JSON.stringify([
+      {
+        id: "openrouter-test-model",
+        label: "OpenRouter Test Model",
+        modelId: "test/model",
+      },
+    ]),
     EXTERNAL_INFERENCE_ENABLED: "false",
   };
 }

@@ -537,6 +537,11 @@ export const pokerEngineAdapter = {
               (config.bot?.provider ?? "typesafe") === "rules")
               ? (config.aiDifficulty ?? "medium")
               : null,
+          botProfileId:
+            config.controller !== "human" &&
+            config.bot?.provider === "openrouter"
+              ? (config.botProfileId ?? "balanced")
+              : null,
           seat: config.seat,
           status:
             config.status ??

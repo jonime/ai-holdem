@@ -102,8 +102,10 @@ The development server defaults to http://localhost:3001.
 
 Use the built-in offline bot catalog for deterministic play without external
 inference: `Equity Rules` is the default non-LLM rules option, while
-`TypeSafe Jev` and `OpenRouter` profiles remain available as provider-specific
-choices.
+`TypeSafe Jev` and OpenRouter model definitions remain available as
+provider-specific choices. `OPENROUTER_BOT_PROFILES` configures those model
+definitions; the lobby's server-owned Balanced, Tight, and Aggressive
+playstyles are selected independently and never accept custom prompt text.
 
 ```sh
 npm run lint

@@ -74,6 +74,11 @@ export function Seat({
       <div className={styles.seatHeading}>
         <span className={styles.seatLabel}>{player.name.toUpperCase()}</span>
       </div>
+      {player.botProfileId ? (
+        <span className={styles.seatStatus}>
+          {t(`lobby.${player.botProfileId}`)}
+        </span>
+      ) : null}
       {role ? (
         <span
           className={`${styles.roleBadge} ${role.className}`}

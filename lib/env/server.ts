@@ -9,7 +9,7 @@ export interface TypesafeServerEnv {
   readonly typesafeApiKey: string;
 }
 
-export interface OpenRouterProfile {
+export interface OpenRouterModelDefinition {
   readonly id: string;
   readonly label: string;
   readonly modelId: string;
@@ -50,7 +50,7 @@ export function getOpenRouterApiKey(): string {
   return requiredServerVariable("OPENROUTER_API_KEY");
 }
 
-export function getOpenRouterProfiles(): readonly OpenRouterProfile[] {
+export function getOpenRouterProfiles(): readonly OpenRouterModelDefinition[] {
   const value = process.env.OPENROUTER_BOT_PROFILES;
   if (!value) return [];
   let parsed: unknown;

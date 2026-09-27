@@ -1,7 +1,8 @@
 export const metadata = {
   title: "Om projektet",
-  description: "Läs om hur bottar, svårighetsgrader, pokerregler och integritetsgränser fungerar i AI Hold'em.",
-}
+  description:
+    "Läs om hur bottar, svårighetsgrader, pokerregler och integritetsgränser fungerar i AI Hold'em.",
+};
 
 # Om AI Hold'em
 
@@ -39,7 +40,13 @@ Varje konfigurerad [OpenRouter](https://openrouter.ai/)-profil anger visningsnam
 
 #### Profiler och anpassning
 
-OpenRouter-profiler har för närvarande ingen svårighetsväljare. Profiler är en naturlig plats för framtida val av spelstil, modell eller resonemang, men ingen särskild anpassningsvy utlovas ännu. Alla profiler begränsas till samma information och lagliga handlingar.
+När en OpenRouter-bot tilldelas kan en av tre spelstilar väljas:
+
+- **Balanserad** söker det högsta förväntade marker-värdet utan att föredra en viss spelriktning.
+- **Tight** undviker marginella fortsättningar med hög varians och kräver en tydligare fördel innan en stor del av den effektiva stacken satsas, men lägger sig inte med en tydligt lönsam syn.
+- **Aggressiv** föredrar satsning eller höjning när de förväntade värdena är jämförbara, sätter press med trovärdiga drag och använder större värdesatsningar när det passar.
+
+Spelstilen vägleder modellens beslut men ändrar inte korten, informationen som finns tillgänglig eller motorns lagliga handlingar.
 
 ## Regler som upprätthålls av pokermotorn
 

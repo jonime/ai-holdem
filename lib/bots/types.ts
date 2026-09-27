@@ -1,5 +1,6 @@
 import type { PokerAIState } from "@/lib/poker/ai-state";
 import type { PokerAction } from "@/lib/poker/types";
+import type { BotPlaystyleId } from "@/lib/poker/types";
 import type { SizingChoice, SizingOption } from "@/lib/typesafe/questions";
 
 export interface BotContext extends PokerAIState {
@@ -16,6 +17,7 @@ export interface BotDiagnostics {
   } | null;
   readonly matchedRule: string | null;
   readonly promptVersion: string | null;
+  readonly botProfileId: BotPlaystyleId | null;
   readonly durationMs: number | null;
   readonly usage: unknown | null;
   readonly cost: number | null;
@@ -48,6 +50,7 @@ export function emptyDiagnostics(
     sizing: null,
     matchedRule: null,
     promptVersion: null,
+    botProfileId: null,
     durationMs: null,
     usage: null,
     cost: null,

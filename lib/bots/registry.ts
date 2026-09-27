@@ -9,12 +9,14 @@ import { EquityRulesV2Bot } from "./equity-rules-v2";
 import { JevPokerBot } from "./jev";
 import { OpenRouterPokerBot } from "./openrouter";
 import type { PokerBot } from "./types";
+import { DEFAULT_BOT_PLAYSTYLE_ID, isBotPlaystyleId } from "./openrouter-profiles";
 
 export const jevBotDescriptor: BotDescriptor = {
   id: "jev",
   label: "TypeSafe Jev",
   provider: "typesafe",
   modelId: "jev-latest",
+  configuration: { difficulty: true, playstyle: false },
 };
 
 export const equityRulesV2BotDescriptor: BotDescriptor = {
@@ -22,6 +24,7 @@ export const equityRulesV2BotDescriptor: BotDescriptor = {
   label: "Equity Rules",
   provider: "rules",
   modelId: null,
+  configuration: { difficulty: true, playstyle: false },
 };
 
 export const legacyBasicEquityBotDescriptor: BotDescriptor = {
@@ -29,6 +32,7 @@ export const legacyBasicEquityBotDescriptor: BotDescriptor = {
   label: "Basic equity",
   provider: "rules",
   modelId: null,
+  configuration: { difficulty: true, playstyle: false },
 };
 
 export function getBotCatalog(): readonly BotDescriptor[] {
@@ -40,6 +44,7 @@ export function getBotCatalog(): readonly BotDescriptor[] {
       label: profile.label,
       provider: "openrouter" as const,
       modelId: profile.modelId,
+      configuration: { difficulty: false, playstyle: true },
     })),
   ];
 }
@@ -56,15 +61,18 @@ export function resolveBotDescriptor(botId: string): BotDescriptor {
 }
 
 export interface BotRegistry {
-  get(botId: string): {
+  get(selection: { readonly botId: string; readonly profileId?: string | null }): {
     readonly descriptor: BotDescriptor;
     readonly bot: PokerBot;
   };
 }
 
 export class ServerBotRegistry implements BotRegistry {
-  get(botId: string) {
-    const descriptor = resolveBotDescriptor(botId);
+  get(selection: { readonly botId: string; readonly profileId?: string | null }) {
+    const descriptor = resolveBotDescriptor(selection.botId);
+    if (descriptor.provider !== "openrouter" && selection.profileId != null) {
+      throw new Error("Bot playstyle is only supported by OpenRouter bots");
+    }
     if (descriptor.id === legacyBasicEquityBotDescriptor.id) {
       return { descriptor, bot: new BasicEquityBot() };
     }
@@ -79,7 +87,14 @@ export class ServerBotRegistry implements BotRegistry {
     }
     return {
       descriptor,
-      bot: new OpenRouterPokerBot(descriptor.modelId as string),
+      bot: new OpenRouterPokerBot(
+        descriptor.modelId as string,
+        isBotPlaystyleId(selection.profileId)
+          ? selection.profileId
+          : selection.profileId == null
+            ? DEFAULT_BOT_PLAYSTYLE_ID
+            : (() => { throw new Error("Unknown bot playstyle"); })(),
+      ),
     };
   }
 }

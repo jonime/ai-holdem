@@ -302,8 +302,8 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               if (claimed) setPlayerNameEdited(false);
             });
           }}
-          onAssignBot={(seat, difficulty, botId) =>
-            void assignBot(seat, difficulty, botId)
+          onAssignBot={(seat, difficulty, botId, botProfileId) =>
+            void assignBot(seat, difficulty, botId, botProfileId)
           }
           onReleaseSeat={(seat) => void releaseSeat(seat)}
           onStartWaitingGame={(settings) => void startWaitingGame(settings)}
