@@ -574,7 +574,9 @@ describe("updatePlayerName", () => {
     });
     await expect(
       updatePlayerName(repository, "game-1", 1, "player-token", "Grace"),
-    ).rejects.toThrow("Player names can only be changed before the game starts");
+    ).rejects.toThrow(
+      "Player names can only be changed before the game starts",
+    );
   });
 });
 
@@ -722,7 +724,7 @@ describe("assignBotToSeat", () => {
     });
   });
 
-  it("persists difficulty for rules bots and keeps OpenRouter null", async () => {
+  it("persists difficulty for rules bots and keeps LLM null", async () => {
     const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
     const repository = {
       getSeatAssignments: vi.fn().mockResolvedValue([
@@ -751,9 +753,9 @@ describe("assignBotToSeat", () => {
     );
 
     await assignBotToSeat(repository, "game-1", 2, "host-token", "hard", {
-      id: "openrouter-gpt-4o-mini",
-      label: "OpenRouter GPT",
-      provider: "openrouter",
+      id: "llm-gpt-4o-mini",
+      label: "LLM GPT",
+      provider: "llm",
       modelId: "gpt-4o-mini",
     });
 
@@ -764,7 +766,7 @@ describe("assignBotToSeat", () => {
         status: "bot",
         aiDifficulty: null,
         botProfileId: "balanced",
-        bot: expect.objectContaining({ provider: "openrouter" }),
+        bot: expect.objectContaining({ provider: "llm" }),
       }),
     );
   });

@@ -3,13 +3,13 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_BOT_PLAYSTYLE_ID,
   isBotPlaystyleId,
-  OPENROUTER_PLAYSTYLES,
-} from "./openrouter-profiles";
+  LLM_PLAYSTYLES,
+} from "./llm-playstyles";
 
-describe("OpenRouter playstyles", () => {
+describe("LLM bot playstyles", () => {
   it("has an exhaustive trusted registry and a balanced default", () => {
     expect(DEFAULT_BOT_PLAYSTYLE_ID).toBe("balanced");
-    expect(Object.keys(OPENROUTER_PLAYSTYLES)).toEqual([
+    expect(Object.keys(LLM_PLAYSTYLES)).toEqual([
       "balanced",
       "tight",
       "aggressive",

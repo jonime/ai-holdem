@@ -12,7 +12,7 @@ import {
   type BotDecision,
   type PokerBot,
 } from "./types";
-import { resolveOpenRouterPlaystyle } from "./openrouter-profiles";
+import { resolveLlmPlaystyle } from "./llm-playstyles";
 
 const endpoint = "https://openrouter.ai/api/v1/chat/completions";
 const invariantPolicy =
@@ -108,7 +108,9 @@ export class OpenRouterPokerBot implements PokerBot {
     fetcher: FetchLike = fetch,
   ) {
     this.profileId =
-      typeof profileIdOrFetcher === "function" ? "balanced" : profileIdOrFetcher;
+      typeof profileIdOrFetcher === "function"
+        ? "balanced"
+        : profileIdOrFetcher;
     this.fetcher =
       typeof profileIdOrFetcher === "function" ? profileIdOrFetcher : fetcher;
   }
@@ -129,7 +131,7 @@ export class OpenRouterPokerBot implements PokerBot {
           messages: [
             {
               role: "system",
-              content: `${invariantPolicy}\n\nProfile preference: ${resolveOpenRouterPlaystyle(this.profileId).instruction}`,
+              content: `${invariantPolicy}\n\nPlaystyle preference: ${resolveLlmPlaystyle(this.profileId).instruction}`,
             },
             { role: "user", content: JSON.stringify(context) },
           ],
@@ -187,7 +189,7 @@ export class OpenRouterPokerBot implements PokerBot {
               confidence: null,
             }
           : null,
-        promptVersion: `openrouter-poker-v2-${this.profileId}`,
+        promptVersion: `llm-poker-v2-${this.profileId}`,
         botProfileId: this.profileId,
         durationMs: Math.round(performance.now() - started),
         usage,

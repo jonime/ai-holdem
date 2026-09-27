@@ -24,7 +24,7 @@ export const publicPlayerSchema = z.object({
     .object({
       id: z.string(),
       label: z.string(),
-      provider: z.enum(["typesafe", "openrouter", "rules"]),
+      provider: z.enum(["typesafe", "llm", "rules"]),
       modelId: z.string().nullable(),
       configuration: z
         .object({ difficulty: z.boolean(), playstyle: z.boolean() })
@@ -120,7 +120,7 @@ const publicAIDecisionSchema = z
     bot: z.object({
       id: z.string(),
       label: z.string(),
-      provider: z.enum(["typesafe", "openrouter", "rules"]),
+      provider: z.enum(["typesafe", "llm", "rules"]),
       modelId: z.string().nullable(),
     }),
     probabilities: z.record(z.string(), z.number().finite()).nullable(),
@@ -155,7 +155,7 @@ const broadcastSeatSchema = z
       .object({
         id: z.string(),
         label: z.string(),
-        provider: z.enum(["typesafe", "openrouter", "rules"]),
+        provider: z.enum(["typesafe", "llm", "rules"]),
         modelId: z.string().nullable(),
       })
       .nullable()
@@ -227,7 +227,7 @@ export const handActionHistoryItemSchema = z.object({
     .object({
       id: z.string(),
       label: z.string(),
-      provider: z.enum(["typesafe", "openrouter", "rules"]),
+      provider: z.enum(["typesafe", "llm", "rules"]),
       modelId: z.string().nullable(),
     })
     .nullable(),
@@ -244,7 +244,7 @@ export const completedAIDecisionInspectionSchema = z.object({
   bot: z.object({
     id: z.string(),
     label: z.string(),
-    provider: z.enum(["typesafe", "openrouter", "rules"]),
+    provider: z.enum(["typesafe", "llm", "rules"]),
     modelId: z.string().nullable(),
   }),
   botProfileId: z.enum(["balanced", "tight", "aggressive"]).nullable(),

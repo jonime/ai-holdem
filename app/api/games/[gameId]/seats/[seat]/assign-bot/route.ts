@@ -6,7 +6,7 @@ import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { publishSeatEvent } from "@/lib/realtime/publish";
 import type { AIDifficulty } from "@/lib/poker/types";
 import { getBotCatalog } from "@/lib/bots/registry";
-import { isBotPlaystyleId } from "@/lib/bots/openrouter-profiles";
+import { isBotPlaystyleId } from "@/lib/bots/llm-playstyles";
 
 interface AssignBotRouteContext {
   readonly params: Promise<{ gameId: string; seat: string }>;
@@ -47,11 +47,14 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
     requestedProfileId !== null &&
     !isBotPlaystyleId(requestedProfileId)
   ) {
-    return NextResponse.json({ error: "Invalid bot playstyle" }, { status: 400 });
-  }
-  if (bot.provider !== "openrouter" && requestedProfileId != null) {
     return NextResponse.json(
-      { error: "Bot playstyle is only supported by OpenRouter bots" },
+      { error: "Invalid bot playstyle" },
+      { status: 400 },
+    );
+  }
+  if (bot.provider !== "llm" && requestedProfileId != null) {
+    return NextResponse.json(
+      { error: "Bot playstyle is only supported by LLM bots" },
       { status: 400 },
     );
   }
@@ -76,9 +79,7 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
       playerToken,
       difficulty,
       bot,
-      bot.provider === "openrouter"
-        ? (requestedProfileId ?? "balanced")
-        : null,
+      bot.provider === "llm" ? (requestedProfileId ?? "balanced") : null,
     );
     void publishSeatEvent(gameId, "seat_bot_assigned", assignment);
     return NextResponse.json({ seat: assignment }, { status: 200 });

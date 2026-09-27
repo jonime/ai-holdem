@@ -34,13 +34,13 @@ TypeSafe Jev envía el contexto estructurado y todas las jugadas legales candida
 
 La dificultad solo afecta a la selección de la jugada. Nunca concede cartas distintas, información oculta ni acciones legales adicionales.
 
-### Perfiles de OpenRouter
+### Bots LLM
 
-Cada perfil configurado de [OpenRouter](https://openrouter.ai/) proporciona una etiqueta y un modelo. El modelo recibe un contexto limitado y debe devolver una acción legal y un tamaño de apuesta estructurados.
+Cada bot LLM configurado proporciona una etiqueta y un modelo a través de [OpenRouter](https://openrouter.ai/). El modelo recibe un contexto limitado y debe devolver una acción legal y un tamaño de apuesta estructurados.
 
-#### Perfiles y personalización
+#### Estilos de juego
 
-Al asignar un bot de OpenRouter, puedes elegir uno de tres estilos:
+Al asignar un bot LLM, puedes elegir uno de tres estilos:
 
 - **Equilibrado** busca el mayor valor esperado en fichas sin favorecer una dirección de juego.
 - **Conservador** evita continuaciones marginales de alta varianza y exige una ventaja mayor antes de comprometer una parte importante del stack efectivo, pero no abandona una igualada claramente rentable.
@@ -52,7 +52,7 @@ El estilo guía las decisiones del modelo, pero no cambia las cartas, la informa
 
 [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) controla la baraja, los turnos, las acciones legales, las apuestas, los botes y los ganadores. Personas y bots solo proponen jugadas. El servidor valida y aplica cada propuesta mediante el adaptador antes de guardarla con control de versión.
 
-Los ajustes de bots y la futura personalización de perfiles permanecen después de este límite y no pueden eludir las reglas.
+Los ajustes de bots y la futura personalización de estilos permanecen después de este límite y no pueden eludir las reglas.
 
 ## Privacidad y transparencia
 

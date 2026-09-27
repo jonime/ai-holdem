@@ -298,9 +298,7 @@ export const pokerEngineAdapter = {
       deck,
     });
     if (!result.ok) {
-      throw new PokerRuleError(
-        `${result.error.code}: ${result.error.message}`,
-      );
+      throw new PokerRuleError(`${result.error.code}: ${result.error.message}`);
     }
     const blindPostings = result.events.flatMap((event) => {
       if (
@@ -402,10 +400,7 @@ export const pokerEngineAdapter = {
     const hand = engineStateFrom(state).hand;
     if (!hand) return [];
 
-    const postingForSeat = (
-      seat: number,
-      blind: "small" | "big",
-    ) => {
+    const postingForSeat = (seat: number, blind: "small" | "big") => {
       const player = hand.players.find((candidate) => candidate.seat === seat);
       return player
         ? {
@@ -538,8 +533,7 @@ export const pokerEngineAdapter = {
               ? (config.aiDifficulty ?? "medium")
               : null,
           botProfileId:
-            config.controller !== "human" &&
-            config.bot?.provider === "openrouter"
+            config.controller !== "human" && config.bot?.provider === "llm"
               ? (config.botProfileId ?? "balanced")
               : null,
           seat: config.seat,

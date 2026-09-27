@@ -34,13 +34,13 @@ TypeSafe Jev sendet den strukturierten Spielkontext und alle vollständigen lega
 
 Die Schwierigkeit beeinflusst nur die Zugauswahl. Sie gewährt niemals andere Karten, versteckte Informationen oder zusätzliche legale Aktionen.
 
-### OpenRouter-Profile
+### LLM-Bots
 
-Jedes konfigurierte [OpenRouter](https://openrouter.ai/)-Profil enthält Anzeigenamen und Modell. Das Modell erhält begrenzten Spielkontext und muss eine strukturierte legale Aktion mit Einsatzgröße zurückgeben.
+Jeder konfigurierte LLM-Bot enthält einen Anzeigenamen und ein Modell, das über [OpenRouter](https://openrouter.ai/) angesprochen wird. Das Modell erhält begrenzten Spielkontext und muss eine strukturierte legale Aktion mit Einsatzgröße zurückgeben.
 
-#### Profile und Anpassung
+#### Spielstile
 
-OpenRouter-Bots können bei der Zuweisung einen von drei Spielstilen erhalten:
+LLM-Bots können bei der Zuweisung einen von drei Spielstilen erhalten:
 
 - **Ausgewogen** strebt den höchsten erwarteten Chipwert ohne bevorzugte Spielrichtung an.
 - **Tight** vermeidet knappe Entscheidungen mit hoher Varianz und verlangt einen stärkeren Vorteil, bevor ein großer Teil des effektiven Stacks eingesetzt wird; ein klar profitabler Call wird jedoch nicht gefoldet.
@@ -52,7 +52,7 @@ Der Spielstil beeinflusst die Entscheidungen des Modells, ändert aber weder Kar
 
 [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) entscheidet verbindlich über Deck, Zugfolge, legale Aktionen, Einsätze, Pots und Gewinner. Menschen und Bots schlagen nur Züge vor. Der Server validiert und übernimmt jeden Vorschlag über den Adapter, bevor er ihn versionsgeprüft speichert.
 
-Bot-Einstellungen und künftige Profilanpassungen liegen hinter dieser Grenze und können die Pokerregeln nicht umgehen.
+Bot-Einstellungen und künftige Spielstilanpassungen liegen hinter dieser Grenze und können die Pokerregeln nicht umgehen.
 
 ## Datenschutz und Transparenz
 

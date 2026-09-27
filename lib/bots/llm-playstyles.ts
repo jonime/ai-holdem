@@ -4,7 +4,7 @@ import type { BotPlaystyleId } from "@/lib/poker/types";
 
 export const DEFAULT_BOT_PLAYSTYLE_ID: BotPlaystyleId = "balanced";
 
-export const OPENROUTER_PLAYSTYLES = {
+export const LLM_PLAYSTYLES = {
   balanced: {
     instruction:
       "Prefer the action with the highest expected chip value without a directional preference.",
@@ -20,12 +20,9 @@ export const OPENROUTER_PLAYSTYLES = {
 } as const satisfies Record<BotPlaystyleId, { readonly instruction: string }>;
 
 export function isBotPlaystyleId(value: unknown): value is BotPlaystyleId {
-  return (
-    typeof value === "string" &&
-    Object.hasOwn(OPENROUTER_PLAYSTYLES, value)
-  );
+  return typeof value === "string" && Object.hasOwn(LLM_PLAYSTYLES, value);
 }
 
-export function resolveOpenRouterPlaystyle(id: BotPlaystyleId) {
-  return OPENROUTER_PLAYSTYLES[id];
+export function resolveLlmPlaystyle(id: BotPlaystyleId) {
+  return LLM_PLAYSTYLES[id];
 }

@@ -34,13 +34,13 @@ TypeSafe Jev sends structured game context and complete legal move candidates to
 
 Difficulty affects move selection only. It never gives the bot different cards, hidden information, or extra legal actions.
 
-### OpenRouter profiles
+### LLM bots
 
-Each configured [OpenRouter](https://openrouter.ai/) profile supplies a display label and model. The model receives constrained game context and must return a structured legal action and sizing choice.
+Each configured LLM bot supplies a display label and model through the [OpenRouter](https://openrouter.ai/) gateway. The model receives constrained game context and must return a structured legal action and sizing choice.
 
-#### Profiles and customization
+#### Playstyles
 
-OpenRouter bots can be assigned one of three playstyles:
+LLM bots can be assigned one of three playstyles:
 
 - **Balanced** seeks the highest expected chip value without a directional preference.
 - **Tight** avoids marginal, high-variance continuations and requires a stronger edge before committing a large part of the effective stack, but does not fold a clearly profitable call.
@@ -52,7 +52,7 @@ Playstyle guides the model's decisions; it does not change the cards, available 
 
 The [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) package remains authoritative for the deck, turns, legal actions, betting, pots, and winners. Humans and bots only propose moves. The server validates and applies each proposal through the engine adapter before saving it with a version check.
 
-Bot settings and future profile customization remain downstream of this boundary, so they cannot bypass the poker rules.
+Bot settings and future playstyle customization remain downstream of this boundary, so they cannot bypass the poker rules.
 
 ## Privacy and transparency
 

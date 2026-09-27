@@ -34,13 +34,13 @@ TypeSafe Jev lähettää jäsennellyn pelitilanteen ja täydelliset sallitut toi
 
 Vaikeustaso vaikuttaa vain toiminnon valintaan. Se ei anna botille eri kortteja, piilotettua tietoa tai ylimääräisiä sallittuja toimintoja.
 
-### OpenRouter-profiilit
+### LLM-botit
 
-Jokainen määritetty [OpenRouter](https://openrouter.ai/)-profiili sisältää näyttönimen ja mallin. Malli saa rajatun pelitilanteen ja sen on palautettava rakenteinen sallittu toiminto sekä panostuskoko.
+Jokainen määritetty LLM-botti sisältää näyttönimen ja [OpenRouterin](https://openrouter.ai/) kautta käytettävän mallin. Malli saa rajatun pelitilanteen ja sen on palautettava rakenteinen sallittu toiminto sekä panostuskoko.
 
-#### Profiilit ja mukautus
+#### Pelityylit
 
-OpenRouter-botille voi valita yhden kolmesta pelityylistä sitä määritettäessä:
+LLM-botille voi valita yhden kolmesta pelityylistä sitä määritettäessä:
 
 - **Tasapainoinen** tavoittelee suurinta odotettua merkkimäärää suosimatta tiettyä pelisuuntaa.
 - **Tiukka** välttää marginaalisia, suuren varianssin jatkoja ja vaatii vahvemman edun ennen kuin sitoutuu suureen osaan efektiivisestä pinosta, mutta ei luovu selvästi kannattavasta maksusta.

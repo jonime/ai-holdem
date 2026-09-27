@@ -34,13 +34,13 @@ TypeSafe Jev envoie le contexte structuré et l'ensemble des coups légaux à [T
 
 La difficulté agit uniquement sur la sélection du coup. Elle ne donne jamais d'autres cartes, d'informations cachées ou d'actions légales supplémentaires.
 
-### Profils OpenRouter
+### Bots LLM
 
-Chaque profil [OpenRouter](https://openrouter.ai/) configuré fournit un libellé et un modèle. Le modèle reçoit un contexte limité et doit retourner une action légale et une taille de mise structurées.
+Chaque bot LLM configuré fournit un libellé et un modèle via [OpenRouter](https://openrouter.ai/). Le modèle reçoit un contexte limité et doit retourner une action légale et une taille de mise structurées.
 
-#### Profils et personnalisation
+#### Styles de jeu
 
-Lorsqu'on attribue un bot OpenRouter, on peut choisir parmi trois styles de jeu :
+Lorsqu'on attribue un bot LLM, on peut choisir parmi trois styles de jeu :
 
 - **Équilibré** recherche la valeur attendue en jetons la plus élevée, sans préférence de direction.
 - **Serré** évite les continuations marginales à forte variance et exige un avantage plus net avant d'engager une grande partie du tapis effectif, sans toutefois abandonner un call clairement rentable.
