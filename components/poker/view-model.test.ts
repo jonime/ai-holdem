@@ -7,6 +7,7 @@ import {
   arrangeSeats,
   canManageTable,
   cardLabel,
+  describeBotConfiguration,
   describeHandResult,
   describeSeatStatus,
   feedEventLabel,
@@ -27,10 +28,42 @@ const smallBlindEvent = {
 } as const;
 
 describe("view-model", () => {
-  it("labels small and big blind feed events with localized chip amounts", () => {
+  it("describes only the bot settings supported by its configuration", () => {
     expect(
-      feedEventLabel(smallBlindEvent, "en-US", enUsGame.feed),
-    ).toBe("Alice posts small blind 1,000");
+      describeBotConfiguration(
+        {
+          controller: "bot",
+          bot: {
+            id: "jev",
+            label: "TypeSafe Jev",
+            provider: "typesafe",
+            modelId: "jev-latest",
+          },
+          aiDifficulty: "hard",
+          botProfileId: null,
+        },
+        enUsGame.seat,
+        enUsGame.lobby,
+      ),
+    ).toBe("Difficulty: Hard");
+    expect(
+      describeBotConfiguration(
+        {
+          controller: "bot",
+          bot: { id: "llm", label: "LLM", provider: "llm", modelId: "model" },
+          aiDifficulty: null,
+          botProfileId: "aggressive",
+        },
+        enUsGame.seat,
+        enUsGame.lobby,
+      ),
+    ).toBe("Playstyle: Aggressive");
+  });
+
+  it("labels small and big blind feed events with localized chip amounts", () => {
+    expect(feedEventLabel(smallBlindEvent, "en-US", enUsGame.feed)).toBe(
+      "Alice posts small blind 1,000",
+    );
     expect(
       feedEventLabel(
         {
@@ -45,9 +78,7 @@ describe("view-model", () => {
         enUsGame.feed,
       ),
     ).toBe("Bot posts big blind 2,000");
-    expect(
-      feedEventLabel(smallBlindEvent, "fi-FI", fiFiGame.feed),
-    ).toBe(
+    expect(feedEventLabel(smallBlindEvent, "fi-FI", fiFiGame.feed)).toBe(
       `Alice asettaa pienen blindin ${formatChips(1_000, "fi-FI")}`,
     );
   });
@@ -55,9 +86,7 @@ describe("view-model", () => {
   it("labels cards with the supplied suit names instead of an English fallback", () => {
     expect(cardLabel("As", enUsGame.cards)).toBe("A of spades");
     expect(cardLabel("As", fiFiGame.cards)).toBe("A pata");
-    expect(cardLabel("7z", enUsGame.cards)).toBe(
-      "7 of unknown suit",
-    );
+    expect(cardLabel("7z", enUsGame.cards)).toBe("7 of unknown suit");
     expect(cardLabel("7z", fiFiGame.cards)).toBe("7 tuntematon maa");
   });
 
@@ -184,15 +213,13 @@ describe("view-model", () => {
   });
 
   it("describes split-pot results and permissions", () => {
-    expect(
-      describeHandResult(["Alice", "Bob"], enUsGame.history),
-    ).toBe("Split pot: Alice & Bob");
-    expect(
-      describeHandResult(["Alice", "Bob"], fiFiGame.history),
-    ).toBe("Jaettu potti: Alice & Bob");
-    expect(
-      describeHandResult(null, enUsGame.history),
-    ).toBe("Hand complete");
+    expect(describeHandResult(["Alice", "Bob"], enUsGame.history)).toBe(
+      "Split pot: Alice & Bob",
+    );
+    expect(describeHandResult(["Alice", "Bob"], fiFiGame.history)).toBe(
+      "Jaettu potti: Alice & Bob",
+    );
+    expect(describeHandResult(null, enUsGame.history)).toBe("Hand complete");
 
     expect(canManageTable([], "viewer")).toBe(true);
     expect(
@@ -303,18 +330,13 @@ describe("view-model", () => {
     expect(status({ ...playerBase, inHand: false })).toBe(
       "Waiting for next hand",
     );
-    expect(
-      status({ ...playerBase, inHand: false, stack: 0 }),
-    ).toBe("Busted");
+    expect(status({ ...playerBase, inHand: false, stack: 0 })).toBe("Busted");
     expect(status({ ...playerBase, folded: true })).toBe("Folded");
     expect(status({ ...playerBase, allIn: true })).toBe("All-in");
     expect(status({ ...playerBase, active: true })).toBe("Thinking");
     expect(status({ ...playerBase, active: false })).toBe("Waiting");
     expect(
-      status(
-        { ...playerBase, active: false },
-        { action: "call", amount: 900 },
-      ),
+      status({ ...playerBase, active: false }, { action: "call", amount: 900 }),
     ).toBe("Call 900");
     expect(
       status(

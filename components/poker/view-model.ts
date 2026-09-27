@@ -48,10 +48,7 @@ export function feedEventLabel(
         .replace("{player}", event.player)
         .replace("{amount}", formatChips(event.amount, locale));
     case "blind":
-      return (event.blind === "small"
-        ? labels.smallBlind
-        : labels.bigBlind
-      )
+      return (event.blind === "small" ? labels.smallBlind : labels.bigBlind)
         .replace("{player}", event.player)
         .replace("{amount}", formatChips(event.amount, locale));
     case "action": {
@@ -205,6 +202,43 @@ export function findGameWinnerId(
       player.stack > 0,
   );
   return remainingPlayers.length === 1 ? remainingPlayers[0].id : null;
+}
+
+export function describeBotConfiguration(
+  player: Pick<
+    PublicPokerPlayer,
+    "controller" | "bot" | "aiDifficulty" | "botProfileId"
+  >,
+  seatLabels: GameDictionary["seat"],
+  lobbyLabels: GameDictionary["lobby"],
+): string | null {
+  if (player.controller !== "bot") {
+    return null;
+  }
+
+  const supportsDifficulty =
+    player.bot?.configuration?.difficulty ?? player.bot?.provider !== "llm";
+  const supportsPlaystyle =
+    player.bot?.configuration?.playstyle ?? player.bot?.provider === "llm";
+  const details: string[] = [];
+  if (supportsDifficulty && player.aiDifficulty) {
+    details.push(
+      seatLabels.botDifficulty.replace(
+        "{value}",
+        lobbyLabels[player.aiDifficulty],
+      ),
+    );
+  }
+  if (supportsPlaystyle && player.botProfileId) {
+    details.push(
+      seatLabels.botPlaystyle.replace(
+        "{value}",
+        lobbyLabels[player.botProfileId],
+      ),
+    );
+  }
+
+  return details.length > 0 ? details.join(" · ") : null;
 }
 
 export function describeSeatStatus(

@@ -105,6 +105,8 @@ const dictionary = {
     allIn: "All-in",
     thinking: "Pensando",
     waiting: "Aguardando",
+    botDifficulty: "Dificuldade: {value}",
+    botPlaystyle: "Estilo de jogo: {value}",
     handCategories: {
       "high-card": "Carta alta",
       "one-pair": "Um par",

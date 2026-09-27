@@ -103,6 +103,8 @@ const dictionary = {
     allIn: "All-in",
     thinking: "Thinking",
     waiting: "Waiting",
+    botDifficulty: "Difficulty: {value}",
+    botPlaystyle: "Playstyle: {value}",
     handCategories: {
       "high-card": "High card",
       "one-pair": "Pair",

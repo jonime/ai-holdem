@@ -3,7 +3,11 @@ import type {
   LatestPlayerAction,
   PublicPokerPlayer,
 } from "@/components/poker/types";
-import { describeSeatStatus, formatChips } from "@/components/poker/view-model";
+import {
+  describeBotConfiguration,
+  describeSeatStatus,
+  formatChips,
+} from "@/components/poker/view-model";
 import { useI18n } from "@/components/poker/I18nProvider";
 import styles from "@/components/poker/Seat.module.css";
 
@@ -32,6 +36,11 @@ export function Seat({
   const isAi = player.controller === "bot";
   const isOpen = player.status === "open";
   const isBusted = player.stack === 0 && !player.inHand;
+  const botDetails = describeBotConfiguration(
+    player,
+    dictionary.seat,
+    dictionary.lobby,
+  );
   const role =
     player.seat === dealerSeat
       ? {
@@ -72,13 +81,15 @@ export function Seat({
     >
       <span className={styles.seatNumber}>{player.seat + 1}</span>
       <div className={styles.seatHeading}>
-        <span className={styles.seatLabel}>{player.name.toUpperCase()}</span>
-      </div>
-      {player.botProfileId ? (
-        <span className={styles.seatStatus}>
-          {t(`lobby.${player.botProfileId}`)}
+        <span
+          className={styles.seatLabel}
+          title={botDetails ?? undefined}
+          aria-label={botDetails ? `${player.name}. ${botDetails}` : undefined}
+          tabIndex={botDetails ? 0 : undefined}
+        >
+          {player.name.toUpperCase()}
         </span>
-      ) : null}
+      </div>
       {role ? (
         <span
           className={`${styles.roleBadge} ${role.className}`}

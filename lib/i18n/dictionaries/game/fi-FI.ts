@@ -105,6 +105,8 @@ const dictionary = {
     allIn: "All-in",
     thinking: "Miettii",
     waiting: "Odottaa",
+    botDifficulty: "Vaikeustaso: {value}",
+    botPlaystyle: "Pelityyli: {value}",
     handCategories: {
       "high-card": "Hai-kortti",
       "one-pair": "Pari",
