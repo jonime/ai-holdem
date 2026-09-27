@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getOpenRouterProfiles } from "@/lib/env/server";
+import { getLlmBotModels } from "@/lib/env/server";
 import type { BotDescriptor } from "@/lib/poker/types";
 import { TypesafeSystemOneClient } from "@/lib/typesafe/client";
 
@@ -9,7 +9,7 @@ import { EquityRulesV2Bot } from "./equity-rules-v2";
 import { JevPokerBot } from "./jev";
 import { OpenRouterPokerBot } from "./openrouter";
 import type { PokerBot } from "./types";
-import { DEFAULT_BOT_PLAYSTYLE_ID, isBotPlaystyleId } from "./openrouter-profiles";
+import { DEFAULT_BOT_PLAYSTYLE_ID, isBotPlaystyleId } from "./llm-playstyles";
 
 export const jevBotDescriptor: BotDescriptor = {
   id: "jev",
@@ -39,11 +39,11 @@ export function getBotCatalog(): readonly BotDescriptor[] {
   return [
     jevBotDescriptor,
     equityRulesV2BotDescriptor,
-    ...getOpenRouterProfiles().map((profile) => ({
-      id: profile.id,
-      label: profile.label,
-      provider: "openrouter" as const,
-      modelId: profile.modelId,
+    ...getLlmBotModels().map((model) => ({
+      id: model.id,
+      label: model.label,
+      provider: "llm" as const,
+      modelId: model.modelId,
       configuration: { difficulty: false, playstyle: true },
     })),
   ];
@@ -61,17 +61,23 @@ export function resolveBotDescriptor(botId: string): BotDescriptor {
 }
 
 export interface BotRegistry {
-  get(selection: { readonly botId: string; readonly profileId?: string | null }): {
+  get(selection: {
+    readonly botId: string;
+    readonly profileId?: string | null;
+  }): {
     readonly descriptor: BotDescriptor;
     readonly bot: PokerBot;
   };
 }
 
 export class ServerBotRegistry implements BotRegistry {
-  get(selection: { readonly botId: string; readonly profileId?: string | null }) {
+  get(selection: {
+    readonly botId: string;
+    readonly profileId?: string | null;
+  }) {
     const descriptor = resolveBotDescriptor(selection.botId);
-    if (descriptor.provider !== "openrouter" && selection.profileId != null) {
-      throw new Error("Bot playstyle is only supported by OpenRouter bots");
+    if (descriptor.provider !== "llm" && selection.profileId != null) {
+      throw new Error("Bot playstyle is only supported by LLM bots");
     }
     if (descriptor.id === legacyBasicEquityBotDescriptor.id) {
       return { descriptor, bot: new BasicEquityBot() };
@@ -93,7 +99,9 @@ export class ServerBotRegistry implements BotRegistry {
           ? selection.profileId
           : selection.profileId == null
             ? DEFAULT_BOT_PLAYSTYLE_ID
-            : (() => { throw new Error("Unknown bot playstyle"); })(),
+            : (() => {
+                throw new Error("Unknown bot playstyle");
+              })(),
       ),
     };
   }

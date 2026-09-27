@@ -360,7 +360,7 @@ function playerConfigForAssignment(
       ? (assignment.aiDifficulty ?? "medium")
       : null,
     botProfileId:
-      assignment.bot?.provider === "openrouter"
+      assignment.bot?.provider === "llm"
         ? (assignment.botProfileId ?? "balanced")
         : null,
     stack: startingStack,
@@ -404,7 +404,7 @@ async function withOpenSeatPlaceholders(
             ? (assignment.aiDifficulty ?? "medium")
             : null,
           botProfileId:
-            assignment.bot?.provider === "openrouter"
+            assignment.bot?.provider === "llm"
               ? (assignment.botProfileId ?? "balanced")
               : null,
           status: assignment.status,
@@ -956,8 +956,7 @@ export async function assignBotToSeat(
     controller: "bot",
     bot,
     aiDifficulty: supportsDifficulty(bot.provider) ? difficulty : null,
-    botProfileId:
-      bot.provider === "openrouter" ? (botProfileId ?? "balanced") : null,
+    botProfileId: bot.provider === "llm" ? (botProfileId ?? "balanced") : null,
     name,
     playerToken: null,
     isHost: false,
@@ -971,8 +970,7 @@ export async function assignBotToSeat(
     controller: "bot",
     bot,
     aiDifficulty: supportsDifficulty(bot.provider) ? difficulty : null,
-    botProfileId:
-      bot.provider === "openrouter" ? (botProfileId ?? "balanced") : null,
+    botProfileId: bot.provider === "llm" ? (botProfileId ?? "balanced") : null,
     name,
     playerToken: null,
     isHost: false,

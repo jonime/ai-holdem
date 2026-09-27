@@ -34,13 +34,13 @@ TypeSafe Jev stuurt gestructureerde spelcontext en alle volledige legale zetkand
 
 De moeilijkheid beïnvloedt alleen de zetkeuze en geeft nooit andere kaarten, verborgen informatie of extra legale acties.
 
-### OpenRouter-profielen
+### LLM-bots
 
-Elk geconfigureerd [OpenRouter](https://openrouter.ai/)-profiel levert een weergavenaam en model. Het model krijgt beperkte spelcontext en moet een gestructureerde legale actie en inzetgrootte retourneren.
+Elke geconfigureerde LLM-bot levert een weergavenaam en een model via [OpenRouter](https://openrouter.ai/). Het model krijgt beperkte spelcontext en moet een gestructureerde legale actie en inzetgrootte retourneren.
 
-#### Profielen en aanpassing
+#### Speelstijlen
 
-Bij het toewijzen van een OpenRouter-bot kun je een van drie speelstijlen kiezen:
+Bij het toewijzen van een LLM-bot kun je een van drie speelstijlen kiezen:
 
 - **Gebalanceerd** streeft naar de hoogste verwachte chipwaarde zonder een bepaalde speelrichting te verkiezen.
 - **Tight** vermijdt marginale voortzettingen met hoge variantie en vereist een groter voordeel voordat een groot deel van de effectieve stack wordt ingezet, maar foldt geen duidelijk winstgevende call.
@@ -52,7 +52,7 @@ De speelstijl stuurt de beslissingen van het model, maar verandert niets aan de 
 
 [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) bepaalt deck, beurten, legale acties, inzetten, potten en winnaars. Mensen en bots stellen alleen zetten voor. De server valideert en past ieder voorstel via de adapter toe voordat het met versiecontrole wordt opgeslagen.
 
-Botinstellingen en toekomstige profielaanpassingen blijven achter deze grens en kunnen de regels niet omzeilen.
+Botinstellingen en toekomstige aanpassingen van speelstijlen blijven achter deze grens en kunnen de regels niet omzeilen.
 
 ## Privacy en transparantie
 

@@ -34,7 +34,9 @@ test("runs a two-player hand in a six-seat lobby", async ({
     0,
   );
   await page.getByLabel("Seats").selectOption("6");
-  await expect(page.locator("article").filter({ hasText: "Seat 6" })).toBeVisible();
+  await expect(
+    page.locator("article").filter({ hasText: "Seat 6" }),
+  ).toBeVisible();
   await expect(page.getByText("Available").first()).toBeVisible();
 
   const secondBrowser = await browser.newContext();
@@ -52,8 +54,12 @@ test("runs a two-player hand in a six-seat lobby", async ({
   await page.getByRole("button", { name: "Start hand" }).click();
 
   await expect(page.getByText("PREFLOP")).toBeVisible();
-  await expect(page.getByText("PLAYER 2", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Open seat", { exact: true }).first()).toBeVisible();
+  await expect(
+    page.getByText("PLAYER 2", { exact: true }).first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Open seat", { exact: true }).first(),
+  ).toBeVisible();
 
   const callButton = await Promise.race([
     waitForPlayableHuman(page),
@@ -86,7 +92,7 @@ test("persists a per-bot difficulty selected in the lobby", async ({
   await expect(page.getByText("TypeSafe Jev · hard")).toBeVisible();
 });
 
-test("shows the localized OpenRouter playstyle profiles", async ({ page }) => {
+test("shows the localized LLM bot playstyles", async ({ page }) => {
   await page.goto("/en-US");
   await page
     .getByRole("region", { name: "Start a new game" })
@@ -94,9 +100,7 @@ test("shows the localized OpenRouter playstyle profiles", async ({ page }) => {
     .click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
-  await page
-    .getByLabel("Bot for seat 2")
-    .selectOption("openrouter-test-model");
+  await page.getByLabel("Bot for seat 2").selectOption("llm-test-model");
   const playstyle = page.getByLabel("Bot playstyle for seat 2");
   await expect(playstyle).toBeVisible();
   await expect(playstyle.locator("option")).toHaveText([
@@ -105,7 +109,7 @@ test("shows the localized OpenRouter playstyle profiles", async ({ page }) => {
     /Aggressive.*pressure/,
   ]);
   await page.screenshot({
-    path: "test-results/openrouter-playstyle-selector.png",
+    path: "test-results/llm-playstyle-selector.png",
     fullPage: true,
   });
 });
@@ -134,9 +138,7 @@ test("recovers through polling and after coming back online", async ({
   await page.getByLabel("Seats").selectOption("4");
   await page.getByRole("button", { name: "Apply settings" }).click();
   await expect(
-    spectator
-      .getByLabel("Table settings")
-      .getByText("4", { exact: true }),
+    spectator.getByLabel("Table settings").getByText("4", { exact: true }),
   ).toBeVisible({ timeout: 8_000 });
 
   await spectatorContext.setOffline(true);
@@ -157,7 +159,9 @@ test("recovers through polling and after coming back online", async ({
   await spectatorContext.close();
 });
 
-test("runs the deterministic bot through completion, history, and another hand", async ({ page }) => {
+test("runs the deterministic bot through completion, history, and another hand", async ({
+  page,
+}) => {
   test.setTimeout(60_000);
   await page.goto("/en-US");
   await page
@@ -168,9 +172,13 @@ test("runs the deterministic bot through completion, history, and another hand",
 
   await page.getByLabel("Bot for seat 2").selectOption("equity-rules-v2");
   await page.getByRole("button", { name: "Assign bot" }).first().click();
-  await expect(page.getByText("Equity Rules #1", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Equity Rules #1", { exact: true }),
+  ).toBeVisible();
   await page.reload();
-  await expect(page.getByText("Equity Rules #1", { exact: true })).toBeVisible();
+  await expect(
+    page.getByText("Equity Rules #1", { exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Start hand" }).click();
 
   const checkOrCall = await waitForPlayableHuman(page);
@@ -204,8 +212,12 @@ test("persists host table settings selected in the lobby", async ({ page }) => {
   await page.getByLabel("Starting stack").fill("5000");
   await page.getByRole("button", { name: "Apply settings" }).click();
 
-  await expect(page.locator("article").filter({ hasText: "Seat 4" })).toBeVisible();
-  await expect(page.locator("article").filter({ hasText: "Seat 5" })).toHaveCount(0);
+  await expect(
+    page.locator("article").filter({ hasText: "Seat 4" }),
+  ).toBeVisible();
+  await expect(
+    page.locator("article").filter({ hasText: "Seat 5" }),
+  ).toHaveCount(0);
   await page.reload();
   await expect(page.getByLabel("Seats")).toHaveValue("4");
   await expect(page.getByLabel("Small blind")).toHaveValue("25");

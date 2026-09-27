@@ -73,7 +73,7 @@ describe("OpenRouterPokerBot", () => {
     ).decide(context);
     expect(decision.action).toEqual({ type: "call", amount: 1 });
     expect(decision.diagnostics).toMatchObject({
-      promptVersion: "openrouter-poker-v2-balanced",
+      promptVersion: "llm-poker-v2-balanced",
       botProfileId: "balanced",
       cost: 0.001,
     });
@@ -89,8 +89,10 @@ describe("OpenRouterPokerBot", () => {
     });
     const request = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
     expect(request.reasoning).toEqual({ effort: "minimal" });
-    expect(request.messages[0].content).toContain("Use only the supplied information");
-    expect(request.messages[0].content).toContain("Profile preference:");
+    expect(request.messages[0].content).toContain(
+      "Use only the supplied information",
+    );
+    expect(request.messages[0].content).toContain("Playstyle preference:");
     expect(fetcher).toHaveBeenCalledOnce();
   });
 
@@ -118,13 +120,13 @@ describe("OpenRouterPokerBot", () => {
       const request = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
 
       expect(request.messages[0].role).toBe("system");
-      expect(request.messages[0].content).toContain("Profile preference:");
+      expect(request.messages[0].content).toContain("Playstyle preference:");
       expect(request.messages[1]).toEqual({
         role: "user",
         content: JSON.stringify(context),
       });
       expect(decision.diagnostics).toMatchObject({
-        promptVersion: `openrouter-poker-v2-${profileId}`,
+        promptVersion: `llm-poker-v2-${profileId}`,
         botProfileId: profileId,
       });
     },
@@ -143,18 +145,16 @@ describe("OpenRouterPokerBot", () => {
   it("rejects invalid or illegal output locally", async () => {
     vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", "true");
     vi.stubEnv("OPENROUTER_API_KEY", "key");
-    const fetcher = vi
-      .fn()
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            choices: [
-              { message: { content: '{"action":"raise","sizing":null}' } },
-            ],
-          }),
-          { status: 200 },
-        ),
-      );
+    const fetcher = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          choices: [
+            { message: { content: '{"action":"raise","sizing":null}' } },
+          ],
+        }),
+        { status: 200 },
+      ),
+    );
     await expect(
       new OpenRouterPokerBot("vendor/model", fetcher).decide(context),
     ).rejects.toThrow("illegal action");

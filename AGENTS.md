@@ -14,7 +14,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 This is a TypeScript demo of heads-up no-limit Texas Hold'em. Humans and
 provider-backed AI seats occupy the table, including TypeSafe, deterministic
-offline `Equity Rules`, and OpenRouter-backed models, while
+offline `Equity Rules`, and configurable LLM bots backed by OpenRouter, while
 `@hivetech/poker-engine` remains authoritative for cards, turns, legal actions,
 betting, pots, and winners. Supabase persists game state and version-checked
 mutations; Realtime Broadcast only tells clients to refetch authoritative state.
@@ -35,8 +35,8 @@ earlier state.
 - Install exactly from the lockfile with `npm ci` (use `npm install` only when
 	intentionally changing dependencies).
 - Copy `.env.example` to `.env` and provide the documented values, including the
-	optional OpenRouter settings used for external inference and deterministic bot
-	profiles.
+	optional LLM bot settings used for external inference and server-owned
+	playstyles.
 - Apply every file in `supabase/migrations/` in filename order to a Supabase
 	project. Never edit an already-applied migration; add a new timestamped one.
 - Start the app with `npm run dev`; it listens on `http://localhost:3001`.

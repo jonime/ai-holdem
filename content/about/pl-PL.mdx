@@ -34,13 +34,13 @@ TypeSafe Jev wysyła uporządkowany kontekst gry i kompletne legalne warianty ru
 
 Poziom wpływa tylko na wybór ruchu i nigdy nie daje innych kart, ukrytych informacji ani dodatkowych legalnych akcji.
 
-### Profile OpenRouter
+### Boty LLM
 
-Każdy skonfigurowany profil [OpenRouter](https://openrouter.ai/) podaje nazwę i model. Model otrzymuje ograniczony kontekst i musi zwrócić ustrukturyzowaną legalną akcję oraz rozmiar zakładu.
+Każdy skonfigurowany bot LLM podaje nazwę i model obsługiwany przez [OpenRouter](https://openrouter.ai/). Model otrzymuje ograniczony kontekst i musi zwrócić ustrukturyzowaną legalną akcję oraz rozmiar zakładu.
 
-#### Profile i personalizacja
+#### Style gry
 
-Podczas przypisywania bota OpenRouter można wybrać jeden z trzech stylów gry:
+Podczas przypisywania bota LLM można wybrać jeden z trzech stylów gry:
 
 - **Zrównoważony** dąży do najwyższej oczekiwanej wartości żetonów bez preferowania określonego kierunku gry.
 - **Ostrożny** unika marginalnych kontynuacji o dużej wariancji i wymaga większej przewagi przed zaangażowaniem dużej części efektywnego stacka, ale nie pasuje wyraźnie opłacalnego sprawdzenia.
@@ -52,7 +52,7 @@ Styl wpływa na decyzje modelu, ale nie zmienia kart, dostępnych informacji ani
 
 [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) rozstrzyga o talii, turach, legalnych akcjach, zakładach, pulach i zwycięzcach. Ludzie i boty tylko proponują ruchy. Serwer sprawdza i stosuje każdą propozycję przez adapter przed zapisem z kontrolą wersji.
 
-Ustawienia botów i przyszła personalizacja profili pozostają za tą granicą i nie mogą omijać zasad.
+Ustawienia botów i przyszła personalizacja stylów gry pozostają za tą granicą i nie mogą omijać zasad.
 
 ## Prywatność i przejrzystość
 

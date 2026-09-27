@@ -9,7 +9,7 @@ export interface TypesafeServerEnv {
   readonly typesafeApiKey: string;
 }
 
-export interface OpenRouterModelDefinition {
+export interface LlmModelDefinition {
   readonly id: string;
   readonly label: string;
   readonly modelId: string;
@@ -50,17 +50,17 @@ export function getOpenRouterApiKey(): string {
   return requiredServerVariable("OPENROUTER_API_KEY");
 }
 
-export function getOpenRouterProfiles(): readonly OpenRouterModelDefinition[] {
-  const value = process.env.OPENROUTER_BOT_PROFILES;
+export function getLlmBotModels(): readonly LlmModelDefinition[] {
+  const value = process.env.LLM_BOT_MODELS;
   if (!value) return [];
   let parsed: unknown;
   try {
     parsed = JSON.parse(value);
   } catch {
-    throw new Error("OPENROUTER_BOT_PROFILES must be valid JSON");
+    throw new Error("LLM_BOT_MODELS must be valid JSON");
   }
   if (!Array.isArray(parsed)) {
-    throw new Error("OPENROUTER_BOT_PROFILES must be a JSON array");
+    throw new Error("LLM_BOT_MODELS must be a JSON array");
   }
   const ids = new Set<string>();
   return parsed.map((entry) => {
@@ -78,7 +78,7 @@ export function getOpenRouterProfiles(): readonly OpenRouterModelDefinition[] {
       !entry.modelId.trim() ||
       ids.has(entry.id)
     ) {
-      throw new Error("OPENROUTER_BOT_PROFILES contains an invalid profile");
+      throw new Error("LLM_BOT_MODELS contains an invalid model definition");
     }
     ids.add(entry.id);
     return { id: entry.id, label: entry.label, modelId: entry.modelId };

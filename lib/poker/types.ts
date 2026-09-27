@@ -3,7 +3,7 @@ export type SeatStatus = "open" | "claimed" | "bot";
 export type AIDifficulty = "easy" | "medium" | "hard";
 export type BotPlaystyleId = "balanced" | "tight" | "aggressive";
 
-export type BotProvider = "typesafe" | "openrouter" | "rules";
+export type BotProvider = "typesafe" | "llm" | "rules";
 
 export interface BotDescriptor {
   readonly id: string;

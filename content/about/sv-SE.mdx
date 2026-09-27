@@ -34,13 +34,13 @@ TypeSafe Jev skickar strukturerad spelkontext och fullständiga lagliga dragalte
 
 Svårighetsgraden påverkar bara dragvalet och ger aldrig andra kort, dold information eller fler lagliga handlingar.
 
-### OpenRouter-profiler
+### LLM-bottar
 
-Varje konfigurerad [OpenRouter](https://openrouter.ai/)-profil anger visningsnamn och modell. Modellen får begränsad spelkontext och måste returnera en strukturerad laglig handling och insatsstorlek.
+Varje konfigurerad LLM-bot anger visningsnamn och en modell som används via [OpenRouter](https://openrouter.ai/). Modellen får begränsad spelkontext och måste returnera en strukturerad laglig handling och insatsstorlek.
 
-#### Profiler och anpassning
+#### Spelstilar
 
-När en OpenRouter-bot tilldelas kan en av tre spelstilar väljas:
+När en LLM-bot tilldelas kan en av tre spelstilar väljas:
 
 - **Balanserad** söker det högsta förväntade marker-värdet utan att föredra en viss spelriktning.
 - **Tight** undviker marginella fortsättningar med hög varians och kräver en tydligare fördel innan en stor del av den effektiva stacken satsas, men lägger sig inte med en tydligt lönsam syn.
@@ -52,7 +52,7 @@ Spelstilen vägleder modellens beslut men ändrar inte korten, informationen som
 
 [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) styr kortlek, turer, lagliga handlingar, satsningar, potter och vinnare. Människor och bottar föreslår bara drag. Servern validerar och tillämpar varje förslag genom adaptern innan versionskontrollerad lagring.
 
-Bottinställningar och framtida profilanpassning ligger efter denna gräns och kan inte kringgå reglerna.
+Bottinställningar och framtida anpassning av spelstilar ligger efter denna gräns och kan inte kringgå reglerna.
 
 ## Integritet och transparens
 

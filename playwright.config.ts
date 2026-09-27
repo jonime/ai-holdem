@@ -31,10 +31,10 @@ function getLocalSupabaseEnvironment(): Record<string, string> {
     SUPABASE_SECRET_KEY: secretKey,
     TYPESAFE_API_KEY: "",
     OPENROUTER_API_KEY: "",
-    OPENROUTER_BOT_PROFILES: JSON.stringify([
+    LLM_BOT_MODELS: JSON.stringify([
       {
-        id: "openrouter-test-model",
-        label: "OpenRouter Test Model",
+        id: "llm-test-model",
+        label: "LLM Test Model",
         modelId: "test/model",
       },
     ]),

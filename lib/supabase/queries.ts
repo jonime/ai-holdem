@@ -1,8 +1,12 @@
 import "server-only";
 
 import { GAME_FEED_HAND_LIMIT } from "@/lib/constants";
-import type { AIDifficulty, BotDescriptor, BotPlaystyleId } from "@/lib/poker/types";
-import { isBotPlaystyleId } from "@/lib/bots/openrouter-profiles";
+import type {
+  AIDifficulty,
+  BotDescriptor,
+  BotPlaystyleId,
+} from "@/lib/poker/types";
+import { isBotPlaystyleId } from "@/lib/bots/llm-playstyles";
 
 export type GameStatus = "waiting" | "playing" | "complete" | "error";
 
@@ -279,9 +283,7 @@ function botDescriptorFrom(
   if (
     typeof id !== "string" ||
     typeof label !== "string" ||
-    (provider !== "typesafe" &&
-      provider !== "openrouter" &&
-      provider !== "rules") ||
+    (provider !== "typesafe" && provider !== "llm" && provider !== "rules") ||
     (modelId !== null && modelId !== undefined && typeof modelId !== "string")
   ) {
     throw new Error("Supabase returned an invalid bot descriptor");
