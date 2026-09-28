@@ -28,6 +28,31 @@ import {
   PokerRuleError,
 } from "./types";
 
+/** Worst possible heads-up river pot share, using only hero's visible cards. */
+export function minimumRiverShare(
+  holeCards: readonly string[],
+  communityCards: readonly string[],
+): number {
+  if (holeCards.length !== 2 || communityCards.length !== 5) {
+    throw new Error("River share requires two hole cards and five board cards");
+  }
+  const known = new Set([...holeCards, ...communityCards]);
+  if (known.size !== 7) throw new Error("River share cannot use duplicate cards");
+  const board = communityCards.map(parseCard);
+  const hero = evaluateHand([...holeCards.map(parseCard), ...board]);
+  const unseen = createDeck().filter((card) => !known.has(cardToString(card)));
+  let share = 1;
+  for (let first = 0; first < unseen.length; first++) {
+    for (let second = first + 1; second < unseen.length; second++) {
+      const opponent = evaluateHand([unseen[first], unseen[second], ...board]);
+      const comparison = compareHandRanks(hero, opponent);
+      if (comparison < 0) return 0;
+      if (comparison === 0) share = 0.5;
+    }
+  }
+  return share;
+}
+
 function transitionOrThrow(
   state: TableState,
   command: Parameters<typeof transition>[1],

@@ -1,6 +1,6 @@
 # Bot decision scenarios
 
-Run `npm run test:bots` to evaluate the offline equity bot on four reproducible
+Run `npm run test:bots` to evaluate the offline equity bot on eight reproducible
 river positions at easy, medium, and hard difficulty. Each bot has its own named
 `describe` group, each difficulty a nested group, and each scenario its own `it`
 test. Configured LLMs have a group showing their bot id and model id, with nested
@@ -21,9 +21,13 @@ These are deliberately strict examples, not a measure of overall poker strength:
 | Royal flush facing a small bet | Fold | Hero cannot lose or split. |
 | Royal flush facing an all-in | Fold | Bet size does not change the unbeatable hand. |
 | Royal flush on the board facing an all-in | Fold | Calling guarantees a split and recovers chips already invested; the game has no rake. |
+| Four aces facing an all-in | Fold | Hero has unbeatable quads on an unconnected board. |
+| Rainbow broadway board facing an all-in | Fold | Every possible holding splits the pot. |
+| Royal board facing a small bet | Fold or raise | Calling takes the guaranteed split; raising cannot earn additional chips. |
+| Board quads with the lowest kicker facing an all-in | Call or raise | Hero cannot beat any holding and almost always loses; the price cannot justify calling. |
 
-Bets, raises, and calls are accepted where legal; these tests do not prescribe
-one exact sizing or ban reasonable bluffs. No expectation depends on knowing the
+Except for the explicit restrictions above, bets, raises, and calls are accepted
+where legal; these tests do not prescribe one exact sizing or ban reasonable bluffs. No expectation depends on knowing the
 opponent's hidden cards. A pass only means no listed mistake was made.
 
 ## Commands
@@ -39,13 +43,13 @@ npm run test:bots -- -t 'equity-rules-v2'
 npm run test:bots -- -t 'equity-rules-v2.*hard'
 npm run test:bots -- -t 'equity-rules-v2.*free-check'
 
-# Live TypeSafe only: 12 decisions per repetition (4 cases x 3 difficulties)
+# Live TypeSafe only: 24 decisions per repetition (8 cases x 3 difficulties)
 BOT_SCENARIO_LIVE=true EXTERNAL_INFERENCE_ENABLED=true npm run test:bots -- -t 'jev'
 
-# One live LLM, all profiles: 12 decisions per repetition (4 cases x 3 profiles)
+# One live LLM, all profiles: 24 decisions per repetition (8 cases x 3 profiles)
 BOT_SCENARIO_LIVE=true EXTERNAL_INFERENCE_ENABLED=true npm run test:bots -- -t 'my-llm'
 
-# One LLM profile: 4 decisions per repetition
+# One LLM profile: 8 decisions per repetition
 BOT_SCENARIO_LIVE=true EXTERNAL_INFERENCE_ENABLED=true npm run test:bots -- -t 'my-llm.*tight'
 
 # All bots, including TypeSafe and every configured LLM
@@ -97,8 +101,13 @@ engine internals or inventing analysis values.
 bad fake decisions. `npm run test:bots` separately evaluates real bot quality and
 may fail on existing weaknesses. Do not weaken expectations to make it green.
 
-Initial evaluation found that Equity Rules folds exclusive royal-flush nuts
-against an all-in on easy/medium and folds the guaranteed split on all levels.
-In these fixtures the current non-TypeSafe projection reports pot odds of 0.9802 rather
-than the contestable-pot ratio 198/400 = 0.495. These tests record that behavior;
-this change does not alter production strategies or context calculations.
+Equity Rules passes all eight scenarios at every difficulty. Its call decisions
+use the legal call amount divided by the projected contestable pot, including
+live bets and excluding unmatched chips. The shared legacy projection is left
+unchanged for other providers. On heads-up rivers, the engine adapter checks all
+990 unseen opponent holdings to establish a guaranteed minimum pot share;
+unbeatable calls bypass heuristic safety margins. Sampled equity alone is never
+used as proof that a hand cannot lose. Pressure counts opponent aggression only,
+and semi-bluffs are disabled on the river. These safeguards do not turn the
+random-hand equity estimate into an opponent range model or establish overall
+playing strength.

@@ -10,6 +10,7 @@ export interface Scenario {
   /** Deck prefix: seat 1, seat 0, seat 1, seat 0, burn, flop, burn, turn, burn, river. */
   readonly deck: readonly string[];
   readonly riverAction: "check" | "bet" | "shove";
+  readonly showdown: "win" | "split" | "lose";
   readonly forbidden: readonly PokerAction["type"][];
 }
 
@@ -20,6 +21,7 @@ export const scenarios: readonly Scenario[] = [
     reason: "Checking costs nothing and preserves the chance to win; folding gives it up.",
     deck: ["Ac", "7s", "Ad", "2h", "3c", "Kd", "9s", "4h", "5c", "Jc", "6c", "Qd"],
     riverAction: "check",
+    showdown: "lose",
     forbidden: ["fold"],
   },
   {
@@ -27,6 +29,7 @@ export const scenarios: readonly Scenario[] = [
     reason: "Hero holds the exclusive royal flush on the river and cannot lose. Never fold.",
     deck: nuts,
     riverAction: "bet",
+    showdown: "win",
     forbidden: ["fold"],
   },
   {
@@ -34,6 +37,7 @@ export const scenarios: readonly Scenario[] = [
     reason: "Even an all-in cannot justify folding the exclusive river nuts.",
     deck: nuts,
     riverAction: "shove",
+    showdown: "win",
     forbidden: ["fold"],
   },
   {
@@ -41,7 +45,40 @@ export const scenarios: readonly Scenario[] = [
     reason: "The board is a royal flush: calling guarantees a split and recovers the existing investment (no rake).",
     deck: ["9c", "7d", "9d", "2h", "3c", "As", "Ks", "Qs", "4c", "Js", "5c", "Ts"],
     riverAction: "shove",
+    showdown: "split",
     forbidden: ["fold"],
+  },
+  {
+    id: "quads-facing-all-in",
+    reason: "Four aces cannot lose on this unconnected river board.",
+    deck: ["Kc", "As", "Kd", "Ah", "2c", "Ac", "Ad", "7s", "3c", "4d", "5c", "9h"],
+    riverAction: "shove",
+    showdown: "win",
+    forbidden: ["fold"],
+  },
+  {
+    id: "broadway-board-facing-all-in",
+    reason: "The rainbow broadway board guarantees a split; no flush is possible.",
+    deck: ["9c", "7d", "9d", "2h", "3c", "As", "Kh", "Qd", "4c", "Jc", "5c", "Ts"],
+    riverAction: "shove",
+    showdown: "split",
+    forbidden: ["fold"],
+  },
+  {
+    id: "royal-board-facing-small-bet",
+    reason: "Call the guaranteed split; raising cannot win more chips on a royal board.",
+    deck: ["9c", "7d", "9d", "2h", "3c", "As", "Ks", "Qs", "4c", "Js", "5c", "Ts"],
+    riverAction: "bet",
+    showdown: "split",
+    forbidden: ["fold", "raise"],
+  },
+  {
+    id: "board-quads-low-kicker-facing-all-in",
+    reason: "Hero plays four twos with the board's three kicker: every possible opponent holding wins or ties, so an enormous call is unjustified.",
+    deck: ["Ac", "3d", "Kd", "3h", "4c", "2s", "2h", "2d", "5c", "2c", "6c", "3s"],
+    riverAction: "shove",
+    showdown: "lose",
+    forbidden: ["call", "raise"],
   },
 ];
 

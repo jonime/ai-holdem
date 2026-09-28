@@ -1,4 +1,5 @@
 import type { LegalAction } from "@/lib/poker/types";
+import { minimumRiverShare } from "@/lib/poker/adapter";
 import type { SizingChoice } from "@/lib/typesafe/questions";
 
 import type { BotContext, BotDecision } from "../types";
@@ -102,7 +103,11 @@ function makeSizingChoice(
 function evaluatePressure(context: BotContext): number {
   return context.opponents.reduce((total, opponent) => {
     const actionPressure = context.actionHistory.filter(
-      (item) => item.actorSeat === opponent.seat || item.controller === "bot",
+      (item) =>
+        item.actorSeat === opponent.seat &&
+        (item.action === "bet" ||
+          item.action === "raise" ||
+          item.action === "all_in"),
     ).length;
     return total + actionPressure * 0.04;
   }, 0);
@@ -135,6 +140,43 @@ export function decideRulesAction(
     context.hand.communityCards,
   );
   const equity = context.analysis.showdownEquity;
+  // Legacy context pot odds omit live street bets. Use the contestable pot,
+  // which also excludes unmatched chips when hero can only call all-in.
+  const potOdds =
+    legalCall?.type === "call" && context.analysis.contestablePotAfterCall > 0
+      ? legalCall.amount / context.analysis.contestablePotAfterCall
+      : 0;
+  if (
+    context.hand.street === "river" &&
+    context.opponents.filter((opponent) => opponent.status !== "folded")
+      .length === 1
+  ) {
+    const guaranteedShare = minimumRiverShare(
+      context.hero.holeCards,
+      context.hand.communityCards,
+    );
+    // A sampled equity of 1 is not proof of the nuts. Exhaustively verify that
+    // no unseen holding wins before bypassing the difficulty safety margin.
+    if (guaranteedShare > 0 && equity <= 0.5 && legalCheck) {
+      return {
+        action: { type: "check" },
+        diagnostics: emptyDiagnostics({ matchedRule: "rules-guaranteed-split" }),
+        rawResponse: null,
+      };
+    }
+    if (
+      guaranteedShare > 0 &&
+      guaranteedShare >= potOdds &&
+      legalCall?.type === "call" &&
+      (!legalAggressive || equity <= 0.5)
+    ) {
+      return {
+        action: { type: "call", amount: legalCall.amount },
+        diagnostics: emptyDiagnostics({ matchedRule: "rules-unbeatable-call" }),
+        rawResponse: null,
+      };
+    }
+  }
 
   const adjustedValueThreshold =
     profile.valueThreshold + pressure * profile.pressureBias;
@@ -159,7 +201,10 @@ export function decideRulesAction(
     if (
       equity >= 0.6 ||
       equity >= adjustedValueThreshold + valueBias ||
-      (heroMade.category && heroMade.category !== "high-card" && equity >= 0.42)
+      (heroMade.category &&
+        heroMade.category !== "high-card" &&
+        equity >= 0.42 &&
+        (context.hand.street !== "river" || equity > 0.5))
     ) {
       const sizingChoice =
         boardTexture.label === "wet"
@@ -176,6 +221,7 @@ export function decideRulesAction(
 
     if (
       profile.semiBluffEnabled &&
+      context.hand.street !== "river" &&
       (draws.flushDraw || draws.straightDraw) &&
       equity >= 0.34 &&
       hashedFrequency(context) < 0.55
@@ -209,10 +255,10 @@ export function decideRulesAction(
   if (
     legalCall &&
     legalCall.type === "call" &&
-    context.analysis.potOddsToCall > 0
+    context.analysis.contestablePotAfterCall > 0
   ) {
     const callRequired =
-      context.analysis.potOddsToCall + callThreshold + pressure * 0.03;
+      potOdds + callThreshold + pressure * 0.03;
     if (equity >= callRequired) {
       return {
         action: { type: "call", amount: legalCall.amount },

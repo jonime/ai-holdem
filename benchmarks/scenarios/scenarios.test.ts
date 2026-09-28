@@ -13,20 +13,20 @@ describe("engine-backed bot scenarios", () => {
       expect(fixture.context.opponents[0]).not.toHaveProperty("holeCards");
       expect(fixture.context.actionHistory).toHaveLength(7);
       expect(buildScenario(scenario)).toEqual(fixture);
-      expect(gradeAction(scenario, fixture, { type: "fold" }).status).toBe("blunder");
+      expect(gradeAction(scenario, fixture, { type: "fold" }).status).toBe(scenario.forbidden.includes("fold") ? "blunder" : "pass");
       expect(gradeAction(scenario, fixture, { type: "raise", amount: 1_000_000 }).status).toBe("illegal");
       const passive = fixture.context.legalActions.find((action) => action.type === "call" || action.type === "check");
       if (!passive || (passive.type !== "call" && passive.type !== "check")) throw new Error("Missing passive action");
-      expect(gradeAction(scenario, fixture, passive).status).toBe("pass");
+      expect(gradeAction(scenario, fixture, passive).status).toBe(scenario.forbidden.includes(passive.type) ? "blunder" : "pass");
       if (scenario.riverAction === "shove") {
         const completed = pokerEngineAdapter.snapshot(
           pokerEngineAdapter.applyAction(fixture.state, fixture.heroId, passive),
         );
         expect(completed.street).toBe("complete");
         expect(completed.winnerAmounts).toEqual(
-          scenario.id.startsWith("royal-board")
+          scenario.showdown === "split"
             ? { "seat-0": 200, "seat-1": 200 }
-            : { "seat-0": 400 },
+            : scenario.showdown === "win" ? { "seat-0": 400 } : { "seat-1": 400 },
         );
         const typesafe = buildScenario(scenario, { typesafePolicyV2: true });
         expect(typesafe.context.analysis.potOddsToCall).toBe(0.495);

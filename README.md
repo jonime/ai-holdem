@@ -240,8 +240,9 @@ include every supported playstyle (`balanced`, `tight`, `aggressive`) as nested
 groups. Filter a profile with `-t 'my-llm.*tight'`, or select an entire bot with
 `npm run test:bots -- -t 'equity-rules-v2'`. The same fixtures
 support opt-in live TypeSafe and configured LLM bots. See [scenario instructions](benchmarks/scenarios/README.md)
-for commands, costs, extending fixtures, and known failures. This evaluation
-returns nonzero for current bot weaknesses; fixture/grader tests run in ordinary
+for commands, costs, extending fixtures, and strategy limitations. Equity Rules
+passes eight river scenarios at all three difficulties. The evaluation returns
+nonzero for illegal actions or listed blunders; fixture/grader tests run in ordinary
 `npm run check` without external services.
 
 Vitest automatically loads the optional root `.env.test` file for unit tests and
