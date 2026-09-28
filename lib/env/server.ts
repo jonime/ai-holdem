@@ -9,10 +9,22 @@ export interface TypesafeServerEnv {
   readonly typesafeApiKey: string;
 }
 
+export const llmReasoningEfforts = [
+  "none",
+  "minimal",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+] as const;
+
+export type LlmReasoningEffort = (typeof llmReasoningEfforts)[number];
+
 export interface LlmModelDefinition {
   readonly id: string;
   readonly label: string;
   readonly modelId: string;
+  readonly reasoning: LlmReasoningEffort;
 }
 
 export function assertExternalInferenceEnabled(): void {
@@ -50,6 +62,10 @@ export function getOpenRouterApiKey(): string {
   return requiredServerVariable("OPENROUTER_API_KEY");
 }
 
+function isLlmReasoningEffort(value: unknown): value is LlmReasoningEffort {
+  return llmReasoningEfforts.some((effort) => effort === value);
+}
+
 export function getLlmBotModels(): readonly LlmModelDefinition[] {
   const value = process.env.LLM_BOT_MODELS;
   if (!value) return [];
@@ -76,11 +92,17 @@ export function getLlmBotModels(): readonly LlmModelDefinition[] {
       !entry.id.trim() ||
       !entry.label.trim() ||
       !entry.modelId.trim() ||
+      ("reasoning" in entry && !isLlmReasoningEffort(entry.reasoning)) ||
       ids.has(entry.id)
     ) {
       throw new Error("LLM_BOT_MODELS contains an invalid model definition");
     }
     ids.add(entry.id);
-    return { id: entry.id, label: entry.label, modelId: entry.modelId };
+    return {
+      id: entry.id,
+      label: entry.label,
+      modelId: entry.modelId,
+      reasoning: "reasoning" in entry ? entry.reasoning : "minimal",
+    };
   });
 }

@@ -1,6 +1,9 @@
 import "server-only";
 
-import { getOpenRouterApiKey } from "@/lib/env/server";
+import {
+  getOpenRouterApiKey,
+  type LlmReasoningEffort,
+} from "@/lib/env/server";
 import type { PokerAction } from "@/lib/poker/types";
 import type { BotPlaystyleId } from "@/lib/poker/types";
 import type { SizingChoice } from "@/lib/typesafe/questions";
@@ -100,19 +103,34 @@ function parseOutput(
 
 export class OpenRouterPokerBot implements PokerBot {
   private readonly profileId: BotPlaystyleId;
+  private readonly reasoning: LlmReasoningEffort;
   private readonly fetcher: FetchLike;
 
   constructor(
     private readonly modelId: string,
-    profileIdOrFetcher: BotPlaystyleId | FetchLike = "balanced",
+    profileIdOrOptionsOrFetcher:
+      | BotPlaystyleId
+      | {
+          readonly profileId?: BotPlaystyleId;
+          readonly reasoning?: LlmReasoningEffort;
+        }
+      | FetchLike = "balanced",
     fetcher: FetchLike = fetch,
   ) {
     this.profileId =
-      typeof profileIdOrFetcher === "function"
+      typeof profileIdOrOptionsOrFetcher === "function"
         ? "balanced"
-        : profileIdOrFetcher;
+        : typeof profileIdOrOptionsOrFetcher === "string"
+          ? profileIdOrOptionsOrFetcher
+          : (profileIdOrOptionsOrFetcher.profileId ?? "balanced");
+    this.reasoning =
+      typeof profileIdOrOptionsOrFetcher === "object"
+        ? (profileIdOrOptionsOrFetcher.reasoning ?? "minimal")
+        : "minimal";
     this.fetcher =
-      typeof profileIdOrFetcher === "function" ? profileIdOrFetcher : fetcher;
+      typeof profileIdOrOptionsOrFetcher === "function"
+        ? profileIdOrOptionsOrFetcher
+        : fetcher;
   }
 
   async decide(context: BotContext): Promise<BotDecision> {
@@ -127,7 +145,7 @@ export class OpenRouterPokerBot implements PokerBot {
         },
         body: JSON.stringify({
           model: this.modelId,
-          reasoning: { effort: "minimal" },
+          reasoning: { effort: this.reasoning },
           messages: [
             {
               role: "system",

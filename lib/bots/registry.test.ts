@@ -1,6 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { getBotCatalog, ServerBotRegistry } from "./registry";
+
+afterEach(() => vi.unstubAllEnvs());
 
 describe("bot registry", () => {
   it("exposes and resolves exactly one rules option", () => {
@@ -24,5 +26,28 @@ describe("bot registry", () => {
       new ServerBotRegistry().get({ botId: "basic-equity-v1" }),
     ).toThrow("Unknown bot: basic-equity-v1");
     expect(() => new ServerBotRegistry().get({ botId: "missing-bot" })).toThrow();
+  });
+
+  it("passes a configured reasoning effort to an LLM bot", () => {
+    vi.stubEnv(
+      "LLM_BOT_MODELS",
+      JSON.stringify([
+        {
+          id: "configured-llm",
+          label: "Configured LLM",
+          modelId: "vendor/model",
+          reasoning: "high",
+        },
+      ]),
+    );
+
+    const resolved = new ServerBotRegistry().get({ botId: "configured-llm" });
+
+    expect(resolved.descriptor).toMatchObject({
+      id: "configured-llm",
+      modelId: "vendor/model",
+      provider: "llm",
+    });
+    expect(resolved.bot).toMatchObject({ reasoning: "high" });
   });
 });

@@ -67,7 +67,7 @@ loaded. `.env.test` is already ignored by Git. For example:
 ```dotenv
 TYPESAFE_API_KEY=your-typesafe-key
 OPENROUTER_API_KEY=your-openrouter-key
-LLM_BOT_MODELS='[{"id":"my-llm","label":"My LLM","modelId":"provider/model"}]'
+LLM_BOT_MODELS='[{"id":"my-llm","label":"My LLM","modelId":"provider/model","reasoning":"low"}]'
 ```
 
 Keep `BOT_SCENARIO_LIVE=true` in the command when opting into live scenarios. Live runs incur provider charges;

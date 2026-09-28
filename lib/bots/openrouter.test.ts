@@ -69,6 +69,7 @@ describe("OpenRouterPokerBot", () => {
     );
     const decision = await new OpenRouterPokerBot(
       "vendor/model",
+      { reasoning: "high" },
       fetcher,
     ).decide(context);
     expect(decision.action).toEqual({ type: "call", amount: 1 });
@@ -88,7 +89,7 @@ describe("OpenRouterPokerBot", () => {
       usage: { prompt_tokens: 10, completion_tokens: 2, cost: 0.001 },
     });
     const request = JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
-    expect(request.reasoning).toEqual({ effort: "minimal" });
+    expect(request.reasoning).toEqual({ effort: "high" });
     expect(request.messages[0].content).toContain(
       "Use only the supplied information",
     );

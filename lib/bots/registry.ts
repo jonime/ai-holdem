@@ -75,17 +75,24 @@ export class ServerBotRegistry implements BotRegistry {
         bot: new JevPokerBot(new TypesafeSystemOneClient()),
       };
     }
+    const modelDefinition = getLlmBotModels().find(
+      (model) => model.id === descriptor.id,
+    );
+    if (!modelDefinition) throw new Error(`Unknown bot: ${selection.botId}`);
     return {
       descriptor,
       bot: new OpenRouterPokerBot(
-        descriptor.modelId as string,
-        isBotPlaystyleId(selection.profileId)
-          ? selection.profileId
-          : selection.profileId == null
-            ? DEFAULT_BOT_PLAYSTYLE_ID
-            : (() => {
-                throw new Error("Unknown bot playstyle");
-              })(),
+        modelDefinition.modelId,
+        {
+          profileId: isBotPlaystyleId(selection.profileId)
+            ? selection.profileId
+            : selection.profileId == null
+              ? DEFAULT_BOT_PLAYSTYLE_ID
+              : (() => {
+                  throw new Error("Unknown bot playstyle");
+                })(),
+          reasoning: modelDefinition.reasoning,
+        },
       ),
     };
   }
