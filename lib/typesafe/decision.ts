@@ -100,11 +100,8 @@ function sampleChoice(
     0,
   );
   if (total <= 0) return preferredChoice;
-  const uniformProbability = 1 / choices.length;
   const weighted = choices.map(
-    (choice) =>
-      0.5 * ((probabilities[choice] ?? 0) / total) +
-      0.5 * uniformProbability,
+    (choice) => (probabilities[choice] ?? 0) / total,
   );
   const target = Math.min(0.999999999, Math.max(0, random()));
   let cumulative = 0;

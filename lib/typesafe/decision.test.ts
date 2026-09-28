@@ -268,8 +268,22 @@ describe("TypeSafe poker decision", () => {
 
     expect(medium.candidateChoice).toBe(selected);
     expect(hard.candidateChoice).toBe(selected);
-    expect(createMoveOptions(base).map((option) => option.choice)).toContain(easy.candidateChoice);
-    expect(easy.action.type).not.toBe("fold");
+    expect(easy.candidateChoice).toBe(selected);
+  });
+
+  it("samples easy from normalized provider probabilities without adding mass to zero-probability moves", async () => {
+    const pokerState = state({ difficulty: "easy" });
+    const choices = createMoveOptions(pokerState).map((option) => option.choice);
+    const first = choices[0];
+    const last = choices.at(-1)!;
+    const probabilities = Object.fromEntries(
+      choices.map((choice) => [choice, choice === first ? 0.2 : choice === last ? 0.6 : 0]),
+    );
+    const client = { evaluate: async () => responseFor(pokerState, last, probabilities) };
+    for (const [draw, expected] of [[0, first], [0.249, first], [0.25, last], [0.999, last]] as const) {
+      const result = await decidePokerAction(client, pokerState, { random: () => draw });
+      expect(result.candidateChoice).toBe(expected);
+    }
   });
 
   it("uses the engine's stack-capped call and contestable pot for pot odds", () => {

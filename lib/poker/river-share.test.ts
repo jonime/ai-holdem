@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { minimumRiverShare } from "./adapter";
+import { minimumRiverShare, riverShareBounds } from "./adapter";
 
 describe("minimum heads-up river share", () => {
   it.each([
@@ -19,5 +19,14 @@ describe("minimum heads-up river share", () => {
   it("rejects incomplete and duplicate cards", () => {
     expect(() => minimumRiverShare(["As", "Ks"], ["Qs", "Js", "Ts"])).toThrow();
     expect(() => minimumRiverShare(["As", "Ks"], ["As", "Js", "Ts", "4d", "7h"])).toThrow();
+  });
+
+  it("distinguishes a forced split, certain loss, and an uncertain hand", () => {
+    expect(riverShareBounds(["7d", "2h"], ["As", "Ks", "Qs", "Js", "Ts"]))
+      .toEqual({ minimum: 0.5, maximum: 0.5 });
+    expect(riverShareBounds(["3d", "3h"], ["2s", "2h", "2d", "2c", "3s"]))
+      .toEqual({ minimum: 0, maximum: 0 });
+    expect(riverShareBounds(["As", "2d"], ["9s", "8s", "7s", "6s", "Kh"]))
+      .toEqual({ minimum: 0, maximum: 1 });
   });
 });

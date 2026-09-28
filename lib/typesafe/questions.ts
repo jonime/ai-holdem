@@ -1,9 +1,10 @@
 import type { PokerAIState } from "@/lib/poker/ai-state";
+import { riverShareBounds } from "@/lib/poker/adapter";
 import type { LegalAction, PokerAction } from "@/lib/poker/types";
 
 import type { ChoiceQuestion, SystemOneRequest } from "./types";
 
-export const typesafePokerPolicyVersion = "typesafe-poker-v2";
+export const typesafePokerPolicyVersion = "typesafe-poker-v2.1";
 
 export type SizingChoice =
   | "two_big_blinds"
@@ -243,7 +244,26 @@ export function createMoveOptions(state: PokerAIState): readonly MoveOption[] {
       });
     }
   }
-  return moves;
+  if (
+    state.hand.street !== "river" ||
+    state.opponents.filter((opponent) => opponent.status !== "folded").length !== 1
+  ) return moves;
+
+  const bounds = riverShareBounds(state.hero.holeCards, state.hand.communityCards);
+  const call = state.legalActions.find((action) => action.type === "call");
+  const guaranteedCall = call?.type === "call" &&
+    state.analysis.contestablePotAfterCall > 0 && bounds.minimum > 0 &&
+    bounds.minimum * state.analysis.contestablePotAfterCall >= call.amount;
+  const forcedSplit = bounds.minimum === 0.5 && bounds.maximum === 0.5;
+  // Restrict strategic candidates, never engine legality. No opponent cards or
+  // sampled equity are used to prove these river outcomes.
+  return moves.filter(({ action }) => {
+    if (action.type === "fold" && guaranteedCall) return false;
+    if (action.type === "call" && bounds.maximum === 0) return false;
+    if (forcedSplit && (canCheck || guaranteedCall) &&
+      (action.type === "bet" || action.type === "raise")) return false;
+    return true;
+  });
 }
 
 export function createPokerDecisionRequest(
@@ -253,7 +273,7 @@ export function createPokerDecisionRequest(
   const move: ChoiceQuestion = {
     type: "choice",
     instructions:
-      "Choose the complete legal move with the highest expected chip value for HERO in this no-rake cash-game hand. The supplied showdown equity is explicitly against random opponent hands, not the probability of beating the opponent's betting range; adjust for ranges implied by position and the complete action history. Compare that adjusted assessment with the supplied contestable-pot odds and account for effective stacks, stack-to-pot ratio, board texture, blockers, previous aggression, value available from worse hands, and realistic fold equity. Prefer robust value decisions over unnecessary variance. Do not treat returned probabilities as poker bluffing frequencies. Do not use tournament survival, bankroll concerns, future cards, hidden cards, or information absent from the state.",
+      "Choose the complete legal move with the highest expected chip value for HERO in this no-rake cash-game hand. The supplied showdown equity is explicitly against random opponent hands, not the probability of beating the opponent's betting range; adjust for ranges implied by position and the complete action history. Compare that adjusted assessment with the supplied contestable-pot odds and account for effective stacks, stack-to-pot ratio, board texture, blockers, previous aggression, value available from worse hands, and realistic fold equity. Evaluate the complete best five-card hand including kickers: a strong hand category shared by the board is not necessarily a strong HERO hand. With four of a kind on the board, the fifth-card kicker decides the winner. On the river there are no future cards and no draws to complete. Never fold an unbeatable river hand when calling has nonnegative chip EV. If every possible opponent holding ties, check or call for the guaranteed split instead of folding or raising. If every possible opponent holding beats HERO, do not call; a strong category alone does not justify it. Prefer robust value decisions over unnecessary variance. Do not treat returned probabilities as poker bluffing frequencies. Do not use tournament survival, bankroll concerns, future cards, hidden cards, or information absent from the state.",
     criteria: Object.fromEntries(
       moves.map((option) => [option.choice, option.description]),
     ),

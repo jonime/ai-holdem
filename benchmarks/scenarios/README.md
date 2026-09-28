@@ -111,3 +111,14 @@ used as proof that a hand cannot lose. Pressure counts opponent aggression only,
 and semi-bluffs are disabled on the river. These safeguards do not turn the
 random-hand equity estimate into an opponent range model or establish overall
 playing strength.
+
+Jev policy `typesafe-poker-v2.1` also passed all 24 decisions in a live run.
+The prior wrapper failed 4/24 in the baseline run; prompt clarification alone
+still failed 4/24 (with different easy-mode errors). The final wrapper removes
+uniform random exploration from easy mode and excludes provably bad heads-up
+river candidates using exact minimum/maximum showdown shares: folding a safe
+unbeatable call, calling a certain loss, or betting/raising a forced split.
+Uncertain decisions remain provider-owned. Offline regression tests verify the
+candidate restrictions, including a beatable ace-high flush and rejection of a
+provider returning an excluded move. A live pass confirms the wrapper/service
+integration on these fixtures, not an improvement in the underlying Jev model.

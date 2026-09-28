@@ -33,6 +33,14 @@ export function minimumRiverShare(
   holeCards: readonly string[],
   communityCards: readonly string[],
 ): number {
+  return riverShareBounds(holeCards, communityCards).minimum;
+}
+
+/** Exact heads-up bounds across every unseen holding, not sampled equity. */
+export function riverShareBounds(
+  holeCards: readonly string[],
+  communityCards: readonly string[],
+): { readonly minimum: number; readonly maximum: number } {
   if (holeCards.length !== 2 || communityCards.length !== 5) {
     throw new Error("River share requires two hole cards and five board cards");
   }
@@ -41,16 +49,19 @@ export function minimumRiverShare(
   const board = communityCards.map(parseCard);
   const hero = evaluateHand([...holeCards.map(parseCard), ...board]);
   const unseen = createDeck().filter((card) => !known.has(cardToString(card)));
-  let share = 1;
+  let minimum = 1;
+  let maximum = 0;
   for (let first = 0; first < unseen.length; first++) {
     for (let second = first + 1; second < unseen.length; second++) {
       const opponent = evaluateHand([unseen[first], unseen[second], ...board]);
       const comparison = compareHandRanks(hero, opponent);
-      if (comparison < 0) return 0;
-      if (comparison === 0) share = 0.5;
+      const share = comparison < 0 ? 0 : comparison === 0 ? 0.5 : 1;
+      minimum = Math.min(minimum, share);
+      maximum = Math.max(maximum, share);
+      if (minimum === 0 && maximum === 1) return { minimum, maximum };
     }
   }
-  return share;
+  return { minimum, maximum };
 }
 
 function transitionOrThrow(

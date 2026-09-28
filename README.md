@@ -182,6 +182,14 @@ uncertainty interval, action frequencies, failures, and decision latency. This
 is a regression harness for policy mechanics, not evidence that Jev plays
 stronger poker.
 
+The current Jev wrapper policy is `typesafe-poker-v2.1`. Easy mode samples the
+provider distribution without adding uniform randomness; medium and hard use
+the provider's selected move. Before asking Jev, exact heads-up river evaluation
+removes folds when calling guarantees nonnegative chip EV, calls that lose to
+every possible holding, and bets/raises on a forced board split when checking or
+calling is safe. These are candidate restrictions; the engine remains the final
+legality authority. Ordinary uncertain positions still use Jev's decisions.
+
 Live Jev evaluation is deliberately separate from CI because it makes one paid
 TypeSafe request per decision:
 

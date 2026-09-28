@@ -1267,9 +1267,9 @@ describe("stepTypesafeAction", () => {
               }),
             ],
           }),
-          promptVersion: "typesafe-poker-v2",
+          promptVersion: "typesafe-poker-v2.1",
           rawResponse: expect.objectContaining({
-            policyVersion: "typesafe-poker-v2",
+            policyVersion: "typesafe-poker-v2.1",
             decision: expect.objectContaining({
               selectedCandidate: "check",
               candidateProbabilities: expect.any(Object),

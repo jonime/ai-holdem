@@ -28,7 +28,7 @@ TypeSafe Jev sends structured game context and complete legal move candidates to
 
 #### Difficulty
 
-- **Easy** samples from an even blend of the provider's probabilities and a uniform distribution across legal choices. Its play is therefore more varied and can be weaker.
+- **Easy** samples from the provider's probabilities across the available moves. Choices with zero probability are never selected.
 - **Medium** uses the provider's preferred move.
 - **Hard** currently also uses the provider's preferred move. There is no additional local selection difference between medium and hard today.
 
