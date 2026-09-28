@@ -95,3 +95,20 @@ Docs are part of the implementation.
 ## Questions
 
 If a project rule or workflow is unclear, prefer the current code and project docs over older notes, assumptions, or stale examples.
+
+## Bot decision scenarios
+
+Run `npm run test:bots` for reproducible engine-backed legality and obvious-blunder
+checks against Equity Rules. Each bot/model has a separate test group. LLMs
+include every supported playstyle (`balanced`, `tight`, `aggressive`) as nested
+groups. Filter a profile with `-t 'my-llm.*tight'`, or select an entire bot with
+`npm run test:bots -- -t 'equity-rules-v2'`. The same fixtures
+support opt-in live TypeSafe and configured LLM bots. See [scenario instructions](benchmarks/scenarios/README.md)
+for commands, costs, extending fixtures, and known failures. This evaluation
+returns nonzero for current bot weaknesses; fixture/grader tests run in ordinary
+`npm run check` without external services.
+
+Vitest automatically loads the optional root `.env.test` file for unit tests and
+benchmarks before collecting tests. Existing shell/CI variables take precedence;
+`.env` is not loaded. `.env.test` is ignored by Git and can hold local provider
+credentials. Live bot evaluations still require their explicit opt-in flags.

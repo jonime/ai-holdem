@@ -4,7 +4,6 @@ import { getLlmBotModels } from "@/lib/env/server";
 import type { BotDescriptor } from "@/lib/poker/types";
 import { TypesafeSystemOneClient } from "@/lib/typesafe/client";
 
-import { BasicEquityBot } from "./basic-equity";
 import { EquityRulesV2Bot } from "./equity-rules-v2";
 import { JevPokerBot } from "./jev";
 import { OpenRouterPokerBot } from "./openrouter";
@@ -27,14 +26,6 @@ export const equityRulesV2BotDescriptor: BotDescriptor = {
   configuration: { difficulty: true, playstyle: false },
 };
 
-export const legacyBasicEquityBotDescriptor: BotDescriptor = {
-  id: "basic-equity-v1",
-  label: "Basic equity",
-  provider: "rules",
-  modelId: null,
-  configuration: { difficulty: true, playstyle: false },
-};
-
 export function getBotCatalog(): readonly BotDescriptor[] {
   return [
     jevBotDescriptor,
@@ -50,11 +41,7 @@ export function getBotCatalog(): readonly BotDescriptor[] {
 }
 
 export function resolveBotDescriptor(botId: string): BotDescriptor {
-  const descriptor =
-    getBotCatalog().find((candidate) => candidate.id === botId) ??
-    (botId === legacyBasicEquityBotDescriptor.id
-      ? legacyBasicEquityBotDescriptor
-      : null);
+  const descriptor = getBotCatalog().find((candidate) => candidate.id === botId);
 
   if (!descriptor) throw new Error(`Unknown bot: ${botId}`);
   return descriptor;
@@ -78,9 +65,6 @@ export class ServerBotRegistry implements BotRegistry {
     const descriptor = resolveBotDescriptor(selection.botId);
     if (descriptor.provider !== "llm" && selection.profileId != null) {
       throw new Error("Bot playstyle is only supported by LLM bots");
-    }
-    if (descriptor.id === legacyBasicEquityBotDescriptor.id) {
-      return { descriptor, bot: new BasicEquityBot() };
     }
     if (descriptor.provider === "rules") {
       return { descriptor, bot: new EquityRulesV2Bot() };

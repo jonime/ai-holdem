@@ -1,6 +1,6 @@
 import { createDeck, type Card, type TableState } from "@hivetech/poker-engine";
 
-import { BasicEquityBot } from "@/lib/bots/basic-equity";
+import { EquityRulesV2Bot } from "@/lib/bots/equity-rules-v2";
 import type { BotContext } from "@/lib/bots/types";
 import { createPokerAIState, type PokerAIActionHistoryItem } from "@/lib/poker/ai-state";
 import { pokerEngineAdapter } from "@/lib/poker/adapter";
@@ -70,11 +70,11 @@ export const scriptedAggressivePolicy: BenchmarkPolicy = {
   },
 };
 
-const basicBot = new BasicEquityBot();
+const rulesBot = new EquityRulesV2Bot();
 export const rulesPolicy: BenchmarkPolicy = {
-  name: "basic-equity-v1",
+  name: "equity-rules-v2",
   async decide(context) {
-    return (await basicBot.decide(context)).action;
+    return (await rulesBot.decide(context)).action;
   },
 };
 
