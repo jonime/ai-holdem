@@ -58,7 +58,7 @@ BOT_SCENARIO_REPEATS=3 npm run test:bots -- -t 'equity-rules-v2'
 `BOT_SCENARIO_BOT` and `BOT_SCENARIO_PROFILE` are no longer used; select bot
 and profile groups with `-t` instead.
 
-Live runs require `TYPESAFE_API_KEY`, or `OPENROUTER_API_KEY` and
+Live runs require `TYPESAFE_API_KEY`, or `LLM_API_ENDPOINT`, `LLM_API_KEY`, and
 `LLM_BOT_MODELS`, in the process environment or the root `.env.test` file.
 Both Vitest configurations automatically load `.env.test` when present, before
 test collection. Existing shell/CI variables take precedence. `.env` is not
@@ -66,7 +66,8 @@ loaded. `.env.test` is already ignored by Git. For example:
 
 ```dotenv
 TYPESAFE_API_KEY=your-typesafe-key
-OPENROUTER_API_KEY=your-openrouter-key
+LLM_API_ENDPOINT=https://your-provider.example/v1/chat/completions
+LLM_API_KEY=your-llm-provider-key
 LLM_BOT_MODELS='[{"id":"my-llm","label":"My LLM","modelId":"provider/model","reasoning":"low"}]'
 ```
 

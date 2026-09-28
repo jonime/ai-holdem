@@ -14,7 +14,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 This is a TypeScript demo of heads-up no-limit Texas Hold'em. Humans and
 provider-backed AI seats occupy the table, including TypeSafe, deterministic
-offline `Equity Rules`, and configurable LLM bots backed by OpenRouter, while
+offline `Equity Rules`, and configurable LLM bots, while
 `@hivetech/poker-engine` remains authoritative for cards, turns, legal actions,
 betting, pots, and winners. Supabase persists game state and version-checked
 mutations; Realtime Broadcast only tells clients to refetch authoritative state.

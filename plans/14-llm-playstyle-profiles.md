@@ -1,13 +1,13 @@
-# OpenRouter playstyle profiles
+# LLM playstyle profiles
 
 ## Decision summary
 
-OpenRouter bots should support a small, server-owned set of **playstyle
+LLM bots should support a small, server-owned set of **playstyle
 profiles**. This is a different concept from difficulty:
 
 - difficulty intentionally makes a bot more or less accurate;
 - a playstyle changes which reasonable risks and lines a bot prefers; and
-- the OpenRouter model remains a separate deployment choice.
+- the LLM model remains a separate deployment choice.
 
 The first release should offer `balanced`, `tight`, and `aggressive`. Avoid a
 "random" or deliberately bad profile: it would be hard to distinguish from
@@ -23,7 +23,7 @@ when a fixed scenario suite shows a repeatable, measurable shift in decisions.
 
 ## Product behavior
 
-1. The lobby shows a playstyle selector only after an OpenRouter bot is
+1. The lobby shows a playstyle selector only after an LLM bot is
    selected. It defaults to `balanced`.
 2. The three initial profiles are described in outcome-oriented language:
    - **Balanced** — seeks the highest expected chip value without a directional
@@ -37,7 +37,7 @@ when a fixed scenario suite shows a repeatable, measurable shift in decisions.
    Do not relabel playstyle as difficulty or silently map one to the other.
 4. The selected profile is visible on the occupied seat and in bot decision
    diagnostics/history, so games remain understandable and auditable.
-5. Existing OpenRouter seats and clients that omit a profile behave as
+5. Existing LLM seats and clients that omit a profile behave as
    `balanced`.
 
 ## Domain model and persistence
@@ -48,8 +48,8 @@ ID, localized display key, and localized description key. Keep the actual
 instructions out of public DTOs.
 
 Add nullable `bot_profile_id` to `game_players` in a new timestamped migration.
-Update the seat consistency constraint so it is non-null only for OpenRouter
-bots, and backfill existing OpenRouter rows to `balanced`. Extend all affected
+Update the seat consistency constraint so it is non-null only for LLM
+bots, and backfill existing LLM rows to `balanced`. Extend all affected
 atomic RPC return types and JSON projections. Never edit an applied migration.
 
 Carry `botProfileId` through the persisted player type, defensive Supabase row
@@ -58,16 +58,16 @@ values while parsing rather than asserting them. Persist only the stable ID,
 not prompt text; this avoids storing operational instructions and lets wording
 be improved without a migration.
 
-Keep `OPENROUTER_BOT_PROFILES` as the model/catalog configuration it is today.
+Keep `LLM_BOT_MODELS` as the model/catalog configuration it is today.
 Do not multiply environment entries for every model/style combination. In this
 design, `modelId` answers *which model?* and `botProfileId` answers *how should
-it play?* Update README terminology to call those entries OpenRouter model
+it play?* Update README terminology to call those entries LLM model
 definitions, reducing the existing ambiguity around the word "profile".
 
 ## Prompt design
 
 Create a server-only profile registry, for example
-`lib/bots/openrouter-profiles.ts`, with exhaustive typed entries. Each entry
+`lib/bots/llm-playstyles.ts`, with exhaustive typed entries. Each entry
 contains only trusted, static instructions. Do not accept free-form prompt text
 from the browser, database, or environment.
 
@@ -85,8 +85,8 @@ are comparable**, not "always raise." The tight profile should not be told to
 fold profitable calls. This preserves basic competence and makes the profiles
 different styles rather than disguised difficulty levels.
 
-Pass the resolved profile into `OpenRouterPokerBot` through its constructor.
-Include a new version such as `openrouter-poker-v2-balanced` (or store prompt
+Pass the resolved profile into `LlmPokerBot` through its constructor.
+Include a new version such as `llm-poker-v2-balanced` (or store prompt
 version and profile ID as separate diagnostics fields) so historical decisions
 can be attributed to the exact policy. Keep the JSON schema, local legal-action
 lookup, local sizing lookup, timeout, secret handling, and encrypted-reasoning
@@ -102,13 +102,13 @@ validation.
 1. Extend `POST /api/games/:id/seats/:seat/assign-bot` with optional
    `botProfileId`.
 2. Resolve the bot descriptor first, then validate the combination:
-   - OpenRouter: omitted means `balanced`; a known profile is accepted.
+   - LLM: omitted means `balanced`; a known profile is accepted.
    - Other providers: the field must be absent (preferred) or `null`; reject a
      non-null profile rather than silently ignoring it.
 3. Keep the host check, expected-version mutation, and one-action-per-mutation
    behavior unchanged.
 4. In `ServerBotRegistry`, accept the persisted profile ID when creating an
-   OpenRouter bot and resolve it against the server-only registry. Fail closed
+   LLM bot and resolve it against the server-only registry. Fail closed
    on corrupt or unknown persisted data.
 5. Attach the profile ID to diagnostics before persistence. Do not add prompt
    instructions or raw provider responses to live/public responses.
@@ -122,7 +122,7 @@ configuration without another breaking signature change.
 
 Add the selector alongside the existing bot and difficulty controls in the
 lobby. Reset it to `balanced` when the selected provider changes away from
-OpenRouter, and send it only for OpenRouter assignments. Disable controls while
+LLM, and send it only for LLM assignments. Disable controls while
 the existing mutation is pending.
 
 Add profile names, descriptions, selector labels, and the occupied-seat summary
@@ -132,7 +132,7 @@ not English UI copy. A small capability on `BotDescriptor`, such as
 duplicating provider comparisons across the client and service.
 
 This is a perceptible UI change, so implementation should include a Playwright
-or browser screenshot showing an OpenRouter model selected with each available
+or browser screenshot showing an LLM model selected with each available
 profile control visible.
 
 ## Verification strategy
@@ -143,22 +143,22 @@ profile control visible.
   are not used as arbitrary prompt sources.
 - Profile-registry tests prove all IDs resolve, the default is `balanced`, and
   public descriptors cannot contain instructions.
-- OpenRouter request tests snapshot the invariant policy plus each profile
+- LLM request tests snapshot the invariant policy plus each profile
   fragment, while confirming the user message remains structured game state.
 - Existing malformed JSON, illegal action, unavailable sizing, timeout, external
   inference guard, and reasoning-redaction tests continue to pass.
-- Route/service tests cover defaulting, all valid OpenRouter profiles, rejection
-  of unknown IDs, rejection on non-OpenRouter providers, authorization, stale
+- Route/service tests cover defaulting, all valid LLM profiles, rejection
+  of unknown IDs, rejection on non-LLM providers, authorization, stale
   versions, and persistence.
 - Supabase parser/repository tests cover the new column, invalid stored values,
-  RPC mappings, and the OpenRouter-only consistency rule.
+  RPC mappings, and the LLM-only consistency rule.
 - Component tests cover conditional visibility, localization, provider changes,
   and the exact assignment payload.
 
 ### Behavioral benchmark
 
 Extend the offline policy harness with a fixed, labeled corpus of preflop and
-postflop spots. For live OpenRouter evaluation, run every profile multiple times
+postflop spots. For live LLM evaluation, run every profile multiple times
 against the same contexts and model revision, then report:
 
 - fold/call/bet/raise frequency;
@@ -178,7 +178,7 @@ behavior is deterministic.
 ## Delivery sequence
 
 1. Add typed profile definitions, prompt composition, diagnostics, and focused
-   OpenRouter tests without changing persistence or UI.
+   LLM tests without changing persistence or UI.
 2. Add the migration and end-to-end domain/repository/service plumbing, with
    `balanced` compatibility defaults.
 3. Add API capability metadata, localized lobby controls, seat display, and UI
@@ -198,7 +198,7 @@ these scope changes:
   benchmark validates it;
 - expose profile descriptions only in the lobby, or also show them in history;
   and
-- pin exact OpenRouter model revisions for benchmark comparability, if the
+- pin exact LLM model revisions for benchmark comparability, if the
   configured provider supports revision-pinned identifiers.
 
 The safest default is three visible profiles, profile name (but not full

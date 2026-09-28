@@ -39,16 +39,18 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SECRET_KEY=
 TYPESAFE_API_KEY=
-OPENROUTER_API_KEY=
+LLM_API_ENDPOINT=
+LLM_API_KEY=
 LLM_BOT_MODELS=[]
 EXTERNAL_INFERENCE_ENABLED=true
 ```
 
-`SUPABASE_SECRET_KEY`, `TYPESAFE_API_KEY`, and `OPENROUTER_API_KEY` are
+`SUPABASE_SECRET_KEY`, `TYPESAFE_API_KEY`, and `LLM_API_KEY` are
 server-only. Do not prefix them with `NEXT_PUBLIC_` and do not commit `.env`.
 `EXTERNAL_INFERENCE_ENABLED` can be set to `false` in low-cost or offline
 settings, while `LLM_BOT_MODELS` is a JSON array of LLM model definitions used
-through OpenRouter. Each definition accepts `id`, `label`, `modelId`, and an
+through the OpenAI-compatible chat-completions endpoint configured in
+`LLM_API_ENDPOINT`. Each definition accepts `id`, `label`, `modelId`, and an
 optional `reasoning` effort: `none`, `minimal`, `low`, `medium`, `high`, or
 `xhigh`. Reasoning defaults to `minimal` when omitted.
 
@@ -111,7 +113,7 @@ Use the built-in offline bot catalog for deterministic play without external
 inference: `Equity Rules` is the default non-LLM rules option, while
 `TypeSafe Jev` and configurable LLM bots remain available as
 provider-specific choices. `LLM_BOT_MODELS` configures each LLM model and its
-OpenRouter reasoning effort; the lobby's server-owned Balanced, Tight, and
+reasoning effort; the lobby's server-owned Balanced, Tight, and
 Aggressive playstyles are selected independently and never accept custom prompt
 text.
 

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   getLlmBotModels,
+  getLlmServerEnv,
   getSupabaseServerEnv,
   getTypesafeServerEnv,
   llmReasoningEfforts,
@@ -66,6 +67,27 @@ describe("getLlmBotModels", () => {
     expect(getLlmBotModels).toThrow(
       "LLM_BOT_MODELS contains an invalid model definition",
     );
+  });
+});
+
+describe("getLlmServerEnv", () => {
+  it("returns the configured provider-neutral endpoint and credential", () => {
+    vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", "true");
+    vi.stubEnv("LLM_API_ENDPOINT", "https://llm.example.test/chat/completions");
+    vi.stubEnv("LLM_API_KEY", "secret");
+
+    expect(getLlmServerEnv()).toEqual({
+      apiEndpoint: "https://llm.example.test/chat/completions",
+      apiKey: "secret",
+    });
+  });
+
+  it("rejects missing LLM connection settings", () => {
+    vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", "true");
+    vi.stubEnv("LLM_API_ENDPOINT", "");
+    vi.stubEnv("LLM_API_KEY", "");
+
+    expect(getLlmServerEnv).toThrow("LLM_API_ENDPOINT");
   });
 });
 

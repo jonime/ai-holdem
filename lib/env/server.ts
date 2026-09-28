@@ -9,6 +9,11 @@ export interface TypesafeServerEnv {
   readonly typesafeApiKey: string;
 }
 
+export interface LlmServerEnv {
+  readonly apiEndpoint: string;
+  readonly apiKey: string;
+}
+
 export const llmReasoningEfforts = [
   "none",
   "minimal",
@@ -57,9 +62,12 @@ export function getTypesafeServerEnv(): TypesafeServerEnv {
   };
 }
 
-export function getOpenRouterApiKey(): string {
+export function getLlmServerEnv(): LlmServerEnv {
   assertExternalInferenceEnabled();
-  return requiredServerVariable("OPENROUTER_API_KEY");
+  return {
+    apiEndpoint: requiredServerVariable("LLM_API_ENDPOINT"),
+    apiKey: requiredServerVariable("LLM_API_KEY"),
+  };
 }
 
 function isLlmReasoningEffort(value: unknown): value is LlmReasoningEffort {

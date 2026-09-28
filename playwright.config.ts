@@ -30,7 +30,8 @@ function getLocalSupabaseEnvironment(): Record<string, string> {
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: publishableKey,
     SUPABASE_SECRET_KEY: secretKey,
     TYPESAFE_API_KEY: "",
-    OPENROUTER_API_KEY: "",
+    LLM_API_ENDPOINT: "",
+    LLM_API_KEY: "",
     LLM_BOT_MODELS: JSON.stringify([
       {
         id: "llm-test-model",

@@ -6,7 +6,7 @@ import { TypesafeSystemOneClient } from "@/lib/typesafe/client";
 
 import { EquityRulesV2Bot } from "./equity-rules-v2";
 import { JevPokerBot } from "./jev";
-import { OpenRouterPokerBot } from "./openrouter";
+import { LlmPokerBot } from "./llm";
 import type { PokerBot } from "./types";
 import { DEFAULT_BOT_PLAYSTYLE_ID, isBotPlaystyleId } from "./llm-playstyles";
 
@@ -81,7 +81,7 @@ export class ServerBotRegistry implements BotRegistry {
     if (!modelDefinition) throw new Error(`Unknown bot: ${selection.botId}`);
     return {
       descriptor,
-      bot: new OpenRouterPokerBot(
+      bot: new LlmPokerBot(
         modelDefinition.modelId,
         {
           profileId: isBotPlaystyleId(selection.profileId)

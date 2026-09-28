@@ -165,7 +165,7 @@ The installed version is Next.js 16.3.5 with `cacheComponents: true`; preserve t
 Add or update focused tests:
 
 - For every dictionary group and locale, compare all leaf-key paths and interpolation placeholders against English. Existing placeholder-only checks do not catch missing strings without placeholders.
-- Preserve landing copy checks for the engine link label, TypeSafe, and OpenRouter.
+- Preserve landing copy checks for the engine link label, TypeSafe, and LLM bots.
 - Test landing rendering and client-boundary props in English and Finnish: the selector receives one string; the form receives four; neither receives server prose or game sections.
 - Test that the locale layout renders children without a translation provider.
 - Test that the game layout supplies the selected locale’s game dictionary to a provider covering both header and content, with no metadata or landing keys.

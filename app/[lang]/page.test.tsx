@@ -27,7 +27,6 @@ describe("homepage", () => {
     expect(html).toContain('href="/en-US/developers"');
     expect(html).toContain("https://github.com/jonime/ai-holdem");
     expect(html).not.toContain("https://typesafe.ai/");
-    expect(html).not.toContain("https://openrouter.ai/");
     expect(html).not.toContain("@hivetech/poker-engine");
     expect(html).toContain('<form action="/en-US/new-game" method="post">');
     expect(html).toContain('type="submit"');

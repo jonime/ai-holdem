@@ -1,7 +1,7 @@
 import "server-only";
 
 import {
-  getOpenRouterApiKey,
+  getLlmServerEnv,
   type LlmReasoningEffort,
 } from "@/lib/env/server";
 import type { PokerAction } from "@/lib/poker/types";
@@ -17,7 +17,6 @@ import {
 } from "./types";
 import { resolveLlmPlaystyle } from "./llm-playstyles";
 
-const endpoint = "https://openrouter.ai/api/v1/chat/completions";
 const invariantPolicy =
   "Use only the supplied information and optimize expected chip value. Choose only a supplied legal action and, when required, a supplied sizing. Never invent hidden cards or absent information. Return only the schema-constrained JSON.";
 
@@ -57,26 +56,26 @@ function parseOutput(
     !Array.isArray(body.choices) ||
     !isRecord(body.choices[0])
   ) {
-    throw new BotProviderError("OpenRouter returned a malformed response");
+    throw new BotProviderError("LLM provider returned a malformed response");
   }
   const message = body.choices[0].message;
   if (!isRecord(message) || typeof message.content !== "string") {
-    throw new BotProviderError("OpenRouter returned no structured decision");
+    throw new BotProviderError("LLM provider returned no structured decision");
   }
   let output: unknown;
   try {
     output = JSON.parse(message.content);
   } catch {
-    throw new BotProviderError("OpenRouter returned invalid decision JSON");
+    throw new BotProviderError("LLM provider returned invalid decision JSON");
   }
   if (!isRecord(output) || typeof output.action !== "string") {
-    throw new BotProviderError("OpenRouter returned an invalid decision");
+    throw new BotProviderError("LLM provider returned an invalid decision");
   }
   const legal = context.legalActions.find(
     (action) => action.type === output.action,
   );
   if (!legal)
-    throw new BotProviderError("OpenRouter selected an illegal action");
+    throw new BotProviderError("LLM provider selected an illegal action");
   if (legal.type === "fold" || legal.type === "check") {
     return { action: legal, sizingChoice: null };
   }
@@ -87,13 +86,13 @@ function parseOutput(
     };
   }
   if (typeof output.sizing !== "string") {
-    throw new BotProviderError("OpenRouter omitted a required sizing choice");
+    throw new BotProviderError("LLM provider omitted a required sizing choice");
   }
   const sizing = context.sizingOptions.find(
     (option) => option.choice === output.sizing,
   );
   if (!sizing || sizing.amount === null) {
-    throw new BotProviderError("OpenRouter selected an unavailable sizing");
+    throw new BotProviderError("LLM provider selected an unavailable sizing");
   }
   return {
     action: { type: legal.type, amount: sizing.amount },
@@ -101,7 +100,7 @@ function parseOutput(
   };
 }
 
-export class OpenRouterPokerBot implements PokerBot {
+export class LlmPokerBot implements PokerBot {
   private readonly profileId: BotPlaystyleId;
   private readonly reasoning: LlmReasoningEffort;
   private readonly fetcher: FetchLike;
@@ -137,10 +136,11 @@ export class OpenRouterPokerBot implements PokerBot {
     const started = performance.now();
     let response: Response;
     try {
-      response = await this.fetcher(endpoint, {
+      const { apiEndpoint, apiKey } = getLlmServerEnv();
+      response = await this.fetcher(apiEndpoint, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${getOpenRouterApiKey()}`,
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -184,14 +184,14 @@ export class OpenRouterPokerBot implements PokerBot {
     } catch (error) {
       throw new BotProviderError(
         error instanceof Error && error.name === "TimeoutError"
-          ? "OpenRouter timed out"
-          : "OpenRouter request failed",
+          ? "LLM provider timed out"
+          : "LLM provider request failed",
       );
     }
     const body: unknown = await response.json().catch(() => null);
     if (!response.ok) {
       throw new BotProviderError(
-        `OpenRouter request failed with HTTP ${response.status}`,
+        `LLM provider request failed with HTTP ${response.status}`,
       );
     }
     const parsed = parseOutput(body, context);

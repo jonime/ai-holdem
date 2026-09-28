@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { BotContext } from "./types";
-import { OpenRouterPokerBot } from "./openrouter";
+import { LlmPokerBot } from "./llm";
 
 const context = {
   difficulty: "medium",
@@ -45,12 +45,13 @@ const context = {
   ],
 } satisfies BotContext;
 
-describe("OpenRouterPokerBot", () => {
+describe("LlmPokerBot", () => {
   afterEach(() => vi.unstubAllEnvs());
 
   it("parses schema-constrained output and records provider diagnostics", async () => {
     vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", "true");
-    vi.stubEnv("OPENROUTER_API_KEY", "key");
+    vi.stubEnv("LLM_API_ENDPOINT", "https://llm.example.test/chat/completions");
+    vi.stubEnv("LLM_API_KEY", "key");
     const fetcher = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -67,7 +68,7 @@ describe("OpenRouterPokerBot", () => {
         { status: 200 },
       ),
     );
-    const decision = await new OpenRouterPokerBot(
+    const decision = await new LlmPokerBot(
       "vendor/model",
       { reasoning: "high" },
       fetcher,
@@ -95,13 +96,18 @@ describe("OpenRouterPokerBot", () => {
     );
     expect(request.messages[0].content).toContain("Playstyle preference:");
     expect(fetcher).toHaveBeenCalledOnce();
+    expect(fetcher).toHaveBeenCalledWith(
+      "https://llm.example.test/chat/completions",
+      expect.any(Object),
+    );
   });
 
   it.each(["balanced", "tight", "aggressive"] as const)(
     "uses the trusted %s playstyle in the system policy",
     async (profileId) => {
       vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", "true");
-      vi.stubEnv("OPENROUTER_API_KEY", "key");
+      vi.stubEnv("LLM_API_ENDPOINT", "https://llm.example.test/chat/completions");
+      vi.stubEnv("LLM_API_KEY", "key");
       const fetcher = vi.fn().mockResolvedValue(
         new Response(
           JSON.stringify({
@@ -113,7 +119,7 @@ describe("OpenRouterPokerBot", () => {
         ),
       );
 
-      const decision = await new OpenRouterPokerBot(
+      const decision = await new LlmPokerBot(
         "vendor/model",
         profileId,
         fetcher,
@@ -135,17 +141,19 @@ describe("OpenRouterPokerBot", () => {
 
   it("enforces the external-inference guard before making HTTP requests", async () => {
     vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", "false");
-    vi.stubEnv("OPENROUTER_API_KEY", "inherited-key-must-not-be-used");
+    vi.stubEnv("LLM_API_ENDPOINT", "https://llm.example.test/chat/completions");
+    vi.stubEnv("LLM_API_KEY", "inherited-key-must-not-be-used");
     const fetcher = vi.fn();
     await expect(
-      new OpenRouterPokerBot("vendor/model", fetcher).decide(context),
-    ).rejects.toThrow("OpenRouter request failed");
+      new LlmPokerBot("vendor/model", fetcher).decide(context),
+    ).rejects.toThrow("LLM provider request failed");
     expect(fetcher).not.toHaveBeenCalled();
   });
 
   it("rejects invalid or illegal output locally", async () => {
     vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", "true");
-    vi.stubEnv("OPENROUTER_API_KEY", "key");
+    vi.stubEnv("LLM_API_ENDPOINT", "https://llm.example.test/chat/completions");
+    vi.stubEnv("LLM_API_KEY", "key");
     const fetcher = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -157,7 +165,7 @@ describe("OpenRouterPokerBot", () => {
       ),
     );
     await expect(
-      new OpenRouterPokerBot("vendor/model", fetcher).decide(context),
+      new LlmPokerBot("vendor/model", fetcher).decide(context),
     ).rejects.toThrow("illegal action");
   });
 });

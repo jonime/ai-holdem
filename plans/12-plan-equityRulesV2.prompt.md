@@ -39,16 +39,16 @@ Replace the simplistic current equity bot with one user-visible, deterministic n
 
 ### Phase 4: Rules-bot difficulty persistence and UI
 
-12. Add a new timestamped migration under `supabase/migrations/` (never edit the applied 20260930000000 migration): backfill existing `game_players` rows with `bot_provider = 'rules'` and null difficulty to `medium`, then replace `game_players_bot_matches_controller` so both `typesafe` and `rules` bots require a non-null valid difficulty while `openrouter` bots continue to require null. No RPC signature or historical `ai_decisions` update is needed.
-13. Update `assignBotToSeat` in `lib/poker/game-service.ts` to preserve the requested difficulty for `typesafe` and `rules`, while leaving it null for OpenRouter. Centralize that provider capability check locally so the persisted assignment and returned assignment cannot diverge. Extend `lib/poker/game-service.test.ts` with rules-hard and OpenRouter-null cases; retain existing TypeSafe behavior.
-14. Update `components/poker/LobbyPanel.tsx` to show the difficulty selector and persisted `label · difficulty` for both `typesafe` and `rules` providers, while keeping it hidden for OpenRouter. Prefer a small local capability predicate over duplicating provider conditions. No API shape change is needed because the assignment route already validates and forwards all three difficulty values.
+12. Add a new timestamped migration under `supabase/migrations/` (never edit the applied 20260930000000 migration): backfill existing `game_players` rows with `bot_provider = 'rules'` and null difficulty to `medium`, then replace `game_players_bot_matches_controller` so both `typesafe` and `rules` bots require a non-null valid difficulty while `llm` bots continue to require null. No RPC signature or historical `ai_decisions` update is needed.
+13. Update `assignBotToSeat` in `lib/poker/game-service.ts` to preserve the requested difficulty for `typesafe` and `rules`, while leaving it null for LLM bots. Centralize that provider capability check locally so the persisted assignment and returned assignment cannot diverge. Extend `lib/poker/game-service.test.ts` with rules-hard and LLM-null cases; retain existing TypeSafe behavior.
+14. Update `components/poker/LobbyPanel.tsx` to show the difficulty selector and persisted `label · difficulty` for both `typesafe` and `rules` providers, while keeping it hidden for LLM bots. Prefer a small local capability predicate over duplicating provider conditions. No API shape change is needed because the assignment route already validates and forwards all three difficulty values.
 15. Update `test/e2e/lobby.spec.ts` so the deterministic-bot flow selects `equity-rules-v2`, chooses a non-default difficulty, verifies `Equity Rules v2 · <difficulty>` survives reload, completes a hand, appears in history, and starts another hand. Keep the separate TypeSafe difficulty test to protect both provider paths.
 
 ### Phase 5: Documentation and validation
 
 16. Update `README.md` to describe pluggable bots and explicitly identify Equity Rules v2 as the offline/non-LLM deterministic option; correct TypeSafe-only wording in the feature summary. Update `AGENTS.md` purpose/setup wording only where it currently implies all AI seats use TypeSafe, while preserving its architecture/security rules. `CONTRIBUTING.md` needs no change unless implementation alters a command or workflow.
 17. Run focused validation after each phase: analyzer tests; strategy and bot tests; registry/service tests; then direct lint/typecheck on touched files. After integration, run `npm run check` and `npm run build` because the change affects persisted schema, client rendering, and server registry behavior. Apply the new migration to the local Supabase instance before the targeted Playwright lobby test; note that the documented E2E reset is destructive and should only run against the intended local database.
-18. Perform a manual sanity pass in the lobby/game UI: verify exactly one `rules` bot appears, all three difficulty choices persist for it, OpenRouter has no difficulty control, a newly assigned v2 bot advances without external inference, and an existing `basic-equity-v1` fixture/state can still resolve and act.
+18. Perform a manual sanity pass in the lobby/game UI: verify exactly one `rules` bot appears, all three difficulty choices persist for it, LLM bots have no difficulty control, a newly assigned v2 bot advances without external inference, and an existing `basic-equity-v1` fixture/state can still resolve and act.
 
 **Relevant files**
 
@@ -81,6 +81,6 @@ Replace the simplistic current equity bot with one user-visible, deterministic n
 - Include the advanced heuristic scope selected by the user, but do not add a solver, external service, new dependency, persistent opponent model, or fabricated range-equity calculation.
 - Rename/version the public option to `Equity Rules v2` / `equity-rules-v2`.
 - Keep exactly one user-visible non-LLM option; retain `basic-equity-v1` only as an internal compatibility resolver with its original implementation.
-- Support easy/medium/hard for rules bots and persist it in `game_players`; OpenRouter behavior remains unchanged.
+- Support easy/medium/hard for rules bots and persist it in `game_players`; LLM bot behavior remains unchanged.
 - Keep decisions reproducible: seeded Monte Carlo equity plus stable state hashing, with no ambient randomness or I/O.
 - Limit opponent modeling to the current hand's observable actions. Long-term player statistics, GTO claims, tournament ICM, and multi-table learning are out of scope.

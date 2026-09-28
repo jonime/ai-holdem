@@ -23,6 +23,8 @@ jobs:
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
       SUPABASE_SECRET_KEY: ci-placeholder
       TYPESAFE_API_KEY: ci-placeholder
+      LLM_API_ENDPOINT: https://example.com/v1/chat/completions
+      LLM_API_KEY: ci-placeholder
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
