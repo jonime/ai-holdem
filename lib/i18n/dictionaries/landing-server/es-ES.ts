@@ -5,7 +5,8 @@ import type { LandingServerDictionary } from "../../types";
 const dictionary = {
   startRegion: "Iniciar una partida nueva",
   title: "AI Hold'em",
-  intro: "Crea una mesa e invita a alguien a ocupar un asiento libre.",
+  intro: "Juega Texas Hold’em contra bots de IA, invita a amigos o mira cómo juegan los bots.",
+  supportingCopy: "Crea una mesa, elige quién juega y empieza la mano.",
   newGame: "Partida nueva",
   resources: "Recursos del proyecto",
   about: "Acerca de",

@@ -19,6 +19,22 @@ const dictionary = {
     chooseTable: "Wybierz stół",
     instructions:
       "Zajmij co najmniej dwa miejsca, a następnie rozpocznij rozdanie.",
+    guidance: {
+      invalidSettings: "Popraw ustawienia stołu przed rozpoczęciem.",
+      addPlayer: "Dodaj bota na wolne miejsce lub zaproś znajomego.",
+      ready: "Stół jest gotowy. Wybierz Rozpocznij rozdanie.",
+      readyToWatch: "Stół jest gotowy. Wybierz Rozpocznij rozdanie, aby oglądać jako widz.",
+      chooseSeat: "Wybierz wolne miejsce, aby dołączyć.",
+      waitingAsPlayer: "Siedzisz przy stole. Oczekiwanie na rozpoczęcie przez gospodarza.",
+      waitingAsSpectator: "Oglądasz grę. Oczekiwanie na rozpoczęcie przez gospodarza.",
+    },
+    invitation: {
+      copyInviteLink: "Kopiuj link z zaproszeniem",
+      copied: "Skopiowano link z zaproszeniem.",
+      manualCopy: "Skopiuj ręcznie link z zaproszeniem z tego pola.",
+      inviteLink: "Link z zaproszeniem",
+      explanation: "Każda osoba z tym linkiem może zobaczyć stół i zająć wolne miejsce.",
+    },
     yourName: "Twoje imię",
     anonymous: "Anonimowy",
     saveName: "Zapisz nazwę",

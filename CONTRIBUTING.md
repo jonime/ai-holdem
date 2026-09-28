@@ -63,6 +63,11 @@ There are ten locales (`en-US`, `fi-FI`, `es-ES`, `de-DE`, `sv-SE`, `fr-FR`, `pt
 - Server Components load dictionaries directly through the loaders in `lib/i18n/server` (`getMetadataDictionary`, `getLandingServerDictionary`, `getGameDictionary`).
 - The landing page is cached server output: `LanguageMenu` uses locale links and the new-game control is a plain POST form. Keep request cookies and game creation in `app/[lang]/new-game/route.ts`, outside the cached page.
 - Client game components receive the game route's `I18nProvider`, which serves the combined game dictionary from `app/[lang]/game/[gameId]/layout.tsx`.
+- Waiting-lobby onboarding is derived in the pure view-model helper from
+  authoritative seats, viewer ownership, host permissions, and the current
+  settings validity. Keep the invite URL limited to the current origin and
+  localized game pathname; never copy query parameters, fragments, player
+  tokens, or other credentials.
 - Never import dictionary values from client components or shared client utilities (such as `components/poker/view-model.ts`); pass the needed strings explicitly.
 - Long-form About content stays in MDX and is rendered directly by its Server Component route; do not register it in the game dictionary or any shared provider.
 - A future shared interactive component receives its own narrow strings through props.

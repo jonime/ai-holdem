@@ -9,7 +9,12 @@ import type {
   Game,
   TableSettings,
 } from "@/components/poker/types";
-import { filledSeatCount } from "@/components/poker/view-model";
+import {
+  copyInviteUrl,
+  filledSeatCount,
+  inviteUrlFromLocation,
+  selectLobbyGuidance,
+} from "@/components/poker/view-model";
 import styles from "@/components/poker/LobbyPanel.module.css";
 
 export function LobbyPanel({
@@ -63,6 +68,9 @@ export function LobbyPanel({
   const [botPlaystyles, setBotPlaystyles] = useState<
     Readonly<Record<number, BotPlaystyleId>>
   >({});
+  const [copyState, setCopyState] = useState<
+    "idle" | "copied" | "failed"
+  >("idle");
   const [settingsDraft, setSettingsDraft] = useState({
     seatCount: String(game.poker.seatCount),
     smallBlind: String(game.poker.smallBlind),
@@ -87,6 +95,14 @@ export function LobbyPanel({
     parsedSettings.bigBlind > parsedSettings.smallBlind &&
     Number.isSafeInteger(parsedSettings.startingStack) &&
     parsedSettings.startingStack >= parsedSettings.bigBlind;
+  const guidance = selectLobbyGuidance({
+    players: game.poker.players,
+    viewerIsHost: game.viewerIsHost,
+    viewerToken,
+    settingsValid,
+  });
+  const inviteUrl =
+    typeof window === "undefined" ? "" : inviteUrlFromLocation(window.location);
   const updateDraft = (key: keyof typeof settingsDraft, value: string) => {
     setSettingsDraft((current) => ({ ...current, [key]: value }));
   };
@@ -100,6 +116,48 @@ export function LobbyPanel({
         </div>
         <p>{t("lobby.instructions")}</p>
       </header>
+      <div className={styles.guidanceStrip}>
+        <p className={styles.guidanceMessage}>
+          {t(`lobby.guidance.${guidance}`)}
+        </p>
+        <div className={styles.invitation}>
+          <div>
+            <strong>{t("lobby.invitation.copyInviteLink")}</strong>
+            <p>{t("lobby.invitation.explanation")}</p>
+          </div>
+          <Button
+            size="small"
+            onClick={() => {
+              void copyInviteUrl(navigator.clipboard, inviteUrl).then(
+                (copied) => setCopyState(copied ? "copied" : "failed"),
+              );
+            }}
+          >
+            {t("lobby.invitation.copyInviteLink")}
+          </Button>
+          {copyState === "copied" ? (
+            <p className={styles.copyFeedback} role="status" aria-live="polite">
+              {t("lobby.invitation.copied")}
+            </p>
+          ) : null}
+          {copyState === "failed" ? (
+            <div
+              className={styles.manualCopy}
+              role="alert"
+              aria-live="assertive"
+            >
+              <p>{t("lobby.invitation.manualCopy")}</p>
+              <input
+                aria-label={t("lobby.invitation.inviteLink")}
+                readOnly
+                value={inviteUrl}
+                onFocus={(event) => event.currentTarget.select()}
+                onClick={(event) => event.currentTarget.select()}
+              />
+            </div>
+          ) : null}
+        </div>
+      </div>
       <div className={styles.lobbySetup}>
         <form
           className={styles.playerNameControl}

@@ -3,7 +3,8 @@ import "server-only";
 const dictionary = {
   startRegion: "Start a new game",
   title: "AI Hold'em",
-  intro: "Create a table, then invite someone to take an open seat.",
+  intro: "Play Texas Hold’em against AI bots, invite friends, or watch bots play.",
+  supportingCopy: "Create a table, choose who plays, then start the hand.",
   newGame: "New Game",
   resources: "Project resources",
   about: "About",

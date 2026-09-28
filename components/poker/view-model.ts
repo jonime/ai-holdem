@@ -205,6 +205,73 @@ export function filledSeatCount(
   ).length;
 }
 
+export type LobbyGuidanceKey =
+  | "invalidSettings"
+  | "addPlayer"
+  | "ready"
+  | "readyToWatch"
+  | "chooseSeat"
+  | "waitingAsPlayer"
+  | "waitingAsSpectator";
+
+export function selectLobbyGuidance({
+  players,
+  viewerIsHost,
+  viewerToken,
+  settingsValid,
+}: {
+  readonly players: readonly Pick<
+    PublicPokerPlayer,
+    "playerToken" | "status"
+  >[];
+  readonly viewerIsHost: boolean;
+  readonly viewerToken: string | null;
+  readonly settingsValid: boolean;
+}): LobbyGuidanceKey {
+  const viewerIsSeated =
+    viewerToken !== null &&
+    players.some(
+      (player) =>
+        player.status === "claimed" && player.playerToken === viewerToken,
+    );
+
+  if (viewerIsHost) {
+    if (!settingsValid) return "invalidSettings";
+    if (filledSeatCount(players) < 2) return "addPlayer";
+    return viewerIsSeated ? "ready" : "readyToWatch";
+  }
+
+  if (!viewerIsSeated && players.some((player) => player.status === "open")) {
+    return "chooseSeat";
+  }
+
+  return viewerIsSeated ? "waitingAsPlayer" : "waitingAsSpectator";
+}
+
+export function inviteUrlFromLocation(
+  location: Pick<Location, "origin" | "pathname">,
+): string {
+  const inviteUrl = new URL(location.pathname, location.origin);
+  inviteUrl.username = "";
+  inviteUrl.password = "";
+  inviteUrl.search = "";
+  inviteUrl.hash = "";
+  return inviteUrl.href;
+}
+
+export async function copyInviteUrl(
+  clipboard: Pick<Clipboard, "writeText"> | undefined,
+  inviteUrl: string,
+): Promise<boolean> {
+  if (!clipboard) return false;
+  try {
+    await clipboard.writeText(inviteUrl);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function describeHandResult(
   winnerNames: readonly string[] | null | undefined,
   labels: GameDictionary["history"],

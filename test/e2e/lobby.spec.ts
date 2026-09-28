@@ -14,22 +14,17 @@ test("runs a two-player hand in a six-seat lobby", async ({
 }) => {
   test.setTimeout(60_000);
   await page.goto("/en-US");
-  const createResponsePromise = page.waitForResponse(
-    (response) =>
-      response.url().endsWith("/api/games") &&
-      response.request().method() === "POST",
-  );
   await page
     .getByRole("region", { name: "Start a new game" })
     .getByRole("button", { name: "New Game" })
     .click();
-  const createResponse = await createResponsePromise;
-  const createBody = await createResponse.text();
-  expect(createResponse.ok(), createBody).toBe(true);
   await expect(page).toHaveURL(/\/en-US\/game\/[0-9a-f-]+$/);
   const gameUrl = page.url();
 
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
+  await expect(
+    page.getByText("Add a bot to an open seat, or invite a friend."),
+  ).toBeVisible();
   await expect(page.getByRole("button", { name: "Deal a hand" })).toHaveCount(
     0,
   );
@@ -43,8 +38,14 @@ test("runs a two-player hand in a six-seat lobby", async ({
   const secondPage = await secondBrowser.newPage();
   await secondPage.goto(gameUrl);
   await expect(secondPage.getByText("WAITING ROOM")).toBeVisible();
+  await expect(
+    secondPage.getByText("Choose an open seat to join."),
+  ).toBeVisible();
   await secondPage.getByRole("button", { name: "Sit here" }).first().click();
   await expect(secondPage.getByText("Player 2", { exact: true })).toBeVisible();
+  await expect(
+    secondPage.getByText("You’re seated. Waiting for the host to start."),
+  ).toBeVisible();
 
   await expect(page.getByText("Player 2", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Start hand" })).toBeEnabled();
@@ -175,6 +176,9 @@ test("runs the deterministic bot through completion, history, and another hand",
   await expect(
     page.getByText("Equity Rules #1", { exact: true }),
   ).toBeVisible();
+  await expect(
+    page.getByText("Ready to play. Select Start hand."),
+  ).toBeVisible();
   await page.reload();
   await expect(
     page.getByText("Equity Rules #1", { exact: true }),
@@ -223,4 +227,57 @@ test("persists host table settings selected in the lobby", async ({ page }) => {
   await expect(page.getByLabel("Small blind")).toHaveValue("25");
   await expect(page.getByLabel("Big blind")).toHaveValue("50");
   await expect(page.getByLabel("Starting stack")).toHaveValue("5000");
+});
+
+test("copies a clean invite URL and exposes a manual fallback", async ({
+  context,
+  page,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/en-US");
+  await page
+    .getByRole("region", { name: "Start a new game" })
+    .getByRole("button", { name: "New Game" })
+    .click();
+  await expect(page.getByText("WAITING ROOM")).toBeVisible();
+
+  const cleanUrl = page.url();
+  await page.goto(`${cleanUrl}?playerToken=must-not-copy#private-fragment`);
+  const copyButton = page.getByRole("button", { name: "Copy invite link" });
+  await copyButton.focus();
+  await expect(copyButton).toBeFocused();
+  await copyButton.press("Enter");
+  await expect(page.getByRole("status")).toHaveText("Invite link copied.");
+  const copiedUrl = await page.evaluate(() => navigator.clipboard.readText());
+  expect(copiedUrl).toBe(cleanUrl);
+  expect(copiedUrl).not.toContain("?");
+  expect(copiedUrl).not.toContain("#");
+  expect(new URL(copiedUrl).username).toBe("");
+  expect(new URL(copiedUrl).password).toBe("");
+
+  await page.evaluate(() => {
+    Object.defineProperty(navigator.clipboard, "writeText", {
+      configurable: true,
+      value: () => Promise.reject(new Error("clipboard denied")),
+    });
+  });
+  await copyButton.press("Enter");
+  await expect(
+    page
+      .getByRole("alert")
+      .filter({ hasText: "Copy the invite link manually" }),
+  ).toContainText(
+    "Copy the invite link manually from this field.",
+  );
+  const manualLink = page.getByRole("textbox", { name: "Invite link" });
+  await expect(manualLink).toHaveValue(cleanUrl);
+  await manualLink.click();
+  await expect
+    .poll(() =>
+      manualLink.evaluate((input: HTMLInputElement) => [
+        input.selectionStart,
+        input.selectionEnd,
+      ]),
+    )
+    .toEqual([0, cleanUrl.length]);
 });

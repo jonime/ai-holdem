@@ -35,6 +35,56 @@
   font-size: 11px;
   letter-spacing: 1.2px;
 }
+.guidanceStrip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 1.2fr);
+  gap: 18px;
+  align-items: center;
+  margin-top: 20px;
+  padding: 14px 16px;
+  border: 1px solid #91afa2;
+  background: #e9f1e8;
+}
+.guidanceMessage {
+  margin: 0;
+  color: #173a34;
+  font-weight: 700;
+}
+.invitation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px 12px;
+  align-items: center;
+}
+.invitation strong {
+  color: #204e43;
+  font-size: 13px;
+}
+.invitation p {
+  margin: 3px 0 0;
+  color: #526560;
+  font-size: 12px;
+}
+.copyFeedback,
+.manualCopy {
+  grid-column: 1 / -1;
+}
+.copyFeedback {
+  font-weight: 700;
+}
+.manualCopy {
+  display: grid;
+  gap: 7px;
+}
+.manualCopy input {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid #8eaaa0;
+  border-radius: 3px;
+  background: #fffef9;
+  color: var(--ink);
+}
 .lobbySetup {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -257,6 +307,9 @@
   font-size: 14px;
 }
 @media (max-width: 760px) {
+  .guidanceStrip {
+    grid-template-columns: 1fr;
+  }
   .lobbySeat > button {
     margin-left: 0;
   }
@@ -278,6 +331,16 @@
   }
   .lobbyHeading p {
     margin-top: 7px;
+  }
+  .guidanceStrip {
+    margin-top: 16px;
+    padding: 12px;
+  }
+  .invitation {
+    grid-template-columns: 1fr;
+  }
+  .invitation button {
+    width: 100%;
   }
   .lobbySetup {
     gap: 16px;

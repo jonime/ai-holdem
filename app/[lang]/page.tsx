@@ -57,7 +57,8 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
           fetchPriority="high"
         />
         <h1>{APP_NAME}</h1>
-        <p>{landing.intro}</p>
+        <p className={styles.intro}>{landing.intro}</p>
+        <p className={styles.supportingCopy}>{landing.supportingCopy}</p>
         <form method="post" action={`/${lang}/new-game`}>
           <Button variant="primary" size="large" type="submit">
             {landing.newGame}

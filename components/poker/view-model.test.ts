@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import enUsGame from "@/lib/i18n/dictionaries/game/en-US";
 import fiFiGame from "@/lib/i18n/dictionaries/game/fi-FI";
@@ -7,6 +7,7 @@ import {
   arrangeSeats,
   canManageTable,
   cardLabel,
+  copyInviteUrl,
   describeBotConfiguration,
   describeHandResult,
   describeSeatStatus,
@@ -14,8 +15,10 @@ import {
   filledSeatCount,
   findGameWinnerId,
   formatChips,
+  inviteUrlFromLocation,
   parseProbabilities,
   resolveViewer,
+  selectLobbyGuidance,
   latestActionsForStreet,
 } from "./view-model";
 
@@ -276,6 +279,109 @@ describe("view-model", () => {
         { status: "open" },
       ]),
     ).toBe(2);
+  });
+
+  it("prioritizes host guidance by settings, occupancy, and readiness", () => {
+    const creator = {
+      status: "claimed" as const,
+      playerToken: "creator-token",
+    };
+    const bot = { status: "bot" as const, playerToken: null };
+    const open = { status: "open" as const, playerToken: null };
+
+    expect(
+      selectLobbyGuidance({
+        players: [creator, open],
+        viewerIsHost: true,
+        viewerToken: "creator-token",
+        settingsValid: false,
+      }),
+    ).toBe("invalidSettings");
+    expect(
+      selectLobbyGuidance({
+        players: [creator, open],
+        viewerIsHost: true,
+        viewerToken: "creator-token",
+        settingsValid: true,
+      }),
+    ).toBe("addPlayer");
+    expect(
+      selectLobbyGuidance({
+        players: [creator, bot],
+        viewerIsHost: true,
+        viewerToken: "creator-token",
+        settingsValid: true,
+      }),
+    ).toBe("ready");
+    expect(
+      selectLobbyGuidance({
+        players: [creator, bot],
+        viewerIsHost: true,
+        viewerToken: "unseated-host-token",
+        settingsValid: true,
+      }),
+    ).toBe("readyToWatch");
+  });
+
+  it("guides seated and unseated guests for open and full tables", () => {
+    const guest = {
+      status: "claimed" as const,
+      playerToken: "guest-token",
+    };
+    const other = {
+      status: "claimed" as const,
+      playerToken: "other-token",
+    };
+    const open = { status: "open" as const, playerToken: null };
+
+    expect(
+      selectLobbyGuidance({
+        players: [other, open],
+        viewerIsHost: false,
+        viewerToken: "guest-token",
+        settingsValid: true,
+      }),
+    ).toBe("chooseSeat");
+    expect(
+      selectLobbyGuidance({
+        players: [other, guest],
+        viewerIsHost: false,
+        viewerToken: "guest-token",
+        settingsValid: true,
+      }),
+    ).toBe("waitingAsPlayer");
+    expect(
+      selectLobbyGuidance({
+        players: [other, guest],
+        viewerIsHost: false,
+        viewerToken: "spectator-token",
+        settingsValid: true,
+      }),
+    ).toBe("waitingAsSpectator");
+  });
+
+  it("builds credential-free invite URLs and reports clipboard outcomes", async () => {
+    const inviteUrl = inviteUrlFromLocation({
+      origin: "https://user:secret@example.com:8443",
+      pathname: "/fi-FI/game/game-id",
+    });
+    expect(inviteUrl).toBe("https://example.com:8443/fi-FI/game/game-id");
+    expect(inviteUrl).not.toContain("user");
+    expect(inviteUrl).not.toContain("secret");
+    expect(inviteUrl).not.toContain("?");
+    expect(inviteUrl).not.toContain("#");
+
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    await expect(copyInviteUrl({ writeText }, inviteUrl)).resolves.toBe(true);
+    expect(writeText).toHaveBeenCalledWith(inviteUrl);
+
+    await expect(
+      copyInviteUrl(
+        { writeText: vi.fn().mockRejectedValue(new Error("denied")) },
+        inviteUrl,
+      ),
+    ).resolves.toBe(false);
+    await expect(copyInviteUrl(undefined, inviteUrl)).resolves.toBe(false);
   });
 
   it("finds the final winner only after one player remains in a completed hand", () => {

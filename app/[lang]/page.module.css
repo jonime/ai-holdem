@@ -34,11 +34,23 @@
   font-weight: 700;
 }
 
-.emptyState p {
+.intro {
   max-width: 360px;
-  margin: 0 auto 24px;
+  margin: 0 auto 10px;
   color: #56716b;
   font-size: 17px;
+}
+
+.supportingCopy {
+  max-width: 360px;
+  margin: 0 auto 24px;
+  color: #526560;
+  font-size: 14px;
+}
+
+.emptyState form {
+  display: flex;
+  justify-content: center;
 }
 
 .attribution {
@@ -73,8 +85,8 @@
     margin-top: 2vh;
   }
 
-  .newGame {
-    padding: 12px 18px;
-    font-size: 16px;
+  .emptyState form,
+  .emptyState form button {
+    width: 100%;
   }
 }

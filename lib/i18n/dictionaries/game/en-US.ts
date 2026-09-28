@@ -16,6 +16,24 @@ const dictionary = {
     waitingRoom: "Waiting room",
     chooseTable: "Choose your table",
     instructions: "Fill at least two seats, then start the hand.",
+    guidance: {
+      invalidSettings: "Correct the table settings before starting.",
+      addPlayer: "Add a bot to an open seat, or invite a friend.",
+      ready: "Ready to play. Select Start hand.",
+      readyToWatch:
+        "Ready to play. Select Start hand to watch as a spectator.",
+      chooseSeat: "Choose an open seat to join.",
+      waitingAsPlayer: "You’re seated. Waiting for the host to start.",
+      waitingAsSpectator: "You’re watching. Waiting for the host to start.",
+    },
+    invitation: {
+      copyInviteLink: "Copy invite link",
+      copied: "Invite link copied.",
+      manualCopy: "Copy the invite link manually from this field.",
+      inviteLink: "Invite link",
+      explanation:
+        "Anyone with this link can view the table and take an open seat.",
+    },
     yourName: "Your name",
     anonymous: "Anonymous",
     saveName: "Save name",

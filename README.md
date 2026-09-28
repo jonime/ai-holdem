@@ -18,6 +18,22 @@ Public app: [ai-holdem.vercel.app](https://ai-holdem.vercel.app)
 - Keeps AI hole cards, TypeSafe input, raw responses, and private bot state
 	confidential until the relevant hand completes.
 
+## Starting a table
+
+The localized homepage introduces all three ways to use the demo: play against
+AI bots, invite friends, or watch bots play. **New Game** remains the only
+primary action and creates a table whose creator is automatically seated.
+
+While a game is waiting, the lobby shows one contextual next step based on the
+authoritative seat state, host permissions, and the host's current settings.
+Hosts can start with any two occupied seats, including bots, and may stand up
+before starting to watch as a spectator. Guests can take any open seat or wait
+for the host as a spectator. Every waiting lobby also offers a localized copy
+button for the clean game URL (origin plus localized path only); anyone with
+that URL can view the table and take an open seat. If browser clipboard access
+is unavailable, the lobby exposes the same URL in a selectable field for manual
+copying.
+
 This repo treats documentation as part of the implementation. If setup steps,
 commands, env vars, or workflows change, update the docs in the same change.
 This is a security-sensitive project: do not weaken validation, secret handling,

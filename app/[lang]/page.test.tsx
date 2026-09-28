@@ -28,6 +28,12 @@ describe("homepage", () => {
     expect(html).toContain("https://github.com/jonime/ai-holdem");
     expect(html).not.toContain("https://typesafe.ai/");
     expect(html).not.toContain("@hivetech/poker-engine");
+    expect(html).toContain(
+      "Play Texas Hold’em against AI bots, invite friends, or watch bots play.",
+    );
+    expect(html).toContain(
+      "Create a table, choose who plays, then start the hand.",
+    );
     expect(html).toContain('<form action="/en-US/new-game" method="post">');
     expect(html).toContain('type="submit"');
     expect(html).not.toContain("<input");
@@ -41,6 +47,12 @@ describe("homepage", () => {
     expect(html).toContain('href="/fi-FI"');
     expect(html).toContain('aria-current="page"');
     expect(html).toContain('action="/fi-FI/new-game"');
+    expect(html).toContain(
+      "Pelaa Texas Hold’emia tekoälybotteja vastaan, kutsu ystäviä tai katso bottien peliä.",
+    );
+    expect(html).toContain(
+      "Luo pöytä, valitse pelaajat ja aloita sitten käsi.",
+    );
     expect(html).toContain("Uusi peli");
   });
 });
