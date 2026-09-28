@@ -7,6 +7,8 @@ import {
 import type { PokerAction } from "@/lib/poker/types";
 import type { BotPlaystyleId } from "@/lib/poker/types";
 import type { SizingChoice } from "@/lib/typesafe/questions";
+import { createSizingOptions } from "@/lib/typesafe/questions";
+import { decisionCandidates } from "@/lib/poker/decision-candidates";
 
 import {
   BotProviderError,
@@ -18,7 +20,29 @@ import {
 import { resolveLlmPlaystyle } from "./llm-playstyles";
 
 const invariantPolicy =
-  "Use only the supplied information and optimize expected chip value. Choose only a supplied legal action and, when required, a supplied sizing. Never invent hidden cards or absent information. Return only the schema-constrained JSON.";
+  "Use only the supplied information and optimize expected chip value in this no-rake cash game. Choose only a supplied action candidate and, when required, a supplied sizing. The candidates already exclude provably bad decisions; playstyle preferences never override these restrictions. Showdown equity is against random opponent hands, not the opponent's betting range. Compare range-adjusted equity with the supplied contestable-pot odds. Evaluate the best five cards including kickers; a strong category on the board does not mean HERO beats the opponent. On the river no future cards remain, so do not semi-bluff missed draws. Never invent hidden cards or absent information. Return only the schema-constrained JSON.";
+
+function decisionContext(context: BotContext): BotContext {
+  const call = context.legalActions.find((action) => action.type === "call");
+  const callCost = call?.type === "call" ? call.amount : 0;
+  const potAfterCall = context.analysis.contestablePotAfterCall;
+  // The legacy hand.pot omits current street bets. Reconstruct the contestable
+  // pot from commitments so both the model's odds and its sizing use live bets.
+  const pot = Math.max(0, potAfterCall - callCost);
+  const corrected: BotContext = {
+    ...context,
+    hand: { ...context.hand, pot },
+    hero: { ...context.hero, amountToCall: callCost },
+    analysis: {
+      ...context.analysis,
+      callCost,
+      potOddsToCall: potAfterCall > 0 ? callCost / potAfterCall : 0,
+      stackToPotRatio: pot > 0 ? context.analysis.effectiveStack / pot : 0,
+    },
+    legalActions: decisionCandidates(context),
+  };
+  return { ...corrected, sizingOptions: createSizingOptions(corrected) };
+}
 
 interface FetchLike {
   (input: string, init: RequestInit): Promise<Response>;
@@ -91,7 +115,8 @@ function parseOutput(
   const sizing = context.sizingOptions.find(
     (option) => option.choice === output.sizing,
   );
-  if (!sizing || sizing.amount === null) {
+  if (!sizing || sizing.amount === null ||
+    sizing.amount < legal.minAmount || sizing.amount > legal.maxAmount) {
     throw new BotProviderError("LLM provider selected an unavailable sizing");
   }
   return {
@@ -134,6 +159,7 @@ export class LlmPokerBot implements PokerBot {
 
   async decide(context: BotContext): Promise<BotDecision> {
     const started = performance.now();
+    const candidates = decisionContext(context);
     let response: Response;
     try {
       const { apiEndpoint, apiKey } = getLlmServerEnv();
@@ -151,7 +177,7 @@ export class LlmPokerBot implements PokerBot {
               role: "system",
               content: `${invariantPolicy}\n\nPlaystyle preference: ${resolveLlmPlaystyle(this.profileId).instruction}`,
             },
-            { role: "user", content: JSON.stringify(context) },
+            { role: "user", content: JSON.stringify(candidates) },
           ],
           response_format: {
             type: "json_schema",
@@ -165,12 +191,12 @@ export class LlmPokerBot implements PokerBot {
                 properties: {
                   action: {
                     type: "string",
-                    enum: context.legalActions.map((action) => action.type),
+                    enum: candidates.legalActions.map((action) => action.type),
                   },
                   sizing: {
                     type: ["string", "null"],
                     enum: [
-                      ...context.sizingOptions.map((option) => option.choice),
+                      ...candidates.sizingOptions.map((option) => option.choice),
                       null,
                     ],
                   },
@@ -194,7 +220,7 @@ export class LlmPokerBot implements PokerBot {
         `LLM provider request failed with HTTP ${response.status}`,
       );
     }
-    const parsed = parseOutput(body, context);
+    const parsed = parseOutput(body, candidates);
     const usage = isRecord(body) && isRecord(body.usage) ? body.usage : null;
     const cost = usage && typeof usage.cost === "number" ? usage.cost : null;
     return {
@@ -207,7 +233,7 @@ export class LlmPokerBot implements PokerBot {
               confidence: null,
             }
           : null,
-        promptVersion: `llm-poker-v2-${this.profileId}`,
+        promptVersion: `llm-poker-v2.1-${this.profileId}`,
         botProfileId: this.profileId,
         durationMs: Math.round(performance.now() - started),
         usage,

@@ -79,7 +79,8 @@ Keep `BOT_SCENARIO_LIVE=true` in the command when opting into live scenarios. Li
 CI never runs them. A timeout or provider failure is not evidence of bad poker.
 The command uses the production registry, playstyle validation, context options,
 and decision implementations. TypeSafe receives its production corrected
-contestable-pot context; the other bots receive their current production context.
+contestable-pot context. LLM wrappers correct their legacy input to contestable-pot
+odds and sizing before inference, and share Jev's exact river candidate safeguards.
 
 ## Reproducible states and extending the suite
 
@@ -122,3 +123,16 @@ Uncertain decisions remain provider-owned. Offline regression tests verify the
 candidate restrictions, including a beatable ace-high flush and rejection of a
 provider returning an excluded move. A live pass confirms the wrapper/service
 integration on these fixtures, not an improvement in the underlying Jev model.
+
+The configured `gpt-5-nano` (`openai/gpt-5-nano`) passed 24/24 live scenarios
+across balanced, tight, and aggressive playstyles after the LLM wrapper update
+(`llm-poker-v2.1-{playstyle}`), compared with 10/24 in the baseline. All baseline
+failures were blunders, not provider errors. These fixes apply to every configured
+LLM bot, but this live result covers only that model and configuration. Offline
+tests enforce matching request-schema and response-validation restrictions,
+correct live-bet sizing and short-stack odds, and retention of uncertain choices.
+
+```sh
+# Run the configured GPT models on synthetic fixtures (paid external calls)
+BOT_SCENARIO_LIVE=true EXTERNAL_INFERENCE_ENABLED=true npm run test:bots -- -t 'gpt'
+```

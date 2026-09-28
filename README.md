@@ -190,6 +190,13 @@ every possible holding, and bets/raises on a forced board split when checking or
 calling is safe. These are candidate restrictions; the engine remains the final
 legality authority. Ordinary uncertain positions still use Jev's decisions.
 
+LLM bots use policy `llm-poker-v2.1-{playstyle}` and share these candidate
+safeguards with Jev. The request schema and local response validation enforce
+the same restricted action set for every playstyle. LLM context also corrects
+call cost, pot odds, the contestable pot before calling, stack-to-pot ratio, and
+bet/raise sizing for current street commitments and stack-capped calls. Provider
+errors or excluded decisions are rejected rather than silently replaced.
+
 Live Jev evaluation is deliberately separate from CI because it makes one paid
 TypeSafe request per decision:
 

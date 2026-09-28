@@ -1,5 +1,5 @@
 import type { PokerAIState } from "@/lib/poker/ai-state";
-import { riverShareBounds } from "@/lib/poker/adapter";
+import { decisionCandidates } from "@/lib/poker/decision-candidates";
 import type { LegalAction, PokerAction } from "@/lib/poker/types";
 
 import type { ChoiceQuestion, SystemOneRequest } from "./types";
@@ -201,7 +201,7 @@ function passiveDescription(
 export function createMoveOptions(state: PokerAIState): readonly MoveOption[] {
   const canCheck = state.legalActions.some((action) => action.type === "check");
   const moves: MoveOption[] = [];
-  for (const legalAction of state.legalActions) {
+  for (const legalAction of decisionCandidates(state)) {
     if (legalAction.type === "fold") {
       if (!canCheck) {
         const action = { type: "fold" } as const;
@@ -244,26 +244,7 @@ export function createMoveOptions(state: PokerAIState): readonly MoveOption[] {
       });
     }
   }
-  if (
-    state.hand.street !== "river" ||
-    state.opponents.filter((opponent) => opponent.status !== "folded").length !== 1
-  ) return moves;
-
-  const bounds = riverShareBounds(state.hero.holeCards, state.hand.communityCards);
-  const call = state.legalActions.find((action) => action.type === "call");
-  const guaranteedCall = call?.type === "call" &&
-    state.analysis.contestablePotAfterCall > 0 && bounds.minimum > 0 &&
-    bounds.minimum * state.analysis.contestablePotAfterCall >= call.amount;
-  const forcedSplit = bounds.minimum === 0.5 && bounds.maximum === 0.5;
-  // Restrict strategic candidates, never engine legality. No opponent cards or
-  // sampled equity are used to prove these river outcomes.
-  return moves.filter(({ action }) => {
-    if (action.type === "fold" && guaranteedCall) return false;
-    if (action.type === "call" && bounds.maximum === 0) return false;
-    if (forcedSplit && (canCheck || guaranteedCall) &&
-      (action.type === "bet" || action.type === "raise")) return false;
-    return true;
-  });
+  return moves;
 }
 
 export function createPokerDecisionRequest(

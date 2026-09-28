@@ -75,7 +75,7 @@ describe("LlmPokerBot", () => {
     ).decide(context);
     expect(decision.action).toEqual({ type: "call", amount: 1 });
     expect(decision.diagnostics).toMatchObject({
-      promptVersion: "llm-poker-v2-balanced",
+      promptVersion: "llm-poker-v2.1-balanced",
       botProfileId: "balanced",
       cost: 0.001,
     });
@@ -128,12 +128,14 @@ describe("LlmPokerBot", () => {
 
       expect(request.messages[0].role).toBe("system");
       expect(request.messages[0].content).toContain("Playstyle preference:");
-      expect(request.messages[1]).toEqual({
-        role: "user",
-        content: JSON.stringify(context),
+      expect(request.messages[1].role).toBe("user");
+      expect(JSON.parse(request.messages[1].content)).toMatchObject({
+        hero: context.hero,
+        legalActions: context.legalActions,
+        analysis: { callCost: 1, potOddsToCall: 0.25 },
       });
       expect(decision.diagnostics).toMatchObject({
-        promptVersion: `llm-poker-v2-${profileId}`,
+        promptVersion: `llm-poker-v2.1-${profileId}`,
         botProfileId: profileId,
       });
     },
