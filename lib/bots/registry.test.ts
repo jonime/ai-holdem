@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { BasicEquityBot } from "./basic-equity";
 import { getBotCatalog, ServerBotRegistry } from "./registry";
 
 describe("bot registry", () => {
-  it("exposes exactly one rules option and resolves legacy IDs", () => {
+  it("exposes and resolves exactly one rules option", () => {
     const catalog = getBotCatalog();
     const rulesBots = catalog.filter((bot) => bot.provider === "rules");
 
@@ -21,9 +20,9 @@ describe("bot registry", () => {
       label: "Equity Rules",
       provider: "rules",
     });
-    expect(new ServerBotRegistry().get({ botId: "basic-equity-v1" }).bot).toBeInstanceOf(
-      BasicEquityBot,
-    );
+    expect(() =>
+      new ServerBotRegistry().get({ botId: "basic-equity-v1" }),
+    ).toThrow("Unknown bot: basic-equity-v1");
     expect(() => new ServerBotRegistry().get({ botId: "missing-bot" })).toThrow();
   });
 });

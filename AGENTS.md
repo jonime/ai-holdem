@@ -120,3 +120,21 @@ Supabase or TypeSafe services.
 	seat 0 as the human or seat 1 as the AI.
 - Preserve secret masking before changing API responses, history, spectator
 	views, or Realtime payloads.
+
+## Bot scenario evaluations
+
+`npm run test:bots` evaluates real bots against deterministic engine-backed
+scenarios, with separate bot/model, difficulty (or LLM playstyle), and scenario
+test groups. LLM groups cover every server-owned playstyle; filter them with
+`-t 'my-llm.*tight'`. Select
+groups with Vitest `-t`; external provider groups are skipped unless
+`BOT_SCENARIO_LIVE=true`. The command exits nonzero on illegal actions, listed blunders, or provider
+failures. It is separate from CI; fixture and evaluator regression tests run in
+`npm run check`. See `benchmarks/scenarios/README.md` for opt-in live provider
+commands and known weaknesses. Preserve production context options and do not
+weaken strategic expectations to hide a failing bot.
+
+Vitest automatically loads the optional root `.env.test` file for unit tests and
+benchmarks before collecting tests. Existing shell/CI variables take precedence;
+`.env` is not loaded. `.env.test` is ignored by Git and can hold local provider
+credentials. Live bot evaluations still require their explicit opt-in flags.

@@ -22,7 +22,8 @@
     "benchmark:typesafe:live": "TYPESAFE_LIVE_BENCHMARK=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/typesafe-live.live.ts",
     "test:e2e": "playwright test",
     "test:e2e:reset": "supabase db reset --local --yes && playwright test",
-    "check": "npm run lint && npm run typecheck && npm test"
+    "check": "npm run lint && npm run typecheck && npm test",
+    "test:bots": "vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/bot-scenarios.benchmark.ts"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",

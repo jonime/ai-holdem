@@ -1,6 +1,13 @@
+import { existsSync } from "node:fs";
+import { loadEnvFile } from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { defineConfig } from "vitest/config";
+
+// Load before test collection so configured LLMs get their own test groups.
+// Existing shell/CI variables take precedence; the file is optional.
+const testEnvPath = fileURLToPath(new URL("./.env.test", import.meta.url));
+if (existsSync(testEnvPath)) loadEnvFile(testEnvPath);
 
 export default defineConfig({
   test: {

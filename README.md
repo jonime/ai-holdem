@@ -166,7 +166,7 @@ npm run benchmark:policy
 ```
 
 It compares the frozen v1 policy surrogate and the v2 exact-move policy
-surrogate against `basic-equity-v1` plus scripted passive and aggressive
+surrogate against `equity-rules-v2` plus scripted passive and aggressive
 opponents. The JSON report includes big blinds won per 100 hands, a 95%
 uncertainty interval, action frequencies, failures, and decision latency. This
 is a regression harness for policy mechanics, not evidence that Jev plays
@@ -221,3 +221,20 @@ browser -> Next.js API routes -> poker engine + TypeSafe -> Supabase
 Each request applies at most one player action. Supabase RPCs atomically store
 the resulting engine state, action record, and (for AI turns) the decision
 audit while enforcing the expected game version.
+
+## Bot decision scenarios
+
+Run `npm run test:bots` for reproducible engine-backed legality and obvious-blunder
+checks against Equity Rules. Each bot/model has a separate test group. LLMs
+include every supported playstyle (`balanced`, `tight`, `aggressive`) as nested
+groups. Filter a profile with `-t 'my-llm.*tight'`, or select an entire bot with
+`npm run test:bots -- -t 'equity-rules-v2'`. The same fixtures
+support opt-in live TypeSafe and configured LLM bots. See [scenario instructions](benchmarks/scenarios/README.md)
+for commands, costs, extending fixtures, and known failures. This evaluation
+returns nonzero for current bot weaknesses; fixture/grader tests run in ordinary
+`npm run check` without external services.
+
+Vitest automatically loads the optional root `.env.test` file for unit tests and
+benchmarks before collecting tests. Existing shell/CI variables take precedence;
+`.env` is not loaded. `.env.test` is ignored by Git and can hold local provider
+credentials. Live bot evaluations still require their explicit opt-in flags.
