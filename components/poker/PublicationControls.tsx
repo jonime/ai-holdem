@@ -15,6 +15,7 @@ export function PublicationControls({ game, loading, onRefresh }: {
   const [title, setTitle] = useState(game.publication?.title ?? "");
   const [saving, setSaving] = useState(false);
   const isPublic = game.publication?.isPublic === true;
+  const buttonState = saving ? "saving" : isPublic ? "private" : "public";
 
   useEffect(() => {
     if (!isPublic) return;
@@ -55,8 +56,18 @@ export function PublicationControls({ game, loading, onRefresh }: {
     <label className={styles.lobbyField}><span>{t("lobby.publication.title")}</span>
       <input maxLength={60} value={title} placeholder={t("lobby.publication.titlePlaceholder")} onChange={(event) => setTitle(event.target.value)} />
     </label>
-    <Button size="small" disabled={loading || saving} onClick={() => void update(!isPublic)}>
-      {saving ? t("lobby.publication.saving") : isPublic ? t("lobby.publication.makePrivate") : t("lobby.publication.makePublic")}
+    <Button className={styles.publicationButton} disabled={loading || saving} onClick={() => void update(!isPublic)}>
+      <span className={styles.publicationButtonLabels}>
+        <span className={buttonState === "public" ? styles.activeButtonLabel : undefined} aria-hidden={buttonState !== "public"}>
+          {t("lobby.publication.makePublic")}
+        </span>
+        <span className={buttonState === "private" ? styles.activeButtonLabel : undefined} aria-hidden={buttonState !== "private"}>
+          {t("lobby.publication.makePrivate")}
+        </span>
+        <span className={buttonState === "saving" ? styles.activeButtonLabel : undefined} aria-hidden={buttonState !== "saving"}>
+          {t("lobby.publication.saving")}
+        </span>
+      </span>
     </Button>
   </div>;
 }
