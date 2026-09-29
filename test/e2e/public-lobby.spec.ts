@@ -4,19 +4,26 @@ test("publishes, refreshes, reports unavailable, preserves a name, and joins", a
   test.setTimeout(60_000);
   await page.goto("/en-US");
   await page.getByRole("button", { name: "New Game" }).click();
+  const hostGameId = new URL(page.url()).pathname.split("/").at(-1);
+  expect(hostGameId).toBeTruthy();
+  const tableTitle = `Public E2E ${hostGameId!.slice(0, 8)}`;
   await expect(page.getByText("Private (unlisted)", { exact: true })).toBeVisible();
-  await page.getByLabel("Table title (optional)").fill("Public E2E Table");
+  await page.getByLabel("Table title (optional)").fill(tableTitle);
   await page.getByRole("button", { name: "Make public" }).click();
   await expect(page.getByText("Public listing", { exact: true })).toBeVisible();
+  const hostDirectory = await page.request.get("/api/games/public");
+  expect(hostDirectory.ok()).toBe(true);
+  expect((await hostDirectory.json() as { games: { gameId: string }[] }).games)
+    .not.toContainEqual(expect.objectContaining({ gameId: hostGameId }));
 
   const guestContext = await browser.newContext();
   const guest = await guestContext.newPage();
   await guest.goto("/en-US/join-game");
-  await expect(guest.getByText("Public E2E Table", { exact: true })).toBeVisible();
+  await expect(guest.getByText(tableTitle, { exact: true })).toBeVisible();
   await guest.getByLabel("Your name (optional)").fill("Directory Guest");
   await guest.reload();
   await expect(guest.getByLabel("Your name (optional)")).toHaveValue("Directory Guest");
-  const directoryCard = guest.getByRole("listitem").filter({ hasText: "Public E2E Table" });
+  const directoryCard = guest.getByRole("listitem").filter({ hasText: tableTitle });
 
   await page.getByRole("button", { name: "Make private" }).click();
   await expect(page.getByText("Private (unlisted)", { exact: true })).toBeVisible();
@@ -25,8 +32,8 @@ test("publishes, refreshes, reports unavailable, preserves a name, and joins", a
 
   await page.getByRole("button", { name: "Make public" }).click();
   await expect(page.getByText("Public listing", { exact: true })).toBeVisible();
-  await expect(guest.getByText("Public E2E Table", { exact: true })).toBeVisible({ timeout: 18_000 });
-  await guest.getByRole("listitem").filter({ hasText: "Public E2E Table" }).getByRole("button", { name: "Join" }).click();
+  await expect(guest.getByText(tableTitle, { exact: true })).toBeVisible({ timeout: 18_000 });
+  await guest.getByRole("listitem").filter({ hasText: tableTitle }).getByRole("button", { name: "Join" }).click();
   await expect(guest).toHaveURL(/\/en-US\/game\/[0-9a-f-]+$/);
   await expect(guest.getByText("Directory Guest", { exact: true })).toBeVisible();
 

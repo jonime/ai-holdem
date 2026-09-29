@@ -12,6 +12,7 @@ export interface PublicDirectoryRepository {
     readonly cursorGameId?: string | null;
     readonly limit?: number;
   }): Promise<readonly PublicGameDirectoryEntry[]>;
+  listPublicGameExclusions(playerToken: string): Promise<readonly string[]>;
   joinPublicGame(input: {
     readonly gameId: string;
     readonly expectedVersion: number;
@@ -49,6 +50,15 @@ export async function listPublicGames(
     cursorGameId: cursor?.gameId,
     limit: 50,
   });
+}
+
+export function excludeViewerGames(
+  games: readonly PublicGameDirectoryEntry[],
+  excludedGameIds: readonly string[],
+): readonly PublicGameDirectoryEntry[] {
+  if (excludedGameIds.length === 0) return games;
+  const excluded = new Set(excludedGameIds);
+  return games.filter((game) => !excluded.has(game.gameId));
 }
 
 export async function joinPublicGame(

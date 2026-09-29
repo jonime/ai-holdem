@@ -6,6 +6,7 @@ import {
   updateTableSettings,
   validateTableSettings,
 } from "@/lib/poker/game-service";
+import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import type { TableSettings } from "@/lib/poker/types";
 import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
 import { GameConflictError } from "@/lib/supabase/queries";
@@ -68,6 +69,7 @@ export async function PATCH(request: Request, context: SettingsRouteContext) {
       settings,
       getOrCreatePlayerToken(request),
     );
+    invalidatePublicDirectory();
     void publishGameEvent(gameId, "table_settings_updated", game.version, {
       game: toBroadcastGame(game),
     });

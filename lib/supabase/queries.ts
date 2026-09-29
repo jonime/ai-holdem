@@ -260,6 +260,7 @@ export interface GameDatabaseClient {
       | "update_table_settings_if_version"
       | "reveal_human_cards_if_version"
       | "list_public_games"
+      | "list_public_game_exclusions"
       | "set_game_publication_if_version"
       | "renew_game_listing_lease"
       | "join_public_game_if_version"
@@ -874,6 +875,20 @@ export class SupabaseGameRepository {
     if (error) throw new Error(`Unable to list public games: ${error.message}`);
     if (!Array.isArray(data)) throw new Error("Supabase returned an invalid public game directory");
     return data.map(toDirectoryEntry);
+  }
+
+  async listPublicGameExclusions(playerToken: string): Promise<readonly string[]> {
+    const { data, error } = await this.client.rpc("list_public_game_exclusions", {
+      p_player_token: playerToken,
+    });
+    if (error) throw new Error(`Unable to load public game exclusions: ${error.message}`);
+    if (!Array.isArray(data)) throw new Error("Supabase returned invalid public game exclusions");
+    return data.map((value) => {
+      if (!isRecord(value) || typeof value.game_id !== "string") {
+        throw new Error("Supabase returned an invalid public game exclusion");
+      }
+      return value.game_id;
+    });
   }
 
   async setGamePublication(input: {

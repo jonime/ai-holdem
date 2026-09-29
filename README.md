@@ -41,7 +41,10 @@ disconnected lobbies expire from discovery without deleting the game and return
 when the host comes back. The directory refreshes every 15 seconds, supports
 cursor pagination, and only shows unstarted public tables with an open seat.
 Directory joins and competing lobby mutations use the game row lock and an
-expected-version check.
+expected-version check. The page keeps its stable heading and navigation in the
+server-rendered shell and streams the visitor-specific directory through
+Suspense. Shared, visitor-independent candidate pages use a three-second server
+revalidation window; host/seated exclusions remain uncached and request-specific.
 
 This repo treats documentation as part of the implementation. If setup steps,
 commands, env vars, or workflows change, update the docs in the same change.
@@ -107,9 +110,11 @@ used for atomic version-checked game updates.
 
 `20261008000000_add_public_game_directory.sql` adds the private-by-default
 listing table, host leases, directory RPCs, and atomic seat mutation RPCs. Apply
-it and `20261008000100_classify_unavailable_directory_joins.sql` before
-deploying the matching application code; they need no backfill or cleanup
-scheduler.
+it, `20261008000100_classify_unavailable_directory_joins.sql`, and
+`20261008000200_add_public_game_exclusions.sql` before deploying the matching
+application code. The final migration adds the server-only, lightweight viewer
+exclusion query used with the shared directory cache. They need no backfill or
+cleanup scheduler.
 
 ## Automatic Production Migrations
 

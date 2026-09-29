@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
 import { assignBotToSeat } from "@/lib/poker/game-service";
+import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { publishSeatEvent } from "@/lib/realtime/publish";
 import type { AIDifficulty } from "@/lib/poker/types";
@@ -86,6 +87,7 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
       bot.provider === "llm" ? (requestedProfileId ?? "balanced") : null,
       expectedVersion as number,
     );
+    invalidatePublicDirectory();
     void publishSeatEvent(gameId, "seat_bot_assigned", assignment);
     return NextResponse.json({ seat: assignment }, { status: 200 });
   } catch (error) {

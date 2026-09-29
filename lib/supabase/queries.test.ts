@@ -78,6 +78,21 @@ function createClient(options: {
 }
 
 describe("SupabaseGameRepository", () => {
+  it("loads only validated game IDs for visitor-specific directory exclusions", async () => {
+    const { client, rpc } = createClient({
+      updateResult: [{ game_id: "game-1" }, { game_id: "game-2" }],
+    });
+    const repository = new SupabaseGameRepository(client);
+
+    await expect(repository.listPublicGameExclusions("player-token")).resolves.toEqual([
+      "game-1",
+      "game-2",
+    ]);
+    expect(rpc).toHaveBeenCalledWith("list_public_game_exclusions", {
+      p_player_token: "player-token",
+    });
+  });
+
   it("creates and reloads a game", async () => {
     const { client } = createClient({});
     const repository = new SupabaseGameRepository(client);

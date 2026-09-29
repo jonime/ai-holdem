@@ -77,7 +77,10 @@ Supabase or TypeSafe services.
 - Public discovery is opt-in and lease-backed. Missing `game_listings` rows are
 	private; only waiting games with an open seat and an unexpired two-minute host
 	lease are listed. Visible hosts renew every 30 seconds without changing the
-	game version or broadcasting. No cleanup scheduler is used.
+	game version or broadcasting. Shared directory caching is limited to
+	visitor-independent candidate pages with a short lifetime; host/seated
+	exclusions remain request-specific. Successful directory-affecting mutations
+	invalidate the candidate cache. No cleanup scheduler is used.
 - Public DTOs are a security boundary. Reveal active hole cards only to the
 	browser that owns that seat. Do not broadcast private cards, player tokens,
 	TypeSafe inputs, or raw responses.

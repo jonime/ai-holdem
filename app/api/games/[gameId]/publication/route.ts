@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
 import { setGamePublication } from "@/lib/poker/directory";
+import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
@@ -24,6 +25,7 @@ export async function PATCH(request: Request, context: { readonly params: Promis
       isPublic: values.isPublic,
       title: typeof values.title === "string" ? values.title : null,
     });
+    invalidatePublicDirectory();
     return NextResponse.json({ version: game.version });
   } catch (error) {
     if (error instanceof GameConflictError) return NextResponse.json({ error: "Game changed", code: "GAME_CONFLICT" }, { status: 409 });

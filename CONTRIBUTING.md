@@ -64,8 +64,12 @@ There are ten locales (`en-US`, `fi-FI`, `es-ES`, `de-DE`, `sv-SE`, `fr-FR`, `pt
 - Server Components load dictionaries directly through the loaders in `lib/i18n/server` (`getMetadataDictionary`, `getLandingServerDictionary`, `getGameDictionary`).
 - The landing page is cached server output: `LanguageMenu` uses locale links and the new-game control is a plain POST form. Keep request cookies and game creation in `app/[lang]/new-game/route.ts`, outside the cached page.
 - Keep the landing-page **Join game** control a plain server-rendered anchor.
-  Render the directory's initial data in a Suspense-wrapped request-time Server
+  Keep the directory heading and navigation in the server-rendered shell and
+  stream its initial data through a Suspense-wrapped request-time Server
   Component; only its form, polling, pagination, and navigation are client code.
+  Cache only visitor-independent candidate pages. Player-token host/seated
+  exclusions must remain request-specific, and directory mutations must
+  invalidate the shared candidate cache.
 - Client game components receive the game route's `I18nProvider`, which serves the combined game dictionary from `app/[lang]/game/[gameId]/layout.tsx`.
 - Waiting-lobby onboarding is derived in the pure view-model helper from
   authoritative seats, viewer ownership, host permissions, and the current

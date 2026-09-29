@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken, setPlayerTokenCookie } from "@/lib/identity/player-token";
 import { joinPublicGame } from "@/lib/poker/directory";
+import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { publishSeatEvent } from "@/lib/realtime/publish";
 
@@ -32,6 +33,7 @@ export async function POST(request: Request, context: { readonly params: Promise
       const unavailable = NextResponse.json({ error: "Game is no longer available", code: "GAME_UNAVAILABLE" }, { status: 410 });
       return setPlayerTokenCookie(unavailable, playerToken);
     }
+    if (!result.duplicate) invalidatePublicDirectory();
     const assignment = (await repository.getSeatAssignments(gameId)).find((seat) => seat.seat === result.seat);
     if (assignment) void publishSeatEvent(gameId, "seat_claimed", assignment);
     const joined = NextResponse.json({ gameId, seat: result.seat, version: result.version });

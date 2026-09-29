@@ -3,8 +3,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PATCH } from "./route";
 import { publishGameEvent } from "@/lib/realtime/publish";
 
-const { updateTableSettingsMock } = vi.hoisted(() => ({
+const { invalidatePublicDirectoryMock, updateTableSettingsMock } = vi.hoisted(() => ({
+  invalidatePublicDirectoryMock: vi.fn(),
   updateTableSettingsMock: vi.fn(),
+}));
+
+vi.mock("@/lib/poker/public-directory-cache", () => ({
+  invalidatePublicDirectory: invalidatePublicDirectoryMock,
 }));
 
 vi.mock("@/lib/poker/game-service", async (importOriginal) => ({
@@ -94,5 +99,6 @@ describe("PATCH /api/games/[gameId]/settings", () => {
       2,
       expect.any(Object),
     );
+    expect(invalidatePublicDirectoryMock).toHaveBeenCalledOnce();
   });
 });

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -110,11 +109,7 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
   };
 
   return (
-    <section className={styles.panel}>
-      <div className={styles.headingRow}>
-        <div><h1>{dictionary.title}</h1><p>{dictionary.intro}</p></div>
-        <Link href={`/${locale}`}>{dictionary.back}</Link>
-      </div>
+    <div>
       <label className={styles.nameField}>{dictionary.playerName}
         <input maxLength={30} value={name} placeholder={dictionary.namePlaceholder} onChange={(event) => { setName(event.target.value); window.localStorage.setItem(nameKey, event.target.value); }} />
       </label>
@@ -137,6 +132,6 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
         </li>)}</ul>
       )}
       {cursor && <button className={styles.loadMore} type="button" disabled={loadingMore} onClick={() => void loadMore()}>{loadingMore ? dictionary.loadingMore : dictionary.loadMore}</button>}
-    </section>
+    </div>
   );
 }

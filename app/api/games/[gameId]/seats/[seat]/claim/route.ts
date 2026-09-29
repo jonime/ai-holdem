@@ -5,6 +5,7 @@ import {
   setPlayerTokenCookie,
 } from "@/lib/identity/player-token";
 import { claimSeat } from "@/lib/poker/game-service";
+import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { publishSeatEvent } from "@/lib/realtime/publish";
 
@@ -42,6 +43,7 @@ export async function POST(request: Request, context: ClaimSeatRouteContext) {
       playerName,
       expectedVersion as number,
     );
+    invalidatePublicDirectory();
     void publishSeatEvent(gameId, "seat_claimed", assignment);
     const result = NextResponse.json({ seat: assignment }, { status: 200 });
     setPlayerTokenCookie(result, playerToken);
