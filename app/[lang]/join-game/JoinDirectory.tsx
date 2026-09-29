@@ -118,7 +118,7 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
       </div>
       {message && <p className={warning ? styles.warning : styles.notice} role="status">{message}</p>}
       {games.length === 0 ? (
-        <div className={styles.empty}><p>{initialError ? dictionary.initialError : dictionary.empty}</p><button type="button" onClick={() => void refresh()}>{dictionary.retry}</button></div>
+        <div className={styles.empty}><p>{initialError ? dictionary.initialError : dictionary.empty}</p></div>
       ) : (
         <ul className={styles.list}>{games.map((game) => <li key={game.gameId} className={styles.card}>
           <div><h2>{game.title ?? text(dictionary, "fallbackTitle", { id: game.gameId.slice(0, 8) })}</h2>

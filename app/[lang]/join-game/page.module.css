@@ -8,7 +8,7 @@
 .nameField { display: grid; gap: 7px; max-width: 420px; margin-top: 28px; font-weight: 700; }
 .nameField input { min-height: 44px; padding: 9px 12px; border: 1px solid #78978e; border-radius: 4px; background: #fff; font: inherit; }
 .toolbar { display: flex; justify-content: flex-end; margin: 18px 0 10px; }
-.toolbar button, .card button, .empty button, .loadMore { min-height: 40px; padding: 9px 14px; border: 1px solid #507a6d; border-radius: 5px; background: #fffef9; color: #173a34; font-weight: 700; }
+.toolbar button, .card button, .loadMore { min-height: 40px; padding: 9px 14px; border: 1px solid #507a6d; border-radius: 5px; background: #fffef9; color: #173a34; font-weight: 700; }
 .card button { min-width: 100px; border: 0; background: var(--button-primary-background); color: var(--button-primary-color); box-shadow: 3px 3px 0 var(--button-primary-shadow); }
 .warning, .notice { padding: 10px 12px; border-left: 4px solid #bc7a17; background: #fff4d8; }
 .notice { border-color: #507a6d; background: #e4eee5; }
