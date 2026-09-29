@@ -8,6 +8,7 @@ const dictionary = {
   intro: "Spiele Texas Hold’em gegen KI-Bots, lade Freunde ein oder sieh Bots beim Spielen zu.",
   supportingCopy: "Erstelle einen Tisch, wähle die Mitspieler und starte dann die Hand.",
   newGame: "Neues Spiel",
+  joinGame: "Spiel beitreten",
   resources: "Projektressourcen",
   about: "Über das Projekt",
   developerResources: "Entwicklerressourcen",

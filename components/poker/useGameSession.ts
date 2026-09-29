@@ -328,6 +328,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       window.localStorage.setItem("ai-holdem-player-name", trimmedName);
       return postSeatAction(`/api/games/${game?.id}/seats/${seat}/claim`, {
         ...(trimmedName ? { name: trimmedName } : {}),
+        expectedVersion: game?.version,
       });
     },
     [game, postSeatAction],
@@ -351,7 +352,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
 
   const releaseSeat = useCallback(
     async (seat: number) => {
-      await postSeatAction(`/api/games/${game?.id}/seats/${seat}/release`);
+      await postSeatAction(`/api/games/${game?.id}/seats/${seat}/release`, { expectedVersion: game?.version });
     },
     [game, postSeatAction],
   );
@@ -367,6 +368,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
         difficulty,
         botId,
         ...(botProfileId ? { botProfileId } : {}),
+        expectedVersion: game?.version,
       });
     },
     [game, postSeatAction],
@@ -707,5 +709,6 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     revealCards,
     retryBotTurn,
     selectHistoryHand,
+    refreshDirectoryState: performRefresh,
   };
 }

@@ -17,6 +17,11 @@ export async function POST(request: Request, context: ReleaseSeatRouteContext) {
   }
 
   const playerToken = getOrCreatePlayerToken(request);
+  const body: unknown = await request.json().catch(() => null);
+  const expectedVersion = body && typeof body === "object" ? (body as Record<string, unknown>).expectedVersion : undefined;
+  if (!Number.isSafeInteger(expectedVersion) || (expectedVersion as number) < 0) {
+    return NextResponse.json({ error: "Invalid expected version" }, { status: 400 });
+  }
 
   try {
     const assignment = await releaseSeat(
@@ -24,10 +29,14 @@ export async function POST(request: Request, context: ReleaseSeatRouteContext) {
       gameId,
       seat,
       playerToken,
+      expectedVersion as number,
     );
     void publishSeatEvent(gameId, "seat_released", assignment);
     return NextResponse.json({ seat: assignment }, { status: 200 });
   } catch (error) {
+    if (error instanceof Error && error.name === "GameConflictError") {
+      return NextResponse.json({ error: "Game changed", code: "GAME_CONFLICT" }, { status: 409 });
+    }
     if (
       error instanceof Error &&
       error.message === "Seat does not belong to this player"

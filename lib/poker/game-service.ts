@@ -18,6 +18,7 @@ import type {
   PersistAIActionInput,
   PersistHumanActionInput,
   PersistedGame,
+  GameListing,
   StartNextHandInput,
   UpdateSeatCountInput,
 } from "@/lib/supabase/queries";
@@ -104,6 +105,10 @@ export interface GameHostReader {
   getHostToken(gameId: string): Promise<string | null>;
 }
 
+export interface GameListingReader {
+  getGameListing(gameId: string): Promise<GameListing | null>;
+}
+
 export type SeatStatus = "open" | "claimed" | "bot";
 
 export interface SeatAssignment {
@@ -137,6 +142,12 @@ export interface SeatAssignmentRepository {
     readonly leaving?: boolean;
     readonly enginePlayerId?: string | null;
   }): Promise<void>;
+}
+
+export interface AtomicSeatAssignmentRepository {
+  claimSeatIfVersion(input: { readonly gameId: string; readonly expectedVersion: number; readonly seat: number; readonly playerToken: string; readonly name: string | null }): Promise<SeatAssignment>;
+  assignBotIfVersion(input: { readonly gameId: string; readonly expectedVersion: number; readonly seat: number; readonly hostToken: string; readonly name: string; readonly bot: BotDescriptor; readonly aiDifficulty: AIDifficulty | null; readonly botProfileId: BotPlaystyleId | null }): Promise<SeatAssignment>;
+  releaseSeatIfVersion(input: { readonly gameId: string; readonly expectedVersion: number; readonly seat: number; readonly playerToken: string }): Promise<SeatAssignment>;
 }
 
 export interface HumanActionWriter {
@@ -223,6 +234,11 @@ export interface PublicGame {
   readonly status: PersistedGame["status"];
   readonly version: number;
   readonly viewerIsHost: boolean;
+  readonly publication?: {
+    readonly isPublic: boolean;
+    readonly title: string | null;
+    readonly leaseExpiresAt: string;
+  } | null;
   readonly poker: PublicPokerGame;
 }
 
@@ -807,12 +823,16 @@ export async function updateTableSettings(
 }
 
 export async function claimSeat(
-  repository: SeatAssignmentRepository,
+  repository: SeatAssignmentRepository & Partial<AtomicSeatAssignmentRepository>,
   gameId: string,
   seat: number,
   playerToken: string,
   playerName?: string,
+  expectedVersion?: number,
 ): Promise<SeatAssignment> {
+  if (repository.claimSeatIfVersion && expectedVersion !== undefined) {
+    return repository.claimSeatIfVersion({ gameId, expectedVersion, seat, playerToken, name: playerName ?? null });
+  }
   const seatAssignments = await repository.getSeatAssignments(gameId);
   const assignment = seatAssignments.find((entry) => entry.seat === seat);
 
@@ -919,7 +939,7 @@ export async function updatePlayerName(
 }
 
 export async function assignBotToSeat(
-  repository: SeatAssignmentRepository & Partial<GameHostReader>,
+  repository: SeatAssignmentRepository & Partial<GameHostReader & AtomicSeatAssignmentRepository>,
   gameId: string,
   seat: number,
   hostToken: string,
@@ -931,6 +951,7 @@ export async function assignBotToSeat(
     modelId: "jev-latest",
   },
   botProfileId: BotPlaystyleId | null = null,
+  expectedVersion?: number,
 ): Promise<SeatAssignment> {
   const seatAssignments = await repository.getSeatAssignments(gameId);
   const assignment = seatAssignments.find((entry) => entry.seat === seat);
@@ -949,6 +970,14 @@ export async function assignBotToSeat(
     (entry) => entry.status === "bot",
   ).length;
   const name = `${bot.label} #${existingBotCount + 1}`;
+
+  if (repository.assignBotIfVersion && expectedVersion !== undefined) {
+    return repository.assignBotIfVersion({
+      gameId, expectedVersion, seat, hostToken, name, bot,
+      aiDifficulty: supportsDifficulty(bot.provider) ? difficulty : null,
+      botProfileId: bot.provider === "llm" ? (botProfileId ?? "balanced") : null,
+    });
+  }
 
   const updatedAssignment: SeatAssignment = {
     ...assignment,
@@ -981,11 +1010,15 @@ export async function assignBotToSeat(
 }
 
 export async function releaseSeat(
-  repository: SeatAssignmentRepository & Partial<GameReader & GameHostReader>,
+  repository: SeatAssignmentRepository & Partial<GameReader & GameHostReader & AtomicSeatAssignmentRepository>,
   gameId: string,
   seat: number,
   playerToken: string,
+  expectedVersion?: number,
 ): Promise<SeatAssignment> {
+  if (repository.releaseSeatIfVersion && expectedVersion !== undefined) {
+    return repository.releaseSeatIfVersion({ gameId, expectedVersion, seat, playerToken });
+  }
   const seatAssignments = await repository.getSeatAssignments(gameId);
   const assignment = seatAssignments.find((entry) => entry.seat === seat);
 
@@ -1048,7 +1081,7 @@ export async function releaseSeat(
 
 export async function getPublicGame(
   repository: GameReader &
-    Partial<GameHostReader & SeatAssignmentRepository & HandRevealReader>,
+    Partial<GameHostReader & GameListingReader & SeatAssignmentRepository & HandRevealReader>,
   gameId: string,
   viewerPlayerToken?: string | null,
 ): Promise<PublicGame> {
@@ -1075,15 +1108,27 @@ export async function getPublicGame(
           )?.id ?? null)
         : null;
 
+  const viewerIsHost = await isCallerHost(
+    repository,
+    gameId,
+    viewerPlayerToken ?? null,
+  );
+  const listing = viewerIsHost && repository.getGameListing
+    ? await repository.getGameListing(gameId)
+    : null;
+
   return {
     id: game.id,
     status: game.status,
     version: game.version,
-    viewerIsHost: await isCallerHost(
-      repository,
-      gameId,
-      viewerPlayerToken ?? null,
-    ),
+    viewerIsHost,
+    publication: viewerIsHost
+      ? {
+          isPublic: listing?.isPublic ?? false,
+          title: listing?.title ?? null,
+          leaseExpiresAt: listing?.hostLeaseExpiresAt ?? "",
+        }
+      : null,
     poker: {
       ...pokerEngineAdapter.publicProjection(
         state,

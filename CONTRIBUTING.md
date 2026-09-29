@@ -49,6 +49,7 @@ Translations are physically split by route and usage under `lib/i18n/dictionarie
 |---|---|
 | `metadata/<locale>.ts` | `generateMetadata` in the locale layout |
 | `landing-server/<locale>.ts` | landing page Server Component prose |
+| `join-game/<locale>.ts` | public-directory strings passed into its client island |
 | `game/<locale>.ts` | combined lobby/table/history/feed/cards/errors dictionary |
 
 The About route is the exception to the TypeScript dictionary layout: its long-form
@@ -62,6 +63,9 @@ There are ten locales (`en-US`, `fi-FI`, `es-ES`, `de-DE`, `sv-SE`, `fr-FR`, `pt
 - To add a locale, add `<locale>.ts` to each dictionary directory, register it in `SUPPORTED_LOCALES` in `lib/i18n/index.ts`, and add its dynamic import entry to the matching map in `lib/i18n/server.ts`.
 - Server Components load dictionaries directly through the loaders in `lib/i18n/server` (`getMetadataDictionary`, `getLandingServerDictionary`, `getGameDictionary`).
 - The landing page is cached server output: `LanguageMenu` uses locale links and the new-game control is a plain POST form. Keep request cookies and game creation in `app/[lang]/new-game/route.ts`, outside the cached page.
+- Keep the landing-page **Join game** control a plain server-rendered anchor.
+  Render the directory's initial data in a Suspense-wrapped request-time Server
+  Component; only its form, polling, pagination, and navigation are client code.
 - Client game components receive the game route's `I18nProvider`, which serves the combined game dictionary from `app/[lang]/game/[gameId]/layout.tsx`.
 - Waiting-lobby onboarding is derived in the pure view-model helper from
   authoritative seats, viewer ownership, host permissions, and the current
@@ -88,6 +92,10 @@ Docs are part of the implementation.
 - Keep secrets server-only. Do not add `NEXT_PUBLIC_` prefixes or import server code into client components.
 - Do not expose private hole cards, player tokens, raw TypeSafe inputs, or private responses in public DTOs.
 - Keep database mutations atomic and scoped to at most one action per request.
+- Public listings are private by default. Preserve the two-minute database-time
+  host lease, 30-second visible-host heartbeat, and server-role-only access.
+  Seat claims, moves, bot assignments, releases, start, and settings changes
+  must retain the shared game lock and expected-version ordering.
 
 ## Pull requests
 

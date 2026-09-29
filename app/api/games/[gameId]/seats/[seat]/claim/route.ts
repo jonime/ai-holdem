@@ -28,6 +28,10 @@ export async function POST(request: Request, context: ClaimSeatRouteContext) {
     typeof (body as { name?: unknown }).name === "string"
       ? (body as { name: string }).name
       : undefined;
+  const expectedVersion = body && typeof body === "object" ? (body as Record<string, unknown>).expectedVersion : undefined;
+  if (!Number.isSafeInteger(expectedVersion) || (expectedVersion as number) < 0) {
+    return NextResponse.json({ error: "Invalid expected version" }, { status: 400 });
+  }
 
   try {
     const assignment = await claimSeat(
@@ -36,12 +40,16 @@ export async function POST(request: Request, context: ClaimSeatRouteContext) {
       seat,
       playerToken,
       playerName,
+      expectedVersion as number,
     );
     void publishSeatEvent(gameId, "seat_claimed", assignment);
     const result = NextResponse.json({ seat: assignment }, { status: 200 });
     setPlayerTokenCookie(result, playerToken);
     return result;
   } catch (error) {
+    if (error instanceof Error && error.name === "GameConflictError") {
+      return NextResponse.json({ error: "Game changed", code: "GAME_CONFLICT" }, { status: 409 });
+    }
     if (error instanceof Error && error.message === "Seat is not open") {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }

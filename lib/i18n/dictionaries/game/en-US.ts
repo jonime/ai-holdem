@@ -34,6 +34,7 @@ const dictionary = {
       explanation:
         "Anyone with this link can view the table and take an open seat.",
     },
+    publication: { public: "Public listing", private: "Private (unlisted)", explanation: "Public tables disappear if this lobby is hidden or disconnected for two minutes.", title: "Table title (optional)", titlePlaceholder: "Table name", makePublic: "Make public", makePrivate: "Make private", saving: "Saving…" },
     yourName: "Your name",
     anonymous: "Anonymous",
     saveName: "Save name",

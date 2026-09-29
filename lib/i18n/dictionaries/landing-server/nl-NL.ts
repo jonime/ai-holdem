@@ -8,6 +8,7 @@ const dictionary = {
   intro: "Speel Texas Hold’em tegen AI-bots, nodig vrienden uit of kijk hoe bots spelen.",
   supportingCopy: "Maak een tafel, kies wie speelt en start daarna de hand.",
   newGame: "Nieuw spel",
+  joinGame: "Deelnemen aan een spel",
   resources: "Projectbronnen",
   about: "Over",
   developerResources: "Ontwikkelaarsbronnen",

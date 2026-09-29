@@ -50,6 +50,18 @@
   color: #173a34;
   font-weight: 700;
 }
+.publication {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(220px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid #b7c9c0;
+  background: #fffef9;
+}
+.publication p { margin: 4px 0 0; color: #526560; font-size: 12px; }
+.publication input { min-height: 38px; padding: 7px 9px; border: 1px solid #8eaaa0; border-radius: 3px; }
 .invitation {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

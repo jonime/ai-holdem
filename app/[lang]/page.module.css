@@ -53,6 +53,29 @@
   justify-content: center;
 }
 
+.joinGame {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 14px;
+  padding: 10px 18px;
+  border: 1px solid #507a6d;
+  border-radius: 5px;
+  background: #fffef9;
+  color: #173a34;
+  box-shadow: 2px 2px 0 #b6c8bf;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.joinGame:hover,
+.joinGame:focus-visible {
+  border-color: #285f52;
+  background: #e4eee5;
+  transform: translate(-1px, -1px);
+}
+
 .attribution {
   display: flex;
   flex-wrap: wrap;
@@ -87,6 +110,10 @@
 
   .emptyState form,
   .emptyState form button {
+    width: 100%;
+  }
+
+  .joinGame {
     width: 100%;
   }
 }

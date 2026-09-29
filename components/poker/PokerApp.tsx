@@ -90,6 +90,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     revealCards,
     retryBotTurn,
     selectHistoryHand,
+    refreshDirectoryState,
   } = useGameSession(gameId, historyOpen);
 
   const viewerToken = getClientPlayerToken();
@@ -304,6 +305,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           }
           onReleaseSeat={(seat) => void releaseSeat(seat)}
           onStartWaitingGame={(settings) => void startWaitingGame(settings)}
+          onRefresh={refreshDirectoryState}
         />
       ) : (
         <div className={styles.gameLayout}>

@@ -34,6 +34,7 @@ const dictionary = {
       inviteLink: "Einladungslink",
       explanation: "Jeder mit diesem Link kann den Tisch ansehen und einen freien Platz nehmen.",
     },
+    publication: { public: "Öffentlich gelistet", private: "Privat (nicht gelistet)", explanation: "Öffentliche Tische verschwinden, wenn diese Lobby zwei Minuten verborgen oder getrennt ist.", title: "Tischname (optional)", titlePlaceholder: "Tischname", makePublic: "Veröffentlichen", makePrivate: "Privat machen", saving: "Wird gespeichert…" },
     yourName: "Dein Name",
     anonymous: "Anonym",
     saveName: "Namen speichern",

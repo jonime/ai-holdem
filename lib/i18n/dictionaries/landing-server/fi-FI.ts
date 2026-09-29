@@ -8,6 +8,7 @@ const dictionary = {
   intro: "Pelaa Texas Hold’emia tekoälybotteja vastaan, kutsu ystäviä tai katso bottien peliä.",
   supportingCopy: "Luo pöytä, valitse pelaajat ja aloita sitten käsi.",
   newGame: "Uusi peli",
+  joinGame: "Liity peliin",
   resources: "Projektin resurssit",
   about: "Tietoja",
   developerResources: "Kehittäjäresurssit",

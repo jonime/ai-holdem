@@ -33,6 +33,10 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
     body && typeof body === "object" && "botProfileId" in body
       ? (body as Record<string, unknown>).botProfileId
       : undefined;
+  const expectedVersion = body && typeof body === "object" ? (body as Record<string, unknown>).expectedVersion : undefined;
+  if (!Number.isSafeInteger(expectedVersion) || (expectedVersion as number) < 0) {
+    return NextResponse.json({ error: "Invalid expected version" }, { status: 400 });
+  }
   if (requestedBotId !== undefined && typeof requestedBotId !== "string") {
     return NextResponse.json({ error: "Invalid bot ID" }, { status: 400 });
   }
@@ -80,10 +84,14 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
       difficulty,
       bot,
       bot.provider === "llm" ? (requestedProfileId ?? "balanced") : null,
+      expectedVersion as number,
     );
     void publishSeatEvent(gameId, "seat_bot_assigned", assignment);
     return NextResponse.json({ seat: assignment }, { status: 200 });
   } catch (error) {
+    if (error instanceof Error && error.name === "GameConflictError") {
+      return NextResponse.json({ error: "Game changed", code: "GAME_CONFLICT" }, { status: 409 });
+    }
     if (
       error instanceof Error &&
       error.message === "Only the host can assign bots"

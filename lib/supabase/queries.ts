@@ -100,6 +100,32 @@ export interface GamePlayerSeatAssignment {
   readonly enginePlayerId: string | null;
 }
 
+export interface GameListing {
+  readonly isPublic: boolean;
+  readonly title: string | null;
+  readonly publishedAt: string;
+  readonly hostLeaseExpiresAt: string;
+}
+
+export interface PublicGameDirectoryEntry {
+  readonly gameId: string;
+  readonly title: string | null;
+  readonly version: number;
+  readonly occupiedSeats: number;
+  readonly totalSeats: number;
+  readonly humanCount: number;
+  readonly botCount: number;
+  readonly smallBlind: number;
+  readonly bigBlind: number;
+  readonly startingStack: number;
+  readonly publishedAt: string;
+}
+
+export type DirectoryJoinResult =
+  | { readonly outcome: "joined"; readonly seat: number; readonly version: number; readonly duplicate: boolean }
+  | { readonly outcome: "conflict"; readonly version: number }
+  | { readonly outcome: "unavailable" };
+
 export interface CreateGameSessionInput extends CreateGameInput {
   readonly hostToken?: string;
   readonly players: readonly {
@@ -195,7 +221,7 @@ interface FilteredQueryResult extends PromiseLike<DatabaseResult> {
 }
 
 export interface GameDatabaseClient {
-  from(table: "games" | "game_players" | "game_hosts" | "hand_card_reveals"): {
+  from(table: "games" | "game_players" | "game_hosts" | "game_listings" | "hand_card_reveals"): {
     insert(values: Record<string, unknown>): {
       select(): {
         single(): PromiseLike<DatabaseResult>;
@@ -232,7 +258,14 @@ export interface GameDatabaseClient {
       | "update_game_state_if_version"
       | "update_seat_count_if_version"
       | "update_table_settings_if_version"
-      | "reveal_human_cards_if_version",
+      | "reveal_human_cards_if_version"
+      | "list_public_games"
+      | "set_game_publication_if_version"
+      | "renew_game_listing_lease"
+      | "join_public_game_if_version"
+      | "claim_game_seat_if_version"
+      | "assign_bot_to_seat_if_version"
+      | "release_game_seat_if_version",
     arguments_: Record<string, unknown>,
   ): PromiseLike<DatabaseResult>;
 }
@@ -341,6 +374,29 @@ function toPersistedGame(value: unknown): PersistedGame {
     handNumber: requiredNonNegativeInteger(value, "hand_number"),
     version: requiredNonNegativeInteger(value, "version"),
     botsShowUncontestedWins: value.bots_show_uncontested_wins === true,
+  };
+}
+
+function toDirectoryEntry(value: unknown): PublicGameDirectoryEntry {
+  if (!isRecord(value)) {
+    throw new Error("Supabase returned an invalid public game entry");
+  }
+  const title = value.title;
+  if (title !== null && typeof title !== "string") {
+    throw new Error("Supabase returned an invalid public game title");
+  }
+  return {
+    gameId: requiredString(value, "game_id"),
+    title,
+    version: requiredNonNegativeInteger(value, "version"),
+    occupiedSeats: requiredNonNegativeInteger(value, "occupied_seats"),
+    totalSeats: requiredNonNegativeInteger(value, "total_seats"),
+    humanCount: requiredNonNegativeInteger(value, "human_count"),
+    botCount: requiredNonNegativeInteger(value, "bot_count"),
+    smallBlind: requiredNonNegativeInteger(value, "small_blind"),
+    bigBlind: requiredNonNegativeInteger(value, "big_blind"),
+    startingStack: requiredNonNegativeInteger(value, "starting_stack"),
+    publishedAt: requiredString(value, "published_at"),
   };
 }
 
@@ -626,6 +682,52 @@ export class SupabaseGameRepository {
     }
   }
 
+  private async atomicSeatResult(
+    functionName: "claim_game_seat_if_version" | "assign_bot_to_seat_if_version" | "release_game_seat_if_version",
+    arguments_: Record<string, unknown>,
+    gameId: string,
+    expectedVersion: number,
+    seat: number,
+  ): Promise<GamePlayerSeatAssignment> {
+    const { data, error } = await this.client.rpc(functionName, arguments_);
+    if (error) throw new Error(`Unable to update seat assignment: ${error.message}`);
+    if (!isRecord(data) || typeof data.outcome !== "string") throw new Error("Supabase returned an invalid seat mutation result");
+    if (data.outcome === "conflict") throw new GameConflictError(gameId, expectedVersion);
+    if (data.outcome === "missing") throw new Error("Seat does not exist");
+    if (data.outcome === "unavailable") throw new Error("Seat is not open");
+    if (data.outcome === "forbidden") throw new Error("Seat does not belong to this player");
+    if (data.outcome !== "ok") throw new Error("Unable to update seat assignment");
+    const assignment = (await this.getSeatAssignments(gameId)).find((candidate) => candidate.seat === seat);
+    if (!assignment) throw new Error("Seat does not exist");
+    return assignment;
+  }
+
+  async claimSeatIfVersion(input: { readonly gameId: string; readonly expectedVersion: number; readonly seat: number; readonly playerToken: string; readonly name: string | null }) {
+    return this.atomicSeatResult("claim_game_seat_if_version", {
+      p_game_id: input.gameId, p_expected_version: input.expectedVersion, p_seat: input.seat,
+      p_player_token: input.playerToken, p_name: input.name,
+    }, input.gameId, input.expectedVersion, input.seat);
+  }
+
+  async assignBotIfVersion(input: { readonly gameId: string; readonly expectedVersion: number; readonly seat: number; readonly hostToken: string; readonly name: string; readonly bot: BotDescriptor; readonly aiDifficulty: AIDifficulty | null; readonly botProfileId: BotPlaystyleId | null }) {
+    return this.atomicSeatResult("assign_bot_to_seat_if_version", {
+      p_game_id: input.gameId, p_expected_version: input.expectedVersion, p_seat: input.seat, p_host_token: input.hostToken,
+      p_name: input.name, p_bot_id: input.bot.id, p_bot_label: input.bot.label, p_bot_provider: input.bot.provider,
+      p_bot_model_id: input.bot.modelId, p_ai_difficulty: input.aiDifficulty, p_bot_profile_id: input.botProfileId,
+    }, input.gameId, input.expectedVersion, input.seat);
+  }
+
+  async releaseSeatIfVersion(input: { readonly gameId: string; readonly expectedVersion: number; readonly seat: number; readonly playerToken: string }) {
+    try {
+      return await this.atomicSeatResult("release_game_seat_if_version", {
+        p_game_id: input.gameId, p_expected_version: input.expectedVersion, p_seat: input.seat, p_player_token: input.playerToken,
+      }, input.gameId, input.expectedVersion, input.seat);
+    } catch (error) {
+      if (error instanceof Error && error.message === "Seat does not belong to this player") throw error;
+      throw error;
+    }
+  }
+
   async createGame(input: CreateGameInput): Promise<PersistedGame> {
     const { data, error } = await this.client
       .from("games")
@@ -738,6 +840,98 @@ export class SupabaseGameRepository {
       throw new Error("Supabase returned an invalid game host");
     }
     return data.host_token;
+  }
+
+  async getGameListing(gameId: string): Promise<GameListing | null> {
+    const { data, error } = await this.client
+      .from("game_listings")
+      .select()
+      .eq("game_id", gameId)
+      .maybeSingle();
+    if (error) throw new Error(`Unable to load game listing: ${error.message}`);
+    if (data === null) return null;
+    if (!isRecord(data)) throw new Error("Supabase returned an invalid game listing");
+    return {
+      isPublic: data.is_public === true,
+      title: typeof data.title === "string" ? data.title : null,
+      publishedAt: requiredString(data, "published_at"),
+      hostLeaseExpiresAt: requiredString(data, "host_lease_expires_at"),
+    };
+  }
+
+  async listPublicGames(input: {
+    readonly playerToken: string | null;
+    readonly cursorPublishedAt?: string | null;
+    readonly cursorGameId?: string | null;
+    readonly limit?: number;
+  }): Promise<readonly PublicGameDirectoryEntry[]> {
+    const { data, error } = await this.client.rpc("list_public_games", {
+      p_player_token: input.playerToken,
+      p_cursor_published_at: input.cursorPublishedAt ?? null,
+      p_cursor_game_id: input.cursorGameId ?? null,
+      p_limit: input.limit ?? 50,
+    });
+    if (error) throw new Error(`Unable to list public games: ${error.message}`);
+    if (!Array.isArray(data)) throw new Error("Supabase returned an invalid public game directory");
+    return data.map(toDirectoryEntry);
+  }
+
+  async setGamePublication(input: {
+    readonly gameId: string;
+    readonly expectedVersion: number;
+    readonly hostToken: string;
+    readonly isPublic: boolean;
+    readonly title: string | null;
+  }): Promise<PersistedGame> {
+    const { data, error } = await this.client.rpc("set_game_publication_if_version", {
+      p_game_id: input.gameId,
+      p_expected_version: input.expectedVersion,
+      p_host_token: input.hostToken,
+      p_is_public: input.isPublic,
+      p_title: input.title,
+    });
+    if (error) throw new Error(error.message.includes("NOT_HOST") ? "Only the host can change publication" : error.message);
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new GameConflictError(input.gameId, input.expectedVersion);
+    }
+    return toPersistedGame(data[0]);
+  }
+
+  async renewGameListingLease(gameId: string, hostToken: string): Promise<boolean> {
+    const { data, error } = await this.client.rpc("renew_game_listing_lease", {
+      p_game_id: gameId,
+      p_host_token: hostToken,
+    });
+    if (error) throw new Error(`Unable to renew game listing: ${error.message}`);
+    if (typeof data !== "boolean") throw new Error("Supabase returned an invalid lease result");
+    return data;
+  }
+
+  async joinPublicGame(input: {
+    readonly gameId: string;
+    readonly expectedVersion: number;
+    readonly playerToken: string;
+    readonly name: string | null;
+  }): Promise<DirectoryJoinResult> {
+    const { data, error } = await this.client.rpc("join_public_game_if_version", {
+      p_game_id: input.gameId,
+      p_expected_version: input.expectedVersion,
+      p_player_token: input.playerToken,
+      p_name: input.name,
+    });
+    if (error) throw new Error(`Unable to join public game: ${error.message}`);
+    if (!isRecord(data) || (data.outcome !== "joined" && data.outcome !== "conflict" && data.outcome !== "unavailable")) {
+      throw new Error("Supabase returned an invalid join result");
+    }
+    if (data.outcome === "unavailable") return { outcome: "unavailable" };
+    const version = requiredNonNegativeInteger(data, "version");
+    if (data.outcome === "conflict") return { outcome: "conflict", version };
+    return {
+      outcome: "joined",
+      seat: requiredNonNegativeInteger(data, "seat"),
+      version,
+      duplicate: data.duplicate === true,
+    };
   }
 
   async getHandHistory(

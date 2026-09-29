@@ -30,6 +30,16 @@ import nlNlMetadata from "./metadata/nl-NL";
 import plPlMetadata from "./metadata/pl-PL";
 import ptBrMetadata from "./metadata/pt-BR";
 import svSeMetadata from "./metadata/sv-SE";
+import deDeJoin from "./join-game/de-DE";
+import enUsJoin from "./join-game/en-US";
+import esEsJoin from "./join-game/es-ES";
+import fiFiJoin from "./join-game/fi-FI";
+import frFrJoin from "./join-game/fr-FR";
+import itItJoin from "./join-game/it-IT";
+import nlNlJoin from "./join-game/nl-NL";
+import plPlJoin from "./join-game/pl-PL";
+import ptBrJoin from "./join-game/pt-BR";
+import svSeJoin from "./join-game/sv-SE";
 
 const metadataDictionaries = {
   "de-DE": deDeMetadata,
@@ -70,6 +80,13 @@ const gameDictionaries = {
   "sv-SE": svSeGame,
 };
 
+const joinDictionaries = {
+  "de-DE": deDeJoin, "en-US": enUsJoin, "es-ES": esEsJoin,
+  "fi-FI": fiFiJoin, "fr-FR": frFrJoin, "it-IT": itItJoin,
+  "nl-NL": nlNlJoin, "pl-PL": plPlJoin, "pt-BR": ptBrJoin,
+  "sv-SE": svSeJoin,
+};
+
 function leafMap(value: unknown, path = ""): Record<string, string[]> {
   if (value === null || typeof value !== "object") {
     const placeholders =
@@ -105,6 +122,11 @@ describe("translation dictionaries", () => {
     (_locale, dictionary) => {
       expect(leafMap(dictionary)).toEqual(leafMap(enUsGame));
     },
+  );
+
+  it.each(Object.entries(joinDictionaries))(
+    "%s join directory preserves every leaf key and interpolation placeholder",
+    (_locale, dictionary) => expect(leafMap(dictionary)).toEqual(leafMap(enUsJoin)),
   );
 
   it("keeps createGame in the game dictionary", () => {

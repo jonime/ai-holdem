@@ -34,6 +34,7 @@ const dictionary = {
       inviteLink: "Uitnodigingslink",
       explanation: "Iedereen met deze link kan de tafel bekijken en een vrije plaats innemen.",
     },
+    publication: { public: "Openbare vermelding", private: "Privé (niet vermeld)", explanation: "Openbare tafels verdwijnen als deze lobby twee minuten verborgen of offline is.", title: "Tafelnaam (optioneel)", titlePlaceholder: "Tafelnaam", makePublic: "Openbaar maken", makePrivate: "Privé maken", saving: "Opslaan…" },
     yourName: "Je naam",
     anonymous: "Anoniem",
     saveName: "Naam opslaan",

@@ -90,10 +90,37 @@ export const gameSchema = z.object({
   status: z.enum(["waiting", "playing", "complete", "error"]),
   version: z.number().int().nonnegative(),
   viewerIsHost: z.boolean(),
+  publication: z
+    .object({
+      isPublic: z.boolean(),
+      title: z.string().max(60).nullable(),
+      leaseExpiresAt: z.string(),
+    })
+    .nullable()
+    .default(null),
   poker: publicGameSchema,
 });
 
 export const gameEnvelopeSchema = z.object({ game: gameSchema });
+
+export const publicDirectoryEntrySchema = z.object({
+  gameId: z.string().uuid(),
+  title: z.string().max(60).nullable(),
+  version: z.number().int().nonnegative(),
+  occupiedSeats: z.number().int().nonnegative(),
+  totalSeats: z.number().int().min(2).max(6),
+  humanCount: z.number().int().nonnegative(),
+  botCount: z.number().int().nonnegative(),
+  smallBlind: z.number().int().positive(),
+  bigBlind: z.number().int().positive(),
+  startingStack: z.number().int().positive(),
+  publishedAt: z.string(),
+});
+
+export const publicDirectoryEnvelopeSchema = z.object({
+  games: z.array(publicDirectoryEntrySchema).max(50),
+  nextCursor: z.string().nullable(),
+});
 
 const broadcastPlayerSchema = publicPlayerSchema
   .extend({

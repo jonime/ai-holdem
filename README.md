@@ -21,8 +21,9 @@ Public app: [ai-holdem.vercel.app](https://ai-holdem.vercel.app)
 ## Starting a table
 
 The localized homepage introduces all three ways to use the demo: play against
-AI bots, invite friends, or watch bots play. **New Game** remains the only
-primary action and creates a table whose creator is automatically seated.
+AI bots, invite friends, or watch bots play. **New Game** creates a private,
+unlisted table whose creator is automatically seated. **Join game** opens the
+public-lobby directory; invite links continue to work for private tables.
 
 While a game is waiting, the lobby shows one contextual next step based on the
 authoritative seat state, host permissions, and the host's current settings.
@@ -33,6 +34,14 @@ button for the clean game URL (origin plus localized path only); anyone with
 that URL can view the table and take an open seat. If browser clipboard access
 is unavailable, the lobby exposes the same URL in a selectable field for manual
 copying.
+
+Hosts may publish a waiting lobby with an optional 60-character title. A visible
+host lobby renews its two-minute database lease every 30 seconds; hidden or
+disconnected lobbies expire from discovery without deleting the game and return
+when the host comes back. The directory refreshes every 15 seconds, supports
+cursor pagination, and only shows unstarted public tables with an open seat.
+Directory joins and competing lobby mutations use the game row lock and an
+expected-version check.
 
 This repo treats documentation as part of the implementation. If setup steps,
 commands, env vars, or workflows change, update the docs in the same change.
@@ -96,6 +105,12 @@ order using the Supabase SQL Editor, or let the GitHub integration below push
 them for you. The migrations create RLS-protected tables and server-only RPCs
 used for atomic version-checked game updates.
 
+`20261008000000_add_public_game_directory.sql` adds the private-by-default
+listing table, host leases, directory RPCs, and atomic seat mutation RPCs. Apply
+it and `20261008000100_classify_unavailable_directory_joins.sql` before
+deploying the matching application code; they need no backfill or cleanup
+scheduler.
+
 ## Automatic Production Migrations
 
 Migrations deploy via Supabase's native GitHub integration rather than a
@@ -144,7 +159,7 @@ npm run build
 
 Every route is served under `/{locale}/` for ten supported locales. Dictionaries
 live in `lib/i18n/dictionaries/` as `server-only` modules split by route group
-(`metadata`, `landing-server`, `game`). Server Components load them directly
+(`metadata`, `landing-server`, `join-game`, `game`). Server Components load them directly
 through `lib/i18n/server`; client game components receive the game route's
 `I18nProvider`. The landing page uses a server-rendered language menu and a plain
 HTML form that creates an anonymous game without JavaScript. See

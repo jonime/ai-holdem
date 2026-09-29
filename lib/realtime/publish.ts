@@ -31,6 +31,7 @@ export interface BroadcastGame {
   readonly status: PublicGame["status"];
   readonly version: number;
   readonly viewerIsHost: false;
+  readonly publication: null;
   readonly poker: Omit<PublicGame["poker"], "legalActions" | "players"> & {
     readonly legalActions: readonly [];
     readonly players: readonly (Omit<
@@ -47,6 +48,7 @@ export function toBroadcastGame(game: PublicGame): BroadcastGame {
   return {
     ...game,
     viewerIsHost: false,
+    publication: null,
     poker: {
       ...game.poker,
       legalActions: [],

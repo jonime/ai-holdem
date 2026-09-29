@@ -74,6 +74,10 @@ Supabase or TypeSafe services.
 	Preserve optimistic-concurrency conflict handling in service and API layers.
 - Postgres is the source of truth. Realtime events are best-effort wake-up
 	signals; clients refetch and must continue to work if Broadcast is unavailable.
+- Public discovery is opt-in and lease-backed. Missing `game_listings` rows are
+	private; only waiting games with an open seat and an unexpired two-minute host
+	lease are listed. Visible hosts renew every 30 seconds without changing the
+	game version or broadcasting. No cleanup scheduler is used.
 - Public DTOs are a security boundary. Reveal active hole cards only to the
 	browser that owns that seat. Do not broadcast private cards, player tokens,
 	TypeSafe inputs, or raw responses.
@@ -101,7 +105,7 @@ Supabase or TypeSafe services.
 - `lib/realtime/`: server publishing and client refetch subscriptions.
 - `lib/i18n/`: locale helpers, server-only dictionary loaders, and per-locale
 	dictionaries split by route group (`metadata`, `landing-server`,
-	`game`) under `lib/i18n/dictionaries/`.
+	`join-game`, `game`) under `lib/i18n/dictionaries/`.
 - `content/about/`: localized MDX for the server-only About route; every locale
 	exports its own title and description metadata and follows the same heading
 	structure.
@@ -120,6 +124,9 @@ Supabase or TypeSafe services.
 	seat 0 as the human or seat 1 as the AI.
 - Preserve secret masking before changing API responses, history, spectator
 	views, or Realtime payloads.
+- Directory joins and lobby seat mutations must stay in atomic, version-checked
+	RPCs that lock the game row. Apply the public-directory migration before the
+	application code; existing games require no listing backfill.
 
 ## Bot scenario evaluations
 

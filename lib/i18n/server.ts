@@ -5,7 +5,21 @@ import type {
   GameDictionary,
   LandingServerDictionary,
   MetadataDictionary,
+  JoinGameDictionary,
 } from "./types";
+
+const joinGameDictionaries: Record<Locale, () => Promise<JoinGameDictionary>> = {
+  "en-US": () => import("./dictionaries/join-game/en-US").then((m) => m.default),
+  "fi-FI": () => import("./dictionaries/join-game/fi-FI").then((m) => m.default),
+  "es-ES": () => import("./dictionaries/join-game/es-ES").then((m) => m.default),
+  "de-DE": () => import("./dictionaries/join-game/de-DE").then((m) => m.default),
+  "sv-SE": () => import("./dictionaries/join-game/sv-SE").then((m) => m.default),
+  "fr-FR": () => import("./dictionaries/join-game/fr-FR").then((m) => m.default),
+  "pt-BR": () => import("./dictionaries/join-game/pt-BR").then((m) => m.default),
+  "it-IT": () => import("./dictionaries/join-game/it-IT").then((m) => m.default),
+  "nl-NL": () => import("./dictionaries/join-game/nl-NL").then((m) => m.default),
+  "pl-PL": () => import("./dictionaries/join-game/pl-PL").then((m) => m.default),
+};
 
 const metadataDictionaries: Record<Locale, () => Promise<MetadataDictionary>> =
   {
@@ -116,4 +130,8 @@ export async function getGameDictionary(
   locale: Locale,
 ): Promise<GameDictionary> {
   return gameDictionaries[locale]();
+}
+
+export async function getJoinGameDictionary(locale: Locale): Promise<JoinGameDictionary> {
+  return joinGameDictionaries[locale]();
 }

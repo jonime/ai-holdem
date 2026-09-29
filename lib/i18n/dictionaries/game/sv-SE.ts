@@ -34,6 +34,7 @@ const dictionary = {
       inviteLink: "Inbjudningslänk",
       explanation: "Alla med länken kan se bordet och ta en ledig plats.",
     },
+    publication: { public: "Offentlig listning", private: "Privat (olistad)", explanation: "Offentliga bord försvinner om lobbyn är dold eller frånkopplad i två minuter.", title: "Bordstitel (valfri)", titlePlaceholder: "Bordsnamn", makePublic: "Gör offentlig", makePrivate: "Gör privat", saving: "Sparar…" },
     yourName: "Ditt namn",
     anonymous: "Anonym",
     saveName: "Spara namn",

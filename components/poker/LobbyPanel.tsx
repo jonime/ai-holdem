@@ -16,6 +16,7 @@ import {
   selectLobbyGuidance,
 } from "@/components/poker/view-model";
 import styles from "@/components/poker/LobbyPanel.module.css";
+import { PublicationControls } from "./PublicationControls";
 
 export function LobbyPanel({
   game,
@@ -29,6 +30,7 @@ export function LobbyPanel({
   onAssignBot,
   onReleaseSeat,
   onStartWaitingGame,
+  onRefresh,
 }: {
   readonly game: Game;
   readonly botCatalog: readonly BotDescriptor[];
@@ -46,6 +48,7 @@ export function LobbyPanel({
   ) => void;
   readonly onReleaseSeat: (seat: number) => void;
   readonly onStartWaitingGame: (settings: TableSettings) => void;
+  readonly onRefresh: () => Promise<unknown>;
 }) {
   const { t } = useI18n();
   const canManage = game.viewerIsHost;
@@ -158,6 +161,7 @@ export function LobbyPanel({
           ) : null}
         </div>
       </div>
+      {canManage ? <PublicationControls game={game} loading={loading} onRefresh={onRefresh} /> : null}
       <div className={styles.lobbySetup}>
         <form
           className={styles.playerNameControl}

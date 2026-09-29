@@ -8,6 +8,7 @@ const dictionary = {
   intro: "Gioca a Texas Hold’em contro bot IA, invita gli amici o guarda i bot giocare.",
   supportingCopy: "Crea un tavolo, scegli chi gioca e poi avvia la mano.",
   newGame: "Nuova partita",
+  joinGame: "Unisciti a una partita",
   resources: "Risorse del progetto",
   about: "Informazioni",
   developerResources: "Risorse per sviluppatori",

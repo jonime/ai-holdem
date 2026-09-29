@@ -1,6 +1,7 @@
 import type enMetadata from "./dictionaries/metadata/en-US";
 import type enLandingServer from "./dictionaries/landing-server/en-US";
 import type enGame from "./dictionaries/game/en-US";
+import type enJoinGame from "./dictionaries/join-game/en-US";
 
 type DictionaryShape<Value> = Value extends string
   ? string
@@ -11,3 +12,4 @@ export type LandingServerDictionary = DictionaryShape<
   typeof enLandingServer
 >;
 export type GameDictionary = DictionaryShape<typeof enGame>;
+export type JoinGameDictionary = DictionaryShape<typeof enJoinGame>;

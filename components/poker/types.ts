@@ -17,6 +17,11 @@ export interface Game {
   readonly status: "waiting" | "playing" | "complete" | "error";
   readonly version: number;
   readonly viewerIsHost: boolean;
+  readonly publication?: {
+    readonly isPublic: boolean;
+    readonly title: string | null;
+    readonly leaseExpiresAt: string;
+  } | null;
   readonly poker: PublicPokerGame;
 }
 

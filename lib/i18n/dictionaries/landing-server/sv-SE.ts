@@ -8,6 +8,7 @@ const dictionary = {
   intro: "Spela Texas Hold’em mot AI-botar, bjud in vänner eller se botar spela.",
   supportingCopy: "Skapa ett bord, välj vilka som spelar och starta sedan given.",
   newGame: "Nytt spel",
+  joinGame: "Gå med i ett spel",
   resources: "Projektresurser",
   about: "Om projektet",
   developerResources: "Utvecklarresurser",

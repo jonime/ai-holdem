@@ -34,6 +34,7 @@ const dictionary = {
       inviteLink: "Kutsulinkki",
       explanation: "Linkin saanut voi katsella pöytää ja ottaa avoimen paikan.",
     },
+    publication: { public: "Julkinen listaus", private: "Yksityinen (ei listattu)", explanation: "Julkinen pöytä katoaa, jos aula on piilossa tai yhteys katkeaa kahdeksi minuutiksi.", title: "Pöydän nimi (valinnainen)", titlePlaceholder: "Pöydän nimi", makePublic: "Tee julkiseksi", makePrivate: "Tee yksityiseksi", saving: "Tallennetaan…" },
     yourName: "Nimesi",
     anonymous: "Anonyymi",
     saveName: "Tallenna nimi",

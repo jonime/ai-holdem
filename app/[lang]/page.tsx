@@ -64,6 +64,9 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
             {landing.newGame}
           </Button>
         </form>
+        <Link className={styles.joinGame} href={`/${lang}/join-game`}>
+          {landing.joinGame}
+        </Link>
       </section>
       <nav
         className={styles.attribution}
