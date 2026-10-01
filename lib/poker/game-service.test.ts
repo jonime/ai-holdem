@@ -20,6 +20,7 @@ import {
 } from "./game-service";
 import { createDeterministicDeck, pokerEngineAdapter } from "./adapter";
 import type {
+  GameFeedActionItem,
   PersistAIActionInput,
   PersistedGame,
   PersistHumanActionInput,
@@ -2001,7 +2002,7 @@ describe("getGameFeed", () => {
             handNumber: 1,
             status: "complete" as const,
             initialState,
-            finalState: state,
+            latestState: state,
             actions: [
               {
                 sequence: 1,
@@ -2021,6 +2022,7 @@ describe("getGameFeed", () => {
 
     expect(feed.events).toEqual([
       { type: "handStarted", handNumber: 1 },
+      { type: "street", handNumber: 1, street: "preflop", cards: [] },
       {
         type: "blind",
         handNumber: 1,
@@ -2087,7 +2089,7 @@ describe("getGameFeed", () => {
             handNumber: 2,
             status: "playing" as const,
             initialState,
-            finalState: null,
+            latestState: initialState,
             actions: [],
           },
         ],
@@ -2097,6 +2099,7 @@ describe("getGameFeed", () => {
     await expect(getGameFeed(repository, "game-1")).resolves.toEqual({
       events: [
         { type: "handStarted", handNumber: 2 },
+        { type: "street", handNumber: 2, street: "preflop", cards: [] },
         expect.objectContaining({
           type: "blind",
           blind: "small",
@@ -2111,6 +2114,104 @@ describe("getGameFeed", () => {
     });
   });
 
+  it("emits every revealed street when an all-in board runs out without later actions", async () => {
+    const initialState = pokerEngineAdapter.startHand(
+      pokerEngineAdapter.createGame({
+        smallBlind: 50,
+        bigBlind: 100,
+        players: [
+          {
+            id: "human",
+            name: "You",
+            controller: "human",
+            seat: 0,
+            stack: 1_000,
+          },
+          {
+            id: "bot",
+            name: "Bot",
+            controller: "bot",
+            seat: 1,
+            stack: 1_000,
+          },
+        ],
+      }),
+      createDeterministicDeck(),
+    );
+    const actions: GameFeedActionItem[] = [];
+    let state = initialState;
+
+    for (let sequence = 1; sequence <= 2; sequence += 1) {
+      const before = state;
+      const snapshot = pokerEngineAdapter.snapshot(before);
+      const actorId = snapshot.currentActorId;
+      if (!actorId || snapshot.street === null || snapshot.street === "complete") {
+        throw new Error("Expected an active preflop actor");
+      }
+      const legalActions = pokerEngineAdapter.getLegalActions(before);
+      const legalRaise = legalActions.find(
+        (candidate) => candidate.type === "raise",
+      );
+      const legalCall = legalActions.find(
+        (candidate) => candidate.type === "call",
+      );
+      const action = legalRaise
+        ? { type: "raise" as const, amount: legalRaise.maxAmount }
+        : legalCall
+          ? { type: "call" as const, amount: legalCall.amount }
+          : null;
+      if (!action) throw new Error("Expected an all-in raise or call action");
+      state = pokerEngineAdapter.applyAction(before, actorId, action);
+      actions.push({
+        sequence,
+        street: snapshot.street,
+        action: action.type,
+        amount: action.amount,
+        player: actorId === "human" ? "You" : "Bot",
+        controller: actorId === "human" ? ("human" as const) : ("bot" as const),
+      });
+    }
+
+    const finalBoard = pokerEngineAdapter.snapshot(state).communityCards;
+    const repository = {
+      getGameFeed: async () => ({
+        hands: [
+          {
+            handNumber: 3,
+            status: "complete" as const,
+            initialState,
+            latestState: state,
+            actions,
+          },
+        ],
+      }),
+    };
+
+    const feed = await getGameFeed(repository, "game-1");
+
+    expect(feed.events.filter((event) => event.type === "street")).toEqual([
+      { type: "street", handNumber: 3, street: "preflop", cards: [] },
+      {
+        type: "street",
+        handNumber: 3,
+        street: "flop",
+        cards: finalBoard.slice(0, 3),
+      },
+      {
+        type: "street",
+        handNumber: 3,
+        street: "turn",
+        cards: finalBoard.slice(0, 4),
+      },
+      {
+        type: "street",
+        handNumber: 3,
+        street: "river",
+        cards: finalBoard.slice(0, 5),
+      },
+    ]);
+  });
+
   it("keeps actions when blind synthesis cannot restore the initial state", async () => {
     const repository = {
       getGameFeed: async () => ({
@@ -2119,7 +2220,7 @@ describe("getGameFeed", () => {
             handNumber: 3,
             status: "playing" as const,
             initialState: { stateSchemaVersion: 99 },
-            finalState: null,
+            latestState: { stateSchemaVersion: 99 },
             actions: [
               {
                 sequence: 1,
@@ -2138,6 +2239,7 @@ describe("getGameFeed", () => {
     await expect(getGameFeed(repository, "game-1")).resolves.toEqual({
       events: [
         { type: "handStarted", handNumber: 3 },
+        { type: "street", handNumber: 3, street: "preflop", cards: [] },
         expect.objectContaining({ type: "action", action: "check" }),
       ],
     });

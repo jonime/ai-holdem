@@ -13,8 +13,8 @@ Public app: [ai-holdem.vercel.app](https://ai-holdem.vercel.app)
 - Validates each human action against the authoritative engine.
 - Lets TypeSafe and the deterministic offline Equity Rules bot act only
 	through server-side validated choices.
-- Shows legal actions, probability distributions, confidence, action history,
-	and the winner.
+- Shows legal actions, probability distributions, confidence, and a hand feed
+	grouped by betting street with community cards revealed at each stage.
 - Keeps AI hole cards, TypeSafe input, raw responses, and private bot state
 	confidential until the relevant hand completes.
 

@@ -8,6 +8,7 @@ import type {
   BotPlaystyleId,
   GameConfig,
   PokerGameState,
+  PokerStreet,
   PublicPokerGame,
   PokerPlayerConfig,
   TableSettings,
@@ -226,6 +227,12 @@ export interface GameFeedReader {
 export type PublicFeedEvent =
   | { readonly type: "handStarted"; readonly handNumber: number }
   | {
+      readonly type: "street";
+      readonly handNumber: number;
+      readonly street: Exclude<PokerStreet, "complete">;
+      readonly cards: readonly string[];
+    }
+  | {
       readonly type: "blind";
       readonly handNumber: number;
       readonly player: string;
@@ -243,11 +250,6 @@ export type PublicFeedEvent =
       readonly street: "preflop" | "flop" | "turn" | "river";
     }
   | {
-      readonly type: "board";
-      readonly handNumber: number;
-      readonly cards: readonly string[];
-    }
-  | {
       readonly type: "win";
       readonly handNumber: number;
       readonly player: string;
@@ -257,6 +259,24 @@ export type PublicFeedEvent =
 
 export interface PublicGameFeed {
   readonly events: readonly PublicFeedEvent[];
+}
+
+const bettingStreets = ["preflop", "flop", "turn", "river"] as const;
+
+function boardThroughStreet(
+  street: (typeof bettingStreets)[number],
+  board: readonly string[],
+): readonly string[] {
+  switch (street) {
+    case "preflop":
+      return [];
+    case "flop":
+      return board.slice(0, 3);
+    case "turn":
+      return board.slice(0, 4);
+    case "river":
+      return board.slice(0, 5);
+  }
 }
 
 export interface NextHandWriter {
@@ -1287,6 +1307,34 @@ export async function getGameFeed(
 
   for (const hand of feed.hands) {
     events.push({ type: "handStarted", handNumber: hand.handNumber });
+    const emittedStreets = new Set<(typeof bettingStreets)[number]>();
+    const emitStreet = (
+      street: (typeof bettingStreets)[number],
+      board: readonly string[],
+    ) => {
+      if (emittedStreets.has(street)) return;
+      emittedStreets.add(street);
+      events.push({
+        type: "street",
+        handNumber: hand.handNumber,
+        street,
+        cards: boardThroughStreet(street, board),
+      });
+    };
+
+    emitStreet("preflop", []);
+
+    let latestState: PokerGameState | null = null;
+    let latestSnapshot: ReturnType<typeof pokerEngineAdapter.snapshot> | null =
+      null;
+    try {
+      if (hand.latestState) {
+        latestState = restorePersistedState(hand.latestState);
+        latestSnapshot = pokerEngineAdapter.snapshot(latestState);
+      }
+    } catch {
+      // Persisted actions remain useful even if a legacy snapshot is malformed.
+    }
 
     try {
       const initialState = restorePersistedState(hand.initialState);
@@ -1310,6 +1358,9 @@ export async function getGameFeed(
     }
 
     for (const action of hand.actions) {
+      if (!emittedStreets.has(action.street)) {
+        emitStreet(action.street, latestSnapshot?.communityCards ?? []);
+      }
       events.push({
         type: "action",
         handNumber: hand.handNumber,
@@ -1321,39 +1372,34 @@ export async function getGameFeed(
       });
     }
 
-    if (hand.status !== "complete" || !hand.finalState) {
-      continue;
+    if (latestSnapshot) {
+      const revealedStreetCount =
+        latestSnapshot.communityCards.length >= 5
+          ? 4
+          : latestSnapshot.communityCards.length >= 4
+            ? 3
+            : latestSnapshot.communityCards.length >= 3
+              ? 2
+              : 1;
+      for (const street of bettingStreets.slice(0, revealedStreetCount)) {
+        emitStreet(street, latestSnapshot.communityCards);
+      }
     }
 
-    let state: PokerGameState;
-    let snapshot: ReturnType<typeof pokerEngineAdapter.snapshot>;
-    try {
-      state = restorePersistedState(hand.finalState);
-      snapshot = pokerEngineAdapter.snapshot(state);
-    } catch {
-      continue;
-    }
-
-    if (snapshot.communityCards.length > 0) {
-      events.push({
-        type: "board",
-        handNumber: hand.handNumber,
-        cards: snapshot.communityCards,
-      });
-    }
+    if (hand.status !== "complete" || !latestSnapshot || !latestState) continue;
 
     const nameByPlayerId = new Map(
-      state.config.players.map((player) => [player.id, player.name]),
+      latestState.config.players.map((player) => [player.id, player.name]),
     );
-    for (const winnerId of snapshot.winnerIds) {
-      const amount = snapshot.winnerAmounts[winnerId];
+    for (const winnerId of latestSnapshot.winnerIds) {
+      const amount = latestSnapshot.winnerAmounts[winnerId];
       if (!amount) continue;
       events.push({
         type: "win",
         handNumber: hand.handNumber,
         player: nameByPlayerId.get(winnerId) ?? "Unknown player",
         amount,
-        uncontested: snapshot.completionReason === "fold",
+        uncontested: latestSnapshot.completionReason === "fold",
       });
     }
   }

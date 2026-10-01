@@ -78,6 +78,12 @@ export interface HandHistory {
 export type GameFeedEvent =
   | { readonly type: "handStarted"; readonly handNumber: number }
   | {
+      readonly type: "street";
+      readonly handNumber: number;
+      readonly street: "preflop" | "flop" | "turn" | "river";
+      readonly cards: readonly string[];
+    }
+  | {
       readonly type: "blind";
       readonly handNumber: number;
       readonly player: string;
@@ -93,11 +99,6 @@ export type GameFeedEvent =
       readonly action: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
       readonly amount: number | null;
       readonly street: "preflop" | "flop" | "turn" | "river";
-    }
-  | {
-      readonly type: "board";
-      readonly handNumber: number;
-      readonly cards: readonly string[];
     }
   | {
       readonly type: "win";

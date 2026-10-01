@@ -38,11 +38,11 @@ export function feedEventLabel(
   switch (event.type) {
     case "handStarted":
       return labels.hand.replace("{hand}", String(event.handNumber));
-    case "board":
-      return labels.board.replace(
-        "{cards}",
-        event.cards.map(shortCardLabel).join(" "),
-      );
+    case "street": {
+      const street = labels[event.street];
+      const cards = event.cards.map(shortCardLabel).join(" ");
+      return cards ? `${street}  ${cards}` : street;
+    }
     case "win":
       return (event.uncontested ? labels.winUncontested : labels.win)
         .replace("{player}", event.player)

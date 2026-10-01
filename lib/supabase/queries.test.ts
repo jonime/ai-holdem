@@ -260,7 +260,7 @@ describe("SupabaseGameRepository", () => {
           handNumber: 1,
           status: "playing",
           initialState,
-          finalState: null,
+          latestState: initialState,
           actions: [],
         },
       ],
@@ -274,6 +274,60 @@ describe("SupabaseGameRepository", () => {
     });
   });
 
+  it("loads the latest state for server-side feed projection", async () => {
+    const initialState = { stateSchemaVersion: 1, engineState: { step: 1 } };
+    const latestState = { stateSchemaVersion: 1, engineState: { step: 2 } };
+    const { client } = createClient({
+      updateResult: [
+        {
+          handNumber: 1,
+          status: "playing",
+          initialState,
+          latestState,
+          actions: [
+            {
+              sequence: 1,
+              street: "preflop",
+              action: "call",
+              amount: 50,
+              player: "You",
+              controller: "human",
+            },
+          ],
+        },
+      ],
+    });
+    const repository = new SupabaseGameRepository(client);
+
+    await expect(repository.getGameFeed("game-1")).resolves.toEqual({
+      hands: [
+        expect.objectContaining({
+          latestState,
+          actions: [expect.objectContaining({ action: "call" })],
+        }),
+      ],
+    });
+  });
+
+  it("rejects a malformed latest state in the game feed", async () => {
+    const { client } = createClient({
+      updateResult: [
+        {
+          handNumber: 1,
+          status: "playing",
+          initialState: { stateSchemaVersion: 1, engineState: {} },
+          latestState: "invalid",
+          actions: [],
+        },
+      ],
+    });
+    const repository = new SupabaseGameRepository(client);
+
+    await expect(repository.getGameFeed("game-1")).rejects.toThrow(
+      "invalid game feed latest state",
+    );
+  });
+
   it("rejects a non-object initial state in the game feed", async () => {
     const { client } = createClient({
       updateResult: [
@@ -281,7 +335,7 @@ describe("SupabaseGameRepository", () => {
           handNumber: 1,
           status: "playing",
           initialState: "invalid",
-          finalState: null,
+          latestState: {},
           actions: [],
         },
       ],
@@ -299,7 +353,6 @@ describe("SupabaseGameRepository", () => {
         {
           handNumber: 1,
           status: "playing",
-          finalState: null,
           actions: [],
         },
       ],

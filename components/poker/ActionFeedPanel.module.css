@@ -90,6 +90,27 @@
   font-weight: 700;
 }
 
+.eventList .streetEvent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 9px;
+  color: #56716b;
+  font:
+    700 11px/1.2 ui-monospace,
+    Menlo,
+    monospace;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+}
+
+.streetEvent::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #d5dfd7;
+}
+
 .modalOverlay {
   position: fixed;
   inset: 0;

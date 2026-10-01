@@ -63,7 +63,13 @@ function FeedBody({
               .map((event, index) => (
                 <li
                   key={index}
-                  className={event.type === "win" ? styles.winEvent : undefined}
+                  className={
+                    event.type === "win"
+                      ? styles.winEvent
+                      : event.type === "street"
+                        ? styles.streetEvent
+                        : undefined
+                  }
                 >
                   {feedEventLabel(event, locale, dictionary.feed)}
                 </li>

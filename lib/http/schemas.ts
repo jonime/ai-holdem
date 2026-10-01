@@ -294,6 +294,12 @@ const gameFeedEventSchema = z.discriminatedUnion("type", [
     handNumber: z.number().int().nonnegative(),
   }),
   z.object({
+    type: z.literal("street"),
+    handNumber: z.number().int().nonnegative(),
+    street: z.enum(["preflop", "flop", "turn", "river"]),
+    cards: z.array(z.string()),
+  }),
+  z.object({
     type: z.literal("blind"),
     handNumber: z.number().int().nonnegative(),
     player: z.string(),
@@ -309,11 +315,6 @@ const gameFeedEventSchema = z.discriminatedUnion("type", [
     action: z.enum(["fold", "check", "call", "bet", "raise", "all_in"]),
     amount: z.number().nullable(),
     street: z.enum(["preflop", "flop", "turn", "river"]),
-  }),
-  z.object({
-    type: z.literal("board"),
-    handNumber: z.number().int().nonnegative(),
-    cards: z.array(z.string()),
   }),
   z.object({
     type: z.literal("win"),

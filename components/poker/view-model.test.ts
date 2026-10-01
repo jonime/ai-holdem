@@ -127,6 +127,33 @@ describe("view-model", () => {
     );
   });
 
+  it("labels street events with only the cards revealed on that street", () => {
+    expect(
+      feedEventLabel(
+        {
+          type: "street",
+          handNumber: 1,
+          street: "flop",
+          cards: ["Th", "7h", "4c"],
+        },
+        "en-US",
+        enUsGame.feed,
+      ),
+    ).toBe("Flop  T♥ 7♥ 4♣");
+    expect(
+      feedEventLabel(
+        {
+          type: "street",
+          handNumber: 1,
+          street: "turn",
+          cards: ["Th", "7h", "4c", "Ks"],
+        },
+        "en-US",
+        enUsGame.feed,
+      ),
+    ).toBe("Turn  T♥ 7♥ 4♣ K♠");
+  });
+
   it("labels cards with the supplied suit names instead of an English fallback", () => {
     expect(cardLabel("As", enUsGame.cards)).toBe("A of spades");
     expect(cardLabel("As", fiFiGame.cards)).toBe("A pata");
