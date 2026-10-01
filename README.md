@@ -313,8 +313,9 @@ credentials. Live bot evaluations still require their explicit opt-in flags.
 
 Each new decision (game ID, authoritative version, or viewer change) starts at
 its engine-provided minimum bet or raise. Same-version polling preserves edits.
-The numeric input and slider select a total street target; “You add” subtracts
-chips already committed on this street. Empty, fractional, unsafe, and out-of-range
+The numeric input and slider select a total street target. The compact “+amount”
+below the numeric input shows additional chips paid, subtracting chips already
+committed on this street. Empty, fractional, unsafe, and out-of-range
 input disables only bet/raise submission. Buttons and keyboard shortcuts use the
 same validated amount; action shortcuts are ignored while typing. Q/E and left/right
 arrows adjust sizing by one big blind. Hold Shift with either shortcut to adjust

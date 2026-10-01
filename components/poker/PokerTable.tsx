@@ -312,7 +312,7 @@ export function PokerTable({
             </div>
             <div className={styles.amountControl}>
               <label className={styles.amountHeading} htmlFor="bet-target">
-                {t(sizedAction?.type === "raise" ? "table.raiseTarget" : "table.betTarget")}
+                {t("table.betAmount")}
               </label>
               <div className={styles.amountInputs}>
                 <div className={styles.sliderControl}>
@@ -354,30 +354,23 @@ export function PokerTable({
                   value={amount}
                   disabled={!sizedAction || !isHumanTurn || loading}
                   aria-invalid={Boolean(sizedAction && selectedAmount === null)}
-                  aria-describedby="bet-range bet-addition"
+                  aria-describedby="bet-addition"
                   onChange={(event) => setAmount(event.target.value)}
                 />
-              </div>
-              <div className={styles.amountDetails}>
-                <span id="bet-addition">
-                  {t("table.youAdd", {
+                <output
+                  id="bet-addition"
+                  className={styles.amountAddition}
+                  htmlFor="bet-target"
+                  aria-label={t("table.youAdd", {
                     amount: selectedAmount === null
                       ? "-"
                       : formatChips(selectedAmount - committedStreet, locale),
                   })}
-                </span>
-                <span
-                  id="bet-range"
-                  className={styles.amountGuidance}
-                  aria-live="polite"
                 >
-                  {sizedAction
-                    ? t("table.amountRange", {
-                        min: formatChips(sizedAction.minAmount, locale),
-                        max: formatChips(sizedAction.maxAmount, locale),
-                      })
-                    : "-"}
-                </span>
+                  {selectedAmount === null
+                    ? "-"
+                    : `+${formatChips(selectedAmount - committedStreet, locale)}`}
+                </output>
               </div>
               <div className={styles.amountPresets}>
                 {[0.5, 0.75, 1].map((fraction) => (

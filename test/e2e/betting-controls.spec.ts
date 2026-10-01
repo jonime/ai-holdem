@@ -28,7 +28,7 @@ test("synchronizes targets, validates edits, resets decisions, and fits mobile",
   await guest.getByRole("button", { name: "Sit here" }).first().click();
   await expect(page.getByRole("button", { name: "Start hand" })).toBeEnabled();
   await page.getByRole("button", { name: "Start hand" }).click();
-  const input = page.getByRole("spinbutton", { name: "Raise to", exact: true });
+  const input = page.getByRole("spinbutton", { name: "Bet amount", exact: true });
   const slider = page.getByRole("slider");
   await expect(input).toBeEnabled();
   await expect(input).toHaveValue("200");
@@ -38,11 +38,11 @@ test("synchronizes targets, validates edits, resets decisions, and fits mobile",
   await expect(input).toHaveValue("250");
   await page.getByRole("button", { name: "All-in", exact: true }).click();
   await expect(input).toHaveValue("10000");
-  await expect(page.getByText("You add 9,950", { exact: true })).toBeVisible();
+  await expect(page.getByText("+9,950", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Pot", exact: true }).click();
   await expect(input).toHaveValue("300");
   await expect(slider).toHaveValue("300");
-  await expect(page.getByText("You add 250", { exact: true })).toBeVisible();
+  await expect(page.getByText("+250", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Raise to 300", exact: true })).toBeEnabled();
   await page.screenshot({ path: "test-results/betting-desktop.png", fullPage: true });
   const callButton = page.getByRole("button", { name: "Call 50", exact: true });
@@ -139,12 +139,12 @@ test("synchronizes targets, validates edits, resets decisions, and fits mobile",
   await expect(input).toHaveValue("1500");
   await input.fill("1800");
   await submit(page, "Call", 600);
-  const betInput = guest.getByRole("spinbutton", { name: "Bet to", exact: true });
+  const betInput = guest.getByRole("spinbutton", { name: "Bet amount", exact: true });
   await expect(betInput).toBeEnabled();
   await expect(betInput).toHaveValue("100");
   await betInput.fill("800");
   await submit(guest, "Check");
-  await expect(page.getByRole("spinbutton", { name: "Bet to", exact: true })).toHaveValue("100");
+  await expect(page.getByRole("spinbutton", { name: "Bet amount", exact: true })).toHaveValue("100");
   await page.getByRole("spinbutton").fill("700");
   await submit(page, "Fold");
   await page.getByRole("button", { name: "Next Hand", exact: true }).click();

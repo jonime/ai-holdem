@@ -147,9 +147,9 @@
 }
 
 .preset {
-  min-height: 44px;
-  padding: 8px 6px;
-  font-size: 16px;
+  min-height: 36px;
+  padding: 5px 6px;
+  font-size: 14px;
 }
 
 @media (max-width: 560px) {
@@ -160,7 +160,8 @@
   }
 
   .preset {
-    padding: 8px 3px;
+    min-height: 44px;
+    padding: 6px 3px;
     font-size: 12px;
   }
 }
