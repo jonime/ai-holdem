@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createDeterministicDeck, pokerEngineAdapter as adapter } from "@/lib/poker/adapter";
 import { publicPlayerSchema } from "@/lib/http/schemas";
-import { clampTarget, decisionScope, potPresetTarget, validatedTarget } from "./bet-sizing";
+import { adjustTarget, clampTarget, decisionScope, potPresetTarget, validatedTarget } from "./bet-sizing";
 import type { PokerGameState } from "@/lib/poker/types";
 
 const config = {
@@ -52,6 +52,15 @@ describe("bet sizing", () => {
     const short = adapter.startHand(adapter.createGame({ ...config, players: config.players.map(p => ({ ...p, stack: 250 })) }), createDeterministicDeck());
     expect(preset(short, 1)).toMatchObject({ target: 250, added: 200 });
     expect(clampTarget(900, bet)).toBe(500);
+  });
+  it("accelerates by five big blinds and clamps both adjustment directions", () => {
+    const action = { type: "raise" as const, minAmount: 200, maxAmount: 1000 };
+    expect(adjustTarget(action, 425, 100, 1, false)).toBe(525);
+    expect(adjustTarget(action, 425, 100, -1, false)).toBe(325);
+    expect(adjustTarget(action, 425, 100, 1, true)).toBe(925);
+    expect(adjustTarget(action, 425, 100, -1, true)).toBe(200);
+    expect(adjustTarget(action, 925, 100, 1, true)).toBe(1000);
+    expect(adjustTarget(action, null, 100, 1, true)).toBe(700);
   });
   it.each(["", " ", "100.5", "-1", "501", "9007199254740992"])("rejects invalid draft %j", draft => {
     expect(validatedTarget(draft, { type: "raise", minAmount: 100, maxAmount: 500 })).toBeNull();

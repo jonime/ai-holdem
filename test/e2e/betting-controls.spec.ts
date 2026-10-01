@@ -77,10 +77,24 @@ test("synchronizes targets, validates edits, resets decisions, and fits mobile",
   await expect(slider).toHaveValue("425");
   await slider.press("ArrowRight");
   await expect(input).toHaveValue("525");
+  await slider.press("Shift+ArrowRight");
+  await expect(input).toHaveValue("1025");
+  await slider.press("Shift+ArrowLeft");
+  await expect(input).toHaveValue("525");
+  await slider.press("Shift+Q");
+  await expect(input).toHaveValue("200");
+  await slider.press("Shift+E");
+  await expect(input).toHaveValue("700");
+  await input.fill("525");
   await page.locator("main").click({ position: { x: 1, y: 1 } });
   await page.keyboard.press("q");
   await expect(input).toHaveValue("425");
   await page.keyboard.press("e");
+  await expect(input).toHaveValue("525");
+
+  await page.keyboard.press("Shift+E");
+  await expect(input).toHaveValue("1025");
+  await page.keyboard.press("Shift+Q");
   await expect(input).toHaveValue("525");
 
   // A same-version authoritative refetch must preserve an in-progress draft.

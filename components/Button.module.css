@@ -1,4 +1,5 @@
 .button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -161,5 +162,23 @@
   .preset {
     padding: 8px 3px;
     font-size: 12px;
+  }
+}
+
+.shortcut {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  padding: 1px 4px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  opacity: 0.4;
+  font: 600 10px/1.2 ui-monospace, monospace;
+  pointer-events: none;
+}
+
+@media (max-width: 560px) {
+  .shortcut {
+    display: none;
   }
 }

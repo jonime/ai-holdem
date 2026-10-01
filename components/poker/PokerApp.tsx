@@ -22,7 +22,7 @@ import {
   latestActionsForStreet,
 } from "@/components/poker/view-model";
 
-import { clampTarget, decisionScope, validatedTarget } from "@/components/poker/bet-sizing";
+import { adjustTarget, decisionScope, validatedTarget } from "@/components/poker/bet-sizing";
 
 const playerNameStorageKey = "ai-holdem-player-name";
 const feedCollapsedStorageKey = "ai-holdem-feed-collapsed";
@@ -168,6 +168,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
         (!isHumanTurn && !canStartNextHand) ||
         loading ||
         historyOpen ||
+        event.defaultPrevented ||
         event.repeat ||
         event.metaKey ||
         event.ctrlKey ||
@@ -179,7 +180,8 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
       const target = event.target;
       if (
         target instanceof HTMLElement &&
-        (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) ||
+        ((target instanceof HTMLInputElement && target.type !== "range") ||
+          ["TEXTAREA", "SELECT"].includes(target.tagName) ||
           target.isContentEditable)
       ) {
         return;
@@ -234,9 +236,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
         sizedAction
       ) {
         event.preventDefault();
-        const currentAmount = selectedAmount ?? sizedAction.minAmount;
         const direction = key === "q" || key === "arrowleft" ? -1 : 1;
-        setAmountDraft({ scope: amountScope, value: String(clampTarget(currentAmount + direction * game.poker.bigBlind, sizedAction)) });
+        setAmountDraft({
+          scope: amountScope,
+          value: String(adjustTarget(sizedAction, selectedAmount, game.poker.bigBlind, direction, event.shiftKey)),
+        });
       }
     }
 

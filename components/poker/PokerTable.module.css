@@ -276,3 +276,27 @@
     padding-top: 10px;
   }
 }
+
+.sliderControl {
+  position: relative;
+  min-width: 0;
+}
+.sliderShortcuts {
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  opacity: 0.4;
+  pointer-events: none;
+}
+.sliderShortcuts kbd {
+  padding: 1px 4px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font: 600 10px/1.2 ui-monospace, monospace;
+}
+@media (max-width: 560px) {
+  .sliderShortcuts {
+    display: none;
+  }
+}

@@ -317,7 +317,9 @@ The numeric input and slider select a total street target; “You add” subtrac
 chips already committed on this street. Empty, fractional, unsafe, and out-of-range
 input disables only bet/raise submission. Buttons and keyboard shortcuts use the
 same validated amount; action shortcuts are ignored while typing. Q/E and left/right
-arrows adjust sizing in big-blind increments.
+arrows adjust sizing by one big blind. Hold Shift with either shortcut to adjust
+by five big blinds. Adjustments stay within the engine’s legal range, including
+when the slider has keyboard focus.
 
 50%, 75%, and Pot presets select amounts without submitting. For displayed pot P,
 street commitment C, legal call cost K, and fraction f, bets target round(f × P),

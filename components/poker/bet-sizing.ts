@@ -6,6 +6,20 @@ export function clampTarget(target: number, action: SizedAction): number {
   return Math.min(action.maxAmount, Math.max(action.minAmount, target));
 }
 
+/** Shift accelerates keyboard sizing from one to five big blinds. */
+export function adjustTarget(
+  action: SizedAction,
+  target: number | null,
+  bigBlind: number,
+  direction: -1 | 1,
+  accelerated: boolean,
+): number {
+  return clampTarget(
+    (target ?? action.minAmount) + direction * bigBlind * (accelerated ? 5 : 1),
+    action,
+  );
+}
+
 /** Presets are total street targets; pot includes every displayed side pot. */
 export function potPresetTarget(
   action: SizedAction,

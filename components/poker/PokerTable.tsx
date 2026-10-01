@@ -1,4 +1,4 @@
-import { clampTarget, potPresetTarget, validatedTarget } from "@/components/poker/bet-sizing";
+import { adjustTarget, clampTarget, potPresetTarget, validatedTarget } from "@/components/poker/bet-sizing";
 import { PlayingCard } from "@/components/poker/PlayingCard";
 import { Button } from "@/components/Button";
 import { Seat } from "@/components/poker/Seat";
@@ -243,6 +243,7 @@ export function PokerTable({
               <Button
                 variant="muted"
                 size="action"
+                shortcut={legalAction("fold") ? "A" : undefined}
                 disabled={!isHumanTurn || loading || !legalAction("fold")}
                 onClick={() => submitFixedAction("fold")}
               >
@@ -251,6 +252,7 @@ export function PokerTable({
               <Button
                 variant="green"
                 size="action"
+                shortcut={game.poker.street === "complete" || checkCallAction ? "S" : undefined}
                 disabled={
                   loading ||
                   gameOver ||
@@ -279,6 +281,7 @@ export function PokerTable({
               <Button
                 variant="amber"
                 size="action"
+                shortcut={isFoldEndedHand || sizedAction ? "D" : undefined}
                 disabled={
                   loading ||
                   (isFoldEndedHand
@@ -312,6 +315,12 @@ export function PokerTable({
                 {t(sizedAction?.type === "raise" ? "table.raiseTarget" : "table.betTarget")}
               </label>
               <div className={styles.amountInputs}>
+                <div className={styles.sliderControl}>
+                  <div className={styles.sliderShortcuts} aria-hidden="true">
+                    <kbd>Q −</kbd>
+                    <kbd>Shift ×5</kbd>
+                    <kbd>E +</kbd>
+                  </div>
                 <input
                   type="range"
                   min={sizedAction?.minAmount ?? 0}
@@ -321,12 +330,20 @@ export function PokerTable({
                   disabled={!sizedAction || !isHumanTurn || loading}
                   onChange={(event) => setAmount(event.target.value)}
                   aria-label={t("table.betAmount")}
+                  aria-keyshortcuts="Q E ArrowLeft ArrowRight Shift+Q Shift+E Shift+ArrowLeft Shift+ArrowRight"
                   onKeyDown={(event) => {
                     if (!sizedAction || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
                     event.preventDefault();
-                    setAmount(String(clampTarget((selectedAmount ?? sizedAction.minAmount) + (event.key === "ArrowLeft" ? -1 : 1) * game.poker.bigBlind, sizedAction)));
+                    setAmount(String(adjustTarget(
+                      sizedAction,
+                      selectedAmount,
+                      game.poker.bigBlind,
+                      event.key === "ArrowLeft" ? -1 : 1,
+                      event.shiftKey,
+                    )));
                   }}
                 />
+                </div>
                 <input
                   id="bet-target"
                   type="number"
