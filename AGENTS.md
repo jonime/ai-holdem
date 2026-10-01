@@ -12,9 +12,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Purpose
 
-This is a TypeScript demo of heads-up no-limit Texas Hold'em. Humans and
-provider-backed AI seats occupy the table, including TypeSafe, deterministic
-offline `Equity Rules`, and configurable LLM bots, while
+This is a TypeScript demo of no-limit Texas Hold'em with one-click private
+six-seat play and customizable 2–6-seat tables. Humans and provider-backed AI
+seats occupy the table, including TypeSafe, deterministic offline `Equity
+Rules`, and configurable LLM bots, while
 `@hivetech/poker-engine` remains authoritative for cards, turns, legal actions,
 betting, pots, and winners. Supabase persists game state and version-checked
 mutations; Realtime Broadcast only tells clients to refetch authoritative state.
@@ -89,8 +90,12 @@ Supabase or TypeSafe services.
 - Translations are server-owned. Every dictionary module is `server-only`;
 	Server Components load them through `lib/i18n/server`, and client components
 	receive the game route's `I18nProvider`. The cached landing route uses only
-	server-rendered locale links and a plain anonymous-game POST form. Never import
-	dictionary values into client components or shared client utilities.
+	server-rendered locale links and plain anonymous-game POST forms. Quick Play
+	must atomically create an already-playing private six-seat game with five bots
+	selected from the available catalog; external inference disabled means rules
+	bots only. Rules and TypeSafe bots use medium difficulty, while LLM bots use
+	random server-owned playstyles. Custom tables retain their six-seat default and 2–6-seat lobby.
+	Never import dictionary values into client components or shared client utilities.
 - The About route is Markdown-authored but remains server-only. Load its MDX
 	through `lib/about/server`; do not add `use client`, client providers, runtime
 	content fetching, or imports from the About documents into client modules.

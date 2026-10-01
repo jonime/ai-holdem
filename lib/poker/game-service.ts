@@ -25,7 +25,11 @@ import type {
 import { GameConflictError } from "@/lib/supabase/queries";
 import type { TypesafeDecisionClient } from "@/lib/typesafe/decision";
 import { JevPokerBot } from "@/lib/bots/jev";
-import type { BotRegistry } from "@/lib/bots/registry";
+import {
+  equityRulesV2BotDescriptor,
+  getBotCatalog,
+  type BotRegistry,
+} from "@/lib/bots/registry";
 import type { PokerBot } from "@/lib/bots/types";
 
 export interface CreateDemoGameOptions {
@@ -35,6 +39,56 @@ export interface CreateDemoGameOptions {
   readonly startingStack?: number;
   readonly hostToken?: string;
   readonly hostName?: string;
+}
+
+export interface CreateQuickPlayGameOptions {
+  readonly hostToken: string;
+  readonly hostName?: string;
+}
+
+const quickPlayBotPlaystyles = [
+  "balanced",
+  "tight",
+  "aggressive",
+] as const satisfies readonly BotPlaystyleId[];
+
+function shuffled<T>(values: readonly T[]): T[] {
+  const shuffledValues = [...values];
+  for (let index = shuffledValues.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffledValues[index], shuffledValues[swapIndex]] = [
+      shuffledValues[swapIndex],
+      shuffledValues[index],
+    ];
+  }
+  return shuffledValues;
+}
+
+function quickPlayBotSelections(): readonly BotDescriptor[] {
+  const catalog = getBotCatalog();
+  const availableCatalog =
+    process.env.EXTERNAL_INFERENCE_ENABLED === "false"
+      ? catalog.filter((bot) => bot.provider === "rules")
+      : catalog;
+  if (availableCatalog.length === 0) {
+    return Array.from({ length: 5 }, () => equityRulesV2BotDescriptor);
+  }
+
+  const selections = (["rules", "typesafe", "llm"] as const).flatMap(
+    (provider) => {
+      const providerBots = availableCatalog.filter(
+        (bot) => bot.provider === provider,
+      );
+      return providerBots.length > 0 ? [shuffled(providerBots)[0]] : [];
+    },
+  );
+  while (selections.length < 5) {
+    for (const bot of shuffled(availableCatalog)) {
+      selections.push(bot);
+      if (selections.length === 5) break;
+    }
+  }
+  return shuffled(selections.slice(0, 5));
 }
 
 const maxPlayerNameLength = 30;
@@ -315,6 +369,84 @@ export async function createDemoGame(
         isHost: player?.isHost ?? false,
       };
     }),
+  });
+
+  return {
+    gameId: persistedGame.id,
+    state: initialState,
+    version: persistedGame.version,
+  };
+}
+
+export async function createQuickPlayGame(
+  repository: GameSessionWriter,
+  options: CreateQuickPlayGameOptions,
+): Promise<CreatedGame> {
+  const startingStack = 10_000;
+  const bots = quickPlayBotSelections();
+  const config: GameConfig = {
+    smallBlind: 50,
+    bigBlind: 100,
+    startingStack,
+    seatCount: 6,
+    players: [
+      {
+        id: "human",
+        seat: 0,
+        name: sanitizePlayerName(options.hostName, "Player 1"),
+        controller: "human",
+        stack: startingStack,
+        status: "claimed",
+        playerToken: options.hostToken,
+        isHost: true,
+      },
+      ...bots.map((bot, index): PokerPlayerConfig => {
+        const seat = index + 1;
+        return {
+          id: `quick-bot-${seat}-${bot.id}`,
+          seat,
+          name: `${bot.label} #${seat}`,
+          controller: "bot",
+          bot,
+          aiDifficulty: supportsDifficulty(bot.provider) ? "medium" : null,
+          botProfileId:
+            bot.provider === "llm"
+              ? quickPlayBotPlaystyles[
+                  Math.floor(Math.random() * quickPlayBotPlaystyles.length)
+                ]
+              : null,
+          stack: startingStack,
+          status: "bot",
+          playerToken: null,
+          isHost: false,
+        };
+      }),
+    ],
+  };
+  const initialState = pokerEngineAdapter.startHand(
+    pokerEngineAdapter.createGame(config),
+  );
+  const snapshot = pokerEngineAdapter.snapshot(initialState);
+  const persistedGame = await repository.createGameSession({
+    hostToken: options.hostToken,
+    currentState: initialState,
+    stateSchemaVersion: initialState.stateSchemaVersion,
+    handNumber: snapshot.handNumber,
+    status: "playing",
+    players: config.players.map((player) => ({
+      enginePlayerId: player.id,
+      seat: player.seat,
+      name: player.name,
+      controller: player.controller,
+      bot: player.bot ?? null,
+      aiDifficulty: player.aiDifficulty ?? null,
+      botProfileId: player.botProfileId ?? null,
+      stack: player.stack,
+      status: player.status,
+      playerToken: player.playerToken ?? null,
+      isHost: player.isHost ?? false,
+      leaving: player.leaving ?? false,
+    })),
   });
 
   return {

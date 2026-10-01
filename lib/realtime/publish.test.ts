@@ -101,6 +101,38 @@ describe("publishGameEvent", () => {
     expect(removeChannel).toHaveBeenCalledOnce();
   });
 
+  it("accepts the server-owned bot profile in public AI decisions", async () => {
+    const result = await publishGameEvent("game-1", "ai_decision", 2, {
+      game: toBroadcastGame(game),
+      aiDecision: {
+        action: "check",
+        amount: null,
+        bot: {
+          id: "llm-test",
+          label: "LLM Test",
+          provider: "llm",
+          modelId: "test/model",
+        },
+        botProfileId: "aggressive",
+        probabilities: null,
+        confidence: null,
+        sizing: null,
+        matchedRule: null,
+      },
+    });
+
+    expect(result).toEqual({ ok: true });
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: expect.objectContaining({
+          aiDecision: expect.objectContaining({
+            botProfileId: "aggressive",
+          }),
+        }),
+      }),
+    );
+  });
+
   it("reports invalid private payloads without creating a channel", async () => {
     const result = await publishGameEvent("game-1", "player_action", 2, {
       game: game as unknown as BroadcastGame,

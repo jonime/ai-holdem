@@ -32,9 +32,17 @@ describe("homepage", () => {
       "Play Texas Hold’em against AI bots, invite friends, or watch bots play.",
     );
     expect(html).toContain(
-      "Create a table, choose who plays, then start the hand.",
+      "Jump into a private six-seat game against five bots, or customize your own table.",
     );
+    expect(html).toContain('<form action="/en-US/quick-game" method="post">');
     expect(html).toContain('<form action="/en-US/new-game" method="post">');
+    expect(html.indexOf("Quick Play vs AI")).toBeLessThan(
+      html.indexOf("Create custom table"),
+    );
+    expect(html.indexOf("Create custom table")).toBeLessThan(
+      html.indexOf("Join public table"),
+    );
+    expect(html).toContain('href="/en-US/join-game"');
     expect(html).toContain('type="submit"');
     expect(html).not.toContain("<input");
   });
@@ -46,13 +54,16 @@ describe("homepage", () => {
     expect(html).toContain('href="/en-US"');
     expect(html).toContain('href="/fi-FI"');
     expect(html).toContain('aria-current="page"');
+    expect(html).toContain('action="/fi-FI/quick-game"');
     expect(html).toContain('action="/fi-FI/new-game"');
     expect(html).toContain(
       "Pelaa Texas Hold’emia tekoälybotteja vastaan, kutsu ystäviä tai katso bottien peliä.",
     );
     expect(html).toContain(
-      "Luo pöytä, valitse pelaajat ja aloita sitten käsi.",
+      "Hyppää heti yksityiseen kuuden paikan peliin viittä bottia vastaan tai mukauta oma pöytäsi.",
     );
-    expect(html).toContain("Uusi peli");
+    expect(html).toContain("Pikapeli tekoälyä vastaan");
+    expect(html).toContain("Luo mukautettu pöytä");
+    expect(html).toContain("Liity julkiseen pöytään");
   });
 });

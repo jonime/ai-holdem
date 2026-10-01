@@ -59,13 +59,20 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
         <h1>{APP_NAME}</h1>
         <p className={styles.intro}>{landing.intro}</p>
         <p className={styles.supportingCopy}>{landing.supportingCopy}</p>
-        <form method="post" action={`/${lang}/new-game`}>
-          <Button variant="primary" size="large" type="submit">
-            {landing.newGame}
-          </Button>
-        </form>
+        <div className={styles.actions}>
+          <form method="post" action={`/${lang}/quick-game`}>
+            <Button variant="primary" size="large" type="submit">
+              {landing.quickPlay}
+            </Button>
+          </form>
+          <form method="post" action={`/${lang}/new-game`}>
+            <Button variant="secondary" size="medium" type="submit">
+              {landing.customTable}
+            </Button>
+          </form>
+        </div>
         <Link className={styles.joinGame} href={`/${lang}/join-game`}>
-          {landing.joinGame}
+          {landing.joinPublicTable}
         </Link>
       </section>
       <nav

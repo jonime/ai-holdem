@@ -150,6 +150,7 @@ const publicAIDecisionSchema = z
       provider: z.enum(["typesafe", "llm", "rules"]),
       modelId: z.string().nullable(),
     }),
+    botProfileId: z.enum(["balanced", "tight", "aggressive"]).nullable(),
     probabilities: z.record(z.string(), z.number().finite()).nullable(),
     confidence: z.number().finite().nullable(),
     sizing: z

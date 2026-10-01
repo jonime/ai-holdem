@@ -48,7 +48,13 @@
   font-size: 14px;
 }
 
-.emptyState form {
+.actions {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.actions form {
   display: flex;
   justify-content: center;
 }
@@ -108,8 +114,9 @@
     margin-top: 2vh;
   }
 
-  .emptyState form,
-  .emptyState form button {
+  .actions,
+  .actions form,
+  .actions form button {
     width: 100%;
   }
 

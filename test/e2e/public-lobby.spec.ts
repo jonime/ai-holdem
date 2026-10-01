@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("publishes, refreshes, reports unavailable, preserves a name, and joins", async ({ browser, page }) => {
   test.setTimeout(60_000);
   await page.goto("/en-US");
-  await page.getByRole("button", { name: "New Game" }).click();
+  await page.getByRole("button", { name: "Create custom table" }).click();
   const hostGameId = new URL(page.url()).pathname.split("/").at(-1);
   expect(hostGameId).toBeTruthy();
   const tableTitle = `Public E2E ${hostGameId!.slice(0, 8)}`;
@@ -42,7 +42,7 @@ test("publishes, refreshes, reports unavailable, preserves a name, and joins", a
 
 test("serializes simultaneous directory joins and makes duplicates idempotent", async ({ browser, page }) => {
   await page.goto("/en-US");
-  await page.getByRole("button", { name: "New Game" }).click();
+  await page.getByRole("button", { name: "Create custom table" }).click();
   await expect(page.getByText("Private (unlisted)", { exact: true })).toBeVisible();
   await page.getByLabel("Table title (optional)").fill("Concurrent Table");
   await page.getByRole("button", { name: "Make public" }).click();

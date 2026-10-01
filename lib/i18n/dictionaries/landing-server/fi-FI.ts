@@ -3,12 +3,13 @@ import "server-only";
 import type { LandingServerDictionary } from "../../types";
 
 const dictionary = {
-  startRegion: "Aloita uusi peli",
+  startRegion: "Valitse pelitapa",
   title: "AI Hold'em",
   intro: "Pelaa Texas Hold’emia tekoälybotteja vastaan, kutsu ystäviä tai katso bottien peliä.",
-  supportingCopy: "Luo pöytä, valitse pelaajat ja aloita sitten käsi.",
-  newGame: "Uusi peli",
-  joinGame: "Liity peliin",
+  supportingCopy: "Hyppää heti yksityiseen kuuden paikan peliin viittä bottia vastaan tai mukauta oma pöytäsi.",
+  quickPlay: "Pikapeli tekoälyä vastaan",
+  customTable: "Luo mukautettu pöytä",
+  joinPublicTable: "Liity julkiseen pöytään",
   resources: "Projektin resurssit",
   about: "Tietoja",
   developerResources: "Kehittäjäresurssit",

@@ -8,6 +8,30 @@ async function waitForPlayableHuman(page: Page) {
   return actionButton;
 }
 
+test("starts six-seat Quick Play and advances the opening bot turns", async ({
+  page,
+}) => {
+  test.setTimeout(30_000);
+  await page.goto("/en-US");
+  const firstBotStep = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/step") && response.request().method() === "POST",
+  );
+  await page
+    .getByRole("region", { name: "Choose how to play" })
+    .getByRole("button", { name: "Quick Play vs AI" })
+    .click();
+
+  await expect(page).toHaveURL(/\/en-US\/game\/[0-9a-f-]+$/);
+  await expect(page.getByText("WAITING ROOM")).toHaveCount(0);
+  await expect(page.getByText("PREFLOP")).toBeVisible();
+  await expect(
+    page.getByText(/^EQUITY RULES #/).first(),
+  ).toBeVisible();
+  await firstBotStep;
+  await waitForPlayableHuman(page);
+});
+
 test("runs a two-player hand in a six-seat lobby", async ({
   browser,
   page,
@@ -15,8 +39,8 @@ test("runs a two-player hand in a six-seat lobby", async ({
   test.setTimeout(60_000);
   await page.goto("/en-US");
   await page
-    .getByRole("region", { name: "Start a new game" })
-    .getByRole("button", { name: "New Game" })
+    .getByRole("region", { name: "Choose how to play" })
+    .getByRole("button", { name: "Create custom table" })
     .click();
   await expect(page).toHaveURL(/\/en-US\/game\/[0-9a-f-]+$/);
   const gameUrl = page.url();
@@ -80,8 +104,8 @@ test("persists a per-bot difficulty selected in the lobby", async ({
 }) => {
   await page.goto("/en-US");
   await page
-    .getByRole("region", { name: "Start a new game" })
-    .getByRole("button", { name: "New Game" })
+    .getByRole("region", { name: "Choose how to play" })
+    .getByRole("button", { name: "Create custom table" })
     .click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
@@ -96,8 +120,8 @@ test("persists a per-bot difficulty selected in the lobby", async ({
 test("shows the localized LLM bot playstyles", async ({ page }) => {
   await page.goto("/en-US");
   await page
-    .getByRole("region", { name: "Start a new game" })
-    .getByRole("button", { name: "New Game" })
+    .getByRole("region", { name: "Choose how to play" })
+    .getByRole("button", { name: "Create custom table" })
     .click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
@@ -122,8 +146,8 @@ test("recovers through polling and after coming back online", async ({
   test.setTimeout(30_000);
   await page.goto("/en-US");
   await page
-    .getByRole("region", { name: "Start a new game" })
-    .getByRole("button", { name: "New Game" })
+    .getByRole("region", { name: "Choose how to play" })
+    .getByRole("button", { name: "Create custom table" })
     .click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
@@ -166,8 +190,8 @@ test("runs the deterministic bot through completion, history, and another hand",
   test.setTimeout(60_000);
   await page.goto("/en-US");
   await page
-    .getByRole("region", { name: "Start a new game" })
-    .getByRole("button", { name: "New Game" })
+    .getByRole("region", { name: "Choose how to play" })
+    .getByRole("button", { name: "Create custom table" })
     .click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
@@ -205,8 +229,8 @@ test("runs the deterministic bot through completion, history, and another hand",
 test("persists host table settings selected in the lobby", async ({ page }) => {
   await page.goto("/en-US");
   await page
-    .getByRole("region", { name: "Start a new game" })
-    .getByRole("button", { name: "New Game" })
+    .getByRole("region", { name: "Choose how to play" })
+    .getByRole("button", { name: "Create custom table" })
     .click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
@@ -236,8 +260,8 @@ test("copies a clean invite URL and exposes a manual fallback", async ({
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/en-US");
   await page
-    .getByRole("region", { name: "Start a new game" })
-    .getByRole("button", { name: "New Game" })
+    .getByRole("region", { name: "Choose how to play" })
+    .getByRole("button", { name: "Create custom table" })
     .click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 

@@ -4,6 +4,7 @@ import {
   assignBotToSeat,
   claimSeat,
   createDemoGame,
+  createQuickPlayGame,
   GameNotFoundError,
   getGameFeed,
   getPublicGame,
@@ -100,6 +101,103 @@ describe("createDemoGame", () => {
     expect(
       createGameSession.mock.calls[0][0].currentState.config.seatCount,
     ).toBe(3);
+  });
+});
+
+describe("createQuickPlayGame", () => {
+  it("atomically persists a private started six-seat game with five random bots", async () => {
+    const previousModels = process.env.LLM_BOT_MODELS;
+    const previousInference = process.env.EXTERNAL_INFERENCE_ENABLED;
+    process.env.LLM_BOT_MODELS = JSON.stringify([
+      { id: "quick-llm", label: "Quick LLM", modelId: "test/model" },
+    ]);
+    process.env.EXTERNAL_INFERENCE_ENABLED = "true";
+    const random = vi.spyOn(Math, "random").mockReturnValue(0.9);
+    const createGameSession = vi.fn().mockResolvedValue({
+      id: "quick-game-1",
+      status: "playing",
+      currentState: {},
+      stateSchemaVersion: 1,
+      handNumber: 1,
+      version: 0,
+    });
+
+    try {
+      const game = await createQuickPlayGame(
+        { createGameSession },
+        { hostToken: "host-token", hostName: "  Ada  " },
+      );
+
+      expect(game).toMatchObject({ gameId: "quick-game-1", version: 0 });
+      const snapshot = pokerEngineAdapter.snapshot(game.state);
+      expect(snapshot).toMatchObject({
+        handNumber: 1,
+        street: "preflop",
+      });
+      expect(snapshot.currentActorId).not.toBe("human");
+      expect(pokerEngineAdapter.getLegalActions(game.state).length).toBeGreaterThan(0);
+      const input = createGameSession.mock.calls[0][0];
+      expect(input).toMatchObject({
+        hostToken: "host-token",
+        handNumber: 1,
+        status: "playing",
+      });
+      expect(input.currentState).toBe(game.state);
+      expect(input.currentState.config.seatCount).toBe(6);
+      expect(input.players).toHaveLength(6);
+      expect(input.players[0]).toMatchObject({
+        enginePlayerId: "human",
+        seat: 0,
+        name: "Ada",
+        controller: "human",
+        status: "claimed",
+        playerToken: "host-token",
+        isHost: true,
+        stack: 10_000,
+      });
+      expect(input.players.slice(1)).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            bot: expect.objectContaining({ provider: "rules" }),
+            aiDifficulty: "medium",
+            botProfileId: null,
+          }),
+          expect.objectContaining({
+            bot: expect.objectContaining({ provider: "typesafe" }),
+            aiDifficulty: "medium",
+            botProfileId: null,
+          }),
+          expect.objectContaining({
+            bot: expect.objectContaining({ id: "quick-llm", provider: "llm" }),
+            aiDifficulty: null,
+            botProfileId: "aggressive",
+          }),
+        ]),
+      );
+      expect(
+        input.players.slice(1).every(
+          (player: { status: string; playerToken: string | null }) =>
+            player.status === "bot" && player.playerToken === null,
+        ),
+      ).toBe(true);
+
+      const hostProjection = pokerEngineAdapter.publicProjection(game.state, "human");
+      expect(hostProjection.players.find((player) => player.id === "human")?.holeCards).toHaveLength(2);
+      expect(
+        hostProjection.players
+          .filter((player) => player.controller === "bot")
+          .every((player) => player.holeCards === null),
+      ).toBe(true);
+    } finally {
+      random.mockRestore();
+      if (previousModels === undefined) delete process.env.LLM_BOT_MODELS;
+      else process.env.LLM_BOT_MODELS = previousModels;
+      if (previousInference === undefined) {
+        delete process.env.EXTERNAL_INFERENCE_ENABLED;
+      } else {
+        process.env.EXTERNAL_INFERENCE_ENABLED = previousInference;
+      }
+    }
   });
 });
 

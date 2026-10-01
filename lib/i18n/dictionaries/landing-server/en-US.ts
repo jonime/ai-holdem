@@ -1,12 +1,13 @@
 import "server-only";
 
 const dictionary = {
-  startRegion: "Start a new game",
+  startRegion: "Choose how to play",
   title: "AI Hold'em",
   intro: "Play Texas Hold’em against AI bots, invite friends, or watch bots play.",
-  supportingCopy: "Create a table, choose who plays, then start the hand.",
-  newGame: "New Game",
-  joinGame: "Join game",
+  supportingCopy: "Jump into a private six-seat game against five bots, or customize your own table.",
+  quickPlay: "Quick Play vs AI",
+  customTable: "Create custom table",
+  joinPublicTable: "Join public table",
   resources: "Project resources",
   about: "About",
   developerResources: "Developer resources",

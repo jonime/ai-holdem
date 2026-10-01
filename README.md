@@ -1,6 +1,6 @@
 # TypeSafe AI Texas Hold'em
 
-A heads-up no-limit Texas Hold'em demo where TypeSafe System One proposes a
+A no-limit Texas Hold'em demo where TypeSafe System One proposes a
 constrained action and the poker engine remains authoritative for every rule.
 
 Repository: [github.com/jonime/ai-holdem](https://github.com/jonime/ai-holdem)
@@ -18,12 +18,20 @@ Public app: [ai-holdem.vercel.app](https://ai-holdem.vercel.app)
 - Keeps AI hole cards, TypeSafe input, raw responses, and private bot state
 	confidential until the relevant hand completes.
 
-## Starting a table
+## Starting a game
 
 The localized homepage introduces all three ways to use the demo: play against
-AI bots, invite friends, or watch bots play. **New Game** creates a private,
-unlisted table whose creator is automatically seated. **Join game** opens the
-public-lobby directory; invite links continue to work for private tables.
+AI bots, invite friends, or watch bots play. **Quick Play vs AI** creates a
+private, unlisted six-seat table with 50/100 blinds and 10,000-chip stacks,
+seats the visitor with five bots selected from the available Equity Rules,
+TypeSafe Jev, and configured LLM catalog, and starts hand 1 immediately. Rules
+and Jev seats use medium difficulty; LLM seats receive a random server-owned
+playstyle. When external inference is disabled, Quick Play uses only Equity
+Rules so it remains playable offline and without provider credentials. **Create
+custom table** opens the existing private, six-seat waiting lobby, where the
+host can customize a 2–6-seat table, players, bots, stakes, and publication
+before starting. **Join public table** opens the public-lobby directory; invite
+links continue to work for private tables.
 
 While a game is waiting, the lobby shows one contextual next step based on the
 authoritative seat state, host permissions, and the host's current settings.
@@ -166,8 +174,8 @@ Every route is served under `/{locale}/` for ten supported locales. Dictionaries
 live in `lib/i18n/dictionaries/` as `server-only` modules split by route group
 (`metadata`, `landing-server`, `join-game`, `game`). Server Components load them directly
 through `lib/i18n/server`; client game components receive the game route's
-`I18nProvider`. The landing page uses a server-rendered language menu and a plain
-HTML form that creates an anonymous game without JavaScript. See
+`I18nProvider`. The landing page uses a server-rendered language menu and plain
+HTML forms for one-click quick play and custom-table creation without JavaScript. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for how to add keys or locales.
 
 The localized About page is Markdown-authored under `content/about/`. Its MDX
