@@ -15,9 +15,21 @@ vi.mock("@/components/poker/I18nProvider", () => ({
   useI18n: vi.fn(),
 }));
 
-import LocaleLayout from "./layout";
+import LocaleLayout, { generateMetadata } from "./layout";
 
 describe("locale layout", () => {
+  it("uses a descriptive homepage title and a short brand suffix for subpages", async () => {
+    const metadata = await generateMetadata({
+      params: Promise.resolve({ lang: "en-US" }),
+      children: null,
+    });
+    expect(metadata.title).toEqual({
+      default: "AI Hold'em – Play Texas Hold'em Against AI Bots",
+      template: "%s | AI Hold'em",
+    });
+    expect(metadata.twitter).toMatchObject({ card: "summary_large_image" });
+  });
+
   beforeEach(() => {
     providerRenderings.length = 0;
   });

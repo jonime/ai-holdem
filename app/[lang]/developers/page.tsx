@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 
 import { hasLocale } from "@/lib/i18n";
 
+import { getPageMetadata } from "@/lib/seo";
+
 import styles from "./page.module.css";
 
 type DeveloperPageProps = Readonly<{
@@ -15,12 +17,14 @@ export async function generateMetadata({
 }: DeveloperPageProps): Promise<Metadata> {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
-  return {
+  return getPageMetadata({
+    locale: "en-US",
     title: "Developer resources",
     description:
       "AI Hold'em developer resources, architecture, integration status, source code, and machine-readable discovery files.",
-    alternates: { canonical: "/en-US/developers" },
-  };
+    pathname: "/developers",
+    translated: false,
+  });
 }
 
 export default async function DeveloperResources({ params }: DeveloperPageProps) {

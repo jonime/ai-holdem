@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Suspense, type ReactNode } from "react";
 import { notFound } from "next/navigation";
 
@@ -5,6 +6,12 @@ import { GameHeader } from "@/components/poker/GameHeader";
 import { I18nProvider } from "@/components/poker/I18nProvider";
 import { hasLocale } from "@/lib/i18n";
 import { getGameDictionary } from "@/lib/i18n/server";
+
+// Shared tables are viewable by URL, but should not become search results.
+export const metadata: Metadata = {
+  robots: { index: false, follow: true },
+  alternates: { canonical: null, languages: {} },
+};
 
 interface GameI18nBoundaryProps {
   readonly children: ReactNode;

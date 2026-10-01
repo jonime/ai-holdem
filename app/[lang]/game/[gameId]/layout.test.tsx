@@ -58,7 +58,7 @@ import enUsGame from "@/lib/i18n/dictionaries/game/en-US";
 import fiFiGame from "@/lib/i18n/dictionaries/game/fi-FI";
 import { useI18n } from "@/components/poker/I18nProvider";
 
-import GameLayout, { GameI18nBoundary } from "./layout";
+import GameLayout, { GameI18nBoundary, metadata } from "./layout";
 
 const gameTopLevelKeys = [
   "actions",
@@ -79,6 +79,11 @@ const TranslatingChild = () => {
 };
 
 describe("game layout", () => {
+  it("keeps shared game tables out of search and clears homepage alternates", () => {
+    expect(metadata.robots).toEqual({ index: false, follow: true });
+    expect(metadata.alternates).toEqual({ canonical: null, languages: {} });
+  });
+
   beforeEach(() => {
     providerCaptures.length = 0;
     i18nStore.value = null;

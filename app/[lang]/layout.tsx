@@ -5,6 +5,7 @@ import { Space_Grotesk } from "next/font/google";
 import { hasLocale, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { getMetadataDictionary } from "@/lib/i18n/server";
 import { getSiteOrigin } from "@/lib/site";
+import { getPageMetadata } from "@/lib/seo";
 
 import "../globals.css";
 
@@ -32,25 +33,13 @@ export async function generateMetadata({
   const dictionary = await getMetadataDictionary(lang);
   return {
     metadataBase: new URL(getSiteOrigin()),
+    ...getPageMetadata({
+      locale: lang,
+      title: dictionary.title,
+      description: dictionary.description,
+    }),
     applicationName: "AI Hold'em",
-    title: {
-      default: dictionary.title,
-      template: `%s | ${dictionary.title}`,
-    },
-    description: dictionary.description,
-    keywords: [
-      "AI Hold'em",
-      "AI poker",
-      "Texas Hold'em demo",
-      "TypeSafe AI",
-      "poker bot",
-    ],
-    alternates: {
-      canonical: `/${lang}`,
-      languages: Object.fromEntries(
-        SUPPORTED_LOCALES.map((locale) => [locale, `/${locale}`]),
-      ),
-    },
+    title: { default: dictionary.title, template: "%s | AI Hold'em" },
     robots: { index: true, follow: true },
     icons: {
       icon: "/ai-holdem-logo.png",
@@ -58,22 +47,6 @@ export async function generateMetadata({
       apple: "/ai-holdem-logo.png",
     },
     manifest: "/manifest.webmanifest",
-    openGraph: {
-      title: dictionary.title,
-      description: dictionary.description,
-      siteName: "AI Hold'em",
-      url: `/${lang}`,
-      type: "website",
-      images: [
-        { url: "/ai-holdem-logo.png", alt: dictionary.logoAlt },
-      ],
-    },
-    twitter: {
-      card: "summary",
-      title: dictionary.title,
-      description: dictionary.description,
-      images: ["/ai-holdem-logo.png"],
-    },
   };
 }
 

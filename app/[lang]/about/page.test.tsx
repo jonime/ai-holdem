@@ -31,6 +31,8 @@ vi.mock("@/lib/about/server", () => ({
   })),
 }));
 
+import { getSiteOrigin } from "@/lib/site";
+
 import AboutPage, { generateMetadata } from "./page";
 
 describe("About page", () => {
@@ -62,10 +64,10 @@ describe("About page", () => {
     expect(metadata.description).toBe("Suomenkielinen kuvaus");
     expect(metadata.alternates).toEqual(
       expect.objectContaining({
-        canonical: "/fi-FI/about",
+        canonical: `${getSiteOrigin()}/fi-FI/about`,
         languages: expect.objectContaining({
-          "en-US": "/en-US/about",
-          "fi-FI": "/fi-FI/about",
+          "en-US": `${getSiteOrigin()}/en-US/about`,
+          "fi-FI": `${getSiteOrigin()}/fi-FI/about`,
         }),
       }),
     );

@@ -59,6 +59,24 @@ commands, env vars, or workflows change, update the docs in the same change.
 This is a security-sensitive project: do not weaken validation, secret handling,
 privacy boundaries, or version-checked mutation rules in the name of speed.
 
+## Search and social previews
+
+Public landing and About pages have localized titles, descriptions, canonical URLs,
+and language alternates. `/robots.txt` points to `/sitemap.xml`, which lists the
+localized landing and About pages and the canonical English developer page.
+Individual game pages and the changing public-table directory use `noindex, follow`.
+This is search-indexing guidance, not access control; table URLs remain shareable.
+
+Set `NEXT_PUBLIC_APP_URL` to your public HTTP(S) origin when using a custom domain.
+Without it, metadata uses `VERCEL_PROJECT_PRODUCTION_URL`, then
+`https://ai-holdem.vercel.app`. These values are resolved at build time for static
+pages, so rebuild after changing the domain. Submit `/sitemap.xml` in Google Search
+Console after deploying.
+
+Open Graph and Twitter cards use the supplied 1731 × 909 `public/social-preview.png`.
+The image is committed and needs no runtime service. When replacing it, update
+its dimensions and alt text in `lib/seo.ts` to match the new asset.
+
 ## Local Setup
 
 Use Node.js 24 or newer and install dependencies from the lockfile.

@@ -99,6 +99,12 @@ Supabase or TypeSafe services.
 - The About route is Markdown-authored but remains server-only. Load its MDX
 	through `lib/about/server`; do not add `use client`, client providers, runtime
 	content fetching, or imports from the About documents into client modules.
+- SEO metadata remains server-owned in `lib/seo.ts` and the metadata dictionaries.
+  Only durable public content belongs in the sitemap. Game pages and the public
+  directory use `noindex, follow`; robots guidance is not an access-control boundary.
+  `NEXT_PUBLIC_APP_URL` sets a custom canonical HTTP(S) origin at build time.
+  When replacing `public/social-preview.png`, keep its dimensions and alt text
+  in `lib/seo.ts` synchronized with the committed asset.
 - Anonymous player tokens support this demo's seat ownership; they are not
 	production authentication. Knowing a game URL intentionally permits viewing.
 

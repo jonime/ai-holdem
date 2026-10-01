@@ -35,7 +35,7 @@ describe("machine-readable discovery", () => {
     process.env.NEXT_PUBLIC_APP_URL = "https://example.test";
 
     expect(robots()).toEqual({
-      rules: { userAgent: "*", allow: "/" },
+      rules: { userAgent: "*", allow: "/", disallow: "/api/" },
       sitemap: "https://example.test/sitemap.xml",
       host: "https://example.test",
     });

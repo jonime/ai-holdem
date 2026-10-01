@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 
 import { LanguageMenu } from "@/components/LanguageMenu";
 import { getAboutDocument } from "@/lib/about/server";
-import { hasLocale, SUPPORTED_LOCALES } from "@/lib/i18n";
+import { hasLocale } from "@/lib/i18n";
+
+import { getPageMetadata } from "@/lib/seo";
 
 import styles from "./page.module.css";
 
@@ -19,16 +21,12 @@ export async function generateMetadata({
   if (!hasLocale(lang)) notFound();
   const { metadata } = await getAboutDocument(lang);
 
-  return {
+  return getPageMetadata({
+    locale: lang,
     title: metadata.title,
     description: metadata.description,
-    alternates: {
-      canonical: `/${lang}/about`,
-      languages: Object.fromEntries(
-        SUPPORTED_LOCALES.map((locale) => [locale, `/${locale}/about`]),
-      ),
-    },
-  };
+    pathname: "/about",
+  });
 }
 
 export default async function AboutPage({ params }: AboutPageProps) {

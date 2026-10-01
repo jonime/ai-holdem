@@ -49,7 +49,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
         <Image
           className={styles.mark}
           src="/ai-holdem-logo.png"
-          alt={metadata.title}
+          alt={metadata.logoAlt}
           width={270}
           height={270}
           sizes="(max-width: 450px) 60vw, 270px"
