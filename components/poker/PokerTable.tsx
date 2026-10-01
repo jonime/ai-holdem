@@ -1,3 +1,4 @@
+import { clampTarget, potPresetTarget, validatedTarget } from "@/components/poker/bet-sizing";
 import { PlayingCard } from "@/components/poker/PlayingCard";
 import { Button } from "@/components/Button";
 import { Seat } from "@/components/poker/Seat";
@@ -48,9 +49,9 @@ export function PokerTable({
   readonly sizedAction:
     | Extract<LegalAction, { type: "bet" | "raise" }>
     | undefined;
-  readonly amount: number | null;
+  readonly amount: string;
   readonly loading: boolean;
-  readonly setAmount: (value: number | null) => void;
+  readonly setAmount: (value: string) => void;
   readonly onClaimFirstOpenSeat: () => void;
   readonly onStandUp: () => void;
   readonly onSubmitAction: (
@@ -81,32 +82,18 @@ export function PokerTable({
   const botOnlyGame = game.poker.players
     .filter((player) => player.status === "claimed" || player.status === "bot")
     .every((player) => player.controller === "bot");
-  const selectedAmount = sizedAction
-    ? Math.min(
-        sizedAction.maxAmount,
-        Math.max(sizedAction.minAmount, amount ?? sizedAction.minAmount),
-      )
-    : null;
+  const selectedAmount = validatedTarget(amount, sizedAction);
+  const committedStreet = human?.committedStreet ?? 0;
   const potPresetAmount = (fraction: number) => {
     if (!sizedAction) return 0;
     const call = legalAction("call");
-    const callAmount = call?.type === "call" ? call.amount : 0;
-    const target =
-      sizedAction.type === "raise"
-        ? callAmount + Math.round(game.poker.pot * fraction)
-        : Math.round(game.poker.pot * fraction);
-    return Math.min(
-      sizedAction.maxAmount,
-      Math.max(sizedAction.minAmount, target),
-    );
+    return potPresetTarget(sizedAction, game.poker.pot, committedStreet, call?.type === "call" ? call.amount : 0, fraction);
   };
   const submitFixedAction = (type: LegalAction["type"]) => {
     const action = legalAction(type);
     if (!action) return;
-    if (
-      (action.type === "bet" || action.type === "raise") &&
-      selectedAmount !== null
-    ) {
+    if (action.type === "bet" || action.type === "raise") {
+      if (selectedAmount === null) return;
       onSubmitAction(action, selectedAmount);
       return;
     }
@@ -290,7 +277,7 @@ export function PokerTable({
                   loading ||
                   (isFoldEndedHand
                     ? !canRevealCards
-                    : !isHumanTurn || !sizedAction)
+                    : !isHumanTurn || !sizedAction || selectedAmount === null)
                 }
                 onClick={() => {
                   if (isFoldEndedHand) {
@@ -308,42 +295,59 @@ export function PokerTable({
                           ? "table.raiseTo"
                           : "table.betTo",
                         {
-                          amount: formatChips(
-                            selectedAmount ?? sizedAction.minAmount,
-                            locale,
-                          ),
+                          amount: selectedAmount === null ? "-" : formatChips(selectedAmount, locale),
                         },
                       )
                     : t("table.bet")}
               </Button>
             </div>
             <div className={styles.amountControl}>
-              <div className={styles.amountHeading}>
-                <span>{t("table.betSize")}</span>
-                <strong>
-                  {sizedAction && selectedAmount !== null
-                    ? formatChips(selectedAmount, locale)
-                    : "-"}
-                </strong>
+              <label className={styles.amountHeading} htmlFor="bet-target">
+                {t(sizedAction?.type === "raise" ? "table.raiseTarget" : "table.betTarget")}
+              </label>
+              <div className={styles.amountInputs}>
+                <input
+                  type="range"
+                  min={sizedAction?.minAmount ?? 0}
+                  max={sizedAction?.maxAmount ?? 100}
+                  step={1}
+                  value={sizedAction ? clampTarget(selectedAmount ?? sizedAction.minAmount, sizedAction) : 0}
+                  disabled={!sizedAction || !isHumanTurn || loading}
+                  onChange={(event) => setAmount(event.target.value)}
+                  aria-label={t("table.betAmount")}
+                  onKeyDown={(event) => {
+                    if (!sizedAction || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+                    event.preventDefault();
+                    setAmount(String(clampTarget((selectedAmount ?? sizedAction.minAmount) + (event.key === "ArrowLeft" ? -1 : 1) * game.poker.bigBlind, sizedAction)));
+                  }}
+                />
+                <input
+                  id="bet-target"
+                  type="number"
+                  inputMode="numeric"
+                  step={1}
+                  min={sizedAction?.minAmount}
+                  max={sizedAction?.maxAmount}
+                  value={amount}
+                  disabled={!sizedAction || !isHumanTurn || loading}
+                  aria-invalid={Boolean(sizedAction && selectedAmount === null)}
+                  aria-describedby="bet-range bet-addition"
+                  onChange={(event) => setAmount(event.target.value)}
+                />
               </div>
-              <input
-                type="range"
-                min={sizedAction?.minAmount ?? 0}
-                max={sizedAction?.maxAmount ?? 100}
-                value={
-                  sizedAction ? (selectedAmount ?? sizedAction.minAmount) : 0
-                }
-                disabled={!sizedAction || !isHumanTurn || loading}
-                onChange={(event) => setAmount(Number(event.target.value))}
-                aria-label={t("table.betAmount")}
-              />
+              <span id="bet-addition">
+                {t("table.youAdd", { amount: selectedAmount === null ? "-" : formatChips(selectedAmount - committedStreet, locale) })}
+              </span>
+              <span id="bet-range" className={styles.amountGuidance} aria-live="polite">
+                {sizedAction ? t("table.amountRange", { min: formatChips(sizedAction.minAmount, locale), max: formatChips(sizedAction.maxAmount, locale) }) : "-"}
+              </span>
               <div className={styles.amountPresets}>
                 {[0.5, 0.75, 1].map((fraction) => (
                   <Button
                     key={fraction}
                     size="small"
                     disabled={!sizedAction || !isHumanTurn || loading}
-                    onClick={() => setAmount(potPresetAmount(fraction))}
+                    onClick={() => setAmount(String(potPresetAmount(fraction)))}
                   >
                     {fraction === 1
                       ? t("table.pot")
@@ -354,10 +358,10 @@ export function PokerTable({
                   size="small"
                   disabled={!sizedAction || !isHumanTurn || loading}
                   onClick={() => {
-                    if (sizedAction) setAmount(sizedAction.maxAmount);
+                    if (sizedAction) setAmount(String(sizedAction.maxAmount));
                   }}
                 >
-                  {t("table.max")}
+                  {t("table.allIn")}
                 </Button>
               </div>
             </div>

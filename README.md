@@ -308,3 +308,19 @@ Vitest automatically loads the optional root `.env.test` file for unit tests and
 benchmarks before collecting tests. Existing shell/CI variables take precedence;
 `.env` is not loaded. `.env.test` is ignored by Git and can hold local provider
 credentials. Live bot evaluations still require their explicit opt-in flags.
+
+### Betting controls
+
+Each new decision (game ID, authoritative version, or viewer change) starts at
+its engine-provided minimum bet or raise. Same-version polling preserves edits.
+The numeric input and slider select a total street target; “You add” subtracts
+chips already committed on this street. Empty, fractional, unsafe, and out-of-range
+input disables only bet/raise submission. Buttons and keyboard shortcuts use the
+same validated amount; action shortcuts are ignored while typing. Q/E and left/right
+arrows adjust sizing in big-blind increments.
+
+50%, 75%, and Pot presets select amounts without submitting. For displayed pot P,
+street commitment C, legal call cost K, and fraction f, bets target round(f × P),
+and raises target C + K + round(f × (P + K)). The displayed pot includes side pots and unmatched chips already paid into the active hand.
+Presets are clamped to the engine’s legal range; All-in selects its maximum.
+The server and engine still validate every action and expected game version.

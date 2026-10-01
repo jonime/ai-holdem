@@ -50,6 +50,7 @@ const game = {
         isHost: true,
         leaving: false,
         inHand: true,
+        committedStreet: 50,
         stack: 10_000,
         folded: false,
         allIn: false,
@@ -90,6 +91,7 @@ describe("publishGameEvent", () => {
             legalActions: [],
             players: [
               expect.objectContaining({
+                committedStreet: 50,
                 playerToken: null,
                 holeCards: null,
               }),

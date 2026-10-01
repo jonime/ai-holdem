@@ -43,6 +43,7 @@ export const publicPlayerSchema = z.object({
   isHost: z.boolean(),
   leaving: z.boolean(),
   inHand: z.boolean(),
+  committedStreet: z.number().int().nonnegative(),
   stack: z.number().int().nonnegative(),
   folded: z.boolean(),
   allIn: z.boolean(),

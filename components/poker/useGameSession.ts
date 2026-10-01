@@ -559,6 +559,9 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   const submitAction = useCallback(
     async (action: LegalAction, amountOverride: number | null = null) => {
       if (!game) return;
+      if ((action.type === "bet" || action.type === "raise") &&
+          (amountOverride === null || !Number.isSafeInteger(amountOverride) ||
+           amountOverride < action.minAmount || amountOverride > action.maxAmount)) return;
       const selectedAmount =
         action.type === "bet" || action.type === "raise"
           ? (amountOverride ?? action.minAmount)

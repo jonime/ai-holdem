@@ -22,6 +22,8 @@ import {
   latestActionsForStreet,
 } from "@/components/poker/view-model";
 
+import { clampTarget, decisionScope, validatedTarget } from "@/components/poker/bet-sizing";
+
 const playerNameStorageKey = "ai-holdem-player-name";
 const feedCollapsedStorageKey = "ai-holdem-feed-collapsed";
 
@@ -33,7 +35,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
       : (window.localStorage.getItem(playerNameStorageKey) ?? ""),
   );
   const [playerNameEdited, setPlayerNameEdited] = useState(false);
-  const [amount, setAmount] = useState<number | null>(null);
+  const [amountDraft, setAmountDraft] = useState({ scope: "", value: "" });
   const [historyOpen, setHistoryOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [feedCollapsed, setFeedCollapsed] = useState(() =>
@@ -111,6 +113,17 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
       { type: "bet" | "raise" }
     > => action.type === "bet" || action.type === "raise",
   );
+  const amountScope = decisionScope(game?.id, game?.version, viewerPlayer?.id);
+  const defaultAmount = String(sizedAction?.minAmount ?? "");
+  // Adjust during render so a changed authoritative context cannot expose an old draft.
+  if (amountDraft.scope !== amountScope) {
+    setAmountDraft({ scope: amountScope, value: defaultAmount });
+  }
+  const amount = amountDraft.scope === amountScope ? amountDraft.value : defaultAmount;
+  const selectedAmount = validatedTarget(amount, sizedAction);
+  const setAmount = (value: string) => {
+    setAmountDraft({ scope: amountScope, value });
+  };
   const isHumanTurn =
     viewerPlayer !== null &&
     viewerPlayer.controller === "human" &&
@@ -204,14 +217,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
         return;
       }
 
-      if (key === "d" && sizedAction) {
+      if (key === "d" && sizedAction && selectedAmount !== null) {
         event.preventDefault();
         void submitAction(
           sizedAction,
-          Math.min(
-            sizedAction.maxAmount,
-            Math.max(sizedAction.minAmount, amount ?? sizedAction.minAmount),
-          ),
+          selectedAmount,
         );
         return;
       }
@@ -224,27 +234,17 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
         sizedAction
       ) {
         event.preventDefault();
-        const currentAmount = Math.min(
-          sizedAction.maxAmount,
-          Math.max(sizedAction.minAmount, amount ?? sizedAction.minAmount),
-        );
+        const currentAmount = selectedAmount ?? sizedAction.minAmount;
         const direction = key === "q" || key === "arrowleft" ? -1 : 1;
-        setAmount(
-          Math.min(
-            sizedAction.maxAmount,
-            Math.max(
-              sizedAction.minAmount,
-              currentAmount + direction * game.poker.bigBlind,
-            ),
-          ),
-        );
+        setAmountDraft({ scope: amountScope, value: String(clampTarget(currentAmount + direction * game.poker.bigBlind, sizedAction)) });
       }
     }
 
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
   }, [
-    amount,
+    selectedAmount,
+    amountScope,
     game,
     beginNextHand,
     canRevealCards,
@@ -331,9 +331,10 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               onStandUp={() => {
                 if (human) void releaseSeat(human.seat);
               }}
-              onSubmitAction={(action, amountOverride = amount ?? null) =>
-                void submitAction(action, amountOverride)
-              }
+              onSubmitAction={(action, amountOverride = selectedAmount) => {
+                if ((action.type === "bet" || action.type === "raise") && amountOverride === null) return;
+                void submitAction(action, amountOverride);
+              }}
               onBeginNextHand={() => void beginNextHand()}
               onRevealCards={() => void revealCards()}
               onOpenHistory={() => setHistoryOpen(true)}

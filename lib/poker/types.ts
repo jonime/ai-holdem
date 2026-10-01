@@ -132,6 +132,7 @@ export interface PublicPokerPlayer {
   readonly isHost: boolean;
   readonly leaving: boolean;
   readonly inHand: boolean;
+  readonly committedStreet: number;
   readonly stack: number;
   readonly folded: boolean;
   readonly allIn: boolean;

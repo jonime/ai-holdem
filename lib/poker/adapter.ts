@@ -489,7 +489,13 @@ export const pokerEngineAdapter = {
       bigBlindSeat,
       currentActorId: actor?.playerId ?? null,
       communityCards: hand?.communityCards.map(cardToString) ?? [],
-      pot: hand?.pots.reduce((total, pot) => total + pot.amount, 0) ?? 0,
+      // Active engine pots omit the unmatched part of a bet (including blinds).
+      // Display all chips paid into the hand; completed pots reflect refunds/awards.
+      pot: hand
+        ? hand.stage === "complete"
+          ? hand.pots.reduce((total, pot) => total + pot.amount, 0)
+          : hand.players.reduce((total, player) => total + player.committedHand, 0)
+        : 0,
       completionReason: hand?.completionReason ?? null,
       winnerIds,
       winnerAmounts,
@@ -580,6 +586,7 @@ export const pokerEngineAdapter = {
           isHost: config.isHost ?? false,
           leaving: config.leaving ?? false,
           inHand: player !== undefined,
+          committedStreet: player?.committedStreet ?? 0,
           stack: seat?.stack ?? config.stack,
           folded: player?.folded ?? false,
           allIn: player?.allIn ?? false,

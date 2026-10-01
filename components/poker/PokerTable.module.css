@@ -1,4 +1,5 @@
 .tableShell {
+  min-width: 0;
   background: #f6f5ee;
   border: 1px solid #9db5aa;
   box-shadow: 6px 7px 0 rgba(16, 59, 51, 0.18);
@@ -164,6 +165,14 @@
   }
 }
 @media (max-width: 560px) {
+  .tableMeta {
+    flex-wrap: wrap;
+    padding: 10px;
+  }
+  .tableMetaActions {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
   .desktopSeats {
     display: none;
   }
@@ -209,3 +218,31 @@
     font-size: 11px;
   }
 }
+
+.amountInputs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(90px, 120px);
+  gap: 12px;
+  align-items: center;
+}
+.amountInputs input[type="number"] {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px;
+  border: 1px solid #35554e;
+  border-radius: 6px;
+  background: white;
+  color: var(--felt-dark);
+  font: inherit;
+  font-size: 16px;
+}
+.amountInputs input:focus-visible {
+  outline: 3px solid var(--coral);
+  outline-offset: 3px;
+}
+.amountInputs input[aria-invalid="true"] { border-color: var(--coral); }
+.amountControl input[type="range"], .amountPresets button, .actionControls button {
+  min-height: 44px;
+}
+.amountGuidance { font-weight: 400; }
