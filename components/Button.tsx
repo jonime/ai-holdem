@@ -2,8 +2,16 @@ import type { ButtonHTMLAttributes } from "react";
 
 import styles from "@/components/Button.module.css";
 
-type ButtonVariant = "primary" | "secondary" | "ghost" | "icon";
-type ButtonSize = "small" | "medium" | "large";
+type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "ghost"
+  | "icon"
+  | "muted"
+  | "green"
+  | "amber"
+  | "outline";
+type ButtonSize = "small" | "medium" | "large" | "action" | "preset";
 
 export function Button({
   className,

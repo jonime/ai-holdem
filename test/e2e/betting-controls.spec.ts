@@ -44,6 +44,35 @@ test("synchronizes targets, validates edits, resets decisions, and fits mobile",
   await expect(slider).toHaveValue("300");
   await expect(page.getByText("You add 250", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Raise to 300", exact: true })).toBeEnabled();
+  await page.screenshot({ path: "test-results/betting-desktop.png", fullPage: true });
+  const callButton = page.getByRole("button", { name: "Call 50", exact: true });
+  const colors = () => callButton.evaluate(element => {
+    const style = getComputedStyle(element);
+    return { text: style.color, background: style.backgroundImage };
+  });
+  const restingColors = await colors();
+  await callButton.hover();
+  await expect.poll(async () => (await colors()).text).toBe(restingColors.text);
+  // The green surface must remain dark on hover and keyboard focus.
+  for (const focus of [false, true]) {
+    if (focus) {
+      await page.mouse.move(0, 0);
+      await callButton.focus();
+    }
+    const currentColors = await colors();
+    expect(currentColors.text).toBe("rgb(255, 254, 245)");
+    expect(currentColors.background).toContain("linear-gradient");
+    const backgrounds = [...currentColors.background.matchAll(/rgb\((\d+), (\d+), (\d+)\)/g)];
+    expect(backgrounds).toHaveLength(2);
+    for (const background of backgrounds) {
+      const linear = background.slice(1).map(value => {
+        const channel = Number(value) / 255;
+        return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
+      });
+      const luminance = 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+      expect(1 / (luminance + 0.05)).toBeGreaterThan(4.5);
+    }
+  }
   await input.fill("425");
   await expect(slider).toHaveValue("425");
   await slider.press("ArrowRight");

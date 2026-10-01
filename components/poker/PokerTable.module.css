@@ -1,5 +1,6 @@
 .tableShell {
   min-width: 0;
+  border-radius: 0 0 9px 9px;
   background: #f6f5ee;
   border: 1px solid #9db5aa;
   box-shadow: 6px 7px 0 rgba(16, 59, 51, 0.18);
@@ -116,44 +117,89 @@
   gap: 7px;
 }
 .actionTray {
-  padding: 16px;
-  border-top: 1px solid #c5d3c9;
+  padding: 14px 16px 18px;
+  border-top: 1px solid #b7cec4;
+  border-radius: 0 0 9px 9px;
+  background: linear-gradient(135deg, #f8f7f0, #f1f3ed);
 }
 .actionControls {
   display: flex;
-  flex-wrap: nowrap;
-  gap: 8px;
+  gap: 12px;
 }
 .actionControls button {
   flex: 1 1 0;
   min-width: 0;
 }
+.amountInputs input:focus-visible {
+  outline: 3px solid var(--coral);
+  outline-offset: 3px;
+}
 .amountControl {
-  min-height: 92px;
   display: grid;
-  gap: 8px;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 20px;
+  align-items: center;
   margin-top: 14px;
+  padding-top: 8px;
+  border-top: 1px solid #d0dfd7;
   color: #35554e;
   font-weight: 700;
 }
 .amountHeading {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  color: #173a34;
+  font-size: 18px;
 }
-.amountHeading strong {
-  color: var(--felt-dark);
+.amountInputs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(90px, 140px);
+  gap: 20px;
+  align-items: center;
+}
+.amountInputs input[type="number"] {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid #507a6d;
+  border-radius: 6px;
+  background: #fff;
+  color: #173a34;
+  font: 700 20px/1.2 Georgia, serif;
+  box-shadow: inset 0 1px 3px #173a3410;
+}
+.amountInputs input[aria-invalid="true"] {
+  border-color: var(--coral);
 }
 .amountControl input[type="range"] {
   width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  margin: 0;
   accent-color: var(--coral);
 }
-.amountPresets {
+.amountDetails {
+  grid-column: 1 / -1;
   display: flex;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  color: #526f66;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.amountGuidance {
+  font-weight: 400;
+}
+.amountPresets {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+  padding-top: 12px;
+  border-top: 1px solid #d0dfd7;
 }
 .amountPresets button {
   flex: 1 1 0;
+  min-width: 0;
 }
 .mobileSeats {
   display: none;
@@ -204,45 +250,29 @@
   .actionTray {
     padding: 8px 10px;
   }
-  .actionControls button {
-    padding: 8px 6px;
-    font-size: 13px;
+  .actionControls {
+    gap: 8px;
   }
   .amountControl {
-    min-height: 0;
-    gap: 5px;
-    margin-top: 8px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+    margin-top: 10px;
   }
-  .amountPresets button {
-    padding: 5px 3px;
-    font-size: 11px;
+  .amountHeading {
+    font-size: 16px;
+  }
+  .amountInputs {
+    grid-template-columns: minmax(0, 1fr) 100px;
+    gap: 12px;
+  }
+  .amountInputs input[type="number"] {
+    font-size: 18px;
+  }
+  .amountDetails {
+    font-size: 13px;
+  }
+  .amountPresets {
+    gap: 6px;
+    padding-top: 10px;
   }
 }
-
-.amountInputs {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(90px, 120px);
-  gap: 12px;
-  align-items: center;
-}
-.amountInputs input[type="number"] {
-  width: 100%;
-  min-width: 0;
-  min-height: 44px;
-  padding: 8px;
-  border: 1px solid #35554e;
-  border-radius: 6px;
-  background: white;
-  color: var(--felt-dark);
-  font: inherit;
-  font-size: 16px;
-}
-.amountInputs input:focus-visible {
-  outline: 3px solid var(--coral);
-  outline-offset: 3px;
-}
-.amountInputs input[aria-invalid="true"] { border-color: var(--coral); }
-.amountControl input[type="range"], .amountPresets button, .actionControls button {
-  min-height: 44px;
-}
-.amountGuidance { font-weight: 400; }

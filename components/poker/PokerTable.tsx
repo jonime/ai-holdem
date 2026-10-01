@@ -241,12 +241,16 @@ export function PokerTable({
           <>
             <div className={styles.actionControls}>
               <Button
+                variant="muted"
+                size="action"
                 disabled={!isHumanTurn || loading || !legalAction("fold")}
                 onClick={() => submitFixedAction("fold")}
               >
                 {t("table.fold")}
               </Button>
               <Button
+                variant="green"
+                size="action"
                 disabled={
                   loading ||
                   gameOver ||
@@ -273,6 +277,8 @@ export function PokerTable({
                     : t("table.check")}
               </Button>
               <Button
+                variant="amber"
+                size="action"
                 disabled={
                   loading ||
                   (isFoldEndedHand
@@ -335,17 +341,33 @@ export function PokerTable({
                   onChange={(event) => setAmount(event.target.value)}
                 />
               </div>
-              <span id="bet-addition">
-                {t("table.youAdd", { amount: selectedAmount === null ? "-" : formatChips(selectedAmount - committedStreet, locale) })}
-              </span>
-              <span id="bet-range" className={styles.amountGuidance} aria-live="polite">
-                {sizedAction ? t("table.amountRange", { min: formatChips(sizedAction.minAmount, locale), max: formatChips(sizedAction.maxAmount, locale) }) : "-"}
-              </span>
+              <div className={styles.amountDetails}>
+                <span id="bet-addition">
+                  {t("table.youAdd", {
+                    amount: selectedAmount === null
+                      ? "-"
+                      : formatChips(selectedAmount - committedStreet, locale),
+                  })}
+                </span>
+                <span
+                  id="bet-range"
+                  className={styles.amountGuidance}
+                  aria-live="polite"
+                >
+                  {sizedAction
+                    ? t("table.amountRange", {
+                        min: formatChips(sizedAction.minAmount, locale),
+                        max: formatChips(sizedAction.maxAmount, locale),
+                      })
+                    : "-"}
+                </span>
+              </div>
               <div className={styles.amountPresets}>
                 {[0.5, 0.75, 1].map((fraction) => (
                   <Button
                     key={fraction}
-                    size="small"
+                    variant="outline"
+                    size="preset"
                     disabled={!sizedAction || !isHumanTurn || loading}
                     onClick={() => setAmount(String(potPresetAmount(fraction)))}
                   >
@@ -355,7 +377,8 @@ export function PokerTable({
                   </Button>
                 ))}
                 <Button
-                  size="small"
+                  variant="outline"
+                  size="preset"
                   disabled={!sizedAction || !isHumanTurn || loading}
                   onClick={() => {
                     if (sizedAction) setAmount(String(sizedAction.maxAmount));
