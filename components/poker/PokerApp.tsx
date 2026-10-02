@@ -93,7 +93,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     retryBotTurn,
     selectHistoryHand,
     refreshDirectoryState,
-  } = useGameSession(gameId, historyOpen);
+  } = useGameSession(gameId, process.env.NODE_ENV === "development" && historyOpen);
 
   const viewerToken = getClientPlayerToken();
   const { viewerPlayer, human } = resolveViewer(
@@ -362,7 +362,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               onClose={closeFeedModal}
             />
           ) : null}
-          {historyOpen && displayedHistoryHand ? (
+          {process.env.NODE_ENV === "development" && historyOpen && displayedHistoryHand ? (
             <HistoryModal
               onClose={() => setHistoryOpen(false)}
               handNumber={displayedHistoryHand}

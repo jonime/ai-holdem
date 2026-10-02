@@ -363,7 +363,10 @@ use slightly larger green text and a thin separator to distinguish outcomes from
 moves. Street headings show only the board cards already supplied by public feed
 events. The panel follows updates within 24 pixels of the bottom; scrolling up
 pauses following, and Latest action resumes it. Reopening starts at the latest
-event. The debugging History modal remains available.
+event. The debugging History button and modal are available only in development
+(`npm run dev`); production builds, including deployed previews, hide them and
+do not load history for the modal. The history API retains its existing access
+and privacy rules.
 
 Apply `20261010000000_add_action_seat_to_game_feed.sql` before deploying this
 application change. It preserves the feed’s hand limit, ordering, server-only

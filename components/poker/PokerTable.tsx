@@ -122,14 +122,16 @@ export function PokerTable({
               {human.leaving ? t("table.leaving") : t("table.standUp")}
             </Button>
           ) : null}
-          <Button
-            variant="ghost"
-            size="small"
-            className={styles.historyToggle}
-            onClick={onOpenHistory}
-          >
-            {t("table.history")}
-          </Button>
+          {process.env.NODE_ENV === "development" ? (
+            <Button
+              variant="ghost"
+              size="small"
+              className={styles.historyToggle}
+              onClick={onOpenHistory}
+            >
+              {t("table.history")}
+            </Button>
+          ) : null}
           <Button
             variant="ghost"
             size="small"
