@@ -112,6 +112,21 @@ optional `reasoning` effort: `none`, `minimal`, `low`, `medium`, `high`, or
 LLM_BOT_MODELS='[{"id":"my-llm","label":"My LLM","modelId":"provider/model","reasoning":"low"}]'
 ```
 
+Only the host or a browser that owns a seated human player advances bot turns.
+Folded and eliminated seated humans remain eligible; an unseated host can drive
+a bot-only table. Other spectators are passive: Realtime and polling refresh the
+table without requesting bot actions or offering bot retry. The server rejects
+unauthorized `/step` requests with HTTP 403 before resolving a provider or
+requesting inference. Bots pause when no eligible browser remains open.
+
+Each browser runs at most one advancement loop, stopping at a human turn or hand
+completion. Starting another hand still requires explicit interaction. Multiple
+authorized browsers can race and request duplicate inference, but expected-version
+checks allow only one action to commit. A losing bot-step loop stops and refetches
+silently; refresh failures and genuine provider errors remain visible, and eligible
+viewers can retry. There is no worker, leader election, cross-browser lock, or
+inference deduplication.
+
 Game updates use Supabase Realtime Broadcast as a refetch signal. No additional
 SQL migration is required for Broadcast. The demo intentionally uses public
 game channels, so anyone who knows a game URL can subscribe; this is not an

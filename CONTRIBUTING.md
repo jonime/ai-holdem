@@ -100,6 +100,14 @@ Docs are part of the implementation.
   preserve manual watching and card revealing, and keep fresh Quick Play isolated
   from the old table. The localized quick-game endpoint supports JSON replay and
   form redirects with the same identity cookies and server-selected bots.
+- Only hosts and owned seated human players may advance bots, including folded or
+  eliminated seated humans and unseated bot-only hosts. Spectators only refetch.
+  Check ownership before provider resolution or inference; unauthorized steps return
+  403. One browser runs one bot loop; authorized browsers can still race and incur
+  duplicate inference, but only one version-checked action commits. Conflicts stop
+  the stale loop and refresh silently; refresh and provider failures stay visible.
+  Stop at human turns, completed hands, navigation, or lost eligibility. Next hands
+  require explicit interaction; bots pause without an eligible open browser.
 - Keep database mutations atomic and scoped to at most one action per request.
 - Public listings are private by default. Preserve the two-minute database-time
   host lease, 30-second visible-host heartbeat, and server-role-only access.

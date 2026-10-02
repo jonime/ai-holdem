@@ -1500,6 +1500,30 @@ export async function submitHumanAction(
   };
 }
 
+export class BotStepForbiddenError extends Error {
+  constructor() {
+    super("Only the host or a seated human can advance bots");
+    this.name = "BotStepForbiddenError";
+  }
+}
+
+async function requireBotDriver(
+  repository: Partial<GameHostReader & SeatAssignmentRepository>,
+  gameId: string,
+  state: ReturnType<typeof restorePersistedState>,
+  viewerToken: string | null,
+) {
+  if (!viewerToken) throw new BotStepForbiddenError();
+  if (repository.getHostToken &&
+      await repository.getHostToken(gameId) === viewerToken) return;
+  const players = repository.getSeatAssignments
+    ? await repository.getSeatAssignments(gameId)
+    : state.config.players;
+  if (players.some(player => player.controller === "human" &&
+      (player.status ?? "claimed") === "claimed" && player.playerToken === viewerToken)) return;
+  throw new BotStepForbiddenError();
+}
+
 async function stepResolvedBotAction(
   repository: GameReader &
     AIActionWriter &
@@ -1519,6 +1543,7 @@ async function stepResolvedBotAction(
   if (!game) {
     throw new GameNotFoundError(gameId);
   }
+  await requireBotDriver(repository, gameId, restorePersistedState(game.currentState), viewerToken);
   if (game.version !== expectedVersion) {
     throw new GameConflictError(gameId, expectedVersion);
   }
@@ -1637,6 +1662,7 @@ export async function stepBotAction(
 ): Promise<BotStepResult> {
   const game = await repository.getGame(gameId);
   if (!game) throw new GameNotFoundError(gameId);
+  await requireBotDriver(repository, gameId, restorePersistedState(game.currentState), viewerToken);
   if (game.version !== expectedVersion) {
     throw new GameConflictError(gameId, expectedVersion);
   }
@@ -1672,6 +1698,7 @@ export async function stepTypesafeAction(
 ): Promise<BotStepResult> {
   const game = await repository.getGame(gameId);
   if (!game) throw new GameNotFoundError(gameId);
+  await requireBotDriver(repository, gameId, restorePersistedState(game.currentState), viewerToken);
   return stepResolvedBotAction(
     repository,
     new JevPokerBot(client),

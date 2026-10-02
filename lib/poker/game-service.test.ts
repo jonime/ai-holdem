@@ -6,6 +6,8 @@ import {
   createDemoGame,
   createQuickPlayGame,
   GameNotFoundError,
+  BotStepForbiddenError,
+  stepBotAction,
   getGameFeed,
   getPublicGame,
   releaseSeat,
@@ -19,6 +21,8 @@ import {
   validateTableSettings,
 } from "./game-service";
 import { createDeterministicDeck, pokerEngineAdapter } from "./adapter";
+import { emptyDiagnostics } from "@/lib/bots/types";
+import { GameConflictError } from "@/lib/supabase/queries";
 import type {
   GameFeedActionItem,
   PersistAIActionInput,
@@ -1255,7 +1259,7 @@ describe("submitHumanAction", () => {
 });
 
 describe("stepTypesafeAction", () => {
-  it.each(["host-token", "spectator-token", null])(
+  it.each(["host-token"])(
     "applies an AI action with a private response for viewer %s",
     async (viewerToken) => {
       const started = pokerEngineAdapter.startHand(
@@ -1434,10 +1438,12 @@ describe("stepTypesafeAction", () => {
             handNumber: 1,
             version: 0,
           }),
+          getHostToken: async () => "host-token",
           persistAIAction: vi.fn(),
         },
         { evaluate: vi.fn() },
         "game-1",
+        "host-token",
       ),
     ).rejects.toThrow("not a bot turn");
   });
@@ -1911,6 +1917,7 @@ describe("deterministic persisted hand harness", () => {
     }
 
     const repository = {
+      getHostToken: async () => "host-token",
       getGame: async () => storedGame,
       persistHumanAction: async (input: PersistHumanActionInput) =>
         persist(input),
@@ -1965,7 +1972,7 @@ describe("deterministic persisted hand harness", () => {
           action,
         });
       } else {
-        await stepTypesafeAction(repository, passiveTypesafeClient, "game-1");
+        await stepTypesafeAction(repository, passiveTypesafeClient, "game-1", "host-token");
       }
     }
 
@@ -2284,5 +2291,84 @@ describe("getGameFeed", () => {
         expect.objectContaining({ type: "action", action: "check", playerId: null }),
       ],
     });
+  });
+});
+
+describe("bot driver authorization", () => {
+  const started = pokerEngineAdapter.startHand(pokerEngineAdapter.createGame({
+    smallBlind: 50, bigBlind: 100,
+    players: [
+      { id: "human", name: "Human", controller: "human", seat: 0, stack: 1000, playerToken: "owner" },
+      { id: "bot", name: "Bot", controller: "bot", seat: 1, stack: 1000 },
+    ],
+  }), createDeterministicDeck());
+  const currentState = pokerEngineAdapter.applyAction(started, "human", { type: "call", amount: 50 });
+  const game = { id: "game-1", status: "playing" as const, currentState, stateSchemaVersion: 1, handNumber: 1, version: 1 };
+
+  it.each([null, "spectator", "", "owner"])("rejects nonowners %s before registry, inference, or persistence", async token => {
+    const persistAIAction = vi.fn();
+    const evaluate = vi.fn();
+    const get = vi.fn();
+    const repository = { getGame: async () => game, getHostToken: async () => null,
+      getSeatAssignments: async () => [], persistAIAction };
+    await expect(stepBotAction(repository, { get }, "game-1", 0, token)).rejects.toBeInstanceOf(BotStepForbiddenError);
+    await expect(stepTypesafeAction(repository, { evaluate }, "game-1", token)).rejects.toBeInstanceOf(BotStepForbiddenError);
+    expect(get).not.toHaveBeenCalled();
+    expect(evaluate).not.toHaveBeenCalled();
+    expect(persistAIAction).not.toHaveBeenCalled();
+  });
+
+  it.each(["host", "owner", "folded", "eliminated", "bot-only-host"])("permits %s before provider resolution", async token => {
+    const get = vi.fn(() => { throw new Error("provider reached"); });
+    const repository = { getGame: async () => game,
+      getHostToken: async () => token.includes("host") ? token : "host",
+      getSeatAssignments: async () => token === "bot-only-host" ? [] : [{
+        gameId: "game-1", seat: 0, controller: "human" as const, status: "claimed" as const,
+        playerToken: token, isHost: false,
+      }], persistAIAction: vi.fn() };
+    await expect(stepBotAction(repository, { get }, "game-1", 1, token)).rejects.toThrow("provider reached");
+    expect(get).toHaveBeenCalledOnce();
+    expect(repository.persistAIAction).not.toHaveBeenCalled();
+  });
+
+  it("persists exactly one action when two authorized browsers race", async () => {
+    let stored: PersistedGame = game;
+    let commits = 0;
+    let release!: () => void;
+    const both = new Promise<void>(resolve => { release = resolve; });
+    const decide = vi.fn(async () => {
+      if (decide.mock.calls.length === 2) release();
+      await both;
+      return { action: { type: "check" as const }, diagnostics: emptyDiagnostics(), rawResponse: null };
+    });
+    const repository = {
+      getGame: async () => stored,
+      persistAIAction: vi.fn(async (input: PersistAIActionInput) => {
+        if (input.expectedVersion !== stored.version) throw new GameConflictError("game-1", input.expectedVersion);
+        commits++;
+        stored = { ...stored, currentState: input.currentState, version: stored.version + 1 };
+        return stored;
+      }),
+    };
+    const registry = { get: () => ({ bot: { decide }, descriptor: {
+      id: "rules", label: "Rules", provider: "rules" as const, modelId: null,
+    } }) };
+    const results = await Promise.allSettled([
+      stepBotAction(repository, registry, "game-1", 1, "owner"),
+      stepBotAction(repository, registry, "game-1", 1, "owner"),
+    ]);
+    expect(decide).toHaveBeenCalledTimes(2);
+    expect(commits).toBe(1);
+    expect(stored.version).toBe(2);
+    expect(results.filter(result => result.status === "fulfilled")).toHaveLength(1);
+    const rejected = results.find(result => result.status === "rejected");
+    expect(rejected?.status === "rejected" && rejected.reason).toBeInstanceOf(GameConflictError);
+  });
+
+  it("fails closed when ownership and identity are absent in the legacy seam", async () => {
+    const evaluate = vi.fn();
+    await expect(stepTypesafeAction({ getGame: async () => game, persistAIAction: vi.fn() },
+      { evaluate }, "game-1")).rejects.toBeInstanceOf(BotStepForbiddenError);
+    expect(evaluate).not.toHaveBeenCalled();
   });
 });

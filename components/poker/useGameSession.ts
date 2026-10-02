@@ -9,7 +9,8 @@ import {
   useState,
 } from "react";
 
-import { tableFlow } from "@/components/poker/view-model";
+import { advanceBotTurns, hasBotTurn } from "./bot-advancement";
+import { canAdvanceBots, tableFlow } from "@/components/poker/view-model";
 import { getClientPlayerToken } from "@/lib/identity/player-token-client";
 import { requestJson } from "@/lib/http/request-json";
 import {
@@ -67,6 +68,9 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   const [botCatalog, setBotCatalog] = useState<readonly BotDescriptor[]>([]);
   const automaticallyAdvancedVersions = useRef(new Set<number>());
   const activeGameId = useRef(gameId);
+  const latestGame = useRef<Game | null>(null);
+  const botLoop = useRef<symbol | null>(null);
+  const botEligibilityEpoch = useRef(0);
   const nextResponseSequence = useRef(0);
   const lastAppliedResponse = useRef<AppliedGameResponse | null>(null);
   const refreshCoordinator = useRef<RefreshCoordinator | null>(null);
@@ -76,6 +80,12 @@ export function useGameSession(gameId?: string, historyOpen = false) {
 
   useEffect(() => {
     activeGameId.current = gameId;
+    automaticallyAdvancedVersions.current.clear();
+    return () => {
+      activeGameId.current = undefined;
+      botLoop.current = null;
+      latestGame.current = null;
+    };
   }, [gameId]);
 
   const applyGame = useCallback(
@@ -83,16 +93,18 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       if (activeGameId.current !== targetGameId || incoming.id !== targetGameId) {
         return;
       }
-      setGame((current) => {
-        const reconciled = reconcileGame(
-          current,
-          incoming,
-          lastAppliedResponse.current,
-          sequence,
-        );
-        lastAppliedResponse.current = reconciled.applied;
-        return reconciled.game;
-      });
+      const reconciled = reconcileGame(
+        latestGame.current,
+        incoming,
+        lastAppliedResponse.current,
+        sequence,
+      );
+      lastAppliedResponse.current = reconciled.applied;
+      latestGame.current = reconciled.game;
+      if (reconciled.game && !canAdvanceBots(reconciled.game, getClientPlayerToken())) {
+        botEligibilityEpoch.current++;
+      }
+      setGame(reconciled.game);
     },
     [],
   );
@@ -463,33 +475,55 @@ export function useGameSession(gameId?: string, historyOpen = false) {
 
   const advanceAiTurns = useCallback(
     async (nextGame: Game) => {
-      let current = nextGame;
-      for (
-        let attempts = 0;
-        attempts < 12 &&
-        current.status === "playing" &&
-        current.poker.players.some(
-          (player) =>
-            player.id === current.poker.currentActorId &&
-            player.controller === "bot",
-        );
-        attempts += 1
-      ) {
-        const sequence = ++nextResponseSequence.current;
-        const body = await requestJson<{ game: Game; aiDecision: AIDecision }>(
-          `/api/games/${current.id}/step`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ expectedVersion: current.version }),
+      if (botLoop.current || activeGameId.current !== nextGame.id ||
+          !canAdvanceBots(nextGame, getClientPlayerToken())) return;
+      const loop = Symbol("bot loop");
+      const eligibilityEpoch = botEligibilityEpoch.current;
+      botLoop.current = loop;
+      let stepSequence = 0;
+      const isActive = () => botLoop.current === loop &&
+        botEligibilityEpoch.current === eligibilityEpoch &&
+        activeGameId.current === nextGame.id &&
+        hasBotTurn(latestGame.current ?? nextGame) &&
+        canAdvanceBots(latestGame.current ?? nextGame, getClientPlayerToken());
+      try {
+        await advanceBotTurns(nextGame, {
+          viewerToken: getClientPlayerToken,
+          isActive,
+          step: async current => {
+            stepSequence = ++nextResponseSequence.current;
+            const body = await requestJson<{ game: Game; aiDecision: AIDecision }>(
+              `/api/games/${current.id}/step`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ expectedVersion: current.version }),
+              },
+            );
+            return body;
           },
-        );
-        current = body.game;
-        applyGame(current, sequence);
-        setLiveDecisions((previous) => [...previous, body.aiDecision]);
+          apply: body => {
+            applyGame(body.game, stepSequence);
+            setLiveDecisions(previous => [...previous, body.aiDecision]);
+          },
+          refresh: async () => {
+            try {
+              await loadGame(nextGame.id);
+              if (activeGameId.current === nextGame.id) setRefreshFailed(false);
+            } catch (refreshError) {
+              if (isActive()) setRefreshFailed(true);
+              throw refreshError;
+            }
+          },
+        });
+      } catch (requestError) {
+        if (isActive()) setError(requestError instanceof Error
+          ? requestError.message : t("errors.advanceAi"));
+      } finally {
+        if (botLoop.current === loop) botLoop.current = null;
       }
     },
-    [applyGame],
+    [applyGame, loadGame, t],
   );
 
   const automaticallyAdvanceAiTurn = useEffectEvent(async (nextGame: Game) => {
@@ -497,59 +531,30 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     setError(null);
     try {
       await advanceAiTurns(nextGame);
-    } catch (requestError) {
-      if (
-        requestError instanceof Error &&
-        requestError.message === "Game version conflict" &&
-        gameId
-      ) {
-        await loadGame(gameId).catch(() => undefined);
-      }
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : t("errors.advanceAi"),
-      );
     } finally {
-      setLoading(false);
+      if (activeGameId.current === nextGame.id) setLoading(false);
     }
   });
 
   const retryBotTurn = useCallback(async () => {
-    if (!game) return;
+    if (!game || botLoop.current || !canAdvanceBots(game, getClientPlayerToken())) return;
     setLoading(true);
     setError(null);
     try {
       await advanceAiTurns(game);
-    } catch (requestError) {
-      if (
-        requestError instanceof Error &&
-        requestError.message === "Game version conflict"
-      ) {
-        await loadGame(game.id);
-      } else {
-        setError(
-          requestError instanceof Error
-            ? requestError.message
-            : t("errors.advanceAi"),
-        );
-      }
     } finally {
-      setLoading(false);
+      if (activeGameId.current === game.id) setLoading(false);
     }
-  }, [advanceAiTurns, game, loadGame, t]);
+  }, [advanceAiTurns, game]);
 
   useEffect(() => {
     if (
       !game ||
       loading ||
-      game.status !== "playing" ||
-      automaticallyAdvancedVersions.current.has(game.version) ||
-      !game.poker.players.some(
-        (player) =>
-          player.id === game.poker.currentActorId &&
-          player.controller === "bot",
-      )
+      !canAdvanceBots(game, getClientPlayerToken()) ||
+      botLoop.current !== null ||
+      !hasBotTurn(game) ||
+      automaticallyAdvancedVersions.current.has(game.version)
     ) {
       return;
     }

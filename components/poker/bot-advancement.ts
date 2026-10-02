@@ -1,0 +1,39 @@
+import { canAdvanceBots } from "./view-model";
+import type { AIDecision, Game } from "./types";
+
+export function hasBotTurn(game: Game): boolean {
+  return game.status === "playing" && game.poker.street !== "complete" &&
+    game.poker.players.some(player => player.id === game.poker.currentActorId &&
+      player.controller === "bot");
+}
+
+/** All entry points stop their stale loop and refresh on a competing commit. */
+export async function advanceBotTurns(
+  initial: Game,
+  driver: {
+    readonly viewerToken: () => string | null;
+    readonly isActive: () => boolean;
+    readonly step: (game: Game) => Promise<{ game: Game; aiDecision: AIDecision }>;
+    readonly apply: (result: { game: Game; aiDecision: AIDecision }) => void;
+    readonly refresh: () => Promise<unknown>;
+  },
+): Promise<void> {
+  let current = initial;
+  for (let attempts = 0; attempts < 12 && hasBotTurn(current) &&
+    driver.isActive() && canAdvanceBots(current, driver.viewerToken()); attempts++) {
+    let result;
+    try {
+      result = await driver.step(current);
+    } catch (error) {
+      if (!driver.isActive()) return;
+      if (error instanceof Error && error.message === "Game version conflict") {
+        await driver.refresh();
+        return;
+      }
+      throw error;
+    }
+    if (!driver.isActive()) return;
+    current = result.game;
+    driver.apply(result);
+  }
+}

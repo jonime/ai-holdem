@@ -71,6 +71,14 @@ Supabase or TypeSafe services.
 	the installed package declarations and behavior before using an engine API.
 - The poker engine, never TypeSafe output or client input, decides legality.
 	Validate a proposed action, apply it through the adapter, then persist it.
+- Only hosts and owned seated human players may advance bots, including folded or
+  eliminated seated humans and unseated bot-only hosts. Spectators only refetch.
+  Check ownership before provider resolution or inference; unauthorized steps return
+  403. One browser runs one bot loop; authorized browsers can still race and incur
+  duplicate inference, but only one version-checked action commits. Conflicts stop
+  the stale loop and refresh silently; refresh and provider failures stay visible.
+  Stop at human turns, completed hands, navigation, or lost eligibility. Next hands
+  require explicit interaction; bots pause without an eligible open browser.
 - Each mutation applies at most one action and uses the expected game version.
 	Preserve optimistic-concurrency conflict handling in service and API layers.
 - Postgres is the source of truth. Realtime events are best-effort wake-up

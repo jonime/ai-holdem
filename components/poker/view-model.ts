@@ -185,6 +185,16 @@ export function resolveViewer(
   return { viewerPlayer, human };
 }
 
+/** Seat ownership survives folding and elimination; hosts may be unseated. */
+export function canAdvanceBots(
+  game: { readonly viewerIsHost: boolean; readonly poker: { readonly players: readonly PublicPokerPlayer[] } },
+  viewerToken: string | null,
+): boolean {
+  return Boolean(viewerToken) && (game.viewerIsHost ||
+    game.poker.players.some(player => player.controller === "human" &&
+      player.status === "claimed" && player.playerToken === viewerToken));
+}
+
 export function canManageTable(
   players: readonly Pick<PublicPokerPlayer, "isHost" | "playerToken">[],
   viewerToken: string | null,

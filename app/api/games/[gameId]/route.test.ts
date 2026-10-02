@@ -6,11 +6,13 @@ import { POST as step } from "./step/route";
 import { publishGameEvent } from "@/lib/realtime/publish";
 
 const {
+  BotStepForbiddenErrorMock,
   GameNotFoundErrorMock,
   getPublicGameMock,
   startNextHandMock,
   stepTypesafeActionMock,
 } = vi.hoisted(() => ({
+  BotStepForbiddenErrorMock: class BotStepForbiddenError extends Error {},
   GameNotFoundErrorMock: class GameNotFoundError extends Error {
     constructor(message: string) {
       super(message);
@@ -24,6 +26,7 @@ const {
 
 vi.mock("@/lib/poker/game-service", () => ({
   GameNotFoundError: GameNotFoundErrorMock,
+  BotStepForbiddenError: BotStepForbiddenErrorMock,
   getPublicGame: (...args: unknown[]) => getPublicGameMock(...args),
   startNextHand: (...args: unknown[]) => startNextHandMock(...args),
   stepTypesafeAction: (...args: unknown[]) => stepTypesafeActionMock(...args),
@@ -133,4 +136,14 @@ describe.each([
       );
     },
   );
+});
+
+ it("returns forbidden for unauthorized bot steps without broadcasting", async () => {
+  vi.clearAllMocks();
+  stepTypesafeActionMock.mockRejectedValue(new BotStepForbiddenErrorMock("Forbidden"));
+  const response = await step(new Request("http://localhost/api/games/game-1/step", {
+    method: "POST", body: JSON.stringify({ expectedVersion: 1 }),
+  }), { params: Promise.resolve({ gameId: "game-1" }) });
+  expect(response.status).toBe(403);
+  expect(publishGameEvent).not.toHaveBeenCalled();
 });

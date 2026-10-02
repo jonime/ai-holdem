@@ -21,6 +21,7 @@ import {
   resolveViewer,
   latestActionsForStreet,
   tableFlow,
+  canAdvanceBots,
 } from "@/components/poker/view-model";
 
 import { adjustTarget, decisionScope, validatedTarget } from "@/components/poker/bet-sizing";
@@ -297,7 +298,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
       {error ? (
         <p className={styles.errorBanner} role="alert">
           {error}
-          {game?.poker.players.some(
+          {game && canAdvanceBots(game, viewerToken) && game.poker.players.some(
             (player) =>
               player.id === game.poker.currentActorId &&
               player.controller === "bot",
