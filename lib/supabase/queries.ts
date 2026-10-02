@@ -186,6 +186,7 @@ export interface HandHistory {
  * rather than the debug history modal.
  */
 export interface GameFeedActionItem {
+  readonly seat: number | null;
   readonly sequence: number;
   readonly street: "preflop" | "flop" | "turn" | "river";
   readonly action: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
@@ -551,7 +552,15 @@ function toGameFeed(value: unknown): GameFeed {
       ) {
         throw new Error("Supabase returned an invalid game feed action amount");
       }
+      const seat = action.seat ?? null;
+      if (
+        seat !== null &&
+        (typeof seat !== "number" || !Number.isInteger(seat) || seat < 0 || seat > 5)
+      ) {
+        throw new Error("Supabase returned an invalid game feed action seat");
+      }
       return {
+        seat,
         sequence: requiredInteger(action, "sequence"),
         street,
         action: actionType,

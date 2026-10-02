@@ -349,13 +349,14 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             {feedCollapsed ? null : (
               <div className={styles.feedColumn}>
                 <div className={styles.desktopFeed}>
-                  <ActionFeedPanel feed={feed} loading={feedLoading} />
+                  <ActionFeedPanel feed={feed} loading={feedLoading} viewerPlayerId={viewerPlayer?.id ?? null} />
                 </div>
               </div>
             )}
           </div>
           {feedModalOpen ? (
             <ActionFeedModal
+              viewerPlayerId={viewerPlayer?.id ?? null}
               feed={feed}
               loading={feedLoading}
               onClose={closeFeedModal}

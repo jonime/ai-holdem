@@ -1968,7 +1968,7 @@ describe("deterministic persisted hand harness", () => {
 });
 
 describe("getGameFeed", () => {
-  it("builds hand-started, action, and win events from persisted feed rows", async () => {
+  it.each([0, null, 5])("builds feed events using immutable identity for seat %s", async (seat) => {
     const initialState = pokerEngineAdapter.startHand(
       pokerEngineAdapter.createGame({
         smallBlind: 50,
@@ -1976,14 +1976,14 @@ describe("getGameFeed", () => {
         players: [
           {
             id: "human",
-            name: "You",
+            name: "Duplicate",
             controller: "human",
             seat: 0,
             stack: 10_000,
           },
           {
             id: "ai",
-            name: "TypeSafe AI",
+            name: "Duplicate",
             controller: "typesafe_ai",
             seat: 1,
             stack: 10_000,
@@ -2005,11 +2005,12 @@ describe("getGameFeed", () => {
             latestState: state,
             actions: [
               {
+                seat,
                 sequence: 1,
                 street: "preflop" as const,
                 action: "fold" as const,
                 amount: null,
-                player: "You",
+                player: "Duplicate",
                 controller: "human" as const,
               },
             ],
@@ -2017,6 +2018,20 @@ describe("getGameFeed", () => {
         ],
       }),
     };
+
+    const legacyFeed = await getGameFeed({
+      getGameFeed: async () => ({
+        hands: (await repository.getGameFeed()).hands.map(hand => ({
+          ...hand, initialState: null,
+        })),
+      }),
+    }, "game-1");
+    expect(legacyFeed.events.filter(event => event.type === "blind")).toEqual([]);
+    expect(legacyFeed.events.filter(event => event.type === "action" || event.type === "win"))
+      .toEqual([
+        expect.objectContaining({ type: "action", playerId: null }),
+        expect.objectContaining({ type: "win", playerId: null }),
+      ]);
 
     const feed = await getGameFeed(repository, "game-1");
 
@@ -2026,7 +2041,8 @@ describe("getGameFeed", () => {
       {
         type: "blind",
         handNumber: 1,
-        player: "You",
+        player: "Duplicate",
+        playerId: "human",
         controller: "human",
         blind: "small",
         amount: 50,
@@ -2034,7 +2050,8 @@ describe("getGameFeed", () => {
       {
         type: "blind",
         handNumber: 1,
-        player: "TypeSafe AI",
+        player: "Duplicate",
+        playerId: "ai",
         controller: "bot",
         blind: "big",
         amount: 100,
@@ -2042,7 +2059,8 @@ describe("getGameFeed", () => {
       {
         type: "action",
         handNumber: 1,
-        player: "You",
+        player: "Duplicate",
+        playerId: seat === 0 ? "human" : null,
         controller: "human",
         action: "fold",
         amount: null,
@@ -2051,7 +2069,8 @@ describe("getGameFeed", () => {
       {
         type: "win",
         handNumber: 1,
-        player: "TypeSafe AI",
+        player: "Duplicate",
+        playerId: "ai",
         amount: expect.any(Number),
         uncontested: true,
       },
@@ -2163,6 +2182,7 @@ describe("getGameFeed", () => {
       if (!action) throw new Error("Expected an all-in raise or call action");
       state = pokerEngineAdapter.applyAction(before, actorId, action);
       actions.push({
+        seat: actorId === "human" ? 0 : 1,
         sequence,
         street: snapshot.street,
         action: action.type,
@@ -2223,6 +2243,7 @@ describe("getGameFeed", () => {
             latestState: { stateSchemaVersion: 99 },
             actions: [
               {
+                seat: 0,
                 sequence: 1,
                 street: "preflop" as const,
                 action: "check" as const,
@@ -2240,7 +2261,7 @@ describe("getGameFeed", () => {
       events: [
         { type: "handStarted", handNumber: 3 },
         { type: "street", handNumber: 3, street: "preflop", cards: [] },
-        expect.objectContaining({ type: "action", action: "check" }),
+        expect.objectContaining({ type: "action", action: "check", playerId: null }),
       ],
     });
   });

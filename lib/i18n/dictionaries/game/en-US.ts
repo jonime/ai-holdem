@@ -109,6 +109,12 @@ const dictionary = {
     max: "Max",
     show: "Show",
   },
+  result: {
+    title: "Hand result",
+    potAwards: "Pot awards",
+    uncontested: "Opponents folded.",
+    award: "{player} wins {amount}",
+  },
   seat: {
     seat: "Seat {seat}",
     openSeat: "Open seat",
@@ -160,6 +166,8 @@ const dictionary = {
     winner: "Winner: {winner}",
   },
   feed: {
+    latestAction: "Latest action",
+
     title: "Actions",
     collapse: "Collapse actions panel",
     expand: "Expand actions panel",

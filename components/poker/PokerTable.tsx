@@ -1,4 +1,5 @@
 import { adjustTarget, clampTarget, potPresetTarget, validatedTarget } from "@/components/poker/bet-sizing";
+import { CompletedHandResult } from "@/components/poker/CompletedHandResult";
 import { PlayingCard } from "@/components/poker/PlayingCard";
 import { Button } from "@/components/Button";
 import { Seat } from "@/components/poker/Seat";
@@ -310,96 +311,106 @@ export function PokerTable({
                     : t("table.bet")}
               </Button>
             </div>
-            <div className={styles.amountControl}>
-              <label className={styles.amountHeading} htmlFor="bet-target">
-                {t("table.betAmount")}
-              </label>
-              <div className={styles.amountInputs}>
-                <div className={styles.sliderControl}>
-                  <div className={styles.sliderShortcuts} aria-hidden="true">
-                    <kbd>Q −</kbd>
-                    <kbd>Shift ×5</kbd>
-                    <kbd>E +</kbd>
-                  </div>
-                <input
-                  type="range"
-                  min={sizedAction?.minAmount ?? 0}
-                  max={sizedAction?.maxAmount ?? 100}
-                  step={1}
-                  value={sizedAction ? clampTarget(selectedAmount ?? sizedAction.minAmount, sizedAction) : 0}
-                  disabled={!sizedAction || !isHumanTurn || loading}
-                  onChange={(event) => setAmount(event.target.value)}
-                  aria-label={t("table.betAmount")}
-                  aria-keyshortcuts="Q E ArrowLeft ArrowRight Shift+Q Shift+E Shift+ArrowLeft Shift+ArrowRight"
-                  onKeyDown={(event) => {
-                    if (!sizedAction || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
-                    event.preventDefault();
-                    setAmount(String(adjustTarget(
-                      sizedAction,
-                      selectedAmount,
-                      game.poker.bigBlind,
-                      event.key === "ArrowLeft" ? -1 : 1,
-                      event.shiftKey,
-                    )));
-                  }}
-                />
+          </>
+        )}
+        <div className={styles.sizingArea}>
+          <div
+            className={styles.amountControl}
+            style={{ visibility: game.poker.street === "complete" || isSpectator ? "hidden" : undefined }}
+            aria-hidden={game.poker.street === "complete" || isSpectator}
+            inert={game.poker.street === "complete" || isSpectator}
+          >
+            <label className={styles.amountHeading} htmlFor="bet-target">
+              {t("table.betAmount")}
+            </label>
+            <div className={styles.amountInputs}>
+              <div className={styles.sliderControl}>
+                <div className={styles.sliderShortcuts} aria-hidden="true">
+                  <kbd>Q −</kbd>
+                  <kbd>Shift ×5</kbd>
+                  <kbd>E +</kbd>
                 </div>
-                <input
-                  id="bet-target"
-                  type="number"
-                  inputMode="numeric"
-                  step={1}
-                  min={sizedAction?.minAmount}
-                  max={sizedAction?.maxAmount}
-                  value={amount}
-                  disabled={!sizedAction || !isHumanTurn || loading}
-                  aria-invalid={Boolean(sizedAction && selectedAmount === null)}
-                  aria-describedby="bet-addition"
-                  onChange={(event) => setAmount(event.target.value)}
-                />
-                <output
-                  id="bet-addition"
-                  className={styles.amountAddition}
-                  htmlFor="bet-target"
-                  aria-label={t("table.youAdd", {
-                    amount: selectedAmount === null
-                      ? "-"
-                      : formatChips(selectedAmount - committedStreet, locale),
-                  })}
-                >
-                  {selectedAmount === null
-                    ? "-"
-                    : `+${formatChips(selectedAmount - committedStreet, locale)}`}
-                </output>
+              <input
+                type="range"
+                min={sizedAction?.minAmount ?? 0}
+                max={sizedAction?.maxAmount ?? 100}
+                step={1}
+                value={sizedAction ? clampTarget(selectedAmount ?? sizedAction.minAmount, sizedAction) : 0}
+                disabled={!sizedAction || !isHumanTurn || loading}
+                onChange={(event) => setAmount(event.target.value)}
+                aria-label={t("table.betAmount")}
+                aria-keyshortcuts="Q E ArrowLeft ArrowRight Shift+Q Shift+E Shift+ArrowLeft Shift+ArrowRight"
+                onKeyDown={(event) => {
+                  if (!sizedAction || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+                  event.preventDefault();
+                  setAmount(String(adjustTarget(
+                    sizedAction,
+                    selectedAmount,
+                    game.poker.bigBlind,
+                    event.key === "ArrowLeft" ? -1 : 1,
+                    event.shiftKey,
+                  )));
+                }}
+              />
               </div>
-              <div className={styles.amountPresets}>
-                {[0.5, 0.75, 1].map((fraction) => (
-                  <Button
-                    key={fraction}
-                    variant="outline"
-                    size="preset"
-                    disabled={!sizedAction || !isHumanTurn || loading}
-                    onClick={() => setAmount(String(potPresetAmount(fraction)))}
-                  >
-                    {fraction === 1
-                      ? t("table.pot")
-                      : t("table.potPercent", { percent: fraction * 100 })}
-                  </Button>
-                ))}
+              <input
+                id="bet-target"
+                type="number"
+                inputMode="numeric"
+                step={1}
+                min={sizedAction?.minAmount}
+                max={sizedAction?.maxAmount}
+                value={amount}
+                disabled={!sizedAction || !isHumanTurn || loading}
+                aria-invalid={Boolean(sizedAction && selectedAmount === null)}
+                aria-describedby="bet-addition"
+                onChange={(event) => setAmount(event.target.value)}
+              />
+              <output
+                id="bet-addition"
+                className={styles.amountAddition}
+                htmlFor="bet-target"
+                aria-label={t("table.youAdd", {
+                  amount: selectedAmount === null
+                    ? "-"
+                    : formatChips(selectedAmount - committedStreet, locale),
+                })}
+              >
+                {selectedAmount === null
+                  ? "-"
+                  : `+${formatChips(selectedAmount - committedStreet, locale)}`}
+              </output>
+            </div>
+            <div className={styles.amountPresets}>
+              {[0.5, 0.75, 1].map((fraction) => (
                 <Button
+                  key={fraction}
                   variant="outline"
                   size="preset"
                   disabled={!sizedAction || !isHumanTurn || loading}
-                  onClick={() => {
-                    if (sizedAction) setAmount(String(sizedAction.maxAmount));
-                  }}
+                  onClick={() => setAmount(String(potPresetAmount(fraction)))}
                 >
-                  {t("table.allIn")}
+                  {fraction === 1
+                    ? t("table.pot")
+                    : t("table.potPercent", { percent: fraction * 100 })}
                 </Button>
-              </div>
+              ))}
+              <Button
+                variant="outline"
+                size="preset"
+                disabled={!sizedAction || !isHumanTurn || loading}
+                onClick={() => {
+                  if (sizedAction) setAmount(String(sizedAction.maxAmount));
+                }}
+              >
+                {t("table.allIn")}
+              </Button>
             </div>
-          </>
-        )}
+          </div>
+          <div className={styles.resultOverlay} role="status" aria-live="polite" aria-atomic="true">
+            <CompletedHandResult poker={game.poker} />
+          </div>
+        </div>
       </section>
     </section>
   );

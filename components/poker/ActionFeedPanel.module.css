@@ -85,30 +85,56 @@
   line-height: 1.35;
 }
 
-.winEvent {
+.eventList .winEvent {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid #d5dfd7;
   color: #147060;
+  font-size: 15px;
   font-weight: 700;
 }
 
 .eventList .streetEvent {
+  padding-top: 9px;
+}
+
+.streetEvent h3 {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-top: 9px;
+  margin: 0 0 5px;
   color: #56716b;
-  font:
-    700 11px/1.2 ui-monospace,
-    Menlo,
-    monospace;
+  font: 700 11px/1.2 ui-monospace, Menlo, monospace;
   letter-spacing: 0.9px;
   text-transform: uppercase;
 }
 
-.streetEvent::after {
+.streetEvent h3::after {
   content: "";
   flex: 1;
   height: 1px;
   background: #d5dfd7;
+}
+
+.boardCards {
+  display: flex;
+  gap: 5px;
+  padding-bottom: 3px;
+}
+
+.boardCards [data-playing-card] {
+  width: 28px;
+  height: 38px;
+  font-size: 14px;
+}
+
+.eventList .viewerEvent {
+  font-weight: 700;
+}
+
+.latestAction {
+  align-self: center;
+  margin: 6px 14px 12px;
 }
 
 .modalOverlay {

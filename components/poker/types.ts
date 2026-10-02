@@ -87,6 +87,7 @@ export type GameFeedEvent =
       readonly type: "blind";
       readonly handNumber: number;
       readonly player: string;
+      readonly playerId: string | null;
       readonly controller: "human" | "bot";
       readonly blind: "small" | "big";
       readonly amount: number;
@@ -95,6 +96,7 @@ export type GameFeedEvent =
       readonly type: "action";
       readonly handNumber: number;
       readonly player: string;
+      readonly playerId: string | null;
       readonly controller: "human" | "bot";
       readonly action: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
       readonly amount: number | null;
@@ -104,6 +106,7 @@ export type GameFeedEvent =
       readonly type: "win";
       readonly handNumber: number;
       readonly player: string;
+      readonly playerId: string | null;
       readonly amount: number;
       readonly uncontested: boolean;
     };

@@ -110,6 +110,12 @@ const dictionary = {
     max: "Maks.",
     show: "Pokaż",
   },
+  result: {
+    title: "Wynik rozdania",
+    potAwards: "Wygrane z pul",
+    uncontested: "Przeciwnicy spasowali.",
+    award: "{player} wygrywa {amount}",
+  },
   seat: {
     seat: "Miejsce {seat}",
     openSeat: "Wolne miejsce",
@@ -161,6 +167,8 @@ const dictionary = {
     winner: "Zwycięzca: {winner}",
   },
   feed: {
+    latestAction: "Ostatnia akcja",
+
     title: "Akcje",
     collapse: "Zwiń panel akcji",
     expand: "Rozwiń panel akcji",

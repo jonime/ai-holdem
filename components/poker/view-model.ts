@@ -82,7 +82,7 @@ export function latestActionsForStreet(
     ) {
       continue;
     }
-    const player = players.find((candidate) => candidate.name === event.player);
+    const player = players.find((candidate) => candidate.id === event.playerId);
     if (player) {
       latestActions[player.id] = {
         action: event.action,

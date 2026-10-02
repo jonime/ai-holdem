@@ -138,7 +138,7 @@ used for atomic version-checked game updates.
 listing table, host leases, directory RPCs, and atomic seat mutation RPCs. Apply
 it, `20261008000100_classify_unavailable_directory_joins.sql`, and
 `20261008000200_add_public_game_exclusions.sql` before deploying the matching
-application code. The final migration adds the server-only, lightweight viewer
+application code. The last of those directory migrations adds the server-only, lightweight viewer
 exclusion query used with the shared directory cache. They need no backfill or
 cleanup scheduler.
 
@@ -345,3 +345,28 @@ street commitment C, legal call cost K, and fraction f, bets target round(f × P
 and raises target C + K + round(f × (P + K)). The displayed pot includes side pots and unmatched chips already paid into the active hand.
 Presets are clamped to the engine’s legal range; All-in selects its maximum.
 The server and engine still validate every action and expected game version.
+
+### Completed hands and Actions
+
+Completed hands show each winner’s awarded chips centered in the sizing area,
+with an explanation for opponents folding or the public showdown hand category.
+These are winnings, not net profit. Multiple winners are listed as “Pot awards”
+since separate side pots do not necessarily constitute a split pot. Results use
+current authoritative public game state, survive refresh and feed failures, and
+clear when the next hand begins. The hidden sizing controls preserve the tray’s
+height, keeping action buttons in place between hands on desktop and mobile.
+Card-reveal and control permissions are unchanged.
+
+Actions is the player-facing timeline on desktop and in the mobile sheet. Your
+own actions and blinds use bold text; spectators see a neutral feed. Win lines
+use slightly larger green text and a thin separator to distinguish outcomes from
+moves. Street headings show only the board cards already supplied by public feed
+events. The panel follows updates within 24 pixels of the bottom; scrolling up
+pauses following, and Latest action resumes it. Reopening starts at the latest
+event. The debugging History modal remains available.
+
+Apply `20261010000000_add_action_seat_to_game_feed.sql` before deploying this
+application change. It preserves the feed’s hand limit, ordering, server-only
+snapshots and grants, and adds each action’s seat for identity resolution against
+the immutable initial hand configuration. No backfill is required. Legacy rows
+without usable identity return a null player ID and are never matched by name.

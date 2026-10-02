@@ -236,6 +236,7 @@ export type PublicFeedEvent =
       readonly type: "blind";
       readonly handNumber: number;
       readonly player: string;
+      readonly playerId: string | null;
       readonly controller: "human" | "bot";
       readonly blind: "small" | "big";
       readonly amount: number;
@@ -244,6 +245,7 @@ export type PublicFeedEvent =
       readonly type: "action";
       readonly handNumber: number;
       readonly player: string;
+      readonly playerId: string | null;
       readonly controller: "human" | "bot";
       readonly action: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
       readonly amount: number | null;
@@ -253,6 +255,7 @@ export type PublicFeedEvent =
       readonly type: "win";
       readonly handNumber: number;
       readonly player: string;
+      readonly playerId: string | null;
       readonly amount: number;
       readonly uncontested: boolean;
     };
@@ -1336,8 +1339,14 @@ export async function getGameFeed(
       // Persisted actions remain useful even if a legacy snapshot is malformed.
     }
 
+    const playerIdBySeat = new Map<number, string>();
+    const initialPlayerIds = new Set<string>();
     try {
       const initialState = restorePersistedState(hand.initialState);
+      for (const player of initialState.config.players) {
+        playerIdBySeat.set(player.seat, player.id);
+        initialPlayerIds.add(player.id);
+      }
       const playerById = new Map(
         initialState.config.players.map((player) => [player.id, player]),
       );
@@ -1348,6 +1357,7 @@ export async function getGameFeed(
           type: "blind",
           handNumber: hand.handNumber,
           player: player.name,
+          playerId: player.id,
           controller: player.controller === "human" ? "human" : "bot",
           blind: posting.blind,
           amount: posting.amount,
@@ -1365,6 +1375,8 @@ export async function getGameFeed(
         type: "action",
         handNumber: hand.handNumber,
         player: action.player,
+        playerId:
+          action.seat === null ? null : playerIdBySeat.get(action.seat) ?? null,
         controller: action.controller,
         action: action.action,
         amount: action.amount,
@@ -1398,6 +1410,7 @@ export async function getGameFeed(
         type: "win",
         handNumber: hand.handNumber,
         player: nameByPlayerId.get(winnerId) ?? "Unknown player",
+        playerId: initialPlayerIds.has(winnerId) ? winnerId : null,
         amount,
         uncontested: latestSnapshot.completionReason === "fold",
       });

@@ -286,6 +286,7 @@ describe("SupabaseGameRepository", () => {
           latestState,
           actions: [
             {
+              seat: 1,
               sequence: 1,
               street: "preflop",
               action: "call",
@@ -303,10 +304,27 @@ describe("SupabaseGameRepository", () => {
       hands: [
         expect.objectContaining({
           latestState,
-          actions: [expect.objectContaining({ action: "call" })],
+          actions: [expect.objectContaining({ action: "call", seat: 1 })],
         }),
       ],
     });
+  });
+
+  it.each([-1, 6, 0.5, "1"])("rejects an invalid feed action seat %s", async (seat) => {
+    const { client } = createClient({ updateResult: [{ handNumber: 1, status: "playing", actions: [{
+      sequence: 1, street: "preflop", action: "check", amount: null,
+      player: "Duplicate", controller: "human", seat,
+    }] }] });
+    await expect(new SupabaseGameRepository(client).getGameFeed("game-1")).rejects.toThrow("invalid game feed action seat");
+  });
+
+  it("keeps legacy action seats null without guessing by name", async () => {
+    const { client } = createClient({ updateResult: [{ handNumber: 1, status: "playing", actions: [{
+      sequence: 1, street: "preflop", action: "check", amount: null,
+      player: "Duplicate", controller: "human",
+    }] }] });
+    const feed = await new SupabaseGameRepository(client).getGameFeed("game-1");
+    expect(feed.hands[0].actions[0].seat).toBeNull();
   });
 
   it("rejects a malformed latest state in the game feed", async () => {

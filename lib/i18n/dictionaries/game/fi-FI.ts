@@ -109,6 +109,12 @@ const dictionary = {
     max: "Maksimi",
     show: "Näytä",
   },
+  result: {
+    title: "Jaon tulos",
+    potAwards: "Pottien voitot",
+    uncontested: "Vastustajat kippasivat.",
+    award: "{player} voittaa {amount}",
+  },
   seat: {
     seat: "Paikka {seat}",
     openSeat: "Avoin paikka",
@@ -160,6 +166,8 @@ const dictionary = {
     winner: "Voittaja: {winner}",
   },
   feed: {
+    latestAction: "Viimeisin toiminto",
+
     title: "Toiminnot",
     collapse: "Pienennä toimintopaneeli",
     expand: "Laajenna toimintopaneeli",

@@ -69,6 +69,7 @@ const gameTopLevelKeys = [
   "gameHeader",
   "history",
   "lobby",
+  "result",
   "seat",
   "table",
 ];

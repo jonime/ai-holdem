@@ -126,7 +126,7 @@ test("synchronizes targets, validates edits, resets decisions, and fits mobile",
   expect(publicResponse.ok()).toBe(true);
   const publicGame = (await publicResponse.json()).game;
   expect(publicGame.poker.players.every((p: { holeCards: unknown; playerToken: unknown }) => p.holeCards === null && p.playerToken === null)).toBe(true);
-  expect(publicGame.poker.players.map((p: { committedStreet: number }) => p.committedStreet)).toEqual([300, 100]);
+  expect(publicGame.poker.players.sort((a: { seat: number }, b: { seat: number }) => a.seat - b.seat).map((p: { committedStreet: number }) => p.committedStreet)).toEqual([300, 100]);
   await spectator.close();
   const actor = raised.poker.players.find((p: { id: string }) => p.id === raised.poker.currentActorId);
   expect(actor.committedStreet).toBe(100);

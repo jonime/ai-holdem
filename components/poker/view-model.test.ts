@@ -26,6 +26,7 @@ const smallBlindEvent = {
   type: "blind",
   handNumber: 1,
   player: "Alice",
+  playerId: "alice",
   controller: "human",
   blind: "small",
   amount: 1_000,
@@ -34,14 +35,15 @@ const smallBlindEvent = {
 describe("view-model", () => {
   it("returns each player's latest action on the current hand and street", () => {
     const players = [
-      { id: "jev-3", name: "TypeSafe Jev #3" },
-      { id: "jev-4", name: "TypeSafe Jev #4" },
+      { id: "jev-3", name: "Same name" },
+      { id: "jev-4", name: "Same name" },
     ];
     const events = [
       {
         type: "action",
         handNumber: 3,
-        player: "TypeSafe Jev #3",
+        player: "Same name",
+        playerId: "jev-3",
         controller: "bot",
         action: "bet",
         amount: 400,
@@ -50,7 +52,8 @@ describe("view-model", () => {
       {
         type: "action",
         handNumber: 2,
-        player: "TypeSafe Jev #3",
+        player: "Same name",
+        playerId: "jev-3",
         controller: "bot",
         action: "raise",
         amount: 800,
@@ -59,7 +62,8 @@ describe("view-model", () => {
       {
         type: "action",
         handNumber: 3,
-        player: "TypeSafe Jev #4",
+        player: "Same name",
+        playerId: "jev-4",
         controller: "bot",
         action: "fold",
         amount: null,
@@ -67,6 +71,7 @@ describe("view-model", () => {
       },
     ] as const;
 
+    expect(latestActionsForStreet(events.map(event => ({ ...event, playerId: null })), players, 3, "flop")).toEqual({});
     expect(latestActionsForStreet(events, players, 3, "flop")).toEqual({
       "jev-3": { action: "bet", amount: 400 },
       "jev-4": { action: "fold", amount: null },
@@ -114,6 +119,7 @@ describe("view-model", () => {
           type: "blind",
           handNumber: 1,
           player: "Bot",
+          playerId: null,
           controller: "bot",
           blind: "big",
           amount: 2_000,

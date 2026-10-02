@@ -82,6 +82,9 @@ Supabase or TypeSafe services.
 	visitor-independent candidate pages with a short lifetime; host/seated
 	exclusions remain request-specific. Successful directory-affecting mutations
 	invalidate the candidate cache. No cleanup scheduler is used.
+- Public action-feed identities come from each hand’s immutable initial configuration,
+  resolved by action seat; never match by display name. Legacy identities are null.
+  Completed-hand results use authoritative public game awards independently of feed loading.
 - Public DTOs are a security boundary. Reveal active hole cards only to the
 	browser that owns that seat. Do not broadcast private cards, player tokens,
 	TypeSafe inputs, or raw responses.
