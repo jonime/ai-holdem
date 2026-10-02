@@ -4,6 +4,7 @@ import enUsGame from "@/lib/i18n/dictionaries/game/en-US";
 import fiFiGame from "@/lib/i18n/dictionaries/game/fi-FI";
 import type { PublicPokerPlayer } from "@/lib/poker/types";
 import {
+  tableFlow,
   arrangeSeats,
   canManageTable,
   cardLabel,
@@ -595,5 +596,39 @@ describe("view-model", () => {
       c: 0.7,
     });
     expect(parseProbabilities("nope")).toEqual({});
+  });
+});
+
+
+describe("end-of-table flow", () => {
+  const player = (id: string, stack: number, extra: Partial<PublicPokerPlayer> = {}): PublicPokerPlayer => ({
+    id, name: id, seat: 0, stack, status: "claimed", controller: "human", playerToken: id,
+    inHand: true, leaving: false, isHost: false, aiDifficulty: null,
+    committedStreet: 0, folded: false, allIn: false, holeCards: null, ...extra,
+  });
+  it("keeps an unresolved zero-stack all-in participating and allows recovery", () => {
+    const allIn = player("me", 0, { allIn: true });
+    expect(tableFlow([allIn, player("other", 100)], "river", "me", true)).toMatchObject({ eliminated: false, winnerId: null, watching: false, canStartNextHand: false });
+    expect(tableFlow([player("me", 150), player("other", 50)], "complete", "me", true)).toMatchObject({ eliminated: false, canStartNextHand: true });
+  });
+  it("settles elimination and permits manual watching, including non-host seats", () => {
+    const players = [player("me", 0), player("a", 100), player("b", 100)];
+    expect(tableFlow(players, "complete", "me", false)).toMatchObject({ eliminated: true, canStartNextHand: true, winnerId: null });
+    players[0] = player("me", 0, { inHand: false });
+    expect(tableFlow(players, "flop", "me", false)).toMatchObject({ eliminated: true, watching: true, canStartNextHand: false });
+  });
+  it("detects the viewer's and another player's table victory and blocks all advancement", () => {
+    const players = [player("me", 200), player("other", 0)];
+    for (const token of ["me", "other", null]) {
+      expect(tableFlow(players, "complete", token, true)).toMatchObject({ winnerId: "me", canStartNextHand: false });
+    }
+  });
+  it("preserves spectator and bot-only host eligibility", () => {
+    expect(tableFlow([player("a", 100), player("b", 100)], "complete", null, true).canStartNextHand).toBe(false);
+    const bots = [player("a", 100, { controller: "bot", status: "bot", playerToken: null }), player("b", 100, { controller: "bot", status: "bot", playerToken: null })];
+    expect(tableFlow(bots, "complete", null, true).canStartNextHand).toBe(true);
+    expect(tableFlow(bots, "complete", null, false).canStartNextHand).toBe(false);
+    expect(tableFlow(bots, "flop", null, false).watching).toBe(true);
+    expect(tableFlow([player("a", 100), player("b", 0)], "complete", "a", false).canStartNextHand).toBe(false);
   });
 });

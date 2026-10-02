@@ -346,6 +346,29 @@ and raises target C + K + round(f × (P + K)). The displayed pot includes side p
 Presets are clamped to the engine’s legal range; All-in selects its maximum.
 The server and engine still validate every action and expected game version.
 
+### End of table and fresh Quick Play
+
+An owned seat is out of chips only once its zero stack is settled at hand completion
+or it is no longer in the hand. An unresolved all-in can still win chips. Eliminated
+players can start **New Quick Play**, or manually **Watch next hand** when eligible.
+Ongoing hands show “You’re watching” and retain a disabled **Watch next hand**
+button for eliminated players. A table with one remaining funded player
+announces the winner and offers New Quick Play without Next Hand. Buttons, S,
+Enter, Space, and the next-hand handler share eligibility; seated humans and hosts
+of bot-only tables retain their existing controls and expected-version checks.
+The final hand result and Actions remain available, including eligible card reveals.
+
+`POST /[lang]/quick-game` accepts `Accept: application/json` and returns
+`201 { gameId }`, with the existing identity and last-visited cookies. Unsupported
+locales return 404; creation failures return 500 with a sanitized `{ error }`.
+Homepage forms retain the 303 localized redirect and plain-text errors. Replay
+creates a distinct private six-seat table using server-selected random Quick Play
+bots (rules bots only with external inference disabled), and fully navigates there.
+Repeated clicks are guarded while “Starting…” is shown. Failure keeps the current
+table intact and displays a localized retryable error without automatic retries.
+Replay never resets stacks, releases seats, or moves other players; watching deals
+only on request. No persisted status or migration is added.
+
 ### Completed hands and Actions
 
 Completed hands show each winner’s awarded chips centered in the sizing area,

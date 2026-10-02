@@ -12,9 +12,15 @@ export async function POST(
   request: Request,
   { params }: { readonly params: Promise<{ lang: string }> },
 ) {
+  const wantsJson = request.headers.get("accept")?.split(",").some(
+    value => value.trim().split(";")[0].toLowerCase() === "application/json",
+  ) ?? false;
+  const failure = (message: string, status: number) => wantsJson
+    ? NextResponse.json({ error: message }, { status })
+    : new NextResponse(message, { status });
   const { lang } = await params;
   if (!hasLocale(lang)) {
-    return new NextResponse("Not found", { status: 404 });
+    return failure("Not found", 404);
   }
 
   try {
@@ -22,10 +28,12 @@ export async function POST(
     const game = await createQuickPlayGame(createSupabaseGameRepository(), {
       hostToken,
     });
-    const response = NextResponse.redirect(
-      new URL(`/${lang}/game/${game.gameId}`, request.url),
-      303,
-    );
+    const response = wantsJson
+      ? NextResponse.json({ gameId: game.gameId }, { status: 201 })
+      : NextResponse.redirect(
+          new URL(`/${lang}/game/${game.gameId}`, request.url),
+          303,
+        );
     setPlayerTokenCookie(response, hostToken);
     response.cookies.set("last-visited-game-id", game.gameId, {
       path: "/",
@@ -35,6 +43,6 @@ export async function POST(
     return response;
   } catch (error) {
     console.error("Unable to create quick game", error);
-    return new NextResponse("Unable to create quick game", { status: 500 });
+    return failure("Unable to create quick game", 500);
   }
 }

@@ -396,3 +396,25 @@ export function getSizedAction(
       action.type === "bet" || action.type === "raise",
   );
 }
+
+/** Public stacks are settled only after completion; an active all-in can recover. */
+export function tableFlow(
+  players: readonly PublicPokerPlayer[],
+  street: PokerStreet | null,
+  viewerToken: string | null,
+  viewerIsHost: boolean,
+) {
+  const { human } = resolveViewer(players, viewerToken);
+  const winnerId = findGameWinnerId(players, street);
+  const eliminated = human !== null && (
+    (human.stack === 0 && (street === "complete" || !human.inHand)) ||
+    (human.status !== "claimed" && !human.inHand)
+  );
+  const participants = players.filter(p => p.status === "claimed" || p.status === "bot");
+  const botOnly = participants.length > 0 && participants.every(p => p.controller === "bot");
+  const canStartNextHand = street === "complete" && winnerId === null &&
+    participants.filter(p => p.stack > 0 && !p.leaving).length >= 2 &&
+    (human !== null || (botOnly && viewerIsHost));
+  return { winnerId, eliminated, canStartNextHand,
+    watching: street !== "complete" && (human === null || eliminated || !human.inHand) };
+}

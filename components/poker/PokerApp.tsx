@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   ActionFeedModal,
@@ -20,6 +20,7 @@ import {
   availableHistoryHands,
   resolveViewer,
   latestActionsForStreet,
+  tableFlow,
 } from "@/components/poker/view-model";
 
 import { adjustTarget, decisionScope, validatedTarget } from "@/components/poker/bet-sizing";
@@ -28,7 +29,10 @@ const playerNameStorageKey = "ai-holdem-player-name";
 const feedCollapsedStorageKey = "ai-holdem-feed-collapsed";
 
 export default function PokerApp({ gameId }: { readonly gameId?: string }) {
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
+  const replayPending = useRef(false);
+  const [replaying, setReplaying] = useState(false);
+  const [replayError, setReplayError] = useState(false);
   const [playerName, setPlayerName] = useState(() =>
     typeof window === "undefined"
       ? ""
@@ -101,6 +105,30 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     viewerToken,
   );
 
+  const canStartNextHand = game ? tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost).canStartNextHand : false;
+  const newQuickPlay = async () => {
+    if (loading || replayPending.current) return;
+    replayPending.current = true;
+    setReplaying(true);
+    setReplayError(false);
+    try {
+      const response = await fetch(`/${locale}/quick-game`, {
+        method: "POST", headers: { Accept: "application/json" },
+      });
+      const body: unknown = await response.json();
+      if (!response.ok || !body || typeof body !== "object" ||
+        !("gameId" in body) || typeof body.gameId !== "string" ||
+        !/^[a-zA-Z0-9-]+$/.test(body.gameId)) throw new Error("Quick Play failed");
+      // Full navigation installs the new table with the refreshed identity cookies.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.assign(`/${locale}/game/${body.gameId}`);
+    } catch {
+      setReplayError(true);
+      replayPending.current = false;
+      setReplaying(false);
+    }
+  };
+
   const displayedPlayerName =
     viewerPlayer?.controller === "human" && !playerNameEdited
       ? viewerPlayer.name
@@ -161,12 +189,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   useEffect(() => {
     function handleShortcut(event: KeyboardEvent) {
       const completedHand = game?.poker.street === "complete";
-      const canStartNextHand =
-        completedHand && viewerPlayer?.controller === "human";
+
       if (
         !game ||
-        (!isHumanTurn && !canStartNextHand) ||
-        loading ||
+        (!isHumanTurn && !canStartNextHand && !(completedHand && canRevealCards)) ||
+        loading || replaying || replayPending.current ||
         historyOpen ||
         event.defaultPrevented ||
         event.repeat ||
@@ -188,6 +215,8 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
       }
 
       const key = event.key.toLowerCase();
+      if (target instanceof HTMLElement && target.closest("button, a") &&
+        ["enter", " "].includes(key)) return;
       if (canStartNextHand && ["s", "enter", " "].includes(key)) {
         event.preventDefault();
         void beginNextHand();
@@ -252,6 +281,8 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     game,
     beginNextHand,
     canRevealCards,
+    canStartNextHand,
+    replaying,
     historyOpen,
     isHumanTurn,
     loading,
@@ -273,8 +304,8 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           ) ? (
             <Button
               size="small"
-              disabled={loading}
-              onClick={() => void retryBotTurn()}
+              disabled={loading || replaying}
+              onClick={() => { if (!replayPending.current) void retryBotTurn(); }}
             >
               {t("errors.retryBot")}
             </Button>
@@ -323,24 +354,28 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               human={human}
               viewerToken={viewerToken}
               isSpectator={isSpectator}
-              canStartNextHand={game.viewerIsHost}
+              canStartNextHand={canStartNextHand}
+              replaying={replaying}
+              replayError={replayError}
+              onNewQuickPlay={() => void newQuickPlay()}
               isHumanTurn={isHumanTurn}
               sizedAction={sizedAction}
               amount={amount}
-              loading={loading}
+              loading={loading || replaying}
               setAmount={setAmount}
               onClaimFirstOpenSeat={() => {
                 setJoinDialogOpen(true);
               }}
               onStandUp={() => {
-                if (human) void releaseSeat(human.seat);
+                if (human && !replayPending.current) void releaseSeat(human.seat);
               }}
               onSubmitAction={(action, amountOverride = selectedAmount) => {
+                if (replayPending.current) return;
                 if ((action.type === "bet" || action.type === "raise") && amountOverride === null) return;
                 void submitAction(action, amountOverride);
               }}
-              onBeginNextHand={() => void beginNextHand()}
-              onRevealCards={() => void revealCards()}
+              onBeginNextHand={() => { if (!replayPending.current) void beginNextHand(); }}
+              onRevealCards={() => { if (!replayPending.current) void revealCards(); }}
               onOpenHistory={() => setHistoryOpen(true)}
               feedCollapsed={feedCollapsed}
               onToggleFeed={toggleFeed}

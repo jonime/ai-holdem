@@ -73,6 +73,15 @@ const dictionary = {
     botsShowUncontestedWins: "I bot mostrano le vittorie non contestate",
   },
   table: {
+    outOfChips: "Hai finito le fiches",
+    watching: "Stai guardando",
+    youWonTable: "Hai vinto il tavolo",
+    wonTable: "{name} ha vinto il tavolo",
+    newQuickPlay: "Nuova partita rapida",
+    watchNextHand: "Guarda la prossima mano",
+    starting: "Avvio…",
+    replayError: "Impossibile avviare la partita rapida. Riprova.",
+
     hand: "Mano {hand}",
     preflop: "Preflop",
     flop: "Flop",

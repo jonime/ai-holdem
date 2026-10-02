@@ -74,3 +74,38 @@ describe("localized quick-play creation", () => {
     consoleError.mockRestore();
   });
 });
+
+
+describe("JSON Quick Play", () => {
+  it("returns only the game ID and both cookies, using the existing identity", async () => {
+    createQuickPlayGame.mockResolvedValueOnce({ gameId: "fresh-game", holeCards: ["Ac"], token: "secret" });
+    const response = await POST(new Request("https://example.test/en-US/quick-game", {
+      method: "POST", headers: { Accept: "application/json", cookie: "ai-holdem-player-id=owner" },
+    }), { params: Promise.resolve({ lang: "en-US" }) });
+    expect(response.status).toBe(201);
+    expect(await response.json()).toEqual({ gameId: "fresh-game" });
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("set-cookie")).toContain("ai-holdem-player-id=owner");
+    expect(response.headers.get("set-cookie")).toContain("last-visited-game-id=fresh-game");
+  });
+  it("rejects invalid locales as JSON without creating a game", async () => {
+    createQuickPlayGame.mockClear();
+    const response = await POST(new Request("https://example.test/invalid/quick-game", {
+      method: "POST", headers: { Accept: "application/json" },
+    }), { params: Promise.resolve({ lang: "invalid" }) });
+    expect(response.status).toBe(404);
+    expect(await response.json()).toEqual({ error: "Not found" });
+    expect(createQuickPlayGame).not.toHaveBeenCalled();
+  });
+  it("sanitizes JSON failures and does not set cookies", async () => {
+    createQuickPlayGame.mockRejectedValueOnce(new Error("provider-secret database-detail"));
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const response = await POST(new Request("https://example.test/en-US/quick-game", {
+      method: "POST", headers: { Accept: "application/json" },
+    }), { params: Promise.resolve({ lang: "en-US" }) });
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({ error: "Unable to create quick game" });
+    expect(response.headers.get("set-cookie")).toBeNull();
+    log.mockRestore();
+  });
+});

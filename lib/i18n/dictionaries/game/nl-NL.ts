@@ -73,6 +73,15 @@ const dictionary = {
     botsShowUncontestedWins: "Bots tonen onbetwiste winsten",
   },
   table: {
+    outOfChips: "Je hebt geen fiches meer",
+    watching: "Je kijkt mee",
+    youWonTable: "Je hebt de tafel gewonnen",
+    wonTable: "{name} heeft de tafel gewonnen",
+    newQuickPlay: "Nieuw snel spel",
+    watchNextHand: "Volgende hand bekijken",
+    starting: "Bezig met starten…",
+    replayError: "Het snelle spel kon niet worden gestart. Probeer het opnieuw.",
+
     hand: "Hand {hand}",
     preflop: "Preflop",
     flop: "Flop",

@@ -9,6 +9,8 @@ import {
   useState,
 } from "react";
 
+import { tableFlow } from "@/components/poker/view-model";
+import { getClientPlayerToken } from "@/lib/identity/player-token-client";
 import { requestJson } from "@/lib/http/request-json";
 import {
   gameEnvelopeSchema,
@@ -604,8 +606,11 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     [advanceAiTurns, applyGame, game, t],
   );
 
+  const nextHandPending = useRef(false);
   const beginNextHand = useCallback(async () => {
-    if (!game) return;
+    if (!game || loading || nextHandPending.current ||
+      !tableFlow(game.poker.players, game.poker.street, getClientPlayerToken(), game.viewerIsHost).canStartNextHand) return;
+    nextHandPending.current = true;
     setLoading(true);
     setError(null);
     setLiveDecisions([]);
@@ -629,9 +634,10 @@ export function useGameSession(gameId?: string, historyOpen = false) {
           : t("errors.nextHand"),
       );
     } finally {
+      nextHandPending.current = false;
       setLoading(false);
     }
-  }, [advanceAiTurns, applyGame, game, t]);
+  }, [advanceAiTurns, applyGame, game, loading, t]);
 
   const revealCards = useCallback(async () => {
     if (!game) return;

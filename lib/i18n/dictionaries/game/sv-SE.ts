@@ -73,6 +73,15 @@ const dictionary = {
     botsShowUncontestedWins: "Robotar visar obestridda vinster",
   },
   table: {
+    outOfChips: "Dina marker är slut",
+    watching: "Du tittar på",
+    youWonTable: "Du vann bordet",
+    wonTable: "{name} vann bordet",
+    newQuickPlay: "Nytt snabbspel",
+    watchNextHand: "Se nästa hand",
+    starting: "Startar…",
+    replayError: "Det gick inte att starta snabbspelet. Försök igen.",
+
     hand: "Giv {hand}",
     preflop: "Preflop",
     flop: "Flop",

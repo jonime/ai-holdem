@@ -108,6 +108,12 @@ Supabase or TypeSafe services.
   `NEXT_PUBLIC_APP_URL` sets a custom canonical HTTP(S) origin at build time.
   When replacing `public/social-preview.png`, keep its dimensions and alt text
   in `lib/seo.ts` synchronized with the committed asset.
+- End-of-table UI derives from authoritative public stacks, participation, and the
+  completed-hand table winner. Unresolved all-ins are not elimination. Keep
+  next-hand eligibility shared by buttons, shortcuts, and the handler. Watching
+  advances manually; New Quick Play creates a distinct private randomized six-seat
+  game through the localized quick-game endpoint, retaining identity cookies and
+  guarding pending requests. Preserve final results, Actions, and eligible reveals.
 - Anonymous player tokens support this demo's seat ownership; they are not
 	production authentication. Knowing a game URL intentionally permits viewing.
 

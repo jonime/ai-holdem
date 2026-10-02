@@ -202,6 +202,26 @@ describe("createQuickPlayGame", () => {
   });
 });
 
+describe("Quick Play with external inference disabled", () => {
+  it("selects five medium rules bots even with a configured LLM catalog", async () => {
+    vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", "false");
+    vi.stubEnv("LLM_BOT_MODELS", JSON.stringify([{ id: "configured-llm", label: "LLM", modelId: "test/model" }]));
+    const createGameSession = vi.fn().mockResolvedValue({ id: "rules-game", version: 0 });
+    try {
+      await createQuickPlayGame({ createGameSession }, { hostToken: "host" });
+      const input = createGameSession.mock.calls[0][0];
+      expect(input.players).toHaveLength(6);
+      for (const bot of input.players.slice(1)) {
+        expect(bot).toMatchObject({ status: "bot", playerToken: null, aiDifficulty: "medium", botProfileId: null,
+          bot: expect.objectContaining({ provider: "rules" }) });
+      }
+      expect(input.status).toBe("playing");
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+});
+
 describe("getPublicGame", () => {
   it("returns only the human's private cards", async () => {
     const state = pokerEngineAdapter.startHand(

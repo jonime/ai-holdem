@@ -73,6 +73,15 @@ const dictionary = {
     botsShowUncontestedWins: "Botit näyttävät kiistattomat voitot",
   },
   table: {
+    outOfChips: "Pelimerkkisi loppuivat",
+    watching: "Seuraat peliä",
+    youWonTable: "Voitit pöydän",
+    wonTable: "{name} voitti pöydän",
+    newQuickPlay: "Uusi pikapeli",
+    watchNextHand: "Katso seuraava jako",
+    starting: "Aloitetaan…",
+    replayError: "Pikapelin aloittaminen epäonnistui. Yritä uudelleen.",
+
     hand: "Käsi {hand}",
     preflop: "Enne floppia",
     flop: "Floppi",

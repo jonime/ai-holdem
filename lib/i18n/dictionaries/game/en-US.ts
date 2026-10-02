@@ -73,6 +73,15 @@ const dictionary = {
     botsShowUncontestedWins: "Bots show uncontested wins",
   },
   table: {
+    outOfChips: "You’re out of chips",
+    watching: "You’re watching",
+    youWonTable: "You won the table",
+    wonTable: "{name} won the table",
+    newQuickPlay: "New Quick Play",
+    watchNextHand: "Watch next hand",
+    starting: "Starting…",
+    replayError: "Unable to start Quick Play. Please try again.",
+
     hand: "Hand {hand}",
     preflop: "Preflop",
     flop: "Flop",

@@ -10,7 +10,7 @@ import type {
   LatestPlayerAction,
   PublicPokerPlayer,
 } from "@/components/poker/types";
-import { findGameWinnerId, formatChips } from "@/components/poker/view-model";
+import { tableFlow, formatChips } from "@/components/poker/view-model";
 import { useI18n } from "@/components/poker/I18nProvider";
 
 export function PokerTable({
@@ -21,6 +21,9 @@ export function PokerTable({
   viewerToken,
   isSpectator,
   canStartNextHand,
+  replaying,
+  replayError,
+  onNewQuickPlay,
   isHumanTurn,
   sizedAction,
   amount,
@@ -46,6 +49,9 @@ export function PokerTable({
   readonly viewerToken: string | null;
   readonly isSpectator: boolean;
   readonly canStartNextHand: boolean;
+  readonly replaying: boolean;
+  readonly replayError: boolean;
+  readonly onNewQuickPlay: () => void;
   readonly isHumanTurn: boolean;
   readonly sizedAction:
     | Extract<LegalAction, { type: "bet" | "raise" }>
@@ -67,7 +73,10 @@ export function PokerTable({
   readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
 }) {
   const { locale, t } = useI18n();
-  const gameWinnerId = findGameWinnerId(game.poker.players, game.poker.street);
+  const flow = tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost);
+  const gameWinnerId = flow.winnerId;
+  const winner = game.poker.players.find(p => p.id === gameWinnerId);
+  const endActions = gameWinnerId !== null || flow.eliminated;
   const gameOver = gameWinnerId !== null;
   const canRevealCards =
     game.poker.street === "complete" &&
@@ -215,7 +224,27 @@ export function PokerTable({
         </div>
       </div>
       <section className={styles.actionTray}>
-        {isSpectator ? (
+        <div className={styles.flowStatus} role="status" aria-live="polite" aria-atomic="true">
+          {gameOver ? (human?.id === gameWinnerId
+            ? t("table.youWonTable")
+            : t("table.wonTable", { name: winner?.name ?? "" }))
+            : flow.watching ? t("table.watching")
+            : flow.eliminated ? t("table.outOfChips") : null}
+        </div>
+        {replayError ? <p className={styles.replayError} role="alert">{t("table.replayError")}</p> : null}
+        {endActions ? (
+          <div className={`${styles.actionControls} ${styles.endControls}`}>
+            <Button variant="primary" disabled={loading} onClick={onNewQuickPlay}>
+              {replaying ? t("table.starting") : t("table.newQuickPlay")}
+            </Button>
+            {!gameOver ? <Button variant="outline" disabled={loading || !canStartNextHand} onClick={onBeginNextHand}>
+              {t("table.watchNextHand")}
+            </Button> : null}
+            {canRevealCards ? <Button variant="amber" disabled={loading} onClick={onRevealCards} shortcut="D">
+              {t("table.show")}
+            </Button> : null}
+          </div>
+        ) : isSpectator || flow.watching ? (
           <div className={styles.actionControls}>
             {botOnlyGame && !gameOver ? (
               <Button
@@ -255,12 +284,12 @@ export function PokerTable({
               <Button
                 variant="green"
                 size="action"
-                shortcut={game.poker.street === "complete" || checkCallAction ? "S" : undefined}
+                shortcut={canStartNextHand || checkCallAction ? "S" : undefined}
                 disabled={
                   loading ||
                   gameOver ||
                   (game.poker.street === "complete"
-                    ? human?.playerToken !== viewerToken
+                    ? !canStartNextHand
                     : !isHumanTurn || !checkCallAction)
                 }
                 onClick={() => {
@@ -318,9 +347,9 @@ export function PokerTable({
         <div className={styles.sizingArea}>
           <div
             className={styles.amountControl}
-            style={{ visibility: game.poker.street === "complete" || isSpectator ? "hidden" : undefined }}
-            aria-hidden={game.poker.street === "complete" || isSpectator}
-            inert={game.poker.street === "complete" || isSpectator}
+            style={{ visibility: game.poker.street === "complete" || isSpectator || flow.watching ? "hidden" : undefined }}
+            aria-hidden={game.poker.street === "complete" || isSpectator || flow.watching}
+            inert={game.poker.street === "complete" || isSpectator || flow.watching}
           >
             <label className={styles.amountHeading} htmlFor="bet-target">
               {t("table.betAmount")}

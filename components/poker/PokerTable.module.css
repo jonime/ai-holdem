@@ -340,3 +340,14 @@
   margin: 4px 0 0;
   font-size: 12px;
 }
+
+.flowStatus {
+  color: #173a34;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+.flowStatus:not(:empty) { margin-bottom: 12px; }
+.replayError { color: #9d302d; text-align: center; }
+.endControls { height: auto; min-height: 64px; flex-wrap: wrap; }
+.endControls button { min-height: 56px; height: auto; flex-basis: 140px; }

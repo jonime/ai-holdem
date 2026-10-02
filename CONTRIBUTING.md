@@ -95,6 +95,11 @@ Docs are part of the implementation.
 - Preserve optimistic-concurrency checks and expected version validation in the service and API layers.
 - Keep secrets server-only. Do not add `NEXT_PUBLIC_` prefixes or import server code into client components.
 - Do not expose private hole cards, player tokens, raw TypeSafe inputs, or private responses in public DTOs.
+- Derive elimination and table victory from public authoritative state. Unresolved
+  all-ins can recover. Share next-hand eligibility across UI controls and shortcuts,
+  preserve manual watching and card revealing, and keep fresh Quick Play isolated
+  from the old table. The localized quick-game endpoint supports JSON replay and
+  form redirects with the same identity cookies and server-selected bots.
 - Keep database mutations atomic and scoped to at most one action per request.
 - Public listings are private by default. Preserve the two-minute database-time
   host lease, 30-second visible-host heartbeat, and server-role-only access.
