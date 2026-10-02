@@ -9,13 +9,13 @@ import {
   useState,
 } from "react";
 
+import { useGameFeed } from "./useGameFeed";
 import { advanceBotTurns, hasBotTurn } from "./bot-advancement";
 import { canAdvanceBots, tableFlow } from "@/components/poker/view-model";
 import { getClientPlayerToken } from "@/lib/identity/player-token-client";
 import { requestJson } from "@/lib/http/request-json";
 import {
   gameEnvelopeSchema,
-  gameFeedEnvelopeSchema,
   historyEnvelopeSchema,
 } from "@/lib/http/schemas";
 import { useGameChannel } from "@/lib/realtime/useGameChannel";
@@ -38,7 +38,6 @@ import type {
   BotDescriptor,
   BotPlaystyleId,
   Game,
-  GameFeed,
   HandHistory,
   LegalAction,
   TableSettings,
@@ -54,7 +53,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   const [selectedHistoryHand, setSelectedHistoryHand] = useState<number | null>(
     null,
   );
-  const [feed, setFeed] = useState<GameFeed | null>(null);
+  const { feed, refreshFeed } = useGameFeed(gameId);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -105,8 +104,11 @@ export function useGameSession(gameId?: string, historyOpen = false) {
         botEligibilityEpoch.current++;
       }
       setGame(reconciled.game);
+      if (reconciled.applied.sequence === sequence) {
+        refreshFeed(reconciled.game.version);
+      }
     },
-    [],
+    [refreshFeed],
   );
 
   const loadGame = useCallback(
@@ -261,26 +263,6 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   }, [game, historyOpen, selectedHistoryHand]);
 
   const gameId_ = game?.id;
-  const gameVersion = game?.version;
-  useEffect(() => {
-    if (!gameId_) {
-      return;
-    }
-    let cancelled = false;
-    void requestJson<{ feed: GameFeed }>(
-      `/api/games/${gameId_}/feed`,
-      undefined,
-      gameFeedEnvelopeSchema,
-    )
-      .then((body) => {
-        if (!cancelled) setFeed(body.feed);
-      })
-      .catch(() => undefined);
-
-    return () => {
-      cancelled = true;
-    };
-  }, [gameId_, gameVersion]);
 
   const createGame = useCallback(async () => {
     setLoading(true);

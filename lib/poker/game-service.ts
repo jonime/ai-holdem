@@ -221,7 +221,11 @@ export interface HandHistoryReader {
 }
 
 export interface GameFeedReader {
-  getGameFeed(gameId: string): Promise<GameFeed>;
+  getGameFeed(
+    gameId: string,
+    handLimit?: number,
+    sinceHand?: number,
+  ): Promise<GameFeed>;
 }
 
 export type PublicFeedEvent =
@@ -1296,7 +1300,7 @@ export async function getPublicGame(
 }
 
 /**
- * Simplified action feed spanning every hand played so far, for the
+ * Simplified action feed for recent hands (optionally from an inclusive hand), for the
  * always-visible player-facing panel. Unlike `getHandHistory`, it carries no
  * bot inspection detail and never needs a viewer token, since it never
  * exposes hole cards.
@@ -1304,8 +1308,9 @@ export async function getPublicGame(
 export async function getGameFeed(
   repository: GameFeedReader,
   gameId: string,
+  sinceHand?: number,
 ): Promise<PublicGameFeed> {
-  const feed = await repository.getGameFeed(gameId);
+  const feed = await repository.getGameFeed(gameId, undefined, sinceHand);
   const events: PublicFeedEvent[] = [];
 
   for (const hand of feed.hands) {

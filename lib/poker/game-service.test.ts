@@ -1995,6 +1995,12 @@ describe("deterministic persisted hand harness", () => {
 });
 
 describe("getGameFeed", () => {
+  it("forwards the inclusive hand filter without changing the public shape", async () => {
+    const reader = { getGameFeed: vi.fn().mockResolvedValue({ hands: [] }) };
+    await expect(getGameFeed(reader, "game-1", 12)).resolves.toEqual({ events: [] });
+    expect(reader.getGameFeed).toHaveBeenCalledWith("game-1", undefined, 12);
+  });
+
   it.each([0, null, 5])("builds feed events using immutable identity for seat %s", async (seat) => {
     const initialState = pokerEngineAdapter.startHand(
       pokerEngineAdapter.createGame({

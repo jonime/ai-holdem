@@ -93,6 +93,12 @@ Supabase or TypeSafe services.
 - Public action-feed identities come from each hand’s immutable initial configuration,
   resolved by action seat; never match by display name. Legacy identities are null.
   Completed-hand results use authoritative public game awards independently of feed loading.
+  Feed synchronization initially loads 50 recent hands, then replaces the inclusive
+  range from the last cached hand through `/feed?sinceHand=N`, retaining at most
+  50 hands in browser memory. Serialize requests, retry failures on subsequent
+  authoritative refreshes, and discard previous-session responses. Apply the
+  incremental-feed migration before deploying its application code; ranged reads
+  remain service-role-only and filter hands in SQL before loading their actions.
 - Public DTOs are a security boundary. Reveal active hole cards only to the
 	browser that owns that seat. Do not broadcast private cards, player tokens,
 	TypeSafe inputs, or raw responses.

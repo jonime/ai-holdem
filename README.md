@@ -395,7 +395,22 @@ clear when the next hand begins. The hidden sizing controls preserve the tray’
 height, keeping action buttons in place between hands on desktop and mobile.
 Card-reveal and control permissions are unchanged.
 
-Actions is the player-facing timeline on desktop and in the mobile sheet. Your
+Actions is the player-facing timeline on desktop and in the mobile sheet. The
+browser initially loads the latest 50 hands, then requests `/feed?sinceHand=N`
+from the last cached hand, inclusive. It replaces that hand and any newer hands,
+retains older completed hands in memory, and keeps the combined feed bounded to
+50 hands. Authoritative game refreshes drive synchronization, including catch-up
+after reconnecting and retries after feed failures. Reloading fetches the recent
+history again. Supabase Broadcast remains a refetch signal.
+
+Apply `20261011000000_add_incremental_game_feed.sql` before deploying incremental
+feed loading. It adds the service-role-only `get_game_feed_since` RPC; the existing
+full-feed RPC remains available. No backfill is required. To verify SQL filtering,
+ordering, bounds, and access grants against migrated local Supabase, run
+`docker exec -i supabase_db_ai-holdem psql -U postgres -d postgres -v ON_ERROR_STOP=1 < test/sql/incremental-game-feed.sql`.
+The verification fixtures are rolled back.
+
+Your
 own actions and blinds use bold text; spectators see a neutral feed. Win lines
 use slightly larger green text and a thin separator to distinguish outcomes from
 moves. Street headings show only the board cards already supplied by public feed

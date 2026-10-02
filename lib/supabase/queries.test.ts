@@ -252,6 +252,17 @@ describe("SupabaseGameRepository", () => {
     expect(history?.aiDecisions).toEqual([]);
   });
 
+  it.each([undefined, 0, 12])("selects the feed RPC for cursor %s", async sinceHand => {
+    const { client, rpc } = createClient({ updateResult: [] });
+    await expect(new SupabaseGameRepository(client).getGameFeed("game-1", undefined, sinceHand))
+      .resolves.toEqual({ hands: [] });
+    expect(rpc).toHaveBeenCalledWith(sinceHand === undefined ? "get_game_feed" : "get_game_feed_since", {
+      p_game_id: "game-1",
+      p_hand_limit: 50,
+      ...(sinceHand === undefined ? {} : { p_since_hand: sinceHand }),
+    });
+  });
+
   it("loads the initial hand state used by the game feed", async () => {
     const initialState = { stateSchemaVersion: 1, engineState: {} };
     const { client } = createClient({

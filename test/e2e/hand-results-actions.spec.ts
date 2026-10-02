@@ -68,7 +68,7 @@ test("persists public hand results through feed failure and refresh, preserves c
   await page.setViewportSize({ width: 375, height: 812 });
   const playingMobileTray = await trayGeometry(page);
   await page.setViewportSize({ width: 1280, height: 720 });
-  await page.route(`**/api/games/${id}/feed`, route => route.fulfill({ status: 500, json: { error: "Feed unavailable" } }));
+  await page.route(`**/api/games/${id}/feed*`, route => route.fulfill({ status: 500, json: { error: "Feed unavailable" } }));
   await page.getByRole("button", { name: "Fold", exact: true }).click();
   const result = page.locator("[data-hand-result]");
   await expect(result).toContainText("Opponents folded.");
@@ -109,7 +109,7 @@ test("persists public hand results through feed failure and refresh, preserves c
   await expect(spectator.getByRole("button", { name: "Show", exact: true })).toHaveCount(0);
   await expect(spectator.getByRole("complementary", { name: "Actions" }).locator('[class*="viewerEvent"]')).toHaveCount(0);
 
-  await page.unroute(`**/api/games/${id}/feed`);
+  await page.unroute(`**/api/games/${id}/feed*`);
   await page.getByRole("button", { name: "Next Hand", exact: true }).click();
   await expect(result).toHaveCount(0);
   expect(await trayGeometry(page)).toEqual(playingDesktopTray);
@@ -149,7 +149,7 @@ test("follows within 24px, pauses older reading, handles legacy identity, and re
     ...Array.from({ length: 80 }, (_, index): GameFeedEvent => ({ type: "action", handNumber: 1, player: "Alex", playerId: index % 3 === 0 ? hostId : index % 3 === 1 ? guestId : null, controller: "human", action: "check", amount: null, street: "preflop" })),
     { type: "street", handNumber: 1, street: "flop", cards: ["Ac", "Kd", "Qh"] },
   ];
-  await page.route(`**/api/games/${id}/feed`, route => route.fulfill({ json: { feed: { events } } }));
+  await page.route(`**/api/games/${id}/feed*`, route => route.fulfill({ json: { feed: { events } } }));
   await page.reload();
   const panel = page.getByRole("complementary", { name: "Actions", exact: true });
   await expect(panel.getByRole("heading", { name: "Flop", exact: true })).toBeVisible();
@@ -219,4 +219,32 @@ test("follows within 24px, pauses older reading, handles legacy identity, and re
   await expect.poll(() => bottomDistance(sheet)).toBeLessThanOrEqual(1);
   await page.screenshot({ path: "test-results/actions-mobile.png", fullPage: true });
   await guestContext.close();
+});
+
+
+test("refreshes only the changing hand range and retains earlier results", async ({ browser, page }) => {
+  test.setTimeout(45_000);
+  const feeds: { query: string | null; events: GameFeedEvent[] }[] = [];
+  page.on("response", async response => {
+    const url = new URL(response.url());
+    if (!url.pathname.endsWith("/feed") || !response.ok()) return;
+    const body = await response.json();
+    feeds.push({ query: url.searchParams.get("sinceHand"), events: body.feed.events });
+  });
+  const { guestContext, id } = await twoPlayers(browser, page);
+  try {
+    await expect.poll(() => feeds.some(f => f.query === null && f.events.some(e => e.handNumber === 1))).toBe(true);
+    await page.getByRole("button", { name: "Fold", exact: true }).click();
+    await expect.poll(() => feeds.some(f => f.query === "1" && f.events.some(e => e.type === "win"))).toBe(true);
+    await page.getByRole("button", { name: "Next Hand", exact: true }).click();
+    await expect.poll(() => feeds.some(f => f.query === "1" && f.events.some(e => e.handNumber === 2))).toBe(true);
+    const panel = page.getByRole("complementary", { name: "Actions", exact: true });
+    await expect(panel.getByText("Hand #1", { exact: true })).toBeVisible();
+    await expect(panel.getByText("Hand #2", { exact: true })).toBeVisible();
+    const full = (await (await page.request.get(`/api/games/${id}/feed`)).json()).feed;
+    const partial = (await (await page.request.get(`/api/games/${id}/feed?sinceHand=2`)).json()).feed;
+    expect(partial.events.length).toBeLessThan(full.events.length);
+    expect(partial.events.every((event: GameFeedEvent) => event.handNumber === 2)).toBe(true);
+    expect(JSON.stringify(partial)).not.toMatch(/playerToken|engineState|initialState|latestState|holeCards/);
+  } finally { await guestContext.close(); }
 });

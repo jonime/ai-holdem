@@ -254,6 +254,7 @@ export interface GameDatabaseClient {
       | "create_game_session"
       | "get_hand_history"
       | "get_game_feed"
+      | "get_game_feed_since"
       | "start_next_hand_if_version"
       | "start_game_if_version"
       | "update_game_state_if_version"
@@ -978,11 +979,16 @@ export class SupabaseGameRepository {
   async getGameFeed(
     gameId: string,
     handLimit: number = GAME_FEED_HAND_LIMIT,
+    sinceHand?: number,
   ): Promise<GameFeed> {
-    const { data, error } = await this.client.rpc("get_game_feed", {
-      p_game_id: gameId,
-      p_hand_limit: handLimit,
-    });
+    const { data, error } = await this.client.rpc(
+      sinceHand === undefined ? "get_game_feed" : "get_game_feed_since",
+      {
+        p_game_id: gameId,
+        p_hand_limit: handLimit,
+        ...(sinceHand === undefined ? {} : { p_since_hand: sinceHand }),
+      },
+    );
     if (error) {
       throw new Error(`Unable to load game feed: ${error.message}`);
     }
