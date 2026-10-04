@@ -35,11 +35,33 @@ For routing, rendering, deployment-facing, or environment-sensitive changes, als
 npm run build
 ```
 
+See [architecture](docs/architecture.md), [gameplay behavior](docs/gameplay.md),
+and [deployment prerequisites](docs/deployment.md) for detailed reference guidance.
+
 TypeSafe policy changes should also run `npm run benchmark:policy`. This mocked,
 seeded benchmark is cost-free and safe for local regression checks. Live Jev
 evaluation is opt-in only via `npm run benchmark:typesafe:live`; it requires
 external inference and a TypeSafe API key, performs one paid request per bot
-turn, and is not part of CI.
+turn, and is not part of CI. See the [benchmark guide](benchmarks/README.md)
+for methodology and policy details.
+
+## Local Supabase E2E
+
+Start the local Supabase stack with `supabase start`, then run:
+
+```sh
+npm run test:e2e
+```
+
+The Playwright setup reads credentials from `supabase status`, starts Next on
+an isolated port, and runs the browser flow against that local database. It
+never uses the remote values from `.env`.
+
+Use a clean local database when validating migration-dependent behavior:
+
+```sh
+npm run test:e2e:reset
+```
 
 ## Seat-mutation checks
 
@@ -153,6 +175,13 @@ There are ten locales (`en-US`, `fi-FI`, `es-ES`, `de-DE`, `sv-SE`, `fr-FR`, `pt
 - Long-form About content stays in MDX and is rendered directly by its Server Component route; do not register it in the game dictionary or any shared provider.
 - A future shared interactive component receives its own narrow strings through props.
 
+The landing and About pages use a server-only language menu with a native
+`<dialog popover="auto">`. Outside clicks and Escape dismiss it; ordinary locale
+links navigate to a new document. CSS anchor positioning places it below the
+trigger with a centered fallback. Browsers without popover support show the links
+inline. Landing-page Quick Play and custom-table creation use plain HTML forms
+and work without JavaScript.
+
 ## Documentation standards
 
 Docs are part of the implementation.
@@ -223,8 +252,35 @@ dictionaries. `lib/seo.ts` builds page-specific canonicals, language alternates,
 and social cards; About metadata comes from its localized MDX document.
 The sitemap includes only durable public content. Keep game tables and the
 visitor-specific directory marked `noindex, follow`. Set `NEXT_PUBLIC_APP_URL`
-for custom domains before building; see README for origin fallbacks and social
-image replacement.
+for custom domains before building; see [deployment guidance](docs/deployment.md#search-and-social-previews)
+for origin fallbacks and social image replacement.
+
+## Agent and search discovery
+
+The public homepage serves substantial server-rendered HTML to browsers and a
+clean Markdown representation when the request prefers `text/markdown`. The
+negotiated responses use `Vary: Accept`; unsupported homepage media types
+receive `406 Not Acceptable`. Unknown pages keep a real `404` status and return
+a Markdown error with a discovery link when Markdown is requested.
+
+Public discovery resources are available at predictable URLs:
+
+- `/llms.txt` — the spec-formatted agent map for the product and documentation.
+- `/sitemap.xml` — localized homepage and developer-resource URLs.
+- `/robots.txt` — crawler permission and sitemap location.
+- `/{locale}/about` — localized bot, difficulty, poker-engine, and privacy guide.
+- `/{locale}/developers` — architecture, integration status, and source links.
+
+Verify content negotiation and machine-readable files against a running app:
+
+```sh
+curl -sS -L -i -H 'Accept: text/markdown' http://localhost:3001/
+curl -sS -L -i -H 'Accept: text/html' http://localhost:3001/
+curl -sS -i -H 'Accept: text/markdown' http://localhost:3001/missing
+curl -sS http://localhost:3001/llms.txt
+curl -sS http://localhost:3001/sitemap.xml
+curl -sS http://localhost:3001/robots.txt
+```
 
 ## HTTP contracts
 

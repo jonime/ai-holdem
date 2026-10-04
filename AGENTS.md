@@ -151,6 +151,8 @@ Supabase or TypeSafe services.
 
 ## Code Map
 
+- `docs/`: gameplay, architecture, and deployment reference guides linked from
+  the README. `benchmarks/README.md` indexes evaluations and policy benchmarks.
 - `app/api/games/`: HTTP boundary for game creation, actions, seats, history,
 	AI stepping, and hand transitions.
 - `lib/poker/`: domain types, engine adapter, public projections, and game
