@@ -41,6 +41,35 @@ evaluation is opt-in only via `npm run benchmark:typesafe:live`; it requires
 external inference and a TypeSafe API key, performs one paid request per bot
 turn, and is not part of CI.
 
+## Game-state read checks
+
+Apply `20261012000000_add_game_read_snapshot.sql` before deploying application
+code that requires the snapshot RPC. The server-only snapshot must remain
+uncached and preserve the existing public projection/privacy behavior. Standalone
+reveal reads must filter both game ID and hand number and select only engine IDs.
+
+For read-path changes, with migrated local Supabase running:
+
+```sh
+npm run test:sql:game-reads
+npm run benchmark:game-reads
+npm run test:e2e -- test/e2e/lobby.spec.ts test/e2e/public-lobby.spec.ts test/e2e/hand-results-actions.spec.ts test/e2e/bot-advancement.spec.ts
+```
+
+The SQL runner checks actual anonymous/authenticated denial, service-role
+execution, hand filtering, and a multi-table transaction through separate
+connections. Reads during an uncommitted partial update must see the earlier
+state; reads across/after commit must see a coherent earlier or later state.
+SQL fixtures roll back; concurrency/benchmark fixtures clean up in `finally`.
+The scripts require Docker and Supabase CLI and refuse non-local HTTP origins.
+They never load application `.env` or call bot providers. Browser tests start
+an isolated server on port 3002. Run `check` and `build` as well.
+
+Record request counts, body bytes, median/p95 and reveal query plans using the
+[benchmark procedure](benchmarks/game-reads.md); do not add a noisy wall-clock
+CI threshold. Keep the original sequential read path only in that measurement
+script, never as a production fallback.
+
 ## Translations
 
 Translations are physically split by route and usage under `lib/i18n/dictionaries/`:

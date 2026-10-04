@@ -426,3 +426,25 @@ application change. It preserves the feed’s hand limit, ordering, server-only
 snapshots and grants, and adds each action’s seat for identity resolution against
 the immutable initial hand configuration. No backfill is required. Legacy rows
 without usable identity return a null player ID and are never matched by name.
+
+## Consistent game-state reads
+
+Game refreshes perform one uncached `get_game_read_snapshot` RPC rather than
+separate game, seat, host, listing, and reveal requests. The `STABLE`,
+`SECURITY INVOKER` SQL function reads those values in one statement snapshot;
+only `service_role` can execute it. The snapshot stays server-side. TypeScript
+restores the engine and applies viewer-specific cards, tokens, legal actions,
+and host-only publication fields to the existing public response.
+
+Both snapshot and mutation-response reveal queries filter by game ID and hand
+number. A covering `(game_id, hand_number)` index bounds reveal work to that hand.
+Reads are uncached so seat ownership, reveals, and lease renewals remain current,
+including renewals that do not increment the game version.
+
+Apply `20261012000000_add_game_read_snapshot.sql` **before** deploying the reader.
+It is additive and requires no game backfill. With local Supabase running and all
+migrations applied, run `npm run test:sql:game-reads` and
+`npm run benchmark:game-reads`. These use local credentials from the Supabase CLI,
+create and clean up their own fixtures, and preserve existing games. See
+[benchmark methodology and measurements](benchmarks/game-reads.md). Unit tests
+remain offline, and there is no latency threshold in CI.

@@ -27,6 +27,7 @@ import type {
   GameFeedActionItem,
   PersistAIActionInput,
   PersistedGame,
+  GameReadSnapshot,
   PersistHumanActionInput,
 } from "@/lib/supabase/queries";
 import type { SystemOneRequest } from "@/lib/typesafe/types";
@@ -227,6 +228,51 @@ describe("Quick Play with external inference disabled", () => {
 });
 
 describe("getPublicGame", () => {
+  it("reads one fresh snapshot per viewer and keeps private data and publication scoped", async () => {
+    const state = pokerEngineAdapter.startHand(pokerEngineAdapter.createGame({
+      smallBlind: 50, bigBlind: 100, seatCount: 2,
+      players: [
+        { id: "human", seat: 0, name: "Host", controller: "human", stack: 10000, playerToken: "host" },
+        { id: "guest", seat: 1, name: "Guest", controller: "human", stack: 10000, playerToken: "guest-token" },
+      ],
+    }), createDeterministicDeck());
+    const snapshot: GameReadSnapshot = {
+      game: { id: "game-1", currentState: state, status: "playing", version: 1, handNumber: 1, stateSchemaVersion: 1 },
+      assignments: [], hostToken: "host",
+      listing: { isPublic: true, title: "Table", publishedAt: "now", hostLeaseExpiresAt: "first" },
+      revealedPlayerIds: [],
+    };
+    const getGameReadSnapshot = vi.fn().mockResolvedValue(snapshot);
+    const forbidden = vi.fn(() => { throw new Error("Unexpected follow-up read"); });
+    const repository = { getGameReadSnapshot, getGame: forbidden, getHostToken: forbidden,
+      getSeatAssignments: forbidden, getGameListing: forbidden, getCurrentHandRevealedPlayerIds: forbidden };
+    const host = await getPublicGame(repository, "game-1", "host");
+    const guest = await getPublicGame(repository, "game-1", "guest-token");
+    const spectator = await getPublicGame(repository, "game-1", null);
+    expect(host.viewerIsHost).toBe(true);
+    expect(host.publication).toEqual({ isPublic: true, title: "Table", leaseExpiresAt: "first" });
+    expect(host.poker.players[0].holeCards).toHaveLength(2);
+    expect(host.poker.players[1].holeCards).toBeNull();
+    expect(guest.publication).toBeNull();
+    expect(guest.poker.players[0].playerToken).toBeNull();
+    expect(guest.poker.players[1].playerToken).toBe("guest-token");
+    expect(guest.poker.players[1].holeCards).toHaveLength(2);
+    expect(spectator.poker.players.every((player) => player.holeCards === null && player.playerToken === null)).toBe(true);
+    expect(spectator.poker.legalActions).toEqual([]);
+    expect(spectator.publication).toBeNull();
+    expect(JSON.stringify(spectator)).not.toMatch(/engineState|hostToken|revealedPlayerIds|guest-token/);
+    getGameReadSnapshot.mockResolvedValue({ ...snapshot,
+      listing: { ...snapshot.listing, hostLeaseExpiresAt: "renewed" },
+      revealedPlayerIds: ["guest"],
+    });
+    const refreshed = await getPublicGame(repository, "game-1", "host");
+    expect(refreshed.version).toBe(host.version);
+    expect(refreshed.publication?.leaseExpiresAt).toBe("renewed");
+    expect(refreshed.poker.players[1].holeCards).toHaveLength(2);
+    expect(getGameReadSnapshot).toHaveBeenCalledTimes(4);
+    expect(forbidden).not.toHaveBeenCalled();
+  });
+
   it("returns only the human's private cards", async () => {
     const state = pokerEngineAdapter.startHand(
       pokerEngineAdapter.createGame({
@@ -254,13 +300,19 @@ describe("getPublicGame", () => {
     );
     const seatedGame = await getPublicGame(
       {
-        getGame: vi.fn().mockResolvedValue({
-          id: "game-1",
-          status: "playing",
-          currentState: state,
-          stateSchemaVersion: 1,
-          handNumber: 1,
-          version: 0,
+        getGameReadSnapshot: vi.fn().mockResolvedValue({
+          game: {
+            id: "game-1",
+            status: "playing",
+            currentState: state,
+            stateSchemaVersion: 1,
+            handNumber: 1,
+            version: 0,
+          },
+          revealedPlayerIds: [],
+          listing: null,
+          assignments: [],
+          hostToken: null,
         }),
       },
       "game-1",
@@ -268,13 +320,19 @@ describe("getPublicGame", () => {
     );
     const spectatorGame = await getPublicGame(
       {
-        getGame: vi.fn().mockResolvedValue({
-          id: "game-1",
-          status: "playing",
-          currentState: state,
-          stateSchemaVersion: 1,
-          handNumber: 1,
-          version: 0,
+        getGameReadSnapshot: vi.fn().mockResolvedValue({
+          game: {
+            id: "game-1",
+            status: "playing",
+            currentState: state,
+            stateSchemaVersion: 1,
+            handNumber: 1,
+            version: 0,
+          },
+          revealedPlayerIds: [],
+          listing: null,
+          assignments: [],
+          hostToken: null,
         }),
       },
       "game-1",
@@ -314,29 +372,33 @@ describe("getPublicGame", () => {
     });
     const game = await getPublicGame(
       {
-        getGame: vi.fn().mockResolvedValue({
-          id: "game-1",
-          status: "waiting",
-          currentState: state,
-          stateSchemaVersion: 1,
-          handNumber: 0,
-          version: 0,
-        }),
-        getHostToken: vi.fn().mockResolvedValue("host-token"),
-        getSeatAssignments: vi.fn().mockResolvedValue([
-          {
-            gameId: "game-1",
-            seat: 0,
-            name: "Host",
-            status: "open",
-            controller: "human",
-            aiDifficulty: null,
-            playerToken: null,
-            isHost: false,
-            leaving: false,
-            enginePlayerId: "human",
+        getGameReadSnapshot: vi.fn().mockResolvedValue({
+          game: {
+            id: "game-1",
+            status: "waiting",
+            currentState: state,
+            stateSchemaVersion: 1,
+            handNumber: 0,
+            version: 0,
           },
-        ]),
+          hostToken: "host-token",
+          assignments: [
+            {
+              gameId: "game-1",
+              seat: 0,
+              name: "Host",
+              status: "open",
+              controller: "human",
+              aiDifficulty: null,
+              playerToken: null,
+              isHost: false,
+              leaving: false,
+              enginePlayerId: "human",
+            },
+          ],
+          revealedPlayerIds: [],
+          listing: null,
+        }),
       },
       "game-1",
       "host-token",
@@ -370,41 +432,45 @@ describe("getPublicGame", () => {
     });
     const game = await getPublicGame(
       {
-        getGame: vi.fn().mockResolvedValue({
-          id: "game-1",
-          status: "waiting",
-          currentState: state,
-          stateSchemaVersion: 1,
-          handNumber: 0,
-          version: 0,
+        getGameReadSnapshot: vi.fn().mockResolvedValue({
+          game: {
+            id: "game-1",
+            status: "waiting",
+            currentState: state,
+            stateSchemaVersion: 1,
+            handNumber: 0,
+            version: 0,
+          },
+          hostToken: "host-token",
+          assignments: [
+            {
+              gameId: "game-1",
+              seat: 0,
+              name: "Seat 1",
+              status: "open",
+              controller: "human",
+              aiDifficulty: null,
+              playerToken: null,
+              isHost: false,
+              leaving: false,
+              enginePlayerId: null,
+            },
+            {
+              gameId: "game-1",
+              seat: 1,
+              name: "Host",
+              status: "claimed",
+              controller: "human",
+              aiDifficulty: null,
+              playerToken: "host-token",
+              isHost: true,
+              leaving: false,
+              enginePlayerId: "human",
+            },
+          ],
+          revealedPlayerIds: [],
+          listing: null,
         }),
-        getHostToken: vi.fn().mockResolvedValue("host-token"),
-        getSeatAssignments: vi.fn().mockResolvedValue([
-          {
-            gameId: "game-1",
-            seat: 0,
-            name: "Seat 1",
-            status: "open",
-            controller: "human",
-            aiDifficulty: null,
-            playerToken: null,
-            isHost: false,
-            leaving: false,
-            enginePlayerId: null,
-          },
-          {
-            gameId: "game-1",
-            seat: 1,
-            name: "Host",
-            status: "claimed",
-            controller: "human",
-            aiDifficulty: null,
-            playerToken: "host-token",
-            isHost: true,
-            leaving: false,
-            enginePlayerId: "human",
-          },
-        ]),
       },
       "game-1",
       "host-token",
@@ -434,17 +500,23 @@ describe("getPublicGame", () => {
     await expect(
       getPublicGame(
         {
-          getGame: vi.fn().mockResolvedValue({
-            id: "game-1",
-            status: "playing",
-            currentState: {
+          getGameReadSnapshot: vi.fn().mockResolvedValue({
+            game: {
+              id: "game-1",
+              status: "playing",
+              currentState: {
+                stateSchemaVersion: 1,
+                config: {},
+                engineState: {},
+              },
               stateSchemaVersion: 1,
-              config: {},
-              engineState: {},
+              handNumber: 1,
+              version: 0,
             },
-            stateSchemaVersion: 1,
-            handNumber: 1,
-            version: 0,
+            revealedPlayerIds: [],
+            listing: null,
+            assignments: [],
+            hostToken: null,
           }),
         },
         "game-1",
@@ -454,7 +526,7 @@ describe("getPublicGame", () => {
 
   it("rejects unknown games", async () => {
     await expect(
-      getPublicGame({ getGame: vi.fn().mockResolvedValue(null) }, "missing"),
+      getPublicGame({ getGameReadSnapshot: vi.fn().mockResolvedValue(null) }, "missing"),
     ).rejects.toBeInstanceOf(GameNotFoundError);
   });
 });
@@ -793,47 +865,51 @@ describe("assignBotToSeat", () => {
 
     const publicGame = await getPublicGame(
       {
-        getGame: vi.fn().mockResolvedValue({
-          id: "game-1",
-          status: "waiting",
-          currentState: state,
-          stateSchemaVersion: 1,
-          handNumber: 0,
-          version: 0,
-        }),
-        getHostToken: vi.fn().mockResolvedValue("host-token"),
-        getSeatAssignments: vi.fn().mockResolvedValue([
-          {
-            gameId: "game-1",
-            seat: 0,
-            name: "You",
-            status: "claimed",
-            controller: "human",
-            aiDifficulty: null,
-            playerToken: "host-token",
-            isHost: true,
-            leaving: false,
-            enginePlayerId: "human",
+        getGameReadSnapshot: vi.fn().mockResolvedValue({
+          game: {
+            id: "game-1",
+            status: "waiting",
+            currentState: state,
+            stateSchemaVersion: 1,
+            handNumber: 0,
+            version: 0,
           },
-          {
-            gameId: "game-1",
-            seat: 1,
-            name: "Equity Rules",
-            status: "bot",
-            controller: "bot",
-            bot: {
-              id: "equity-rules-v2",
-              label: "Equity Rules",
-              provider: "rules",
-              modelId: null,
+          hostToken: "host-token",
+          assignments: [
+            {
+              gameId: "game-1",
+              seat: 0,
+              name: "You",
+              status: "claimed",
+              controller: "human",
+              aiDifficulty: null,
+              playerToken: "host-token",
+              isHost: true,
+              leaving: false,
+              enginePlayerId: "human",
             },
-            aiDifficulty: "hard",
-            playerToken: null,
-            isHost: false,
-            leaving: false,
-            enginePlayerId: "rules-bot",
-          },
-        ]),
+            {
+              gameId: "game-1",
+              seat: 1,
+              name: "Equity Rules",
+              status: "bot",
+              controller: "bot",
+              bot: {
+                id: "equity-rules-v2",
+                label: "Equity Rules",
+                provider: "rules",
+                modelId: null,
+              },
+              aiDifficulty: "hard",
+              playerToken: null,
+              isHost: false,
+              leaving: false,
+              enginePlayerId: "rules-bot",
+            },
+          ],
+          revealedPlayerIds: [],
+          listing: null,
+        }),
       },
       "game-1",
       "host-token",
@@ -1919,6 +1995,9 @@ describe("deterministic persisted hand harness", () => {
     const repository = {
       getHostToken: async () => "host-token",
       getGame: async () => storedGame,
+      getGameReadSnapshot: async () => ({
+        game: storedGame, assignments: [], hostToken: "host-token", listing: null, revealedPlayerIds: [],
+      }),
       persistHumanAction: async (input: PersistHumanActionInput) =>
         persist(input),
       persistAIAction: async (input: PersistAIActionInput) => persist(input),

@@ -5,6 +5,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseServerEnv } from "@/lib/env/server";
 import {
   type GameDatabaseClient,
+  type FilteredQueryResult,
   SupabaseGameRepository,
 } from "@/lib/supabase/queries";
 
@@ -34,17 +35,26 @@ function createGameDatabaseClient(client: SupabaseClient): GameDatabaseClient {
           },
         }),
       }),
-      select: () => ({
+      select: (columns) => ({
         eq: (column, value) => {
-          const query = client.from(table).select().eq(column, value);
-          return {
-            then: (onfulfilled, onrejected) =>
-              query.then(onfulfilled, onrejected),
-            maybeSingle: async () => {
-              const { data, error } = await query.maybeSingle();
-              return { data: data as unknown, error };
-            },
-          };
+          function wrap(
+            filters: readonly (readonly [string, string | number])[],
+          ): FilteredQueryResult {
+            let query = client.from(table).select(columns);
+            for (const [filterColumn, filterValue] of filters) {
+              query = query.eq(filterColumn, filterValue);
+            }
+            return {
+              eq: (nextColumn: string, nextValue: string | number) =>
+                wrap([...filters, [nextColumn, nextValue]]),
+              then: query.then.bind(query),
+              maybeSingle: async () => {
+                const { data, error } = await query.maybeSingle();
+                return { data: data as unknown, error };
+              },
+            };
+          }
+          return wrap([[column, value]]);
         },
       }),
       update: (values) => ({

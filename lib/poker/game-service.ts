@@ -20,6 +20,7 @@ import type {
   PersistHumanActionInput,
   PersistedGame,
   GameListing,
+  GameReadSnapshot,
   StartNextHandInput,
   UpdateSeatCountInput,
 } from "@/lib/supabase/queries";
@@ -138,6 +139,10 @@ export interface GameSessionWriter {
 
 export interface GameReader {
   getGame(gameId: string): Promise<PersistedGame | null>;
+}
+
+export interface GameSnapshotReader {
+  getGameReadSnapshot(gameId: string): Promise<GameReadSnapshot | null>;
 }
 
 export interface HandRevealReader {
@@ -552,6 +557,14 @@ async function withOpenSeatPlaceholders(
   state: PokerGameState,
 ): Promise<PokerGameState> {
   const assignments = await repository.getSeatAssignments(gameId);
+  return reconcilePublicSeats(gameId, state, assignments);
+}
+
+export function reconcilePublicSeats(
+  gameId: string,
+  state: PokerGameState,
+  assignments: readonly SeatAssignment[],
+): PokerGameState {
   const startingStack =
     state.config.startingStack ?? state.config.players[0]?.stack ?? 10_000;
   const assignmentsById = new Map(
@@ -1239,24 +1252,20 @@ export async function releaseSeat(
 }
 
 export async function getPublicGame(
-  repository: GameReader &
-    Partial<GameHostReader & GameListingReader & SeatAssignmentRepository & HandRevealReader>,
+  repository: GameSnapshotReader,
   gameId: string,
   viewerPlayerToken?: string | null,
 ): Promise<PublicGame> {
-  const game = await repository.getGame(gameId);
-  if (!game) {
+  const snapshot = await repository.getGameReadSnapshot(gameId);
+  if (!snapshot) {
     throw new GameNotFoundError(gameId);
   }
-
-  let state = restorePersistedState(game.currentState);
-  if ("getSeatAssignments" in repository) {
-    state = await withOpenSeatPlaceholders(
-      repository as GameReader & SeatAssignmentRepository,
-      gameId,
-      state,
-    );
-  }
+  const { game } = snapshot;
+  const state = reconcilePublicSeats(
+    gameId,
+    restorePersistedState(game.currentState),
+    snapshot.assignments,
+  );
   const viewerPlayerId =
     viewerPlayerToken === undefined
       ? (state.config.players.find((player) => player.controller === "human")
@@ -1267,14 +1276,10 @@ export async function getPublicGame(
           )?.id ?? null)
         : null;
 
-  const viewerIsHost = await isCallerHost(
-    repository,
-    gameId,
-    viewerPlayerToken ?? null,
-  );
-  const listing = viewerIsHost && repository.getGameListing
-    ? await repository.getGameListing(gameId)
-    : null;
+  const viewerIsHost =
+    snapshot.hostToken !== null &&
+    (viewerPlayerToken ?? null) === snapshot.hostToken;
+  const listing = viewerIsHost ? snapshot.listing : null;
 
   return {
     id: game.id,
@@ -1292,7 +1297,7 @@ export async function getPublicGame(
       ...pokerEngineAdapter.publicProjection(
         state,
         viewerPlayerId,
-        await currentRevealIds(repository, gameId, game.handNumber),
+        snapshot.revealedPlayerIds,
       ),
       botsShowUncontestedWins: game.botsShowUncontestedWins ?? false,
     },

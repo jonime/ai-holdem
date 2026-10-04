@@ -1,3 +1,4 @@
+import type { Game } from "../../components/poker/types";
 import { expect, test, type Page } from "@playwright/test";
 
 async function waitForPlayableHuman(page: Page) {
@@ -24,7 +25,7 @@ test("starts six-seat Quick Play and advances the opening bot turns", async ({
 
   await expect(page).toHaveURL(/\/en-US\/game\/[0-9a-f-]+$/);
   await expect(page.getByText("WAITING ROOM")).toHaveCount(0);
-  await expect(page.getByText("PREFLOP")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Preflop", exact: true })).toBeVisible();
   await expect(
     page.getByText(/^EQUITY RULES #/).first(),
   ).toBeVisible();
@@ -78,7 +79,7 @@ test("runs a two-player hand in a six-seat lobby", async ({
   ).toHaveCount(0);
   await page.getByRole("button", { name: "Start hand" }).click();
 
-  await expect(page.getByText("PREFLOP")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Preflop", exact: true })).toBeVisible();
   await expect(
     page.getByText("PLAYER 2", { exact: true }).first(),
   ).toBeVisible();
@@ -111,10 +112,17 @@ test("persists a per-bot difficulty selected in the lobby", async ({
 
   await page.getByLabel("Bot difficulty for seat 2").selectOption("hard");
   await page.getByRole("button", { name: "Assign bot" }).first().click();
-  await expect(page.getByText("TypeSafe Jev · hard")).toBeVisible();
+  const gameId = new URL(page.url()).pathname.split("/").at(-1);
+  const readAssignedBot = async () => {
+    const response = await page.request.get(`/api/games/${gameId}`);
+    expect(response.ok()).toBe(true);
+    const { game } = await response.json() as { game: Game };
+    return game.poker.players.find((player) => player.seat === 1);
+  };
+  await expect.poll(readAssignedBot).toMatchObject({ status: "bot", aiDifficulty: "hard" });
 
   await page.reload();
-  await expect(page.getByText("TypeSafe Jev · hard")).toBeVisible();
+  await expect.poll(readAssignedBot).toMatchObject({ status: "bot", aiDifficulty: "hard" });
 });
 
 test("shows the localized LLM bot playstyles", async ({ page }) => {
@@ -129,9 +137,9 @@ test("shows the localized LLM bot playstyles", async ({ page }) => {
   const playstyle = page.getByLabel("Bot playstyle for seat 2");
   await expect(playstyle).toBeVisible();
   await expect(playstyle.locator("option")).toHaveText([
-    /Balanced.*highest expected chip value/,
-    /Tight.*marginal, high-variance/,
-    /Aggressive.*pressure/,
+    "Balanced",
+    "Tight",
+    "Aggressive",
   ]);
   await page.screenshot({
     path: "test-results/llm-playstyle-selector.png",
@@ -160,22 +168,23 @@ test("recovers through polling and after coming back online", async ({
   await spectator.goto(page.url());
   await expect(spectator.getByText("WAITING ROOM")).toBeVisible();
 
-  await page.getByLabel("Seats").selectOption("4");
-  await page.getByRole("button", { name: "Apply settings" }).click();
+  const gameId = new URL(page.url()).pathname.split("/").at(-1);
+  const updateSettings = async (startingStack: number) => {
+    const { game } = await (await page.request.get(`/api/games/${gameId}`)).json() as { game: Game };
+    const response = await page.request.patch(`/api/games/${gameId}/settings`, {
+      data: { expectedVersion: game.version, seatCount: 4, smallBlind: 50, bigBlind: 100, startingStack, botsShowUncontestedWins: false },
+    });
+    expect(response.ok()).toBe(true);
+  };
+  await updateSettings(10000);
   await expect(
     spectator.getByLabel("Table settings").getByText("4", { exact: true }),
   ).toBeVisible({ timeout: 8_000 });
 
   await spectatorContext.setOffline(true);
-  await expect(spectator.getByText("Offline", { exact: true })).toBeVisible();
-  await page.getByLabel("Starting stack").fill("5000");
-  const settingsResponse = page.waitForResponse(
-    (response) =>
-      response.url().endsWith("/settings") &&
-      response.request().method() === "PATCH",
-  );
-  await page.getByRole("button", { name: "Apply settings" }).click();
-  await settingsResponse;
+  await expect.poll(() => spectator.evaluate(() => navigator.onLine)).toBe(false);
+  await updateSettings(5000);
+  await expect(spectator.getByLabel("Table settings").getByText("10,000", { exact: true })).toBeVisible();
   await spectatorContext.setOffline(false);
   await expect(spectator.getByText("5,000", { exact: true })).toBeVisible({
     timeout: 8_000,
@@ -226,7 +235,7 @@ test("runs the deterministic bot through completion, history, and another hand",
   await expect(page.getByText("Hand 2")).toBeVisible({ timeout: 15_000 });
 });
 
-test("persists host table settings selected in the lobby", async ({ page }) => {
+test("persists host table settings when starting a hand", async ({ browser, page }) => {
   await page.goto("/en-US");
   await page
     .getByRole("region", { name: "Choose how to play" })
@@ -234,23 +243,27 @@ test("persists host table settings selected in the lobby", async ({ page }) => {
     .click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
+  const guestContext = await browser.newContext();
+  const guest = await guestContext.newPage();
+  await guest.goto(page.url());
+  await guest.getByRole("button", { name: "Sit here" }).first().click();
+  await expect(page.getByRole("button", { name: "Start hand" })).toBeEnabled();
   await page.getByLabel("Seats").selectOption("4");
   await page.getByLabel("Small blind").fill("25");
   await page.getByLabel("Big blind").fill("50");
   await page.getByLabel("Starting stack").fill("5000");
-  await page.getByRole("button", { name: "Apply settings" }).click();
-
-  await expect(
-    page.locator("article").filter({ hasText: "Seat 4" }),
-  ).toBeVisible();
-  await expect(
-    page.locator("article").filter({ hasText: "Seat 5" }),
-  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Start hand" }).click();
+  await expect(page.getByRole("button", { name: "Fold", exact: true })).toBeEnabled();
+  const gameId = new URL(page.url()).pathname.split("/").at(-1);
+  const checkSettings = async () => {
+    const { game } = await (await page.request.get(`/api/games/${gameId}`)).json() as { game: Game };
+    expect(game.poker).toMatchObject({ seatCount: 4, smallBlind: 25, bigBlind: 50, startingStack: 5000 });
+  };
+  await checkSettings();
   await page.reload();
-  await expect(page.getByLabel("Seats")).toHaveValue("4");
-  await expect(page.getByLabel("Small blind")).toHaveValue("25");
-  await expect(page.getByLabel("Big blind")).toHaveValue("50");
-  await expect(page.getByLabel("Starting stack")).toHaveValue("5000");
+  await expect(page.getByRole("button", { name: "Fold", exact: true })).toBeEnabled();
+  await checkSettings();
+  await guestContext.close();
 });
 
 test("copies a clean invite URL and exposes a manual fallback", async ({

@@ -107,6 +107,15 @@ export interface GameListing {
   readonly hostLeaseExpiresAt: string;
 }
 
+/** Server-only read model. Never send this snapshot to a browser. */
+export interface GameReadSnapshot {
+  readonly game: PersistedGame;
+  readonly assignments: readonly GamePlayerSeatAssignment[];
+  readonly hostToken: string | null;
+  readonly listing: GameListing | null;
+  readonly revealedPlayerIds: readonly string[];
+}
+
 export interface PublicGameDirectoryEntry {
   readonly gameId: string;
   readonly title: string | null;
@@ -217,7 +226,8 @@ interface MaybeSingleQueryResult extends DatabaseResult {
   readonly error: { readonly message: string } | null;
 }
 
-interface FilteredQueryResult extends PromiseLike<DatabaseResult> {
+export interface FilteredQueryResult extends PromiseLike<DatabaseResult> {
+  eq(column: string, value: string | number): FilteredQueryResult;
   maybeSingle(): PromiseLike<MaybeSingleQueryResult>;
 }
 
@@ -228,7 +238,7 @@ export interface GameDatabaseClient {
         single(): PromiseLike<DatabaseResult>;
       };
     };
-    select(): {
+    select(columns?: string): {
       eq(column: string, value: string | number): FilteredQueryResult;
     };
     update(values: Record<string, unknown>): {
@@ -252,6 +262,7 @@ export interface GameDatabaseClient {
       | "apply_human_action_if_version"
       | "apply_ai_action_if_version"
       | "create_game_session"
+      | "get_game_read_snapshot"
       | "get_hand_history"
       | "get_game_feed"
       | "get_game_feed_since"
@@ -283,7 +294,7 @@ export class GameConflictError extends Error {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function optionalAIDifficulty(value: unknown): AIDifficulty | null {
@@ -581,8 +592,119 @@ function toGameFeed(value: unknown): GameFeed {
   return { hands };
 }
 
+function toSeatAssignments(
+  rows: readonly unknown[],
+  gameId: string,
+): readonly GamePlayerSeatAssignment[] {
+  return rows.map((row) => {
+    if (!isRecord(row)) {
+      throw new Error("Supabase returned an invalid seat assignment");
+    }
+    const status = requiredString(row, "status");
+    if (status !== "open" && status !== "claimed" && status !== "bot") {
+      throw new Error("Supabase returned an invalid seat status");
+    }
+    const controller = requiredString(row, "controller");
+    if (
+      controller !== "human" &&
+      controller !== "bot" &&
+      controller !== "typesafe_ai"
+    ) {
+      throw new Error("Supabase returned an invalid player controller");
+    }
+
+    return {
+      gameId,
+      seat: requiredNonNegativeInteger(row, "seat"),
+      name: requiredString(row, "name"),
+      status,
+      controller: controller === "human" ? "human" : "bot",
+      bot:
+        controller === "human"
+          ? null
+          : (botDescriptorFrom(row, "snake") ?? legacyJevBot),
+      aiDifficulty: optionalAIDifficulty(row.ai_difficulty),
+      botProfileId: optionalBotProfileId(row.bot_profile_id),
+      playerToken:
+        typeof row.player_token === "string" ? row.player_token : null,
+      isHost: Boolean(row.is_host),
+      leaving: Boolean(row.leaving),
+      enginePlayerId:
+        typeof row.engine_player_id === "string"
+          ? row.engine_player_id
+          : null,
+    } satisfies GamePlayerSeatAssignment;
+  });
+}
+
+function toGameListing(data: unknown): GameListing {
+  if (
+    !isRecord(data) ||
+    typeof data.is_public !== "boolean" ||
+    (data.title !== null && typeof data.title !== "string")
+  ) {
+    throw new Error("Supabase returned an invalid game listing");
+  }
+  return {
+    isPublic: data.is_public,
+    title: data.title,
+    publishedAt: requiredString(data, "published_at"),
+    hostLeaseExpiresAt: requiredString(data, "host_lease_expires_at"),
+  };
+}
+
 export class SupabaseGameRepository {
   constructor(private readonly client: GameDatabaseClient) {}
+
+  async getGameReadSnapshot(gameId: string): Promise<GameReadSnapshot | null> {
+    const { data, error } = await this.client.rpc("get_game_read_snapshot", {
+      p_game_id: gameId,
+    });
+    if (error) throw new Error(`Unable to load game snapshot: ${error.message}`);
+    if (data === null) return null;
+    if (
+      !isRecord(data) ||
+      !Array.isArray(data.assignments) ||
+      !Array.isArray(data.revealed_player_ids) ||
+      !data.revealed_player_ids.every((id) => typeof id === "string") ||
+      (data.host_token !== null && typeof data.host_token !== "string") ||
+      !("listing" in data)
+    ) {
+      throw new Error("Supabase returned an invalid game snapshot");
+    }
+    const game = toPersistedGame(data.game);
+    if (game.id !== gameId || !isRecord(game.currentState)) {
+      throw new Error("Supabase returned an invalid snapshot game");
+    }
+    for (const row of data.assignments) {
+      if (
+        !isRecord(row) ||
+        row.game_id !== gameId ||
+        typeof row.is_host !== "boolean" ||
+        typeof row.leaving !== "boolean" ||
+        (row.player_token !== null && typeof row.player_token !== "string") ||
+        (row.engine_player_id !== null && typeof row.engine_player_id !== "string")
+      ) {
+        throw new Error("Supabase returned an invalid snapshot assignment");
+      }
+    }
+    const assignments = toSeatAssignments(data.assignments, gameId);
+    if (
+      assignments.some((assignment, index) =>
+        assignment.seat > 5 ||
+        (index > 0 && assignments[index - 1].seat >= assignment.seat)
+      )
+    ) {
+      throw new Error("Supabase returned invalid snapshot seat ordering");
+    }
+    return {
+      game,
+      assignments,
+      hostToken: data.host_token,
+      listing: data.listing === null ? null : toGameListing(data.listing),
+      revealedPlayerIds: data.revealed_player_ids,
+    };
+  }
 
   async getSeatAssignments(
     gameId: string,
@@ -602,45 +724,7 @@ export class SupabaseGameRepository {
       return [];
     }
 
-    return result.data.map((row) => {
-      if (!isRecord(row)) {
-        throw new Error("Supabase returned an invalid seat assignment");
-      }
-      const status = requiredString(row, "status");
-      if (status !== "open" && status !== "claimed" && status !== "bot") {
-        throw new Error("Supabase returned an invalid seat status");
-      }
-      const controller = requiredString(row, "controller");
-      if (
-        controller !== "human" &&
-        controller !== "bot" &&
-        controller !== "typesafe_ai"
-      ) {
-        throw new Error("Supabase returned an invalid player controller");
-      }
-
-      return {
-        gameId,
-        seat: requiredNonNegativeInteger(row, "seat"),
-        name: requiredString(row, "name"),
-        status,
-        controller: controller === "human" ? "human" : "bot",
-        bot:
-          controller === "human"
-            ? null
-            : (botDescriptorFrom(row, "snake") ?? legacyJevBot),
-        aiDifficulty: optionalAIDifficulty(row.ai_difficulty),
-        botProfileId: optionalBotProfileId(row.bot_profile_id),
-        playerToken:
-          typeof row.player_token === "string" ? row.player_token : null,
-        isHost: Boolean(row.is_host),
-        leaving: Boolean(row.leaving),
-        enginePlayerId:
-          typeof row.engine_player_id === "string"
-            ? row.engine_player_id
-            : null,
-      } satisfies GamePlayerSeatAssignment;
-    });
+    return toSeatAssignments(result.data, gameId);
   }
 
   async updateSeatAssignment(input: {
@@ -864,13 +948,7 @@ export class SupabaseGameRepository {
       .maybeSingle();
     if (error) throw new Error(`Unable to load game listing: ${error.message}`);
     if (data === null) return null;
-    if (!isRecord(data)) throw new Error("Supabase returned an invalid game listing");
-    return {
-      isPublic: data.is_public === true,
-      title: typeof data.title === "string" ? data.title : null,
-      publishedAt: requiredString(data, "published_at"),
-      hostLeaseExpiresAt: requiredString(data, "host_lease_expires_at"),
-    };
+    return toGameListing(data);
   }
 
   async listPublicGames(input: {
@@ -1224,15 +1302,15 @@ export class SupabaseGameRepository {
   ): Promise<readonly string[]> {
     const result = await this.client
       .from("hand_card_reveals")
-      .select()
-      .eq("game_id", gameId);
+      .select("engine_player_id")
+      .eq("game_id", gameId)
+      .eq("hand_number", handNumber);
     if (result.error) {
       throw new Error(`Unable to load card reveals: ${result.error.message}`);
     }
     if (!Array.isArray(result.data)) return [];
     return result.data.flatMap((row) =>
       isRecord(row) &&
-      row.hand_number === handNumber &&
       typeof row.engine_player_id === "string"
         ? [row.engine_player_id]
         : [],

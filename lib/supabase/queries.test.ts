@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   GameConflictError,
   type GameDatabaseClient,
+  type FilteredQueryResult,
   SupabaseGameRepository,
 } from "./queries";
 
@@ -30,30 +31,21 @@ function createClient(options: {
   });
   const update = vi.fn();
 
+  const query: FilteredQueryResult = {
+    eq: () => query,
+    then: (resolve, reject) => Promise.resolve({ data: options.loadResult ?? [persistedGame], error: null }).then(resolve, reject),
+    maybeSingle: async () => ({ data: options.loadResult ?? persistedGame, error: null }),
+  };
+
   return {
     client: {
       from: () => ({
         insert: () => ({
           select: () => ({
-            single: async () => ({
-              data: options.createResult ?? persistedGame,
-              error: null,
-            }),
+            single: async () => ({ data: options.createResult ?? persistedGame, error: null }),
           }),
         }),
-        select: () => ({
-          eq: () => ({
-            then: (resolve, reject) =>
-              Promise.resolve({
-                data: options.loadResult ?? [persistedGame],
-                error: null,
-              }).then(resolve, reject),
-            maybeSingle: async () => ({
-              data: options.loadResult ?? persistedGame,
-              error: null,
-            }),
-          }),
-        }),
+        select: () => ({ eq: () => query }),
         update: (values) => {
           update(values);
           return {
@@ -563,5 +555,99 @@ describe("SupabaseGameRepository", () => {
         status: "playing",
       }),
     ).rejects.toBeInstanceOf(GameConflictError);
+  });
+});
+
+const snapshotRow = {
+  game: persistedGame,
+  assignments: [{
+    game_id: "game-1", seat: 0, name: "Legacy bot", status: "bot",
+    controller: "typesafe_ai", player_token: null, engine_player_id: "bot",
+    is_host: false, leaving: false,
+  }],
+  host_token: null,
+  listing: null,
+  revealed_player_ids: ["bot"],
+};
+
+describe("game read snapshots", () => {
+  it("uses exactly one RPC, normalizes legacy bots, and accepts absent host/listing rows", async () => {
+    const { client, rpc } = createClient({ updateResult: snapshotRow });
+    const from = vi.spyOn(client, "from");
+    const snapshot = await new SupabaseGameRepository(client).getGameReadSnapshot("game-1");
+    expect(rpc).toHaveBeenCalledExactlyOnceWith("get_game_read_snapshot", { p_game_id: "game-1" });
+    expect(from).not.toHaveBeenCalled();
+    expect(snapshot).toMatchObject({
+      game: { id: "game-1", version: 4 }, hostToken: null, listing: null,
+      revealedPlayerIds: ["bot"],
+      assignments: [{ controller: "bot", bot: { id: "jev", provider: "typesafe" } }],
+    });
+  });
+
+  it("parses host and publication fields", async () => {
+    const { client } = createClient({ updateResult: {
+      ...snapshotRow, host_token: "host", listing: {
+        is_public: true, title: "Table", published_at: "2026-10-04T10:00:00Z",
+        host_lease_expires_at: "2026-10-04T10:02:00Z",
+      },
+    } });
+    expect(await new SupabaseGameRepository(client).getGameReadSnapshot("game-1"))
+      .toMatchObject({ hostToken: "host", listing: { isPublic: true, title: "Table" } });
+  });
+
+  it("returns null for missing games without follow-up reads", async () => {
+    const { client, rpc } = createClient({});
+    rpc.mockResolvedValue({ data: null, error: null });
+    const from = vi.spyOn(client, "from");
+    expect(await new SupabaseGameRepository(client).getGameReadSnapshot("missing")).toBeNull();
+    expect(rpc).toHaveBeenCalledTimes(1);
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("propagates RPC failures", async () => {
+    const { client, rpc } = createClient({});
+    rpc.mockResolvedValue({ data: null, error: { message: "offline" } });
+    await expect(new SupabaseGameRepository(client).getGameReadSnapshot("game-1"))
+      .rejects.toThrow("Unable to load game snapshot: offline");
+  });
+
+  it.each([
+    [], {}, { ...snapshotRow, game: null },
+    { ...snapshotRow, game: { ...persistedGame, id: "other" } },
+    { ...snapshotRow, game: { ...persistedGame, version: -1 } },
+    { ...snapshotRow, game: { ...persistedGame, current_state: null } },
+    { ...snapshotRow, assignments: null },
+    { ...snapshotRow, assignments: [null] },
+    { ...snapshotRow, assignments: [{ ...snapshotRow.assignments[0], game_id: "other" }] },
+    { ...snapshotRow, assignments: [{ ...snapshotRow.assignments[0], seat: 6 }] },
+    { ...snapshotRow, assignments: [snapshotRow.assignments[0], snapshotRow.assignments[0]] },
+    { ...snapshotRow, assignments: [{ ...snapshotRow.assignments[0], player_token: 1 }] },
+    { ...snapshotRow, assignments: [{ ...snapshotRow.assignments[0], ai_difficulty: "invalid" }] },
+    { ...snapshotRow, assignments: [{ ...snapshotRow.assignments[0], controller: "invalid" }] },
+    { ...snapshotRow, host_token: undefined },
+    { ...snapshotRow, listing: {} },
+    { ...snapshotRow, revealed_player_ids: [1] },
+    { ...snapshotRow, revealed_player_ids: null },
+  ])("rejects malformed snapshot %#", async (data) => {
+    const { client } = createClient({ updateResult: data });
+    await expect(new SupabaseGameRepository(client).getGameReadSnapshot("game-1"))
+      .rejects.toThrow(/invalid/);
+  });
+
+  it("selects only IDs and filters reveals by game and hand in SQL", async () => {
+    const { client } = createClient({ loadResult: [{ engine_player_id: "human" }] });
+    const eq = vi.fn();
+    const query: FilteredQueryResult = {
+      eq: (column, value) => { eq(column, value); return query; },
+      then: (resolve, reject) => Promise.resolve({ data: [{ engine_player_id: "human" }], error: null }).then(resolve, reject),
+      maybeSingle: async () => ({ data: null, error: null }),
+    };
+    const table = client.from("hand_card_reveals");
+    const select = vi.fn().mockReturnValue({ eq: query.eq });
+    vi.spyOn(client, "from").mockReturnValue({ ...table, select });
+    expect(await new SupabaseGameRepository(client).getCurrentHandRevealedPlayerIds("game-1", 42))
+      .toEqual(["human"]);
+    expect(select).toHaveBeenCalledExactlyOnceWith("engine_player_id");
+    expect(eq.mock.calls).toEqual([["game_id", "game-1"], ["hand_number", 42]]);
   });
 });

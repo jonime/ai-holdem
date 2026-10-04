@@ -81,6 +81,12 @@ Supabase or TypeSafe services.
   require explicit interaction; bots pause without an eligible open browser.
 - Each mutation applies at most one action and uses the expected game version.
 	Preserve optimistic-concurrency conflict handling in service and API layers.
+- Game refreshes use one uncached, service-role-only `get_game_read_snapshot`
+  RPC. Its single SQL statement consistently reads game state, ordered seats,
+  nullable host/listing, and current-hand reveal IDs. Keep the snapshot server-only
+  and apply ownership/privacy/publication filtering in TypeScript. Reveal reads,
+  including mutation responses, filter both game ID and hand number in SQL.
+  Apply the additive snapshot migration before application code; no backfill.
 - Postgres is the source of truth. Realtime events are best-effort wake-up
 	signals; clients refetch and must continue to work if Broadcast is unavailable.
 - Public discovery is opt-in and lease-backed. Missing `game_listings` rows are
@@ -164,6 +170,16 @@ Supabase or TypeSafe services.
 - Directory joins and lobby seat mutations must stay in atomic, version-checked
 	RPCs that lock the game row. Apply the public-directory migration before the
 	application code; existing games require no listing backfill.
+
+## Local game-read verification
+
+With local Supabase running and all migrations applied, run
+`npm run test:sql:game-reads` for SQL role, hand filtering, nullable rows, and
+cross-connection committed snapshot checks. Run `npm run benchmark:game-reads`
+for original/snapshot request counts, response bytes, median/p95, and reveal
+query plans. These local-only scripts preserve existing games and clean up their
+own fixtures; they require Docker and Supabase CLI. No noisy latency CI threshold
+is used. See `benchmarks/game-reads.md` for methodology and recorded results.
 
 ## Bot scenario evaluations
 
