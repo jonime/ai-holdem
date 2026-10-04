@@ -1,3 +1,5 @@
+import { HttpError } from "@/lib/http/api";
+import { GAME_VERSION_CONFLICT } from "@/lib/http/gameplay-contracts";
 import { describe, expect, it, vi } from "vitest";
 import { pokerEngineAdapter, createDeterministicDeck } from "@/lib/poker/adapter";
 import { advanceBotTurns } from "./bot-advancement";
@@ -38,15 +40,34 @@ describe("bot advancement", () => {
   });
   it("refreshes conflicts silently and ends the stale loop", async () => {
     const d = driver();
-    d.step.mockRejectedValue(new Error("Game version conflict"));
+    d.step.mockRejectedValue(new HttpError("Game version conflict", 409, GAME_VERSION_CONFLICT));
     await advanceBotTurns(game, d);
     expect(d.refresh).toHaveBeenCalledOnce();
     expect(d.step).toHaveBeenCalledOnce();
     expect(d.apply).not.toHaveBeenCalled();
   });
+  it("uses the conflict code independently of its message", async () => {
+    const d = driver();
+    d.step.mockRejectedValue(new HttpError("Changed message", 409, GAME_VERSION_CONFLICT));
+    await advanceBotTurns(game, d);
+    expect(d.refresh).toHaveBeenCalledOnce();
+    expect(d.apply).not.toHaveBeenCalled();
+  });
+  it.each([
+    new HttpError("It is not a bot turn", 409),
+    new HttpError("Game version conflict", 409),
+    new HttpError("Game version conflict", 409, "UNRELATED_CONFLICT"),
+    new HttpError("AI decision failed", 502),
+    new HttpError("Game version conflict", 502),
+  ])("keeps unrelated failures visible: %s", async error => {
+    const d = driver();
+    d.step.mockRejectedValue(error);
+    await expect(advanceBotTurns(game, d)).rejects.toBe(error);
+    expect(d.refresh).not.toHaveBeenCalled();
+  });
   it("retains refresh and provider failures", async () => {
     const d = driver();
-    d.step.mockRejectedValue(new Error("Game version conflict"));
+    d.step.mockRejectedValue(new HttpError("Game version conflict", 409, GAME_VERSION_CONFLICT));
     d.refresh.mockRejectedValue(new Error("Refresh failed"));
     await expect(advanceBotTurns(game, d)).rejects.toThrow("Refresh failed");
     d.step.mockRejectedValue(new Error("AI decision failed"));

@@ -141,7 +141,7 @@ export const broadcastGameSchema = gameSchema
   })
   .strict();
 
-const publicAIDecisionSchema = z
+export const publicAIDecisionSchema = z
   .object({
     action: z.enum(["fold", "check", "call", "bet", "raise"]),
     amount: z.number().int().nonnegative().nullable(),
@@ -157,6 +157,9 @@ const publicAIDecisionSchema = z
     sizing: z
       .object({
         choice: z.enum([
+          "two_big_blinds",
+          "two_and_half_big_blinds",
+          "three_big_blinds",
           "one_third_pot",
           "one_half_pot",
           "two_thirds_pot",

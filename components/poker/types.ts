@@ -12,33 +12,7 @@ export type { LegalAction, PublicPokerGame, PublicPokerPlayer };
 export type { AIDifficulty, BotPlaystyleId, TableSettings };
 export type { BotDescriptor };
 
-export interface Game {
-  readonly id: string;
-  readonly status: "waiting" | "playing" | "complete" | "error";
-  readonly version: number;
-  readonly viewerIsHost: boolean;
-  readonly publication?: {
-    readonly isPublic: boolean;
-    readonly title: string | null;
-    readonly leaseExpiresAt: string;
-  } | null;
-  readonly poker: PublicPokerGame;
-}
-
-export interface AIDecision {
-  readonly action: string;
-  readonly amount: number | null;
-  readonly probabilities: Readonly<Record<string, number>> | null;
-  readonly bot: BotDescriptor;
-  readonly botProfileId: BotPlaystyleId | null;
-  readonly confidence: number | null;
-  readonly sizing: {
-    readonly choice: string;
-    readonly probabilities: Readonly<Record<string, number>> | null;
-    readonly confidence: number | null;
-  } | null;
-  readonly matchedRule: string | null;
-}
+export type { GameplayGame as Game, GameplayAIDecision as AIDecision } from "@/lib/http/gameplay-contracts";
 
 export interface HandActionHistoryItem {
   readonly sequence: number;

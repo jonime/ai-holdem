@@ -13,6 +13,8 @@ import { useGameFeed } from "./useGameFeed";
 import { advanceBotTurns, hasBotTurn } from "./bot-advancement";
 import { canAdvanceBots, tableFlow } from "@/components/poker/view-model";
 import { getClientPlayerToken } from "@/lib/identity/player-token-client";
+import { api } from "@/lib/http/api";
+import type { HumanAction } from "@/lib/http/gameplay-contracts";
 import { requestJson } from "@/lib/http/request-json";
 import {
   gameEnvelopeSchema,
@@ -117,11 +119,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       const { controller, cancel } = createRefreshTimeout();
       refreshAbortControllers.current.add(controller);
       try {
-        const body = await requestJson<{ game: Game }>(
-          `/api/games/${targetGameId}`,
-          { cache: "no-store", signal: controller.signal },
-          gameEnvelopeSchema,
-        );
+        const body = await api.games.get({ gameId: targetGameId }, { signal: controller.signal });
         applyGame(body.game, sequence, targetGameId);
         return body.game;
       } finally {
@@ -474,14 +472,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
           isActive,
           step: async current => {
             stepSequence = ++nextResponseSequence.current;
-            const body = await requestJson<{ game: Game; aiDecision: AIDecision }>(
-              `/api/games/${current.id}/step`,
-              {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ expectedVersion: current.version }),
-              },
-            );
+            const body = await api.games.stepBot({ gameId: current.id, expectedVersion: current.version });
             return body;
           },
           apply: body => {
@@ -551,33 +542,16 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       if ((action.type === "bet" || action.type === "raise") &&
           (amountOverride === null || !Number.isSafeInteger(amountOverride) ||
            amountOverride < action.minAmount || amountOverride > action.maxAmount)) return;
-      const selectedAmount =
-        action.type === "bet" || action.type === "raise"
-          ? (amountOverride ?? action.minAmount)
-          : "amount" in action
-            ? action.amount
-            : undefined;
+      const proposedAction: HumanAction = action.type === "bet" || action.type === "raise"
+        ? { type: action.type, amount: amountOverride ?? action.minAmount }
+        : action.type === "call" ? { type: "call", amount: action.amount }
+        : { type: action.type };
 
       setLoading(true);
       setError(null);
       try {
         const sequence = ++nextResponseSequence.current;
-        const body = await requestJson<{ game: Game }>(
-          `/api/games/${game.id}/action`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: {
-                type: action.type,
-                ...(selectedAmount !== undefined
-                  ? { amount: selectedAmount }
-                  : {}),
-              },
-              expectedVersion: game.version,
-            }),
-          },
-        );
+        const body = await api.games.submitAction({ gameId: game.id, expectedVersion: game.version, action: proposedAction });
         applyGame(body.game, sequence);
         await advanceAiTurns(body.game);
       } catch (requestError) {

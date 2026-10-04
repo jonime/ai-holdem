@@ -1,3 +1,5 @@
+import { HttpError } from "@/lib/http/api";
+import { GAME_VERSION_CONFLICT } from "@/lib/http/gameplay-contracts";
 import { canAdvanceBots } from "./view-model";
 import type { AIDecision, Game } from "./types";
 
@@ -26,7 +28,7 @@ export async function advanceBotTurns(
       result = await driver.step(current);
     } catch (error) {
       if (!driver.isActive()) return;
-      if (error instanceof Error && error.message === "Game version conflict") {
+      if (error instanceof HttpError && error.code === GAME_VERSION_CONFLICT) {
         await driver.refresh();
         return;
       }

@@ -272,38 +272,9 @@ export interface CreatedGame {
   readonly version: number;
 }
 
-export interface PublicGame {
-  readonly id: string;
-  readonly status: PersistedGame["status"];
-  readonly version: number;
-  readonly viewerIsHost: boolean;
-  readonly publication?: {
-    readonly isPublic: boolean;
-    readonly title: string | null;
-    readonly leaseExpiresAt: string;
-  } | null;
-  readonly poker: PublicPokerGame;
-}
-
-export interface PublicAIDecision {
-  readonly action: "fold" | "check" | "call" | "bet" | "raise";
-  readonly amount: number | null;
-  readonly bot: BotDescriptor;
-  readonly botProfileId: BotPlaystyleId | null;
-  readonly probabilities: Readonly<Record<string, number>> | null;
-  readonly confidence: number | null;
-  readonly sizing: {
-    readonly choice: import("@/lib/typesafe/questions").SizingChoice;
-    readonly probabilities: Readonly<Record<string, number>> | null;
-    readonly confidence: number | null;
-  } | null;
-  readonly matchedRule: string | null;
-}
-
-export interface BotStepResult {
-  readonly game: PublicGame;
-  readonly aiDecision: PublicAIDecision;
-}
+export type { GameplayGame as PublicGame, GameplayAIDecision as PublicAIDecision } from "@/lib/http/gameplay-contracts";
+import type { GameplayGame as PublicGame, BotStepResponseEnvelope as BotStepResult } from "@/lib/http/gameplay-contracts";
+export type { BotStepResponseEnvelope as BotStepResult } from "@/lib/http/gameplay-contracts";
 
 export type TypesafeStepResult = BotStepResult;
 

@@ -225,3 +225,33 @@ The sitemap includes only durable public content. Keep game tables and the
 visitor-specific directory marked `noindex, follow`. Set `NEXT_PUBLIC_APP_URL`
 for custom domains before building; see README for origin fallbacks and social
 image replacement.
+
+## Gameplay HTTP contracts
+
+The core loop (`GET /api/games/:gameId`, `POST /api/games/:gameId/action`,
+`POST /api/games/:gameId/step`) shares browser-safe Zod contracts in
+`lib/http/gameplay-contracts.ts`. Infer public DTOs from these schemas; keep
+engine and persistence types separate. Response parsing applies existing
+schema defaults. The service's ownership-aware projection remains
+responsible for card and token privacy; a schema cannot authorize a viewer.
+
+Client code calls `api.games.get`, `api.games.submitAction`, or
+`api.games.stepBot` from `lib/http/api.ts`, without response type arguments.
+These methods serialize requests and validate successful responses, preserve
+abort signals and same-origin cookies, and disable caching on game reads.
+They do not retry mutations or batch requests. Routes validate shared request
+schemas and type their public envelopes. Call amounts may be omitted, but supplied amounts must validate; bet/raise
+amounts remain required, and mutation versions must be nonnegative safe integers.
+
+`HttpError` retains HTTP status and optional server code. Version conflicts on
+these mutation routes add `GAME_VERSION_CONFLICT`; bot loops stop and refresh
+silently only for that code.
+Other conflicts and provider/refresh failures remain visible. Preserve response
+sequencing, refresh coalescing, bot authorization and eligibility, and scheduled
+notifications when migrating another call. Test actual route responses against
+their response schema, as well as malformed payloads and stale responses.
+
+Seat management, table settings, start/next-hand/reveal, feeds, history, public
+directory/publication/heartbeat/join, bot catalog, game creation, and anonymous
+game forms remain unmigrated. Their existing helpers and boundaries remain in
+place; use this pattern for later migrations without introducing a routing framework.

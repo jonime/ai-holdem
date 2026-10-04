@@ -1,5 +1,11 @@
 import { expect, test, type BrowserContext, type Page } from "@playwright/test";
-import type { Game } from "../../components/poker/types";
+import type { AIDecision, Game } from "../../components/poker/types";
+
+const gameplayDecision: AIDecision = {
+  action: "check", amount: null,
+  bot: { id: "rules", label: "Rules", provider: "rules", modelId: null },
+  botProfileId: null, probabilities: null, confidence: null, sizing: null, matchedRule: null,
+};
 
 async function fixture(page: Page) {
   const response = await page.request.post("/en-US/quick-game", { headers: { Accept: "application/json" } });
@@ -102,11 +108,11 @@ test("two authorized browsers race, loser refreshes silently and continues", asy
     if (arrivals === 2) release();
     await both;
     if (expected !== f.current().version) {
-      await route.fulfill({ status: 409, json: { error: "Game version conflict" } });
+      await route.fulfill({ status: 409, json: { error: "Game version conflict", code: "GAME_VERSION_CONFLICT" } });
     } else {
       commits++;
       f.set(humanTurn(f.current()));
-      await route.fulfill({ json: { game: f.current(), aiDecision: {} } });
+      await route.fulfill({ json: { game: f.current(), aiDecision: gameplayDecision } });
     }
   };
   await page.route(`**/api/games/${f.gameId}/step`, handle);
@@ -133,11 +139,11 @@ test("provider failures allow retry, conflict refresh failures are visible, comp
     if (steps === 1) await route.fulfill({ status: 502, json: { error: "AI decision failed" } });
     else if (steps === 2) {
       await page.route(`**/api/games/${f.gameId}`, r => r.fulfill({ status: 500, json: { error: "Refresh failed" } }));
-      await route.fulfill({ status: 409, json: { error: "Game version conflict" } });
+      await route.fulfill({ status: 409, json: { error: "Game version conflict", code: "GAME_VERSION_CONFLICT" } });
     } else {
       f.set({ ...f.current(), version: f.current().version + 1, status: "complete",
         poker: { ...f.current().poker, street: "complete", currentActorId: null } });
-      await route.fulfill({ json: { game: f.current(), aiDecision: {} } });
+      await route.fulfill({ json: { game: f.current(), aiDecision: gameplayDecision } });
     }
   });
   await open(page, f.gameId);
@@ -158,7 +164,7 @@ test("navigation discards a pending bot response and stops the old loop", async 
   await page.route(`**/api/games/${f.gameId}/step`, async route => {
     steps++;
     await held;
-    await route.fulfill({ json: { game: { ...f.current(), version: f.current().version + 1 }, aiDecision: {} } }).catch(() => undefined);
+    await route.fulfill({ json: { game: { ...f.current(), version: f.current().version + 1 }, aiDecision: gameplayDecision } }).catch(() => undefined);
   });
   await open(page, f.gameId);
   await expect.poll(() => steps).toBe(1);
@@ -183,7 +189,7 @@ test("advancement following a human action uses silent conflict recovery", async
   await page.route(`**/api/games/${f.gameId}/step`, async route => {
     steps++;
     f.set(humanTurn(f.current()));
-    await route.fulfill({ status: 409, json: { error: "Game version conflict" } });
+    await route.fulfill({ status: 409, json: { error: "Game version conflict", code: "GAME_VERSION_CONFLICT" } });
   });
   await open(page, f.gameId);
   await page.getByRole("button", { name: "Check", exact: true }).click();
@@ -201,7 +207,7 @@ test("loss of eligibility discards a pending response and stops subsequent steps
     steps++;
     const stale = f.current();
     await held;
-    await route.fulfill({ json: { game: { ...stale, version: stale.version + 1 }, aiDecision: {} } });
+    await route.fulfill({ json: { game: { ...stale, version: stale.version + 1 }, aiDecision: gameplayDecision } });
   });
   await open(page, f.gameId);
   await expect.poll(() => steps).toBe(1);
@@ -215,3 +221,22 @@ test("loss of eligibility discards a pending response and stops subsequent steps
   expect(steps).toBe(1);
   await expect(page.getByRole("button", { name: "Retry bot", exact: true })).toHaveCount(0);
 });
+
+for (const failure of [
+  { name: "malformed successful response", status: 200, body: { game: {}, aiDecision: {} }, message: "Invalid response payload" },
+  { name: "unrelated conflict", status: 409, body: { error: "It is not a bot turn" }, message: "It is not a bot turn" },
+  { name: "conflict without a code", status: 409, body: { error: "Game version conflict" }, message: "Game version conflict" },
+]) {
+  test(`${failure.name} remains visible and stops the bot loop`, async ({ page }) => {
+    const f = await fixture(page);
+    let steps = 0;
+    await page.route(`**/api/games/${f.gameId}/step`, async route => {
+      steps++;
+      await route.fulfill({ status: failure.status, json: failure.body });
+    });
+    await open(page, f.gameId);
+    await expect(page.locator("main").getByRole("alert")).toContainText(failure.message);
+    expect(steps).toBe(1);
+    await expect(page.getByRole("button", { name: /Retry/ })).toBeVisible();
+  });
+}

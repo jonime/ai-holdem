@@ -1,3 +1,4 @@
+import { stepBotRequestSchema, GAME_VERSION_CONFLICT, type BotStepResponseEnvelope } from "@/lib/http/gameplay-contracts";
 import { NextResponse } from "next/server";
 
 import { getPlayerTokenFromRequest } from "@/lib/identity/player-token";
@@ -21,20 +22,18 @@ interface StepRouteContext {
 export async function POST(request: Request, context: StepRouteContext) {
   const { gameId } = await context.params;
   const body: unknown = await request.json().catch(() => null);
-  const expectedVersion =
-    body && typeof body === "object" && "expectedVersion" in body
-      ? (body as Record<string, unknown>).expectedVersion
-      : null;
-  if (!Number.isSafeInteger(expectedVersion) || (expectedVersion as number) < 0) {
+  const parsed = stepBotRequestSchema.safeParse(body);
+  if (!parsed.success) {
     return NextResponse.json({ error: "Invalid expected version" }, { status: 400 });
   }
+  const { expectedVersion } = parsed.data;
 
   try {
     const result = await stepBotAction(
       createSupabaseGameRepository(),
       new ServerBotRegistry(),
       gameId,
-      expectedVersion as number,
+      expectedVersion,
       getPlayerTokenFromRequest(request),
     );
     scheduleGameEvent(
@@ -44,7 +43,7 @@ export async function POST(request: Request, context: StepRouteContext) {
         : "ai_decision",
       result.game.version,
     );
-    return NextResponse.json(result);
+    return NextResponse.json(result satisfies BotStepResponseEnvelope);
   } catch (error) {
     if (error instanceof BotStepForbiddenError) {
       return NextResponse.json({ error: error.message }, { status: 403 });
@@ -54,7 +53,7 @@ export async function POST(request: Request, context: StepRouteContext) {
     }
     if (error instanceof GameConflictError) {
       return NextResponse.json(
-        { error: "Game version conflict" },
+        { error: "Game version conflict", code: GAME_VERSION_CONFLICT },
         { status: 409 },
       );
     }

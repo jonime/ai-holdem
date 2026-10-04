@@ -1,3 +1,4 @@
+import { gameParamsSchema, type GameResponseEnvelope } from "@/lib/http/gameplay-contracts";
 import { NextResponse } from "next/server";
 
 import {
@@ -12,7 +13,7 @@ interface GameRouteContext {
 }
 
 export async function GET(request: Request, context: GameRouteContext) {
-  const { gameId } = await context.params;
+  const { gameId } = gameParamsSchema.parse(await context.params);
   const playerToken = getOrCreatePlayerToken(request);
 
   try {
@@ -21,7 +22,7 @@ export async function GET(request: Request, context: GameRouteContext) {
       gameId,
       playerToken,
     );
-    const response = NextResponse.json({ game });
+    const response = NextResponse.json({ game } satisfies GameResponseEnvelope);
     setPlayerTokenCookie(response, playerToken);
     return response;
   } catch (error) {
