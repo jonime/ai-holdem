@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 
 import type { Locale } from "@/lib/i18n";
 import type { JoinGameDictionary } from "@/lib/i18n/types";
-import type { PublicGameDirectoryEntry } from "@/lib/supabase/queries";
-import { publicDirectoryEnvelopeSchema } from "@/lib/http/schemas";
+import type { PublicGameDirectoryEntry } from "@/lib/http/discovery-contracts";
+import { api, HttpError } from "@/lib/http/api";
 import styles from "./page.module.css";
 
 const nameKey = "ai-holdem-player-name";
@@ -34,9 +34,7 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
   const refresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      const response = await fetch("/api/games/public", { cache: "no-store" });
-      if (!response.ok) throw new Error("refresh failed");
-      const body = publicDirectoryEnvelopeSchema.parse(await response.json());
+      const body = await api.discovery.list();
       setGames(body.games);
       setCursor(typeof body.nextCursor === "string" ? body.nextCursor : null);
       setWarning(false);
@@ -71,9 +69,7 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
     if (!cursor) return;
     setLoadingMore(true);
     try {
-      const response = await fetch(`/api/games/public?cursor=${encodeURIComponent(cursor)}`, { cache: "no-store" });
-      if (!response.ok) throw new Error("load failed");
-      const body = publicDirectoryEnvelopeSchema.parse(await response.json());
+      const body = await api.discovery.list({ cursor });
       setGames((current) => [...current, ...body.games.filter((entry) => !current.some((item) => item.gameId === entry.gameId))]);
       setCursor(body.nextCursor);
     } catch {
@@ -89,20 +85,11 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
     setMessage(null);
     window.localStorage.setItem(nameKey, name);
     try {
-      const response = await fetch(`/api/games/${game.gameId}/join`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ expectedVersion: game.version, ...(name.trim() ? { name } : {}) }),
-      });
-      if (response.ok) {
-        router.push(`/${locale}/game/${game.gameId}`);
-        return;
-      }
-      const body = await response.json().catch(() => null) as { code?: string } | null;
+      await api.discovery.join({ gameId: game.gameId, expectedVersion: game.version, ...(name.trim() ? { name } : {}) });
+      router.push(`/${locale}/game/${game.gameId}`);
+    } catch (error) {
       await refresh();
-      setMessage(body?.code === "GAME_CONFLICT" ? dictionary.conflict : dictionary.unavailable);
-    } catch {
-      await refresh();
-      setMessage(dictionary.unavailable);
+      setMessage(error instanceof HttpError && error.code === "GAME_CONFLICT" ? dictionary.conflict : dictionary.unavailable);
     } finally {
       setJoiningId(null);
     }

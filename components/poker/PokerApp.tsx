@@ -1,5 +1,7 @@
 "use client";
 
+import { api } from "@/lib/http/api";
+
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -113,13 +115,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     setReplaying(true);
     setReplayError(false);
     try {
-      const response = await fetch(`/${locale}/quick-game`, {
-        method: "POST", headers: { Accept: "application/json" },
-      });
-      const body: unknown = await response.json();
-      if (!response.ok || !body || typeof body !== "object" ||
-        !("gameId" in body) || typeof body.gameId !== "string" ||
-        !/^[a-zA-Z0-9-]+$/.test(body.gameId)) throw new Error("Quick Play failed");
+      const body = await api.creation.quickPlay({ lang: locale });
       // Full navigation installs the new table with the refreshed identity cookies.
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.assign(`/${locale}/game/${body.gameId}`);

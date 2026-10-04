@@ -1,3 +1,4 @@
+import { gameParamsSchema } from "@/lib/http/common-contracts";
 import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
@@ -13,7 +14,9 @@ interface ActionRouteContext {
 }
 
 export async function POST(request: Request, context: ActionRouteContext) {
-  const { gameId } = await context.params;
+  const path = gameParamsSchema.safeParse(await context.params);
+  if (!path.success) return NextResponse.json({ error: "Invalid game ID" }, { status: 400 });
+  const { gameId } = path.data;
   const body: unknown = await request.json().catch(() => null);
   const parsed = submitActionRequestSchema.safeParse(body);
   if (!parsed.success) {

@@ -109,19 +109,8 @@ export interface GameReadSnapshot {
   readonly revealedPlayerIds: readonly string[];
 }
 
-export interface PublicGameDirectoryEntry {
-  readonly gameId: string;
-  readonly title: string | null;
-  readonly version: number;
-  readonly occupiedSeats: number;
-  readonly totalSeats: number;
-  readonly humanCount: number;
-  readonly botCount: number;
-  readonly smallBlind: number;
-  readonly bigBlind: number;
-  readonly startingStack: number;
-  readonly publishedAt: string;
-}
+export type { PublicGameDirectoryEntry } from "@/lib/http/discovery-contracts";
+import type { PublicGameDirectoryEntry } from "@/lib/http/discovery-contracts";
 
 export type DirectoryJoinResult =
   | { readonly outcome: "joined"; readonly seat: number; readonly version: number; readonly duplicate: boolean }

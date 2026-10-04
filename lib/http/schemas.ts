@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+export const botDescriptorSchema = z.object({
+  id: z.string(), label: z.string(), provider: z.enum(["typesafe", "llm", "rules"]), modelId: z.string().nullable(),
+  configuration: z.object({ difficulty: z.boolean(), playstyle: z.boolean() }).optional(),
+});
+
 export const legalActionSchema = z.union([
   z.object({ type: z.literal("fold") }),
   z.object({ type: z.literal("check") }),
@@ -20,18 +25,7 @@ export const publicPlayerSchema = z.object({
   id: z.string(),
   name: z.string(),
   controller: z.enum(["human", "bot"]),
-  bot: z
-    .object({
-      id: z.string(),
-      label: z.string(),
-      provider: z.enum(["typesafe", "llm", "rules"]),
-      modelId: z.string().nullable(),
-      configuration: z
-        .object({ difficulty: z.boolean(), playstyle: z.boolean() })
-        .optional(),
-    })
-    .nullable()
-    .default(null),
+  bot: botDescriptorSchema.nullable().default(null),
   aiDifficulty: z.enum(["easy", "medium", "hard"]).nullable(),
   botProfileId: z
     .enum(["balanced", "tight", "aggressive"])

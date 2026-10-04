@@ -1,10 +1,10 @@
+import { quickPlayParamsSchema, type CreateGameResponse } from "@/lib/http/creation-contracts";
 import { NextResponse } from "next/server";
 
 import {
   getOrCreatePlayerToken,
   setPlayerTokenCookie,
 } from "@/lib/identity/player-token";
-import { hasLocale } from "@/lib/i18n";
 import { createQuickPlayGame } from "@/lib/poker/game-service";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
@@ -19,7 +19,7 @@ export async function POST(
     ? NextResponse.json({ error: message }, { status })
     : new NextResponse(message, { status });
   const { lang } = await params;
-  if (!hasLocale(lang)) {
+  if (!quickPlayParamsSchema.safeParse({ lang }).success) {
     return failure("Not found", 404);
   }
 
@@ -29,7 +29,7 @@ export async function POST(
       hostToken,
     });
     const response = wantsJson
-      ? NextResponse.json({ gameId: game.gameId }, { status: 201 })
+      ? NextResponse.json({ gameId: game.gameId } satisfies CreateGameResponse, { status: 201 })
       : NextResponse.redirect(
           new URL(`/${lang}/game/${game.gameId}`, request.url),
           303,

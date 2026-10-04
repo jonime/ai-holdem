@@ -226,32 +226,78 @@ visitor-specific directory marked `noindex, follow`. Set `NEXT_PUBLIC_APP_URL`
 for custom domains before building; see README for origin fallbacks and social
 image replacement.
 
-## Gameplay HTTP contracts
+## HTTP contracts
 
-The core loop (`GET /api/games/:gameId`, `POST /api/games/:gameId/action`,
-`POST /api/games/:gameId/step`) shares browser-safe Zod contracts in
-`lib/http/gameplay-contracts.ts`. Infer public DTOs from these schemas; keep
-engine and persistence types separate. Response parsing applies existing
-schema defaults. The service's ownership-aware projection remains
-responsible for card and token privacy; a schema cannot authorize a viewer.
+Every application-owned JSON endpoint has a browser-safe Zod contract in
+`lib/http/*-contracts.ts` and a named method in `lib/http/api.ts`. Common game
+identifiers, versions, errors and immutable aliases live in `common-contracts.ts`;
+explicit public DTO schemas live in `schemas.ts`. Infer HTTP request, response,
+and UI projection types from these schemas; retain distinct engine and persistence
+models. Schemas do not authorize viewers: ownership-aware services still control
+private cards and tokens.
 
-Client code calls `api.games.get`, `api.games.submitAction`, or
-`api.games.stepBot` from `lib/http/api.ts`, without response type arguments.
-These methods serialize requests and validate successful responses, preserve
-abort signals and same-origin cookies, and disable caching on game reads.
-They do not retry mutations or batch requests. Routes validate shared request
-schemas and type their public envelopes. Call amounts may be omitted, but supplied amounts must validate; bet/raise
-amounts remain required, and mutation versions must be nonnegative safe integers.
+Use named client methods without response type arguments. The shared transport
+serializes bodies and queries, validates every successful response, forwards abort
+signals and same-origin credentials, and uses `no-store` for authoritative reads.
+It never retries mutations or batches requests. First-party browser UI must not
+call `fetch` directly; ESLint enforces the transport boundary. Routes validate
+shared input schemas, preserve domain validation messages and defaults, and type
+outgoing envelopes with `satisfies`. Test actual route responses against their
+schemas. Do not runtime-parse mutation responses after committing: a projection
+failure must not misreport a committed mutation as a failure.
 
-`HttpError` retains HTTP status and optional server code. Version conflicts on
-these mutation routes add `GAME_VERSION_CONFLICT`; bot loops stop and refresh
-silently only for that code.
-Other conflicts and provider/refresh failures remain visible. Preserve response
-sequencing, refresh coalescing, bot authorization and eligibility, and scheduled
-notifications when migrating another call. Test actual route responses against
-their response schema, as well as malformed payloads and stale responses.
+The endpoint-to-contract/client checklist is complete:
 
-Seat management, table settings, start/next-hand/reveal, feeds, history, public
-directory/publication/heartbeat/join, bot catalog, game creation, and anonymous
-game forms remain unmigrated. Their existing helpers and boundaries remain in
-place; use this pattern for later migrations without introducing a routing framework.
+| Endpoint | Request contract (path/query/body) | Response schema | Named method (`api.` prefix) |
+| --- | --- | --- | --- |
+| `GET /api/games/:gameId` | `gameParamsSchema` | `getGameResponseSchema` | `games.get` |
+| `POST /api/games/:gameId/action` | game params / `submitActionRequestSchema` | `submitActionResponseSchema` | `games.submitAction` |
+| `POST /api/games/:gameId/step` | game params / `stepBotRequestSchema` | `stepBotResponseSchema` | `games.stepBot` |
+| `POST /api/games/:gameId/start` | game params / `startRequestSchema` | `lifecycleResponseSchema` | `games.start` |
+| `POST /api/games/:gameId/next-hand` | game params / `nextHandRequestSchema` | `lifecycleResponseSchema` | `games.nextHand` |
+| `POST /api/games/:gameId/reveal` | game params / `revealRequestSchema` | `lifecycleResponseSchema` | `games.reveal` |
+| `PATCH /api/games/:gameId/settings` | game params / `settingsRequestSchema`, `tableSettingsSchema` | `lifecycleResponseSchema` | `games.settings` |
+| `PATCH /api/games/:gameId/seat-count` | game params / `seatCountRequestSchema` | `lifecycleResponseSchema` | `games.seatCount` |
+| `POST /api/games/:gameId/seats/:seat/claim` | `seatPathParamsSchema` / `claimSeatRouteRequestSchema` | `seatResponseSchema` | `seats.claim` |
+| `POST /api/games/:gameId/seats/:seat/release` | seat params / `releaseSeatRequestSchema` | `seatResponseSchema` | `seats.release` |
+| `PATCH /api/games/:gameId/seats/:seat/name` | seat params / `renameSeatRequestSchema` | `seatResponseSchema` | `seats.rename` |
+| `POST /api/games/:gameId/seats/:seat/assign-bot` | seat params / `assignBotRequestSchema` | `seatResponseSchema` | `seats.assignBot` |
+| `POST /api/games` | `createGameRouteRequestSchema` | `createGameResponseSchema` | `creation.custom` |
+| `POST /:lang/quick-game` (JSON) | `quickPlayParamsSchema` | `quickPlayResponseSchema` | `creation.quickPlay` |
+| `GET /api/bots` | no parameters | `botCatalogResponseSchema` | `bots.catalog` |
+| `GET /api/games/:gameId/history?hand=N` | game params / `historyRouteQuerySchema` | `historyResponseSchema` | `games.history` |
+| `GET /api/games/:gameId/feed?sinceHand=N` | game params / `feedRouteQuerySchema` | `feedResponseSchema` | `games.feed` |
+| `GET /api/games/public?cursor=...` | `directoryRouteQuerySchema`, `directoryCursorSchema` | `directoryResponseSchema` | `discovery.list` |
+| `POST /api/games/:gameId/join` | game params / `joinRequestSchema` | `joinResponseSchema` | `discovery.join` |
+| `PATCH /api/games/:gameId/publication` | game params / `publicationRequestSchema`, `listingTitleSchema` | `publicationResponseSchema` | `discovery.publication` |
+| `POST /api/games/:gameId/heartbeat` | game params (no body/version) | `heartbeatResponseSchema` | `discovery.heartbeat` |
+
+Gameplay and lifecycle contracts live in `gameplay-contracts.ts`; seats,
+creation/catalog, history/feed, and discovery/publication have separate feature
+files. Wire query schemas preserve first-value history/cursor parsing and reject
+repeated `sinceHand`, nondecimal feed cursors, and values above PostgreSQL's
+2,147,483,647 integer limit. Client query schemas accept typed numbers. Creation
+and claim wire schemas retain historical optional-name normalization. Unknown
+wire fields are stripped as before; typed method object literals reject unexpected
+fields at compile time. Rename and heartbeat do not require versions. Heartbeat
+renewal is best-effort, catches failures, and keeps its visibility/online checks
+and 30-second schedule without incrementing the game version.
+
+`HttpError` retains status and optional code. Only `GAME_VERSION_CONFLICT`
+triggers the bot loop's silent refresh. Preserve `GAME_CONFLICT`,
+`GAME_UNAVAILABLE`, and `LISTING_NOT_RENEWABLE`; an arbitrary 409 is not a
+stale-version signal. Failed joins still refresh the directory and select the
+existing messages. Preserve request sequencing, feed synchronization, privacy
+projections, directory-cache invalidation and scheduled Realtime notifications.
+
+Non-JSON exceptions are HTML forms (`/:lang/new-game` and normal
+`/:lang/quick-game` submissions), their 303 redirects and identity cookies,
+Realtime envelopes, static discovery/metadata content, and external provider
+clients. Quick Play's named JSON method sends `Accept: application/json`; it
+does not change form behavior.
+
+Contract verification includes compile-time negative inputs and inferred outputs,
+shared transport serialization/cancellation/error tests, and actual route response
+checks for every JSON endpoint. Run `npm run check`, `npm run build`, and local
+Playwright lobby, end-game, betting, bot-advancement, hand-results/actions and
+public-lobby suites after changes to these flows.

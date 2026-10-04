@@ -1,3 +1,4 @@
+import { renameSeatRequestSchema, seatPathParamsSchema, type SeatResponse } from "@/lib/http/seat-contracts";
 import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
@@ -14,22 +15,15 @@ interface PlayerNameRouteContext {
 
 export async function PATCH(request: Request, context: PlayerNameRouteContext) {
   const { gameId, seat: seatValue } = await context.params;
-  const seat = Number(seatValue);
-  if (!Number.isInteger(seat) || seat < 0) {
+  const path = seatPathParamsSchema.safeParse({ gameId, seat: seatValue });
+  if (!path.success) {
     return NextResponse.json({ error: "Invalid seat number" }, { status: 400 });
   }
+  const seat = path.data.seat;
 
   const body: unknown = await request.json().catch(() => null);
-  if (
-    !body ||
-    typeof body !== "object" ||
-    typeof (body as { name?: unknown }).name !== "string"
-  ) {
-    return NextResponse.json(
-      { error: "Player name must be a string" },
-      { status: 400 },
-    );
-  }
+  const parsed = renameSeatRequestSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: "Player name must be a string" }, { status: 400 });
 
   try {
     const assignment = await updatePlayerName(
@@ -37,10 +31,10 @@ export async function PATCH(request: Request, context: PlayerNameRouteContext) {
       gameId,
       seat,
       getOrCreatePlayerToken(request),
-      (body as { name: string }).name,
+      parsed.data.name,
     );
     scheduleSeatEvent(gameId, "seat_name_updated");
-    return NextResponse.json({ seat: assignment }, { status: 200 });
+    return NextResponse.json({ seat: assignment } satisfies SeatResponse, { status: 200 });
   } catch (error) {
     if (error instanceof GameNotFoundError) {
       return NextResponse.json({ error: "Game not found" }, { status: 404 });

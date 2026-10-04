@@ -1,3 +1,4 @@
+import { gameParamsSchema } from "@/lib/http/common-contracts";
 import { stepBotRequestSchema, GAME_VERSION_CONFLICT, type BotStepResponseEnvelope } from "@/lib/http/gameplay-contracts";
 import { NextResponse } from "next/server";
 
@@ -20,7 +21,9 @@ interface StepRouteContext {
 }
 
 export async function POST(request: Request, context: StepRouteContext) {
-  const { gameId } = await context.params;
+  const path = gameParamsSchema.safeParse(await context.params);
+  if (!path.success) return NextResponse.json({ error: "Invalid game ID" }, { status: 400 });
+  const { gameId } = path.data;
   const body: unknown = await request.json().catch(() => null);
   const parsed = stepBotRequestSchema.safeParse(body);
   if (!parsed.success) {

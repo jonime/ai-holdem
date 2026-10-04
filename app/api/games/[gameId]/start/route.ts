@@ -1,3 +1,4 @@
+import { startRequestSchema, gameParamsSchema, type GameResponseEnvelope } from "@/lib/http/gameplay-contracts";
 import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
@@ -14,20 +15,12 @@ interface StartRouteContext {
 export async function POST(request: Request, context: StartRouteContext) {
   const { gameId } = await context.params;
   const body: unknown = await request.json().catch(() => null);
-  const expectedVersion =
-    body && typeof body === "object" && "expectedVersion" in body
-      ? (body as Record<string, unknown>).expectedVersion
-      : null;
-  if (
-    typeof expectedVersion !== "number" ||
-    !Number.isSafeInteger(expectedVersion) ||
-    expectedVersion < 0
-  ) {
-    return NextResponse.json(
-      { error: "Invalid start request" },
-      { status: 400 },
-    );
+  const parsed = startRequestSchema.safeParse(body);
+  if (!parsed.success || !gameParamsSchema.safeParse({ gameId }).success) {
+    return NextResponse.json({ error: "Invalid start request" }, { status: 400 });
   }
+  const input = parsed.data;
+  const expectedVersion = input.expectedVersion;
 
   try {
     const game = await startGame(
@@ -38,7 +31,7 @@ export async function POST(request: Request, context: StartRouteContext) {
     );
     invalidatePublicDirectory();
     scheduleGameEvent(gameId, "hand_started", game.version);
-    return NextResponse.json({ game });
+    return NextResponse.json({ game } satisfies GameResponseEnvelope);
   } catch (error) {
     if (error instanceof GameNotFoundError) {
       return NextResponse.json({ error: "Game not found" }, { status: 404 });

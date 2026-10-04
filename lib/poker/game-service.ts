@@ -10,7 +10,6 @@ import type {
   BotPlaystyleId,
   GameConfig,
   PokerGameState,
-  PokerStreet,
   PublicPokerGame,
   PokerPlayerConfig,
   TableSettings,
@@ -190,45 +189,8 @@ export interface GameFeedReader {
   ): Promise<GameFeed>;
 }
 
-export type PublicFeedEvent =
-  | { readonly type: "handStarted"; readonly handNumber: number }
-  | {
-      readonly type: "street";
-      readonly handNumber: number;
-      readonly street: Exclude<PokerStreet, "complete">;
-      readonly cards: readonly string[];
-    }
-  | {
-      readonly type: "blind";
-      readonly handNumber: number;
-      readonly player: string;
-      readonly playerId: string | null;
-      readonly controller: "human" | "bot";
-      readonly blind: "small" | "big";
-      readonly amount: number;
-    }
-  | {
-      readonly type: "action";
-      readonly handNumber: number;
-      readonly player: string;
-      readonly playerId: string | null;
-      readonly controller: "human" | "bot";
-      readonly action: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
-      readonly amount: number | null;
-      readonly street: "preflop" | "flop" | "turn" | "river";
-    }
-  | {
-      readonly type: "win";
-      readonly handNumber: number;
-      readonly player: string;
-      readonly playerId: string | null;
-      readonly amount: number;
-      readonly uncontested: boolean;
-    };
-
-export interface PublicGameFeed {
-  readonly events: readonly PublicFeedEvent[];
-}
+export type { GameFeedEvent as PublicFeedEvent, GameFeed as PublicGameFeed } from "@/lib/http/history-contracts";
+import type { GameFeedEvent as PublicFeedEvent, GameFeed as PublicGameFeed } from "@/lib/http/history-contracts";
 
 const bettingStreets = ["preflop", "flop", "turn", "river"] as const;
 

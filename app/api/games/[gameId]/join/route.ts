@@ -1,3 +1,5 @@
+import { gameParamsSchema } from "@/lib/http/common-contracts";
+import { joinRequestSchema, type JoinResponse } from "@/lib/http/discovery-contracts";
 import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken, setPlayerTokenCookie } from "@/lib/identity/player-token";
@@ -7,21 +9,21 @@ import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { scheduleSeatEvent } from "@/lib/realtime/schedule";
 
 export async function POST(request: Request, context: { readonly params: Promise<{ gameId: string }> }) {
-  const { gameId } = await context.params;
+  const path = gameParamsSchema.safeParse(await context.params);
+  if (!path.success) return NextResponse.json({ error: "Invalid game ID" }, { status: 400 });
+  const { gameId } = path.data;
   const body: unknown = await request.json().catch(() => null);
   if (!body || typeof body !== "object") return NextResponse.json({ error: "Invalid request" }, { status: 400 });
-  const expectedVersion = (body as Record<string, unknown>).expectedVersion;
-  const name = (body as Record<string, unknown>).name;
-  if (!Number.isSafeInteger(expectedVersion) || (expectedVersion as number) < 0 || (name !== undefined && typeof name !== "string")) {
-    return NextResponse.json({ error: "Invalid join request" }, { status: 400 });
-  }
+  const parsed = joinRequestSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: "Invalid join request" }, { status: 400 });
+  const { expectedVersion, name } = parsed.data;
   const response = NextResponse.json({ ok: true });
   const playerToken = getOrCreatePlayerToken(request, response);
   try {
     const repository = createSupabaseGameRepository();
     const result = await joinPublicGame(repository, {
       gameId,
-      expectedVersion: expectedVersion as number,
+      expectedVersion,
       playerToken,
       name: typeof name === "string" ? name : null,
     });
@@ -35,7 +37,7 @@ export async function POST(request: Request, context: { readonly params: Promise
     }
     if (!result.duplicate) invalidatePublicDirectory();
     scheduleSeatEvent(gameId, "seat_claimed");
-    const joined = NextResponse.json({ gameId, seat: result.seat, version: result.version });
+    const joined = NextResponse.json({ gameId, seat: result.seat, version: result.version } satisfies JoinResponse);
     return setPlayerTokenCookie(joined, playerToken);
   } catch (error) {
     console.error("Unable to join public game", error);

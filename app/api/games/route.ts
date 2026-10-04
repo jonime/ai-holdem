@@ -1,3 +1,4 @@
+import { createGameRouteRequestSchema, type CreateGameResponse } from "@/lib/http/creation-contracts";
 import { NextResponse } from "next/server";
 
 import {
@@ -10,25 +11,9 @@ import { createSupabaseGameRepository } from "@/lib/supabase/server";
 export async function POST(request: Request) {
   try {
     const body: unknown = await request.json().catch(() => null);
-    const requestBody =
-      body && typeof body === "object" ? (body as Record<string, unknown>) : {};
-    const seatCount =
-      typeof requestBody.seatCount === "number" &&
-      Number.isInteger(requestBody.seatCount) &&
-      requestBody.seatCount >= 2 &&
-      requestBody.seatCount <= 6
-        ? requestBody.seatCount
-        : undefined;
-    if (requestBody.seatCount !== undefined && seatCount === undefined) {
-      return NextResponse.json(
-        { error: "seatCount must be an integer from 2 through 6" },
-        { status: 400 },
-      );
-    }
-    const hostName =
-      typeof requestBody.hostName === "string"
-        ? requestBody.hostName
-        : undefined;
+    const parsed = createGameRouteRequestSchema.safeParse(body);
+    if (!parsed.success) return NextResponse.json({ error: "seatCount must be an integer from 2 through 6" }, { status: 400 });
+    const { seatCount, hostName } = parsed.data;
     const hostToken = getOrCreatePlayerToken(request);
 
     const game = await createDemoGame(createSupabaseGameRepository(), {
@@ -37,7 +22,7 @@ export async function POST(request: Request) {
       hostName,
     });
     const response = NextResponse.json(
-      { gameId: game.gameId },
+      { gameId: game.gameId } satisfies CreateGameResponse,
       { status: 201 },
     );
     setPlayerTokenCookie(response, hostToken);

@@ -1,3 +1,5 @@
+import { gameParamsSchema } from "@/lib/http/common-contracts";
+import { feedRouteQuerySchema, type FeedResponse } from "@/lib/http/history-contracts";
 import { NextResponse } from "next/server";
 
 import { getGameFeed } from "@/lib/poker/game-service";
@@ -8,19 +10,13 @@ interface FeedRouteContext {
 }
 
 export async function GET(request: Request, context: FeedRouteContext) {
-  const { gameId } = await context.params;
+  const path = gameParamsSchema.safeParse(await context.params);
+  if (!path.success) return NextResponse.json({ error: "Invalid game ID" }, { status: 400 });
+  const { gameId } = path.data;
 
-  const values = new URL(request.url).searchParams.getAll("sinceHand");
-  const sinceHand = values.length === 1 ? Number(values[0]) : undefined;
-  if (
-    values.length > 1 ||
-    (values.length === 1 &&
-      (!/^[0-9]+$/.test(values[0]) ||
-        !Number.isInteger(sinceHand) ||
-        Number(values[0]) > 2_147_483_647))
-  ) {
-    return NextResponse.json({ error: "Invalid sinceHand" }, { status: 400 });
-  }
+  const parsed = feedRouteQuerySchema.safeParse({ sinceHand: new URL(request.url).searchParams.getAll("sinceHand") });
+  if (!parsed.success) return NextResponse.json({ error: "Invalid sinceHand" }, { status: 400 });
+  const { sinceHand } = parsed.data;
 
   try {
     const feed = await getGameFeed(
@@ -28,7 +24,7 @@ export async function GET(request: Request, context: FeedRouteContext) {
       gameId,
       sinceHand,
     );
-    return NextResponse.json({ feed });
+    return NextResponse.json({ feed } satisfies FeedResponse);
   } catch (error) {
     console.error("Unable to load game feed", error);
     return NextResponse.json(

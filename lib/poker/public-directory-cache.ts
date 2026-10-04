@@ -1,3 +1,4 @@
+import { directoryCursorSchema } from "@/lib/http/discovery-contracts";
 import "server-only";
 
 import { cacheLife, cacheTag, revalidateTag } from "next/cache";
@@ -27,13 +28,9 @@ export function decodePublicDirectoryCursor(value: string | null): PublicDirecto
   if (!value) return null;
   try {
     const parsed: unknown = JSON.parse(Buffer.from(value, "base64url").toString("utf8"));
-    if (
-      parsed && typeof parsed === "object" &&
-      typeof (parsed as Record<string, unknown>).publishedAt === "string" &&
-      typeof (parsed as Record<string, unknown>).gameId === "string"
-    ) {
-      return parsed as PublicDirectoryCursor;
-    }
+    const cursor = directoryCursorSchema.safeParse(parsed);
+    if (cursor.success) return cursor.data;
+
   } catch {}
   return null;
 }

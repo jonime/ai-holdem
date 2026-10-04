@@ -1,3 +1,4 @@
+import { revealRequestSchema, gameParamsSchema, type GameResponseEnvelope } from "@/lib/http/gameplay-contracts";
 import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
@@ -10,24 +11,14 @@ interface RevealRouteContext {
   readonly params: Promise<{ gameId: string }>;
 }
 
-function isNonNegativeInteger(value: unknown): value is number {
-  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
-}
-
 export async function POST(request: Request, context: RevealRouteContext) {
   const { gameId } = await context.params;
   const body: unknown = await request.json().catch(() => null);
-  const input =
-    body && typeof body === "object" ? (body as Record<string, unknown>) : {};
-  if (
-    !isNonNegativeInteger(input.expectedVersion) ||
-    !isNonNegativeInteger(input.handNumber)
-  ) {
-    return NextResponse.json(
-      { error: "Invalid reveal request" },
-      { status: 400 },
-    );
+  const parsed = revealRequestSchema.safeParse(body);
+  if (!parsed.success || !gameParamsSchema.safeParse({ gameId }).success) {
+    return NextResponse.json({ error: "Invalid reveal request" }, { status: 400 });
   }
+  const input = parsed.data;
 
   try {
     const game = await revealHumanCards(
@@ -38,7 +29,7 @@ export async function POST(request: Request, context: RevealRouteContext) {
       getOrCreatePlayerToken(request),
     );
     scheduleGameEvent(gameId, "cards_revealed", game.version);
-    return NextResponse.json({ game });
+    return NextResponse.json({ game } satisfies GameResponseEnvelope);
   } catch (error) {
     if (error instanceof GameNotFoundError) {
       return NextResponse.json({ error: "Game not found" }, { status: 404 });

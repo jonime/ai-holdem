@@ -326,13 +326,15 @@ or TypeSafe API key.
 
 ## Architecture
 
-The gameplay refresh, human-action, and bot-step endpoints share browser-safe
-Zod contracts in `lib/http/gameplay-contracts.ts` and named, runtime-validated
-client calls in `lib/http/api.ts`. Public DTO types are inferred from those
-schemas; ownership-aware server projections still control private data.
-Other endpoints retain their existing helpers. See the
-[contributor contract pattern](CONTRIBUTING.md#gameplay-http-contracts) for the
-migration boundary and verification requirements.
+Every application-owned JSON endpoint shares browser-safe, feature-specific
+Zod contracts in `lib/http/*-contracts.ts` and named, runtime-validated client
+calls in `lib/http/api.ts`. Public DTO types are inferred from those schemas;
+ownership-aware server projections still control private data. The transport
+preserves cancellation and cookies, keeps authoritative reads uncached, and
+never retries mutations. HTML forms/redirects, Realtime messages and external
+provider clients retain their separate boundaries. See the
+[endpoint contract checklist](CONTRIBUTING.md#http-contracts) for every route,
+client method and verification requirements.
 
 ```text
 browser -> Next.js API routes -> poker engine + TypeSafe -> Supabase

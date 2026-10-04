@@ -15,11 +15,6 @@ import { canAdvanceBots, tableFlow } from "@/components/poker/view-model";
 import { getClientPlayerToken } from "@/lib/identity/player-token-client";
 import { api } from "@/lib/http/api";
 import type { HumanAction } from "@/lib/http/gameplay-contracts";
-import { requestJson } from "@/lib/http/request-json";
-import {
-  gameEnvelopeSchema,
-  historyEnvelopeSchema,
-} from "@/lib/http/schemas";
 import { useGameChannel } from "@/lib/realtime/useGameChannel";
 import {
   RefreshCoordinator,
@@ -212,7 +207,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   }, []);
 
   useEffect(() => {
-    void requestJson<{ bots: readonly BotDescriptor[] }>("/api/bots")
+    void api.bots.catalog()
       .then((body) => setBotCatalog(body.bots))
       .catch(() => undefined);
   }, []);
@@ -241,11 +236,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     }
     let cancelled = false;
     const handNumber = selectedHistoryHand ?? game.poker.handNumber;
-    void requestJson<{ history: HandHistory }>(
-      `/api/games/${game.id}/history?hand=${handNumber}`,
-      undefined,
-      historyEnvelopeSchema,
-    )
+    void api.games.history({ gameId: game.id, hand: handNumber })
       .then((body) => {
         if (!cancelled)
           setHistory({
@@ -268,9 +259,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     setLiveDecisions([]);
     setSelectedHistoryHand(null);
     try {
-      const body = await requestJson<{ gameId: string }>("/api/games", {
-        method: "POST",
-      });
+      const body = await api.creation.custom();
       window.localStorage.setItem("ai-holdem-game-id", body.gameId);
       router.push(`/${locale}/game/${body.gameId}`);
     } catch (requestError) {
@@ -285,21 +274,12 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   }, [locale, router, t]);
 
   const postSeatAction = useCallback(
-    async (path: string, body?: unknown, method = "POST") => {
+    async (action: () => Promise<unknown>) => {
       if (!game) return false;
       setLoading(true);
       setError(null);
       try {
-        await requestJson(
-          path,
-          body === undefined
-            ? { method }
-            : {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-              },
-        );
+        await action();
         await loadGame(game.id);
         return true;
       } catch (requestError) {
@@ -320,10 +300,11 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     async (seat: number, playerName: string) => {
       const trimmedName = playerName.trim();
       window.localStorage.setItem("ai-holdem-player-name", trimmedName);
-      return postSeatAction(`/api/games/${game?.id}/seats/${seat}/claim`, {
+      if (!game) return false;
+      return postSeatAction(() => api.seats.claim({ gameId: game.id, seat,
         ...(trimmedName ? { name: trimmedName } : {}),
-        expectedVersion: game?.version,
-      });
+        expectedVersion: game.version,
+      }));
     },
     [game, postSeatAction],
   );
@@ -331,11 +312,8 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   const updatePlayerName = useCallback(
     async (seat: number, playerName: string) => {
       const trimmedName = playerName.trim();
-      const updated = await postSeatAction(
-        `/api/games/${game?.id}/seats/${seat}/name`,
-        { name: trimmedName },
-        "PATCH",
-      );
+      if (!game) return false;
+      const updated = await postSeatAction(() => api.seats.rename({ gameId: game.id, seat, name: trimmedName }));
       if (updated) {
         window.localStorage.setItem("ai-holdem-player-name", trimmedName);
       }
@@ -346,7 +324,8 @@ export function useGameSession(gameId?: string, historyOpen = false) {
 
   const releaseSeat = useCallback(
     async (seat: number) => {
-      await postSeatAction(`/api/games/${game?.id}/seats/${seat}/release`, { expectedVersion: game?.version });
+      if (!game) return;
+      await postSeatAction(() => api.seats.release({ gameId: game.id, seat, expectedVersion: game.version }));
     },
     [game, postSeatAction],
   );
@@ -358,12 +337,13 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       botId = "jev",
       botProfileId: BotPlaystyleId | null = null,
     ) => {
-      await postSeatAction(`/api/games/${game?.id}/seats/${seat}/assign-bot`, {
+      if (!game) return;
+      await postSeatAction(() => api.seats.assignBot({ gameId: game.id, seat,
         difficulty,
         botId,
         ...(botProfileId ? { botProfileId } : {}),
-        expectedVersion: game?.version,
-      });
+        expectedVersion: game.version,
+      }));
     },
     [game, postSeatAction],
   );
@@ -384,29 +364,12 @@ export function useGameSession(gameId?: string, historyOpen = false) {
             (currentGame.poker.botsShowUncontestedWins ?? false);
         if (settingsChanged) {
           const settingsSequence = ++nextResponseSequence.current;
-          const settingsBody = await requestJson<{ game: Game }>(
-            `/api/games/${currentGame.id}/settings`,
-            {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                ...settings,
-                expectedVersion: currentGame.version,
-              }),
-            },
-          );
+          const settingsBody = await api.games.settings({ ...settings, gameId: currentGame.id, expectedVersion: currentGame.version });
           currentGame = settingsBody.game;
           applyGame(currentGame, settingsSequence);
         }
         const startSequence = ++nextResponseSequence.current;
-        const body = await requestJson<{ game: Game }>(
-          `/api/games/${currentGame.id}/start`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ expectedVersion: currentGame.version }),
-          },
-        );
+        const body = await api.games.start({ gameId: currentGame.id, expectedVersion: currentGame.version });
         applyGame(body.game, startSequence);
       } catch (requestError) {
         setError(
@@ -428,17 +391,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       setError(null);
       try {
         const sequence = ++nextResponseSequence.current;
-        const body = await requestJson<{ game: Game }>(
-          `/api/games/${game.id}/settings`,
-          {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ...settings,
-              expectedVersion: game.version,
-            }),
-          },
-        );
+        const body = await api.games.settings({ ...settings, gameId: game.id, expectedVersion: game.version });
         applyGame(body.game, sequence);
       } catch (requestError) {
         setError(
@@ -578,14 +531,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     setSelectedHistoryHand(null);
     try {
       const sequence = ++nextResponseSequence.current;
-      const body = await requestJson<{ game: Game }>(
-        `/api/games/${game.id}/next-hand`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ expectedVersion: game.version }),
-        },
-      );
+      const body = await api.games.nextHand({ gameId: game.id, expectedVersion: game.version });
       applyGame(body.game, sequence);
       await advanceAiTurns(body.game);
     } catch (requestError) {
@@ -606,18 +552,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     setError(null);
     try {
       const sequence = ++nextResponseSequence.current;
-      const body = await requestJson<{ game: Game }>(
-        `/api/games/${game.id}/reveal`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            expectedVersion: game.version,
-            handNumber: game.poker.handNumber,
-          }),
-        },
-        gameEnvelopeSchema,
-      );
+      const body = await api.games.reveal({ gameId: game.id, expectedVersion: game.version, handNumber: game.poker.handNumber });
       applyGame(body.game, sequence);
     } catch (requestError) {
       setError(

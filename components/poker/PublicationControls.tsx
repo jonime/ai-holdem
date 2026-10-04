@@ -1,5 +1,7 @@
 "use client";
 
+import { api } from "@/lib/http/api";
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/Button";
 import { useI18n } from "./I18nProvider";
@@ -21,7 +23,7 @@ export function PublicationControls({ game, loading, onRefresh }: {
     if (!isPublic) return;
     const heartbeat = () => {
       if (document.visibilityState === "visible" && navigator.onLine) {
-        void fetch(`/api/games/${game.id}/heartbeat`, { method: "POST" });
+        void api.discovery.heartbeat({ gameId: game.id }).catch(() => undefined);
       }
     };
     heartbeat();
@@ -39,11 +41,7 @@ export function PublicationControls({ game, loading, onRefresh }: {
   const update = async (makePublic: boolean) => {
     setSaving(true);
     try {
-      const response = await fetch(`/api/games/${game.id}/publication`, {
-        method: "PATCH", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ expectedVersion: game.version, isPublic: makePublic, title }),
-      });
-      if (!response.ok) throw new Error("publication failed");
+      await api.discovery.publication({ gameId: game.id, expectedVersion: game.version, isPublic: makePublic, title });
       await onRefresh();
     } finally {
       setSaving(false);

@@ -160,7 +160,7 @@ Supabase or TypeSafe services.
   parse the RPC-returned seat without a follow-up seat query.
 - `lib/supabase/`: persistence parsing and repository implementation.
 - `lib/typesafe/`: System One HTTP client and constrained decision validation.
-- `lib/http/gameplay-contracts.ts` and `lib/http/api.ts`: browser-safe inferred contracts and runtime-validated named client methods for game refresh, human actions, and bot stepping. Other endpoints retain existing helpers; see `CONTRIBUTING.md`.
+- `lib/http/*-contracts.ts` and `lib/http/api.ts`: feature-specific, browser-safe inferred contracts and runtime-validated named methods for every application-owned JSON endpoint. Browser UI uses this transport boundary; HTML forms/redirects, Realtime and external provider clients remain separate. See the endpoint checklist in `CONTRIBUTING.md`.
 - `lib/realtime/`: server publishing and client refetch subscriptions.
 - `lib/i18n/`: locale helpers, server-only dictionary loaders, and per-locale
 	dictionaries split by route group (`metadata`, `landing-server`,

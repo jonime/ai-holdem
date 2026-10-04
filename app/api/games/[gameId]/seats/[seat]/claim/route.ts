@@ -1,3 +1,4 @@
+import { claimSeatRouteRequestSchema, seatPathParamsSchema, type SeatResponse } from "@/lib/http/seat-contracts";
 import { NextResponse } from "next/server";
 
 import {
@@ -15,33 +16,28 @@ interface ClaimSeatRouteContext {
 
 export async function POST(request: Request, context: ClaimSeatRouteContext) {
   const { gameId, seat: seatValue } = await context.params;
-  const seat = Number(seatValue);
-  if (!Number.isInteger(seat) || seat < 0) {
+  const path = seatPathParamsSchema.safeParse({ gameId, seat: seatValue });
+  if (!path.success) {
     return NextResponse.json({ error: "Invalid seat number" }, { status: 400 });
   }
+  const seat = path.data.seat;
 
   const response = NextResponse.json({ ok: true });
   const playerToken = getOrCreatePlayerToken(request, response);
   const body: unknown = await request.json().catch(() => null);
-  const playerName =
-    body &&
-    typeof body === "object" &&
-    typeof (body as { name?: unknown }).name === "string"
-      ? (body as { name: string }).name
-      : undefined;
-  const expectedVersion = body && typeof body === "object" ? (body as Record<string, unknown>).expectedVersion : undefined;
-  if (!Number.isSafeInteger(expectedVersion) || (expectedVersion as number) < 0) {
-    return NextResponse.json({ error: "Invalid expected version" }, { status: 400 });
-  }
+  const parsed = claimSeatRouteRequestSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: "Invalid expected version" }, { status: 400 });
+  const { expectedVersion } = parsed.data;
+  const playerName = parsed.data.name;
 
   try {
     const assignment = await claimSeat(
       createSupabaseGameRepository(),
-      { gameId, seat, playerToken, playerName, expectedVersion: expectedVersion as number },
+      { gameId, seat, playerToken, playerName, expectedVersion },
     );
     invalidatePublicDirectory();
     scheduleSeatEvent(gameId, "seat_claimed");
-    const result = NextResponse.json({ seat: assignment }, { status: 200 });
+    const result = NextResponse.json({ seat: assignment } satisfies SeatResponse, { status: 200 });
     setPlayerTokenCookie(result, playerToken);
     return result;
   } catch (error) {

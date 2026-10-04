@@ -1,3 +1,7 @@
+import type { z } from "zod";
+import type { Immutable } from "@/lib/http/common-contracts";
+import type { publicPlayerSchema, publicGameSchema, botDescriptorSchema } from "@/lib/http/schemas";
+
 export type PlayerController = "human" | "bot";
 export type SeatStatus = "open" | "claimed" | "bot";
 export type AIDifficulty = "easy" | "medium" | "hard";
@@ -5,16 +9,7 @@ export type BotPlaystyleId = "balanced" | "tight" | "aggressive";
 
 export type BotProvider = "typesafe" | "llm" | "rules";
 
-export interface BotDescriptor {
-  readonly id: string;
-  readonly label: string;
-  readonly provider: BotProvider;
-  readonly modelId: string | null;
-  readonly configuration?: {
-    readonly difficulty: boolean;
-    readonly playstyle: boolean;
-  };
-}
+export type BotDescriptor = Immutable<z.infer<typeof botDescriptorSchema>>;
 
 export interface PokerPlayerConfig {
   readonly id: string;
@@ -119,48 +114,9 @@ export interface PokerGameSnapshot {
   readonly winnerAmounts: Readonly<Record<string, number>>;
 }
 
-export interface PublicPokerPlayer {
-  readonly id: string;
-  readonly name: string;
-  readonly controller: PlayerController;
-  readonly bot?: BotDescriptor | null;
-  readonly aiDifficulty: AIDifficulty | null;
-  readonly botProfileId?: BotPlaystyleId | null;
-  readonly seat: number;
-  readonly status: SeatStatus;
-  readonly playerToken: string | null;
-  readonly isHost: boolean;
-  readonly leaving: boolean;
-  readonly inHand: boolean;
-  readonly committedStreet: number;
-  readonly stack: number;
-  readonly folded: boolean;
-  readonly allIn: boolean;
-  readonly bestHand?: PokerHandCategory | null;
-  readonly cardsRevealed?: boolean;
-  readonly holeCards: readonly string[] | null;
-}
-
-export interface PublicPokerGame {
-  readonly handNumber: number;
-  readonly seatCount: number;
-  readonly smallBlind: number;
-  readonly bigBlind: number;
-  readonly startingStack: number;
-  readonly street: PokerStreet | null;
-  readonly dealerSeat: number | null;
-  readonly smallBlindSeat: number | null;
-  readonly bigBlindSeat: number | null;
-  readonly currentActorId: string | null;
-  readonly communityCards: readonly string[];
-  readonly pot: number;
-  readonly completionReason: "fold" | "showdown" | null;
-  readonly winnerIds: readonly string[];
-  readonly winnerAmounts: Readonly<Record<string, number>>;
-  readonly botsShowUncontestedWins?: boolean;
-  readonly legalActions: readonly LegalAction[];
-  readonly players: readonly PublicPokerPlayer[];
-}
+// Public projection types are inferred; engine snapshots/configuration stay distinct.
+export type PublicPokerPlayer = Immutable<z.input<typeof publicPlayerSchema>>;
+export type PublicPokerGame = Immutable<z.input<typeof publicGameSchema>>;
 
 export class PokerRuleError extends Error {
   constructor(message: string) {

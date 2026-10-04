@@ -1,3 +1,6 @@
+import { gameParamsSchema } from "@/lib/http/common-contracts";
+import { tableSettingsSchema, type GameResponseEnvelope } from "@/lib/http/gameplay-contracts";
+import { versionSchema } from "@/lib/http/common-contracts";
 import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
@@ -17,29 +20,15 @@ interface SettingsRouteContext {
 }
 
 export async function PATCH(request: Request, context: SettingsRouteContext) {
-  const { gameId } = await context.params;
+  const path = gameParamsSchema.safeParse(await context.params);
+  if (!path.success) return NextResponse.json({ error: "Invalid game ID" }, { status: 400 });
+  const { gameId } = path.data;
   const body: unknown = await request.json().catch(() => null);
   const requestBody =
     body && typeof body === "object" ? (body as Record<string, unknown>) : {};
-  if (
-    typeof requestBody.seatCount !== "number" ||
-    typeof requestBody.smallBlind !== "number" ||
-    typeof requestBody.bigBlind !== "number" ||
-    typeof requestBody.startingStack !== "number" ||
-    typeof requestBody.botsShowUncontestedWins !== "boolean"
-  ) {
-    return NextResponse.json(
-      { error: "Invalid table settings request" },
-      { status: 400 },
-    );
-  }
-  const settings: TableSettings = {
-    seatCount: requestBody.seatCount,
-    smallBlind: requestBody.smallBlind,
-    bigBlind: requestBody.bigBlind,
-    startingStack: requestBody.startingStack,
-    botsShowUncontestedWins: requestBody.botsShowUncontestedWins,
-  };
+  const parsed = tableSettingsSchema.safeParse(requestBody);
+  if (!parsed.success) return NextResponse.json({ error: "Invalid table settings request" }, { status: 400 });
+  const settings: TableSettings = parsed.data;
   const expectedVersion = requestBody.expectedVersion;
 
   try {
@@ -50,11 +39,8 @@ export async function PATCH(request: Request, context: SettingsRouteContext) {
       { status: 400 },
     );
   }
-  if (
-    typeof expectedVersion !== "number" ||
-    !Number.isSafeInteger(expectedVersion) ||
-    expectedVersion < 0
-  ) {
+  const version = versionSchema.safeParse(expectedVersion);
+  if (!version.success) {
     return NextResponse.json(
       { error: "Invalid table settings request" },
       { status: 400 },
@@ -65,13 +51,13 @@ export async function PATCH(request: Request, context: SettingsRouteContext) {
     const game = await updateTableSettings(
       createSupabaseGameRepository(),
       gameId,
-      expectedVersion,
+      version.data,
       settings,
       getOrCreatePlayerToken(request),
     );
     invalidatePublicDirectory();
     scheduleGameEvent(gameId, "table_settings_updated", game.version);
-    return NextResponse.json({ game });
+    return NextResponse.json({ game } satisfies GameResponseEnvelope);
   } catch (error) {
     if (error instanceof GameNotFoundError) {
       return NextResponse.json({ error: "Game not found" }, { status: 404 });

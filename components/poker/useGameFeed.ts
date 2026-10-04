@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { requestJson } from "@/lib/http/request-json";
-import { gameFeedEnvelopeSchema } from "@/lib/http/schemas";
+import { api } from "@/lib/http/api";
 import { FeedSynchronizer } from "./feed-synchronizer";
 import type { GameFeed } from "./types";
 
@@ -17,12 +16,7 @@ export function useGameFeed(gameId?: string) {
   useEffect(() => {
     if (!gameId) return;
     const reader = new FeedSynchronizer(async (sinceHand, signal) => {
-      const query = sinceHand === undefined ? "" : `?sinceHand=${sinceHand}`;
-      const body = await requestJson<{ feed: GameFeed }>(
-        `/api/games/${gameId}/feed${query}`,
-        { cache: "no-store", signal },
-        gameFeedEnvelopeSchema,
-      );
+      const body = await api.games.feed({ gameId, sinceHand }, { signal });
       return body.feed;
     }, feed => setSnapshot({ gameId, feed }));
     synchronizer.current = reader;
