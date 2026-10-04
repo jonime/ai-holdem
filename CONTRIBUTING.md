@@ -78,7 +78,8 @@ Run `npm run check`, `npm run build`, and the focused browser tests:
 npm run test:e2e -- test/e2e/realtime.spec.ts test/e2e/bot-advancement.spec.ts
 ```
 
-Also run the two-browser smoke test on a Vercel preview containing your change:
+Also run the two-browser smoke test on a Vercel deployment containing your change
+(a preview, or a live site explicitly authorized for smoke testing):
 
 ```sh
 E2E_BASE_URL=https://your-preview.vercel.app npm run test:e2e -- test/e2e/realtime.spec.ts

@@ -75,7 +75,8 @@ frames and committed mutations. It requires compact game and same-version seat
 notifications and visible refetched changes before polling. A blocked WebSocket
 case verifies fallback polling. The separate spectator case checks bot-step 403s.
 
-Run the same smoke check against a Vercel preview **containing this change**:
+Run the same smoke check against a Vercel deployment **containing this change** (a preview, or a live
+site explicitly authorized for smoke testing):
 
 ```sh
 E2E_BASE_URL=https://your-preview.vercel.app npm run test:e2e -- test/e2e/realtime.spec.ts
@@ -107,7 +108,7 @@ change.
 
 ## Verification record — 2026-10-04
 
-Working branch: `codex/reliable-realtime-notifications` (local working changes).
+Implementation commit: `20c12367b2872d0a71057b7c6b7a1fbe397ce471`, pushed to `main`.
 `npm run check` passed: 52 files, 535 tests. The production build passed using
 `NEXT_DIST_DIR=.next-e2e npm run build` to preserve the running development
 server's output. All eight focused Chromium tests passed against local Supabase,
@@ -115,9 +116,18 @@ including actual compact delivery with browser timers frozen so polling cannot
 satisfy the assertions, same-version name changes, fallback polling, and spectator
 bot-step denial. The delivery case completed in 2.9 seconds.
 
-The supplied live URL, `https://ai-holdem.vercel.app`, was also tested with two
-browser contexts. It delivered a legacy `table_settings_updated` envelope
-containing a game snapshot, so the compact-envelope assertion failed as expected
-for the older deployment. This does **not** verify this branch's Vercel response
-lifecycle. The remaining deployment check requires a preview containing these
-changes and rerunning the command above; no deployment was made during this work.
+The initial check of `https://ai-holdem.vercel.app` preceded deployment and
+received legacy snapshots. After the user confirmed deployment of the implementation
+commit, the same two-browser smoke suite passed on that live Vercel deployment:
+
+```sh
+E2E_BASE_URL=https://ai-holdem.vercel.app npm run test:e2e -- test/e2e/realtime.spec.ts
+```
+
+Both tests passed in 22.6 seconds. The actual-delivery case (13.4 seconds including
+navigation) observed exact compact game and seat notifications over real Realtime
+WebSockets, then refetched visible committed settings and same-version name changes
+with browser polling timers frozen. The spectator's bot-step request returned 403.
+The blocked-delivery case recovered the committed settings through fallback polling
+(8.8 seconds including navigation). This completes the deployed response-lifecycle
+smoke check; delivery remains best-effort within the function execution limit.

@@ -98,7 +98,8 @@ Supabase or TypeSafe services.
   phase, and elapsed time. Clients normalize validated legacy envelopes to
   refresh signals, filter stale game versions, always refresh matching seat
   events, and retain debounce/coalescing and polling. Verify lifecycle changes
-  with the two-browser smoke test on a Vercel preview containing the change;
+  with the two-browser smoke test on a Vercel deployment containing the change
+  (a preview, or an explicitly authorized live site);
   local tests alone cannot prove the deployed response lifecycle.
 - Public discovery is opt-in and lease-backed. Missing `game_listings` rows are
 	private; only waiting games with an open seat and an unexpired two-minute host
