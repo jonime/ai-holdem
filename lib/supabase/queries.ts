@@ -1,3 +1,4 @@
+import type { AtomicSeatAssignmentRepository, SeatAssignment, SeatStatus } from "@/lib/poker/seat-contracts";
 import "server-only";
 
 import { GAME_FEED_HAND_LIMIT } from "@/lib/constants";
@@ -83,19 +84,11 @@ export interface PersistAIActionInput extends PersistHumanActionInput {
   readonly cost?: number | null;
 }
 
-export type SeatStatus = "open" | "claimed" | "bot";
-
-export interface GamePlayerSeatAssignment {
-  readonly gameId: string;
-  readonly seat: number;
+export interface GamePlayerSeatAssignment extends SeatAssignment {
   readonly name: string;
-  readonly status: SeatStatus;
-  readonly controller: "human" | "bot";
   readonly bot: BotDescriptor | null;
   readonly aiDifficulty: AIDifficulty | null;
   readonly botProfileId: BotPlaystyleId | null;
-  readonly playerToken: string | null;
-  readonly isHost: boolean;
   readonly leaving: boolean;
   readonly enginePlayerId: string | null;
 }
@@ -793,21 +786,23 @@ export class SupabaseGameRepository {
     if (data.outcome === "conflict") throw new GameConflictError(gameId, expectedVersion);
     if (data.outcome === "missing") throw new Error("Seat does not exist");
     if (data.outcome === "unavailable") throw new Error("Seat is not open");
-    if (data.outcome === "forbidden") throw new Error("Seat does not belong to this player");
+    if (data.outcome === "forbidden") throw new Error(functionName === "assign_bot_to_seat_if_version" ? "Only the host can assign bots" : "Seat does not belong to this player");
     if (data.outcome !== "ok") throw new Error("Unable to update seat assignment");
-    const assignment = (await this.getSeatAssignments(gameId)).find((candidate) => candidate.seat === seat);
-    if (!assignment) throw new Error("Seat does not exist");
-    return assignment;
+    requiredNonNegativeInteger(data, "version");
+    if (!isRecord(data.seat) || data.seat.game_id !== gameId || data.seat.seat !== seat) {
+      throw new Error("Supabase returned an invalid seat mutation identity");
+    }
+    return toSeatAssignments([data.seat], gameId)[0];
   }
 
-  async claimSeatIfVersion(input: { readonly gameId: string; readonly expectedVersion: number; readonly seat: number; readonly playerToken: string; readonly name: string | null }) {
+  async claimSeatIfVersion(input: Parameters<AtomicSeatAssignmentRepository["claimSeatIfVersion"]>[0]) {
     return this.atomicSeatResult("claim_game_seat_if_version", {
       p_game_id: input.gameId, p_expected_version: input.expectedVersion, p_seat: input.seat,
       p_player_token: input.playerToken, p_name: input.name,
     }, input.gameId, input.expectedVersion, input.seat);
   }
 
-  async assignBotIfVersion(input: { readonly gameId: string; readonly expectedVersion: number; readonly seat: number; readonly hostToken: string; readonly name: string; readonly bot: BotDescriptor; readonly aiDifficulty: AIDifficulty | null; readonly botProfileId: BotPlaystyleId | null }) {
+  async assignBotIfVersion(input: Parameters<AtomicSeatAssignmentRepository["assignBotIfVersion"]>[0]) {
     return this.atomicSeatResult("assign_bot_to_seat_if_version", {
       p_game_id: input.gameId, p_expected_version: input.expectedVersion, p_seat: input.seat, p_host_token: input.hostToken,
       p_name: input.name, p_bot_id: input.bot.id, p_bot_label: input.bot.label, p_bot_provider: input.bot.provider,
@@ -815,15 +810,11 @@ export class SupabaseGameRepository {
     }, input.gameId, input.expectedVersion, input.seat);
   }
 
-  async releaseSeatIfVersion(input: { readonly gameId: string; readonly expectedVersion: number; readonly seat: number; readonly playerToken: string }) {
-    try {
-      return await this.atomicSeatResult("release_game_seat_if_version", {
-        p_game_id: input.gameId, p_expected_version: input.expectedVersion, p_seat: input.seat, p_player_token: input.playerToken,
-      }, input.gameId, input.expectedVersion, input.seat);
-    } catch (error) {
-      if (error instanceof Error && error.message === "Seat does not belong to this player") throw error;
-      throw error;
-    }
+  async releaseSeatIfVersion(input: Parameters<AtomicSeatAssignmentRepository["releaseSeatIfVersion"]>[0]) {
+    return this.atomicSeatResult("release_game_seat_if_version", {
+      p_game_id: input.gameId, p_expected_version: input.expectedVersion,
+      p_seat: input.seat, p_player_token: input.playerToken,
+    }, input.gameId, input.expectedVersion, input.seat);
   }
 
   async createGame(input: CreateGameInput): Promise<PersistedGame> {

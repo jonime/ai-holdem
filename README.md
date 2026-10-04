@@ -458,3 +458,11 @@ migrations applied, run `npm run test:sql:game-reads` and
 create and clean up their own fixtures, and preserve existing games. See
 [benchmark methodology and measurements](benchmarks/game-reads.md). Unit tests
 remain offline, and there is no latency threshold in CI.
+
+Seat claims, bot assignments, and releases use versioned atomic RPCs through
+`lib/poker/seat-service.ts`. Host permissions come from the durable host record,
+including when the host is unseated; missing records grant no host authority.
+Mutation responses parse the committed RPC seat row without rereading seats.
+Run `npm run test:sql:seats` with migrated local Supabase, Docker, and Supabase CLI
+to check locking, conflicts, retries, moves, permissions, and release states using
+isolated fixtures. See [contributor testing instructions](CONTRIBUTING.md).

@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
-  assignBotToSeat,
-  claimSeat,
   createDemoGame,
   createQuickPlayGame,
   GameNotFoundError,
@@ -10,7 +8,6 @@ import {
   stepBotAction,
   getGameFeed,
   getPublicGame,
-  releaseSeat,
   stepTypesafeAction,
   startGame,
   startNextHand,
@@ -573,6 +570,7 @@ describe("startNextHand", () => {
     await expect(
       startNextHand(
         {
+          getHostToken: async () => null,
           getGame: vi.fn().mockResolvedValue({
             id: "game-1",
             status: "complete",
@@ -590,108 +588,6 @@ describe("startNextHand", () => {
   });
 });
 
-describe("claimSeat", () => {
-  it("claims an open seat for the calling player token", async () => {
-    const getSeatAssignments = vi.fn().mockResolvedValue([
-      { seat: 0, status: "claimed", playerToken: "host-token", isHost: true },
-      { seat: 1, status: "bot", playerToken: null, isHost: false },
-      { seat: 2, status: "open", playerToken: null, isHost: false },
-    ]);
-    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
-
-    await claimSeat(
-      {
-        getSeatAssignments,
-        updateSeatAssignment,
-      },
-      "game-1",
-      2,
-      "player-token",
-    );
-
-    expect(updateSeatAssignment).toHaveBeenCalledWith(
-      expect.objectContaining({
-        gameId: "game-1",
-        seat: 2,
-        status: "claimed",
-        playerToken: "player-token",
-        isHost: false,
-      }),
-    );
-  });
-
-  it("rejects claiming a seat that is already claimed or occupied by a bot", async () => {
-    const getSeatAssignments = vi.fn().mockResolvedValue([
-      { seat: 0, status: "claimed", playerToken: "host-token", isHost: true },
-      { seat: 1, status: "bot", playerToken: null, isHost: false },
-    ]);
-
-    await expect(
-      claimSeat(
-        { getSeatAssignments, updateSeatAssignment: vi.fn() },
-        "game-1",
-        1,
-        "player-token",
-      ),
-    ).rejects.toThrow("Seat is not open");
-  });
-
-  it("moves an existing player claim to a different open seat", async () => {
-    const getSeatAssignments = vi.fn().mockResolvedValue([
-      {
-        seat: 0,
-        name: "Ada",
-        status: "claimed",
-        playerToken: "player-token",
-        isHost: true,
-        enginePlayerId: "human",
-      },
-      { seat: 1, status: "open", playerToken: null, isHost: false },
-    ]);
-    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
-
-    const assignment = await claimSeat(
-      { getSeatAssignments, updateSeatAssignment },
-      "game-1",
-      1,
-      "player-token",
-    );
-
-    expect(updateSeatAssignment).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        gameId: "game-1",
-        seat: 0,
-        status: "open",
-        playerToken: null,
-        isHost: false,
-        enginePlayerId: null,
-      }),
-    );
-    expect(updateSeatAssignment).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        gameId: "game-1",
-        seat: 1,
-        status: "claimed",
-        name: "Ada",
-        playerToken: "player-token",
-        isHost: true,
-        enginePlayerId: "human",
-      }),
-    );
-    expect(assignment).toEqual(
-      expect.objectContaining({
-        seat: 1,
-        status: "claimed",
-        name: "Ada",
-        playerToken: "player-token",
-        isHost: true,
-        enginePlayerId: "human",
-      }),
-    );
-  });
-});
 
 describe("updatePlayerName", () => {
   const waitingGame: PersistedGame = {
@@ -775,243 +671,6 @@ describe("updatePlayerName", () => {
   });
 });
 
-describe("assignBotToSeat", () => {
-  it("allows the host to assign a bot to an open seat", async () => {
-    const getSeatAssignments = vi.fn().mockResolvedValue([
-      { seat: 0, status: "claimed", playerToken: "host-token", isHost: true },
-      { seat: 1, status: "open", playerToken: null, isHost: false },
-    ]);
-    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
-
-    await assignBotToSeat(
-      {
-        getSeatAssignments,
-        updateSeatAssignment,
-      },
-      "game-1",
-      1,
-      "host-token",
-      "hard",
-    );
-
-    expect(updateSeatAssignment).toHaveBeenCalledWith(
-      expect.objectContaining({
-        gameId: "game-1",
-        seat: 1,
-        status: "bot",
-        controller: "bot",
-        aiDifficulty: "hard",
-        playerToken: null,
-      }),
-    );
-  });
-
-  it("allows a seatless game host to assign a bot", async () => {
-    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
-    const repository = {
-      getHostToken: vi.fn().mockResolvedValue("host-token"),
-      getSeatAssignments: vi.fn().mockResolvedValue([
-        { seat: 0, status: "open", playerToken: null, isHost: false },
-        { seat: 1, status: "open", playerToken: null, isHost: false },
-      ]),
-      updateSeatAssignment,
-    };
-
-    await assignBotToSeat(repository, "game-1", 0, "host-token");
-
-    expect(updateSeatAssignment).toHaveBeenCalledWith(
-      expect.objectContaining({ seat: 0, status: "bot" }),
-    );
-    await expect(
-      assignBotToSeat(repository, "game-1", 1, "spectator-token"),
-    ).rejects.toThrow("Only the host can assign bots");
-  });
-
-  it("preserves rules difficulty after rehydrating a saved game", async () => {
-    const state = pokerEngineAdapter.createGame({
-      smallBlind: 50,
-      bigBlind: 100,
-      seatCount: 2,
-      players: [
-        {
-          id: "human",
-          name: "You",
-          controller: "human",
-          seat: 0,
-          stack: 10_000,
-          status: "claimed",
-          playerToken: "host-token",
-          isHost: true,
-        },
-        {
-          id: "rules-bot",
-          name: "Equity Rules",
-          controller: "bot",
-          seat: 1,
-          stack: 10_000,
-          status: "bot",
-          bot: {
-            id: "equity-rules-v2",
-            label: "Equity Rules",
-            provider: "rules",
-            modelId: null,
-          },
-          aiDifficulty: "hard",
-          playerToken: null,
-          isHost: false,
-        },
-      ],
-    });
-
-    const publicGame = await getPublicGame(
-      {
-        getGameReadSnapshot: vi.fn().mockResolvedValue({
-          game: {
-            id: "game-1",
-            status: "waiting",
-            currentState: state,
-            stateSchemaVersion: 1,
-            handNumber: 0,
-            version: 0,
-          },
-          hostToken: "host-token",
-          assignments: [
-            {
-              gameId: "game-1",
-              seat: 0,
-              name: "You",
-              status: "claimed",
-              controller: "human",
-              aiDifficulty: null,
-              playerToken: "host-token",
-              isHost: true,
-              leaving: false,
-              enginePlayerId: "human",
-            },
-            {
-              gameId: "game-1",
-              seat: 1,
-              name: "Equity Rules",
-              status: "bot",
-              controller: "bot",
-              bot: {
-                id: "equity-rules-v2",
-                label: "Equity Rules",
-                provider: "rules",
-                modelId: null,
-              },
-              aiDifficulty: "hard",
-              playerToken: null,
-              isHost: false,
-              leaving: false,
-              enginePlayerId: "rules-bot",
-            },
-          ],
-          revealedPlayerIds: [],
-          listing: null,
-        }),
-      },
-      "game-1",
-      "host-token",
-    );
-
-    expect(
-      publicGame.poker.players.find((player) => player.seat === 1),
-    ).toMatchObject({
-      aiDifficulty: "hard",
-      bot: expect.objectContaining({ provider: "rules" }),
-    });
-  });
-
-  it("persists difficulty for rules bots and keeps LLM null", async () => {
-    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
-    const repository = {
-      getSeatAssignments: vi.fn().mockResolvedValue([
-        { seat: 0, status: "claimed", playerToken: "host-token", isHost: true },
-        { seat: 1, status: "open", playerToken: null, isHost: false },
-        { seat: 2, status: "open", playerToken: null, isHost: false },
-      ]),
-      updateSeatAssignment,
-    };
-
-    await assignBotToSeat(repository, "game-1", 1, "host-token", "hard", {
-      id: "equity-rules-v2",
-      label: "Equity Rules v2",
-      provider: "rules",
-      modelId: null,
-    });
-
-    expect(updateSeatAssignment).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        seat: 1,
-        status: "bot",
-        aiDifficulty: "hard",
-        bot: expect.objectContaining({ provider: "rules" }),
-      }),
-    );
-
-    await assignBotToSeat(repository, "game-1", 2, "host-token", "hard", {
-      id: "llm-gpt-4o-mini",
-      label: "LLM GPT",
-      provider: "llm",
-      modelId: "gpt-4o-mini",
-    });
-
-    expect(updateSeatAssignment).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        seat: 2,
-        status: "bot",
-        aiDifficulty: null,
-        botProfileId: "balanced",
-        bot: expect.objectContaining({ provider: "llm" }),
-      }),
-    );
-  });
-});
-
-describe("releaseSeat", () => {
-  it("clears difficulty when a host removes a bot between hands", async () => {
-    const updateSeatAssignment = vi.fn().mockResolvedValue(undefined);
-    await releaseSeat(
-      {
-        getSeatAssignments: vi.fn().mockResolvedValue([
-          {
-            seat: 0,
-            status: "claimed",
-            controller: "human",
-            playerToken: "host-token",
-            isHost: true,
-          },
-          {
-            seat: 1,
-            name: "TypeSafe AI #1",
-            status: "bot",
-            controller: "typesafe_ai",
-            aiDifficulty: "hard",
-            playerToken: null,
-            isHost: false,
-          },
-        ]),
-        updateSeatAssignment,
-      },
-      "game-1",
-      1,
-      "host-token",
-    );
-
-    expect(updateSeatAssignment).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: "open",
-        name: "Seat 2",
-        controller: "human",
-        aiDifficulty: null,
-      }),
-    );
-  });
-});
-
 describe("updateSeatCount", () => {
   function waitingGame(seatCount: number) {
     return {
@@ -1059,6 +718,7 @@ describe("updateSeatCount", () => {
 
     const game = await updateSeatCount(
       {
+        getHostToken: async () => "host-token",
         getGame,
         getSeatAssignments,
         updateSeatCount: updateSeatCountWriter,
@@ -1104,6 +764,7 @@ describe("updateSeatCount", () => {
     await expect(
       updateSeatCount(
         {
+          getHostToken: async () => "host-token",
           getGame,
           getSeatAssignments,
           updateSeatCount: vi.fn(),
@@ -1127,6 +788,7 @@ describe("updateSeatCount", () => {
     await expect(
       updateSeatCount(
         {
+          getHostToken: async () => "host-token",
           getGame,
           getSeatAssignments,
           updateSeatCount: vi.fn(),
@@ -1149,6 +811,7 @@ describe("updateSeatCount", () => {
     await expect(
       updateSeatCount(
         {
+          getHostToken: async () => "host-token",
           getGame,
           getSeatAssignments: vi.fn(),
           updateSeatCount: vi.fn(),
@@ -1199,6 +862,7 @@ describe("updateTableSettings", () => {
 
     const game = await updateTableSettings(
       {
+        getHostToken: async () => "host-token",
         getGame: vi.fn().mockResolvedValue(waitingGame),
         getSeatAssignments: vi.fn().mockResolvedValue([
           {
@@ -1304,6 +968,7 @@ describe("submitHumanAction", () => {
       await import("./game-service")
     ).submitHumanAction(
       {
+        getHostToken: async () => null,
         getGame: vi.fn().mockResolvedValue({
           id: "game-1",
           status: "playing",
@@ -1378,6 +1043,7 @@ describe("stepTypesafeAction", () => {
 
       const game = await stepTypesafeAction(
         {
+          getHostToken: async () => null,
           getGame: vi.fn().mockResolvedValue({
             id: "game-1",
             status: "playing",
@@ -1569,6 +1235,7 @@ describe("startNextHand", () => {
 
     const game = await startNextHand(
       {
+        getHostToken: async () => null,
         getGame: vi.fn().mockResolvedValue({
           id: "game-1",
           status: "complete",
@@ -1715,6 +1382,7 @@ describe("startNextHand", () => {
 
       const game = await startNextHand(
         {
+          getHostToken: async () => null,
           getGame: vi.fn().mockResolvedValue({
             id: "game-1",
             status: "complete",
@@ -1899,6 +1567,7 @@ describe("startGame", () => {
     };
     const game = await startGame(
       {
+        getHostToken: async () => "host-token",
         getGame: vi.fn().mockResolvedValue(storedGame),
         getSeatAssignments: vi.fn().mockResolvedValue(
           state.config.players.map((player) => ({
@@ -2427,6 +2096,7 @@ describe("bot driver authorization", () => {
       return { action: { type: "check" as const }, diagnostics: emptyDiagnostics(), rawResponse: null };
     });
     const repository = {
+      getHostToken: async () => null,
       getGame: async () => stored,
       persistAIAction: vi.fn(async (input: PersistAIActionInput) => {
         if (input.expectedVersion !== stored.version) throw new GameConflictError("game-1", input.expectedVersion);
@@ -2452,7 +2122,7 @@ describe("bot driver authorization", () => {
 
   it("fails closed when ownership and identity are absent in the legacy seam", async () => {
     const evaluate = vi.fn();
-    await expect(stepTypesafeAction({ getGame: async () => game, persistAIAction: vi.fn() },
+    await expect(stepTypesafeAction({ getHostToken: async () => null, getGame: async () => game, persistAIAction: vi.fn() },
       { evaluate }, "game-1")).rejects.toBeInstanceOf(BotStepForbiddenError);
     expect(evaluate).not.toHaveBeenCalled();
   });

@@ -19,11 +19,12 @@ vi.mock("@/lib/supabase/server", () => ({ createSupabaseGameRepository: () => ({
 vi.mock("@/lib/poker/public-directory-cache", () => ({ invalidatePublicDirectory: vi.fn() }));
 vi.mock("@/lib/poker/directory", () => ({ joinPublicGame: mutation }));
 vi.mock("@/lib/bots/catalog", () => ({ getBotCatalog: () => [{ id: "equity-rules-v2", provider: "rules" }] }));
+vi.mock("@/lib/poker/seat-service", () => ({ claimSeat: mutation, releaseSeat: mutation, assignBotToSeat: mutation }));
 vi.mock("@/lib/poker/game-service", async original => ({
   ...await original<typeof import("@/lib/poker/game-service")>(),
   submitHumanAction: mutation, stepBotAction: mutation, startGame: mutation, startNextHand: mutation,
   revealHumanCards: mutation, updateTableSettings: mutation, updateSeatCount: mutation,
-  claimSeat: mutation, releaseSeat: mutation, assignBotToSeat: mutation, updatePlayerName: mutation,
+  updatePlayerName: mutation,
 }));
 
 const game = { id: "game-1", version: 8, poker: { street: "preflop", players: [{ playerToken: "private", holeCards: ["As", "Ks"] }] } };
@@ -92,4 +93,40 @@ it.each([action, step])("announces committed completed hands", async handler => 
   expect((await handler(request(), context)).status).toBe(200);
   await afterMock.mock.calls[0][0]();
   expect(publish).toHaveBeenCalledWith({ type: "hand_completed", gameId: "game-1", version: 8 });
+});
+
+describe.each([
+  { handler: claim, operation: "claim" },
+  { handler: assign, operation: "assign" },
+  { handler: release, operation: "release" },
+])("$operation atomic seat HTTP contract", ({ handler, operation }) => {
+  it("forwards the required version in the typed input and retains directory invalidation", async () => {
+    mutation.mockResolvedValue(assignment);
+    expect((await handler(request(), context)).status).toBe(200);
+    expect(mutation.mock.calls[0][1]).toMatchObject({ gameId: "game-1", seat: 0, expectedVersion: 7 });
+    const { invalidatePublicDirectory } = await import("@/lib/poker/public-directory-cache");
+    expect(invalidatePublicDirectory).toHaveBeenCalledOnce();
+  });
+  it("rejects missing versions without mutation or scheduling", async () => {
+    const response = await handler(new Request("http://localhost/api/games/game-1", { method: "POST", body: "{}" }), context);
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "Invalid expected version" });
+    expect(mutation).not.toHaveBeenCalled();
+    expect(afterMock).not.toHaveBeenCalled();
+  });
+  it.each([
+    ["GameConflictError", 409], ["Seat does not exist", 404],
+    ...(operation === "release" ? [["Seat does not belong to this player", 403]] : [["Seat is not open", 409]]),
+    ...(operation === "assign" ? [["Only the host can assign bots", 403]] : []),
+  ])("retains error mapping for %s", async (message, status) => {
+    const error = new Error(String(message));
+    if (message === "GameConflictError") error.name = "GameConflictError";
+    mutation.mockRejectedValue(error);
+    const response = await handler(request(), context);
+    expect(response.status).toBe(status);
+    expect(await response.json()).toEqual(message === "GameConflictError" ? { error: "Game changed", code: "GAME_CONFLICT" } : { error: message });
+    expect(afterMock).not.toHaveBeenCalled();
+    const { invalidatePublicDirectory } = await import("@/lib/poker/public-directory-cache");
+    expect(invalidatePublicDirectory).not.toHaveBeenCalled();
+  });
 });

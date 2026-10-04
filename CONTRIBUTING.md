@@ -41,6 +41,29 @@ evaluation is opt-in only via `npm run benchmark:typesafe:live`; it requires
 external inference and a TypeSafe API key, performs one paid request per bot
 turn, and is not part of CI.
 
+## Seat-mutation checks
+
+Claims, bot assignments, and releases belong in `lib/poker/seat-service.ts` and
+require typed input objects with `expectedVersion` and atomic repository methods.
+Authorization uses the durable host record; a missing record never grants host
+permissions. Keep database locking, idempotent retries, and moves authoritative in
+the existing RPCs. Parse their returned seat rows without querying seats afterward.
+Player renaming and other game lifecycle operations remain in `game-service.ts`.
+
+With Docker and Supabase CLI available and all local migrations applied, run:
+
+```sh
+npm run test:sql:seats
+npm run test:e2e -- test/e2e/lobby.spec.ts
+```
+
+The SQL suite creates isolated fixtures, uses independent PostgreSQL connections
+to verify competing claims really wait on the game-row lock, and checks conflicts,
+idempotent retries, atomic moves, forbidden callers, unseated/missing hosts, and
+waiting versus non-waiting releases. It refuses non-local Supabase origins,
+cleans up its fixtures, and never loads application `.env` or calls bot providers.
+Unit tests remain independent of live Supabase. Run `check` and `build` as well.
+
 ## Game-state read checks
 
 Apply `20261012000000_add_game_read_snapshot.sql` before deploying application

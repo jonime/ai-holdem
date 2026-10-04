@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
-import { assignBotToSeat } from "@/lib/poker/game-service";
+import { assignBotToSeat } from "@/lib/poker/seat-service";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { scheduleSeatEvent } from "@/lib/realtime/schedule";
@@ -79,13 +79,9 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
   try {
     const assignment = await assignBotToSeat(
       createSupabaseGameRepository(),
-      gameId,
-      seat,
-      playerToken,
-      difficulty,
-      bot,
-      bot.provider === "llm" ? (requestedProfileId ?? "balanced") : null,
-      expectedVersion as number,
+      { gameId, seat, hostToken: playerToken, difficulty, bot,
+        botProfileId: bot.provider === "llm" ? (requestedProfileId ?? "balanced") : null,
+        expectedVersion: expectedVersion as number },
     );
     invalidatePublicDirectory();
     scheduleSeatEvent(gameId, "seat_bot_assigned");

@@ -318,3 +318,32 @@ test("copies a clean invite URL and exposes a manual fallback", async ({
     )
     .toEqual([0, cleanUrl.length]);
 });
+
+test("claims, moves, assigns bots, and releases seats while retaining unseated host authority", async ({ page, browser }) => {
+  await page.goto("/en-US");
+  await page.getByRole("button", { name: "Create custom table" }).click();
+  await expect(page.getByText("WAITING ROOM")).toBeVisible();
+  const guestContext = await browser.newContext();
+  try {
+    const guest = await guestContext.newPage();
+    await guest.goto(page.url());
+    const seat = (target: Page, number: number) => target.locator("article").nth(number - 1);
+    await seat(guest, 2).getByRole("button", { name: "Sit here" }).click();
+    await expect(seat(guest, 2).getByRole("button", { name: "Stand up" })).toBeVisible();
+    await seat(guest, 3).getByRole("button", { name: "Sit here" }).click();
+    await expect(seat(guest, 3).getByRole("button", { name: "Stand up" })).toBeVisible();
+    await expect(seat(guest, 2).getByRole("button", { name: "Sit here" })).toBeVisible();
+    await seat(guest, 3).getByRole("button", { name: "Stand up" }).click();
+    await expect(seat(guest, 3).getByRole("button", { name: "Sit here" })).toBeVisible();
+    await page.getByRole("button", { name: "Stand up" }).click();
+    await expect(seat(page, 1).getByRole("button", { name: "Sit here" })).toBeVisible();
+    await page.getByLabel("Bot for seat 2").selectOption("equity-rules-v2");
+    await seat(page, 2).getByRole("button", { name: "Assign bot" }).click();
+    await expect(seat(page, 2).getByRole("button", { name: "Remove bot" })).toBeVisible();
+    await seat(page, 2).getByRole("button", { name: "Remove bot" }).click();
+    await expect(seat(page, 2).getByRole("button", { name: "Assign bot" })).toBeVisible();
+    await expect(page.getByText(/Unable to (claim|release|assign)/)).toHaveCount(0);
+  } finally {
+    await guestContext.close();
+  }
+});

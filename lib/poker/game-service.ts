@@ -1,9 +1,11 @@
+import { isCallerHost, type GameHostReader } from "./host-authorization";
+import type { SeatAssignment, SeatAssignmentRepository } from "./seat-contracts";
+export type { SeatAssignment, SeatAssignmentRepository } from "./seat-contracts";
 import { pokerEngineAdapter } from "./adapter";
 import { createPokerAIState } from "./ai-state";
 import { createSizingOptions } from "@/lib/typesafe/questions";
 import { applyHumanAction, type HumanActionSubmission } from "./human-actions";
 import type {
-  AIDifficulty,
   BotDescriptor,
   BotPlaystyleId,
   GameConfig,
@@ -161,53 +163,8 @@ export interface HumanRevealWriter {
   }): Promise<PersistedGame>;
 }
 
-export interface GameHostReader {
-  getHostToken(gameId: string): Promise<string | null>;
-}
-
 export interface GameListingReader {
   getGameListing(gameId: string): Promise<GameListing | null>;
-}
-
-export type SeatStatus = "open" | "claimed" | "bot";
-
-export interface SeatAssignment {
-  readonly gameId: string;
-  readonly seat: number;
-  readonly name?: string;
-  readonly status: SeatStatus;
-  readonly controller: "human" | "bot";
-  readonly bot?: BotDescriptor | null;
-  readonly aiDifficulty?: AIDifficulty | null;
-  readonly botProfileId?: BotPlaystyleId | null;
-  readonly playerToken: string | null;
-  readonly isHost: boolean;
-  readonly leaving?: boolean;
-  readonly enginePlayerId?: string | null;
-}
-
-export interface SeatAssignmentRepository {
-  getSeatAssignments(gameId: string): Promise<readonly SeatAssignment[]>;
-  updateSeatAssignment(input: {
-    readonly gameId: string;
-    readonly seat: number;
-    readonly status: SeatStatus;
-    readonly name?: string;
-    readonly controller?: "human" | "bot";
-    readonly bot?: BotDescriptor | null;
-    readonly aiDifficulty?: AIDifficulty | null;
-    readonly botProfileId?: BotPlaystyleId | null;
-    readonly playerToken?: string | null;
-    readonly isHost?: boolean;
-    readonly leaving?: boolean;
-    readonly enginePlayerId?: string | null;
-  }): Promise<void>;
-}
-
-export interface AtomicSeatAssignmentRepository {
-  claimSeatIfVersion(input: { readonly gameId: string; readonly expectedVersion: number; readonly seat: number; readonly playerToken: string; readonly name: string | null }): Promise<SeatAssignment>;
-  assignBotIfVersion(input: { readonly gameId: string; readonly expectedVersion: number; readonly seat: number; readonly hostToken: string; readonly name: string; readonly bot: BotDescriptor; readonly aiDifficulty: AIDifficulty | null; readonly botProfileId: BotPlaystyleId | null }): Promise<SeatAssignment>;
-  releaseSeatIfVersion(input: { readonly gameId: string; readonly expectedVersion: number; readonly seat: number; readonly playerToken: string }): Promise<SeatAssignment>;
 }
 
 export interface HumanActionWriter {
@@ -486,23 +443,6 @@ export async function createQuickPlayGame(
     state: initialState,
     version: persistedGame.version,
   };
-}
-
-async function isCallerHost(
-  repository: Partial<GameHostReader>,
-  gameId: string,
-  callerToken: string | null,
-  assignments: readonly SeatAssignment[] = [],
-): Promise<boolean> {
-  if (repository.getHostToken) {
-    const hostToken = await repository.getHostToken(gameId);
-    return hostToken !== null && callerToken === hostToken;
-  }
-  const hostAssignments = assignments.filter((assignment) => assignment.isHost);
-  return (
-    hostAssignments.length === 0 ||
-    hostAssignments.some((assignment) => assignment.playerToken === callerToken)
-  );
 }
 
 function enginePlayerIdForAssignment(
@@ -790,7 +730,7 @@ export async function startGame(
   repository: GameReader &
     SeatAssignmentRepository &
     StartGameWriter &
-    Partial<GameHostReader>,
+    GameHostReader,
   gameId: string,
   expectedVersion: number,
   callerToken: string,
@@ -803,7 +743,7 @@ export async function startGame(
   }
 
   const assignments = await repository.getSeatAssignments(gameId);
-  if (!(await isCallerHost(repository, gameId, callerToken, assignments))) {
+  if (!(await isCallerHost(repository, gameId, callerToken))) {
     throw new Error("Only the host can start the game");
   }
 
@@ -851,7 +791,7 @@ export async function startGame(
 }
 
 export async function updateSeatCount(
-  repository: GameReader & SeatAssignmentRepository & UpdateSeatCountWriter,
+  repository: GameReader & SeatAssignmentRepository & UpdateSeatCountWriter & GameHostReader,
   gameId: string,
   expectedVersion: number,
   seatCount: number,
@@ -864,6 +804,7 @@ export async function updateSeatCount(
   try {
     return await updateTableSettings(
       {
+        getHostToken: (id) => repository.getHostToken(id),
         getGame: (id) => repository.getGame(id),
         getSeatAssignments: (id) => repository.getSeatAssignments(id),
         updateSeatAssignment: (input) => repository.updateSeatAssignment(input),
@@ -925,7 +866,7 @@ export async function updateTableSettings(
   repository: GameReader &
     SeatAssignmentRepository &
     UpdateTableSettingsWriter &
-    Partial<GameHostReader>,
+    GameHostReader,
   gameId: string,
   expectedVersion: number,
   settings: TableSettings,
@@ -941,7 +882,7 @@ export async function updateTableSettings(
   }
 
   const assignments = await repository.getSeatAssignments(gameId);
-  if (!(await isCallerHost(repository, gameId, callerToken, assignments))) {
+  if (!(await isCallerHost(repository, gameId, callerToken))) {
     throw new Error("Only the host can change table settings");
   }
 
@@ -994,79 +935,6 @@ export async function updateTableSettings(
   };
 }
 
-export async function claimSeat(
-  repository: SeatAssignmentRepository & Partial<AtomicSeatAssignmentRepository>,
-  gameId: string,
-  seat: number,
-  playerToken: string,
-  playerName?: string,
-  expectedVersion?: number,
-): Promise<SeatAssignment> {
-  if (repository.claimSeatIfVersion && expectedVersion !== undefined) {
-    return repository.claimSeatIfVersion({ gameId, expectedVersion, seat, playerToken, name: playerName ?? null });
-  }
-  const seatAssignments = await repository.getSeatAssignments(gameId);
-  const assignment = seatAssignments.find((entry) => entry.seat === seat);
-
-  if (!assignment) {
-    throw new Error("Seat does not exist");
-  }
-  if (assignment.status !== "open") {
-    throw new Error("Seat is not open");
-  }
-  const existingClaim = seatAssignments.find(
-    (entry) => entry.status === "claimed" && entry.playerToken === playerToken,
-  );
-
-  const name = sanitizePlayerName(
-    playerName,
-    existingClaim?.name ?? `Player ${seat + 1}`,
-  );
-
-  if (existingClaim) {
-    await repository.updateSeatAssignment({
-      gameId,
-      seat: existingClaim.seat,
-      status: "open",
-      name: `Seat ${existingClaim.seat + 1}`,
-      controller: "human",
-      bot: null,
-      aiDifficulty: null,
-      botProfileId: null,
-      playerToken: null,
-      isHost: false,
-      leaving: false,
-      enginePlayerId: null,
-    });
-  }
-
-  const updatedAssignment: SeatAssignment = {
-    ...assignment,
-    status: "claimed",
-    controller: "human",
-    name,
-    playerToken,
-    isHost: existingClaim?.isHost ?? false,
-    enginePlayerId:
-      existingClaim?.enginePlayerId ??
-      assignment.enginePlayerId ??
-      `seat-${gameId}-${seat}`,
-  };
-
-  await repository.updateSeatAssignment({
-    gameId,
-    seat,
-    status: "claimed",
-    controller: "human",
-    name,
-    playerToken,
-    isHost: updatedAssignment.isHost,
-    enginePlayerId: updatedAssignment.enginePlayerId,
-  });
-
-  return updatedAssignment;
-}
-
 export async function updatePlayerName(
   repository: SeatAssignmentRepository & GameReader,
   gameId: string,
@@ -1105,147 +973,6 @@ export async function updatePlayerName(
     seat,
     status: assignment.status,
     name,
-  });
-
-  return updatedAssignment;
-}
-
-export async function assignBotToSeat(
-  repository: SeatAssignmentRepository & Partial<GameHostReader & AtomicSeatAssignmentRepository>,
-  gameId: string,
-  seat: number,
-  hostToken: string,
-  difficulty: AIDifficulty = "medium",
-  bot: BotDescriptor = {
-    id: "jev",
-    label: "TypeSafe Jev",
-    provider: "typesafe",
-    modelId: "jev-latest",
-  },
-  botProfileId: BotPlaystyleId | null = null,
-  expectedVersion?: number,
-): Promise<SeatAssignment> {
-  const seatAssignments = await repository.getSeatAssignments(gameId);
-  const assignment = seatAssignments.find((entry) => entry.seat === seat);
-
-  if (!(await isCallerHost(repository, gameId, hostToken, seatAssignments))) {
-    throw new Error("Only the host can assign bots");
-  }
-  if (!assignment) {
-    throw new Error("Seat does not exist");
-  }
-  if (assignment.status !== "open") {
-    throw new Error("Seat is not open");
-  }
-
-  const existingBotCount = seatAssignments.filter(
-    (entry) => entry.status === "bot",
-  ).length;
-  const name = `${bot.label} #${existingBotCount + 1}`;
-
-  if (repository.assignBotIfVersion && expectedVersion !== undefined) {
-    return repository.assignBotIfVersion({
-      gameId, expectedVersion, seat, hostToken, name, bot,
-      aiDifficulty: supportsDifficulty(bot.provider) ? difficulty : null,
-      botProfileId: bot.provider === "llm" ? (botProfileId ?? "balanced") : null,
-    });
-  }
-
-  const updatedAssignment: SeatAssignment = {
-    ...assignment,
-    status: "bot",
-    controller: "bot",
-    bot,
-    aiDifficulty: supportsDifficulty(bot.provider) ? difficulty : null,
-    botProfileId: bot.provider === "llm" ? (botProfileId ?? "balanced") : null,
-    name,
-    playerToken: null,
-    isHost: false,
-    enginePlayerId: assignment.enginePlayerId ?? `bot-${gameId}-${seat}`,
-  };
-
-  await repository.updateSeatAssignment({
-    gameId,
-    seat,
-    status: "bot",
-    controller: "bot",
-    bot,
-    aiDifficulty: supportsDifficulty(bot.provider) ? difficulty : null,
-    botProfileId: bot.provider === "llm" ? (botProfileId ?? "balanced") : null,
-    name,
-    playerToken: null,
-    isHost: false,
-    enginePlayerId: updatedAssignment.enginePlayerId,
-  });
-
-  return updatedAssignment;
-}
-
-export async function releaseSeat(
-  repository: SeatAssignmentRepository & Partial<GameReader & GameHostReader & AtomicSeatAssignmentRepository>,
-  gameId: string,
-  seat: number,
-  playerToken: string,
-  expectedVersion?: number,
-): Promise<SeatAssignment> {
-  if (repository.releaseSeatIfVersion && expectedVersion !== undefined) {
-    return repository.releaseSeatIfVersion({ gameId, expectedVersion, seat, playerToken });
-  }
-  const seatAssignments = await repository.getSeatAssignments(gameId);
-  const assignment = seatAssignments.find((entry) => entry.seat === seat);
-
-  if (!assignment) {
-    throw new Error("Seat does not exist");
-  }
-
-  const isHostRelease = await isCallerHost(
-    repository,
-    gameId,
-    playerToken,
-    seatAssignments,
-  );
-  const isSelfRelease = assignment.playerToken === playerToken;
-  if (!isHostRelease && !isSelfRelease) {
-    throw new Error("Seat does not belong to this player");
-  }
-
-  let isHandInProgress = false;
-  if (repository.getGame) {
-    const game = await repository.getGame(gameId);
-    if (game) {
-      const snapshot = pokerEngineAdapter.snapshot(
-        restorePersistedState(game.currentState),
-      );
-      isHandInProgress = Boolean(
-        snapshot.street && snapshot.street !== "complete",
-      );
-    }
-  }
-  const updatedAssignment: SeatAssignment = {
-    ...assignment,
-    status: isHandInProgress ? assignment.status : "open",
-    name: isHandInProgress ? assignment.name : `Seat ${seat + 1}`,
-    controller: isHandInProgress ? assignment.controller : "human",
-    bot: isHandInProgress ? assignment.bot : null,
-    aiDifficulty: isHandInProgress ? assignment.aiDifficulty : null,
-    botProfileId: isHandInProgress ? assignment.botProfileId : null,
-    playerToken: isHandInProgress ? assignment.playerToken : null,
-    isHost: false,
-    leaving: isHandInProgress,
-  };
-
-  await repository.updateSeatAssignment({
-    gameId,
-    seat,
-    status: updatedAssignment.status,
-    name: updatedAssignment.name,
-    controller: updatedAssignment.controller,
-    bot: updatedAssignment.bot,
-    aiDifficulty: updatedAssignment.aiDifficulty,
-    botProfileId: updatedAssignment.botProfileId,
-    playerToken: updatedAssignment.playerToken,
-    isHost: false,
-    leaving: updatedAssignment.leaving,
   });
 
   return updatedAssignment;
@@ -1433,7 +1160,7 @@ export async function getGameFeed(
 export async function submitHumanAction(
   repository: GameReader &
     HumanActionWriter &
-    Partial<SeatAssignmentRepository & GameHostReader & HandRevealReader>,
+    GameHostReader & Partial<SeatAssignmentRepository & HandRevealReader>,
   gameId: string,
   submission: Omit<HumanActionSubmission, "currentVersion">,
 ): Promise<PublicGame> {
@@ -1518,14 +1245,13 @@ export class BotStepForbiddenError extends Error {
 }
 
 async function requireBotDriver(
-  repository: Partial<GameHostReader & SeatAssignmentRepository>,
+  repository: GameHostReader & Partial<SeatAssignmentRepository>,
   gameId: string,
   state: ReturnType<typeof restorePersistedState>,
   viewerToken: string | null,
 ) {
   if (!viewerToken) throw new BotStepForbiddenError();
-  if (repository.getHostToken &&
-      await repository.getHostToken(gameId) === viewerToken) return;
+  if (await isCallerHost(repository, gameId, viewerToken)) return;
   const players = repository.getSeatAssignments
     ? await repository.getSeatAssignments(gameId)
     : state.config.players;
@@ -1537,10 +1263,10 @@ async function requireBotDriver(
 async function stepResolvedBotAction(
   repository: GameReader &
     AIActionWriter &
+    GameHostReader &
     Partial<
       SeatAssignmentRepository &
         HandHistoryReader &
-        GameHostReader &
         HandRevealReader
     >,
   bot: PokerBot,
@@ -1727,7 +1453,7 @@ export async function stepTypesafeAction(
 export async function startNextHand(
   repository: GameReader &
     NextHandWriter &
-    Partial<SeatAssignmentRepository & GameHostReader & HandRevealReader>,
+    GameHostReader & Partial<SeatAssignmentRepository & HandRevealReader>,
   gameId: string,
   expectedVersion: number,
   viewerToken: string | null = null,
@@ -1792,7 +1518,7 @@ export async function startNextHand(
 export async function revealHumanCards(
   repository: GameReader &
     HumanRevealWriter &
-    Partial<HandRevealReader & SeatAssignmentRepository & GameHostReader>,
+    GameHostReader & Partial<HandRevealReader & SeatAssignmentRepository>,
   gameId: string,
   expectedVersion: number,
   handNumber: number,

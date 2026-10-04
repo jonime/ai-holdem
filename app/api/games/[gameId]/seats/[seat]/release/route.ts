@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
-import { releaseSeat } from "@/lib/poker/game-service";
+import { releaseSeat } from "@/lib/poker/seat-service";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { scheduleSeatEvent } from "@/lib/realtime/schedule";
@@ -27,10 +27,7 @@ export async function POST(request: Request, context: ReleaseSeatRouteContext) {
   try {
     const assignment = await releaseSeat(
       createSupabaseGameRepository(),
-      gameId,
-      seat,
-      playerToken,
-      expectedVersion as number,
+      { gameId, seat, playerToken, expectedVersion: expectedVersion as number },
     );
     invalidatePublicDirectory();
     scheduleSeatEvent(gameId, "seat_released");

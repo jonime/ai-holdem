@@ -651,3 +651,55 @@ describe("game read snapshots", () => {
     expect(eq.mock.calls).toEqual([["game_id", "game-1"], ["hand_number", 42]]);
   });
 });
+
+describe("atomic seat RPC results", () => {
+  const row = { game_id: "game-1", seat: 1, name: "Ada", status: "claimed", controller: "human", player_token: "owner", is_host: false, leaving: false, engine_player_id: "stable" };
+  const input = { gameId: "game-1", seat: 1, playerToken: "owner", expectedVersion: 4, name: null };
+  const bot = { id: "jev", label: "TypeSafe Jev", provider: "typesafe" as const, modelId: "jev-latest" };
+  function setup(data: unknown) {
+    const { client, rpc } = createClient({ updateResult: data });
+    rpc.mockResolvedValue({ data, error: null });
+    const from = vi.spyOn(client, "from");
+    return { repository: new SupabaseGameRepository(client), rpc, from };
+  }
+  it.each(["claim", "assign", "release"])("parses the %s returned row with no follow-up query", async operation => {
+    const { repository, rpc, from } = setup({ outcome: "ok", seat: row, version: 5 });
+    const result = operation === "claim" ? await repository.claimSeatIfVersion(input) : operation === "release" ? await repository.releaseSeatIfVersion(input) : await repository.assignBotIfVersion({ gameId: "game-1", seat: 1, expectedVersion: 4, hostToken: "host", name: "Bot #1", bot, aiDifficulty: "medium", botProfileId: null });
+    expect(result).toMatchObject({ gameId: "game-1", seat: 1, name: "Ada", enginePlayerId: "stable", playerToken: "owner" });
+    expect(rpc).toHaveBeenCalledOnce();
+    expect(rpc.mock.calls[0][1]).toMatchObject({ p_game_id: "game-1", p_seat: 1, p_expected_version: 4 });
+    expect(from).not.toHaveBeenCalled();
+  });
+  it("accepts stale idempotent success and legacy bot rows", async () => {
+    const { repository, from } = setup({ outcome: "ok", version: 2, seat: { ...row, status: "bot", controller: "typesafe_ai" } });
+    expect(await repository.claimSeatIfVersion(input)).toMatchObject({ controller: "bot", bot, botProfileId: null });
+    expect(from).not.toHaveBeenCalled();
+  });
+  it.each([null, [], {}, { outcome: "unexpected" }, { outcome: "ok" },
+    ...[undefined, -1, 1.5, "5", Number.MAX_SAFE_INTEGER + 1].map(version => ({ outcome: "ok", version, seat: row })),
+    ...[null, {}, { ...row, game_id: "other" }, { ...row, seat: 2 }, { ...row, status: "bad" }, { ...row, controller: "bad" }, { ...row, name: null }].map(seat => ({ outcome: "ok", version: 5, seat })),
+  ])("rejects malformed or mismatched results %#", async data => {
+    const { repository, from } = setup(data);
+    await expect(repository.claimSeatIfVersion(input)).rejects.toThrow();
+    expect(from).not.toHaveBeenCalled();
+  });
+  it.each([
+    ["conflict", "GameConflictError"], ["missing", "Seat does not exist"], ["unavailable", "Seat is not open"], ["forbidden", "Seat does not belong to this player"],
+  ])("preserves %s outcomes", async (outcome, message) => {
+    const { repository, from } = setup({ outcome });
+    const result = repository.releaseSeatIfVersion(input);
+    if (outcome === "conflict") await expect(result).rejects.toBeInstanceOf(GameConflictError);
+    else await expect(result).rejects.toThrow(message);
+    expect(from).not.toHaveBeenCalled();
+  });
+  it("maps forbidden bot assignment to the host HTTP error", async () => {
+    const { repository } = setup({ outcome: "forbidden" });
+    await expect(repository.assignBotIfVersion({ gameId: "game-1", seat: 1, expectedVersion: 4, hostToken: "other", name: "Bot", bot, aiDifficulty: "medium", botProfileId: null })).rejects.toThrow("Only the host can assign bots");
+  });
+  it("propagates transport failures without querying seats", async () => {
+    const { repository, rpc, from } = setup({});
+    rpc.mockResolvedValue({ data: null, error: { message: "offline" } });
+    await expect(repository.claimSeatIfVersion(input)).rejects.toThrow("Unable to update seat assignment: offline");
+    expect(from).not.toHaveBeenCalled();
+  });
+});

@@ -4,7 +4,7 @@ import {
   getOrCreatePlayerToken,
   setPlayerTokenCookie,
 } from "@/lib/identity/player-token";
-import { claimSeat } from "@/lib/poker/game-service";
+import { claimSeat } from "@/lib/poker/seat-service";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { scheduleSeatEvent } from "@/lib/realtime/schedule";
@@ -37,11 +37,7 @@ export async function POST(request: Request, context: ClaimSeatRouteContext) {
   try {
     const assignment = await claimSeat(
       createSupabaseGameRepository(),
-      gameId,
-      seat,
-      playerToken,
-      playerName,
-      expectedVersion as number,
+      { gameId, seat, playerToken, playerName, expectedVersion: expectedVersion as number },
     );
     invalidatePublicDirectory();
     scheduleSeatEvent(gameId, "seat_claimed");

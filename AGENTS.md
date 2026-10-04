@@ -154,7 +154,10 @@ Supabase or TypeSafe services.
 - `app/api/games/`: HTTP boundary for game creation, actions, seats, history,
 	AI stepping, and hand transitions.
 - `lib/poker/`: domain types, engine adapter, public projections, and game
-	orchestration.
+	orchestration. `seat-service.ts` owns atomic claim, bot assignment, and release;
+  `seat-contracts.ts` and `host-authorization.ts` hold dependency-neutral contracts
+  and durable host authorization. Seat mutations require an expected version and
+  parse the RPC-returned seat without a follow-up seat query.
 - `lib/supabase/`: persistence parsing and repository implementation.
 - `lib/typesafe/`: System One HTTP client and constrained decision validation.
 - `lib/realtime/`: server publishing and client refetch subscriptions.
@@ -192,6 +195,15 @@ for original/snapshot request counts, response bytes, median/p95, and reveal
 query plans. These local-only scripts preserve existing games and clean up their
 own fixtures; they require Docker and Supabase CLI. No noisy latency CI threshold
 is used. See `benchmarks/game-reads.md` for methodology and recorded results.
+
+## Local seat-mutation verification
+
+With local Supabase running and all migrations applied, run `npm run test:sql:seats`.
+The local-only runner uses isolated fixtures and independent connections to check
+game-row locking, competing claims, stale versions, idempotent retries, atomic
+moves, durable host authorization (including unseated and missing hosts), and
+waiting versus non-waiting release behavior. It requires Docker and Supabase CLI,
+cleans up its fixtures, and never loads application `.env` or calls bot providers.
 
 ## Bot scenario evaluations
 
