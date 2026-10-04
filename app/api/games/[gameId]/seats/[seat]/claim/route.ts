@@ -7,7 +7,7 @@ import {
 import { claimSeat } from "@/lib/poker/game-service";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
-import { publishSeatEvent } from "@/lib/realtime/publish";
+import { scheduleSeatEvent } from "@/lib/realtime/schedule";
 
 interface ClaimSeatRouteContext {
   readonly params: Promise<{ gameId: string; seat: string }>;
@@ -44,7 +44,7 @@ export async function POST(request: Request, context: ClaimSeatRouteContext) {
       expectedVersion as number,
     );
     invalidatePublicDirectory();
-    void publishSeatEvent(gameId, "seat_claimed", assignment);
+    scheduleSeatEvent(gameId, "seat_claimed");
     const result = NextResponse.json({ seat: assignment }, { status: 200 });
     setPlayerTokenCookie(result, playerToken);
     return result;

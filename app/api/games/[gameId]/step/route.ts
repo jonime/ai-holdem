@@ -12,7 +12,7 @@ import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { TypesafeRequestError } from "@/lib/typesafe/client";
 import { TypesafeResponseError } from "@/lib/typesafe/types";
-import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
+import { scheduleGameEvent } from "@/lib/realtime/schedule";
 
 interface StepRouteContext {
   readonly params: Promise<{ gameId: string }>;
@@ -37,16 +37,12 @@ export async function POST(request: Request, context: StepRouteContext) {
       expectedVersion as number,
       getPlayerTokenFromRequest(request),
     );
-    void publishGameEvent(
+    scheduleGameEvent(
       gameId,
       result.game.poker.street === "complete"
         ? "hand_completed"
         : "ai_decision",
       result.game.version,
-      {
-        game: toBroadcastGame(result.game),
-        aiDecision: result.aiDecision,
-      },
     );
     return NextResponse.json(result);
   } catch (error) {

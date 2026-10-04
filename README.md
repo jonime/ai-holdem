@@ -127,7 +127,17 @@ silently; refresh failures and genuine provider errors remain visible, and eligi
 viewers can retry. There is no worker, leader election, cross-browser lock, or
 inference deduplication.
 
-Game updates use Supabase Realtime Broadcast as a refetch signal. No additional
+Game updates use Supabase Realtime Broadcast as a refetch signal. Successful
+mutations schedule one send through Next.js `after()` so publication and cleanup
+survive the HTTP response within the function's execution limit. Sends use a
+five-second timeout; scheduling or delivery failures preserve mutation success.
+Strict game notifications contain only `{ type, gameId, version }` with the
+committed version; seat notifications contain only `{ type, gameId }` and always
+prompt a refetch, including same-version name changes. No game, seat, or AI
+decision data is published. New clients normalize validated legacy payloads to
+refresh signals; already-open old clients can recover through polling until
+reloaded. See [Realtime architecture and verification](plans/05-realtime-broadcast.md)
+for payload measurements and local/Vercel smoke checks. No additional
 SQL migration is required for Broadcast. The demo intentionally uses public
 game channels, so anyone who knows a game URL can subscribe; this is not an
 authorization boundary for production. Broadcast is best-effort: a successful

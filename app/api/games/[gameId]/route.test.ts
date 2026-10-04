@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "./route";
 import { POST as nextHand } from "./next-hand/route";
 import { POST as step } from "./step/route";
-import { publishGameEvent } from "@/lib/realtime/publish";
+import { scheduleGameEvent } from "@/lib/realtime/schedule";
 
 const {
   BotStepForbiddenErrorMock,
@@ -42,9 +42,9 @@ vi.mock("@/lib/typesafe/client", async (importOriginal) => ({
   TypesafeSystemOneClient: vi.fn(),
 }));
 
-vi.mock("@/lib/realtime/publish", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/realtime/publish")>()),
-  publishGameEvent: vi.fn().mockResolvedValue(undefined),
+vi.mock("@/lib/realtime/schedule", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/realtime/schedule")>()),
+  scheduleGameEvent: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe("GET /api/games/[gameId]", () => {
@@ -76,7 +76,7 @@ describe.each([
   });
 
   it.each(["host-token", "spectator-token", null])(
-    "forwards viewer %s and masks private data in broadcasts",
+    "forwards viewer %s and schedules the committed version",
     async (viewerToken) => {
       const game = {
         id: "game-1",
@@ -121,18 +121,11 @@ describe.each([
             ]
           : [expect.any(Object), "game-1", 1, viewerToken]),
       );
-      expect(publishGameEvent).toHaveBeenCalledWith(
+      expect(scheduleGameEvent).toHaveBeenCalledWith(
         "game-1",
         expect.any(String),
         2,
-        expect.objectContaining({
-          game: expect.objectContaining({
-            poker: expect.objectContaining({
-              legalActions: [],
-              players: [{ id: "human", playerToken: null, holeCards: null }],
-            }),
-          }),
-        }),
+
       );
     },
   );
@@ -145,5 +138,5 @@ describe.each([
     method: "POST", body: JSON.stringify({ expectedVersion: 1 }),
   }), { params: Promise.resolve({ gameId: "game-1" }) });
   expect(response.status).toBe(403);
-  expect(publishGameEvent).not.toHaveBeenCalled();
+  expect(scheduleGameEvent).not.toHaveBeenCalled();
 });

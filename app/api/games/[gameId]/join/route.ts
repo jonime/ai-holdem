@@ -4,7 +4,7 @@ import { getOrCreatePlayerToken, setPlayerTokenCookie } from "@/lib/identity/pla
 import { joinPublicGame } from "@/lib/poker/directory";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
-import { publishSeatEvent } from "@/lib/realtime/publish";
+import { scheduleSeatEvent } from "@/lib/realtime/schedule";
 
 export async function POST(request: Request, context: { readonly params: Promise<{ gameId: string }> }) {
   const { gameId } = await context.params;
@@ -34,8 +34,7 @@ export async function POST(request: Request, context: { readonly params: Promise
       return setPlayerTokenCookie(unavailable, playerToken);
     }
     if (!result.duplicate) invalidatePublicDirectory();
-    const assignment = (await repository.getSeatAssignments(gameId)).find((seat) => seat.seat === result.seat);
-    if (assignment) void publishSeatEvent(gameId, "seat_claimed", assignment);
+    scheduleSeatEvent(gameId, "seat_claimed");
     const joined = NextResponse.json({ gameId, seat: result.seat, version: result.version });
     return setPlayerTokenCookie(joined, playerToken);
   } catch (error) {

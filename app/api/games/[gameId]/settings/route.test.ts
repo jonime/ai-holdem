@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PATCH } from "./route";
-import { publishGameEvent } from "@/lib/realtime/publish";
+import { scheduleGameEvent } from "@/lib/realtime/schedule";
 
 const { invalidatePublicDirectoryMock, updateTableSettingsMock } = vi.hoisted(() => ({
   invalidatePublicDirectoryMock: vi.fn(),
@@ -21,9 +21,9 @@ vi.mock("@/lib/supabase/server", () => ({
   createSupabaseGameRepository: vi.fn(() => ({ updateTableSettings: vi.fn() })),
 }));
 
-vi.mock("@/lib/realtime/publish", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/realtime/publish")>()),
-  publishGameEvent: vi.fn().mockResolvedValue(undefined),
+vi.mock("@/lib/realtime/schedule", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/realtime/schedule")>()),
+  scheduleGameEvent: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe("PATCH /api/games/[gameId]/settings", () => {
@@ -93,11 +93,10 @@ describe("PATCH /api/games/[gameId]/settings", () => {
       },
       "host-token",
     );
-    expect(publishGameEvent).toHaveBeenCalledWith(
+    expect(scheduleGameEvent).toHaveBeenCalledWith(
       "game-1",
       "table_settings_updated",
       2,
-      expect.any(Object),
     );
     expect(invalidatePublicDirectoryMock).toHaveBeenCalledOnce();
   });

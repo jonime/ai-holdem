@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
 import { GameNotFoundError, updateSeatCount } from "@/lib/poker/game-service";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
-import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
+import { scheduleGameEvent } from "@/lib/realtime/schedule";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
@@ -50,9 +50,7 @@ export async function PATCH(request: Request, context: SeatCountRouteContext) {
       getOrCreatePlayerToken(request),
     );
     invalidatePublicDirectory();
-    void publishGameEvent(gameId, "seat_count_updated", game.version, {
-      game: toBroadcastGame(game),
-    });
+    scheduleGameEvent(gameId, "seat_count_updated", game.version);
     return NextResponse.json({ game });
   } catch (error) {
     if (error instanceof GameNotFoundError) {

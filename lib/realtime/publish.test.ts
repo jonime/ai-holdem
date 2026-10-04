@@ -1,187 +1,79 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { publishNotification } from "./publish";
 
-import {
-  publishGameEvent,
-  toBroadcastGame,
-  toBroadcastSeat,
-  type BroadcastGame,
-} from "./publish";
+const { createClient, readGame } = vi.hoisted(() => ({ createClient: vi.fn(), readGame: vi.fn() }));
+vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: createClient, createSupabaseGameRepository: readGame }));
 
-const { createSupabaseServerClientMock } = vi.hoisted(() => ({
-  createSupabaseServerClientMock: vi.fn(),
-}));
-
-vi.mock("@/lib/supabase/server", () => ({
-  createSupabaseGameRepository: vi.fn(),
-  createSupabaseServerClient: createSupabaseServerClientMock,
-}));
-
-const game = {
-  id: "game-1",
-  status: "playing" as const,
-  version: 2,
-  viewerIsHost: true,
-  poker: {
-    handNumber: 1,
-    seatCount: 2,
-    smallBlind: 50,
-    bigBlind: 100,
-    startingStack: 10_000,
-    street: "preflop" as const,
-    dealerSeat: 0,
-    smallBlindSeat: 0,
-    bigBlindSeat: 1,
-    currentActorId: "human",
-    communityCards: [],
-    pot: 150,
-    completionReason: null,
-    winnerIds: [],
-    winnerAmounts: {},
-    legalActions: [{ type: "check" as const }],
-    players: [
-      {
-        id: "human",
-        name: "Player",
-        controller: "human" as const,
-        aiDifficulty: null,
-        seat: 0,
-        status: "claimed" as const,
-        playerToken: "secret-token",
-        isHost: true,
-        leaving: false,
-        inHand: true,
-        committedStreet: 50,
-        stack: 10_000,
-        folded: false,
-        allIn: false,
-        holeCards: ["As", "Kd"],
-      },
-    ],
-  },
-};
-
-describe("publishGameEvent", () => {
+describe("publishNotification", () => {
   const send = vi.fn();
   const removeChannel = vi.fn();
-
+  const channel = { send };
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     send.mockResolvedValue("ok");
-    removeChannel.mockResolvedValue(undefined);
-    createSupabaseServerClientMock.mockReturnValue({
-      channel: vi.fn(() => ({ send })),
-      removeChannel,
-    });
-  });
-
-  it("sends only a validated masked event and removes its channel", async () => {
-    const result = await publishGameEvent("game-1", "player_action", 2, {
-      game: toBroadcastGame(game),
-    });
-
-    expect(result).toEqual({ ok: true });
-    expect(send).toHaveBeenCalledWith({
-      type: "broadcast",
-      event: "player_action",
-      payload: expect.objectContaining({
-        gameId: "game-1",
-        version: 2,
-        game: expect.objectContaining({
-          poker: expect.objectContaining({
-            legalActions: [],
-            players: [
-              expect.objectContaining({
-                committedStreet: 50,
-                playerToken: null,
-                holeCards: null,
-              }),
-            ],
-          }),
-        }),
-      }),
-    });
-    expect(removeChannel).toHaveBeenCalledOnce();
-  });
-
-  it("accepts the server-owned bot profile in public AI decisions", async () => {
-    const result = await publishGameEvent("game-1", "ai_decision", 2, {
-      game: toBroadcastGame(game),
-      aiDecision: {
-        action: "check",
-        amount: null,
-        bot: {
-          id: "llm-test",
-          label: "LLM Test",
-          provider: "llm",
-          modelId: "test/model",
-        },
-        botProfileId: "aggressive",
-        probabilities: null,
-        confidence: null,
-        sizing: null,
-        matchedRule: null,
-      },
-    });
-
-    expect(result).toEqual({ ok: true });
-    expect(send).toHaveBeenCalledWith(
-      expect.objectContaining({
-        payload: expect.objectContaining({
-          aiDecision: expect.objectContaining({
-            botProfileId: "aggressive",
-          }),
-        }),
-      }),
-    );
-  });
-
-  it("reports invalid private payloads without creating a channel", async () => {
-    const result = await publishGameEvent("game-1", "player_action", 2, {
-      game: game as unknown as BroadcastGame,
-    });
-
-    expect(result.ok).toBe(false);
-    expect(createSupabaseServerClientMock).not.toHaveBeenCalled();
-  });
-
-  it("removes private seat assignment fields", () => {
-    expect(
-      toBroadcastSeat({
-        gameId: "game-1",
-        seat: 1,
-        name: "Player",
-        status: "claimed",
-        controller: "human",
-        aiDifficulty: null,
-        playerToken: "secret-token",
-        isHost: false,
-        leaving: false,
-        enginePlayerId: "internal-player",
-      }),
-    ).toEqual({
-      gameId: "game-1",
-      seat: 1,
-      name: "Player",
-      status: "claimed",
-      controller: "human",
-      aiDifficulty: null,
-      playerToken: null,
-      isHost: false,
-      leaving: false,
-    });
+    removeChannel.mockResolvedValue("ok");
+    createClient.mockReturnValue({ channel: vi.fn(() => channel), removeChannel });
+    vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
   it.each([
-    ["non-ok send", () => send.mockResolvedValue("timed out")],
-    ["thrown send", () => send.mockRejectedValue(new Error("offline"))],
-  ])("reports %s while still cleaning up", async (_name, arrange) => {
-    arrange();
+    { type: "player_action" as const, gameId: "game-1", version: 2 },
+    { type: "ai_decision" as const, gameId: "game-1", version: 3 },
+    { type: "seat_name_updated" as const, gameId: "game-1" },
+  ])("sends exactly $type with a five-second transport timeout and awaits cleanup", async (event) => {
+    let finishCleanup!: () => void;
+    removeChannel.mockReturnValue(new Promise<string>(resolve => { finishCleanup = () => resolve("ok"); }));
+    let finished = false;
+    const publication = publishNotification(event).then(result => { finished = true; return result; });
+    await vi.waitFor(() => expect(removeChannel).toHaveBeenCalledWith(channel));
+    expect(finished).toBe(false);
+    expect(send).toHaveBeenCalledExactlyOnceWith({ type: "broadcast", event: event.type, payload: event }, { timeout: 5_000 });
+    expect(createClient().channel).toHaveBeenCalledWith("game:game-1");
+    expect(readGame).not.toHaveBeenCalled();
+    finishCleanup();
+    expect(await publication).toEqual({ ok: true });
+  });
 
-    const result = await publishGameEvent("game-1", "player_action", 2, {
-      game: toBroadcastGame(game),
-    });
+  it.each([
+    { type: "player_action", gameId: "game-1", version: -1 },
+    { type: "player_action", gameId: "game-1", version: 2, game: {} },
+    { type: "seat_claimed", gameId: "game-1", version: 2 },
+    { type: "seat_claimed", gameId: "game-1", seat: {} },
+  ])("rejects invalid or additional outgoing fields", async (event) => {
+    // Deliberately bypass the compile-time contract to exercise runtime validation.
+    // @ts-expect-error invalid notification
+    expect((await publishNotification(event)).ok).toBe(false);
+    expect(createClient).not.toHaveBeenCalled();
+  });
 
-    expect(result.ok).toBe(false);
+  it.each(["timed out", "error", "throw"])("handles %s with one attempt and cleanup, without leaking errors", async (result) => {
+    if (result === "throw") send.mockRejectedValue(new Error("secret-key and game contents"));
+    else send.mockResolvedValue(result);
+    expect((await publishNotification({ type: "player_action", gameId: "game-1", version: 2 })).ok).toBe(false);
+    expect(send).toHaveBeenCalledOnce();
     expect(removeChannel).toHaveBeenCalledOnce();
+    expect(console.error).toHaveBeenCalledExactlyOnceWith("Realtime notification failed", {
+      phase: "publish", type: "player_action", gameId: "game-1", version: 2, elapsedMs: expect.any(Number),
+    });
+  });
+
+  it("contains client initialization and cleanup failures", async () => {
+    createClient.mockImplementationOnce(() => { throw new Error("secret"); });
+    expect((await publishNotification({ type: "seat_claimed", gameId: "game-1" })).ok).toBe(false);
+    removeChannel.mockRejectedValueOnce(new Error("secret"));
+    expect(await publishNotification({ type: "seat_claimed", gameId: "game-1" })).toEqual({ ok: true });
+    expect(console.error).toHaveBeenLastCalledWith("Realtime notification failed", {
+      phase: "cleanup", type: "seat_claimed", gameId: "game-1", elapsedMs: expect.any(Number),
+    });
+  });
+});
+
+ it("logs non-ok channel removal without throwing", async () => {
+  const send = vi.fn().mockResolvedValue("ok");
+  createClient.mockReturnValue({ channel: () => ({ send }), removeChannel: vi.fn().mockResolvedValue("timed out") });
+  vi.spyOn(console, "error").mockImplementation(() => {});
+  expect(await publishNotification({ type: "seat_released", gameId: "game-1" })).toEqual({ ok: true });
+  expect(console.error).toHaveBeenLastCalledWith("Realtime notification failed", {
+    phase: "cleanup", type: "seat_released", gameId: "game-1", elapsedMs: expect.any(Number),
   });
 });

@@ -4,7 +4,7 @@ import { getPlayerTokenFromRequest } from "@/lib/identity/player-token";
 import { GameNotFoundError, startNextHand } from "@/lib/poker/game-service";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
-import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
+import { scheduleGameEvent } from "@/lib/realtime/schedule";
 
 interface NextHandRouteContext {
   readonly params: Promise<{ gameId: string }>;
@@ -36,9 +36,7 @@ export async function POST(request: Request, context: NextHandRouteContext) {
       expectedVersion,
       getPlayerTokenFromRequest(request),
     );
-    void publishGameEvent(gameId, "hand_started", game.version, {
-      game: toBroadcastGame(game),
-    });
+    scheduleGameEvent(gameId, "hand_started", game.version);
     return NextResponse.json({ game });
   } catch (error) {
     if (error instanceof GameNotFoundError) {

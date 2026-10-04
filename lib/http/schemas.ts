@@ -197,7 +197,7 @@ const broadcastSeatSchema = z
   .strict();
 
 const realtimeEnvelopeBaseSchema = z.object({
-  gameId: z.string(),
+  gameId: z.string().min(1),
   version: z.number().int().nonnegative().safe(),
 });
 
@@ -237,10 +237,47 @@ const seatEventSchema = realtimeEnvelopeBaseSchema
   })
   .strict();
 
-export const realtimeGameEventSchema = z.discriminatedUnion("type", [
+const legacyRealtimeGameEventSchema = z.discriminatedUnion("type", [
   gameEventSchema,
   aiDecisionEventSchema,
   seatEventSchema,
+]);
+
+// Publishers accept only compact envelopes. Legacy payloads are receive-only.
+export const realtimeNotificationSchema = z.union([
+  realtimeEnvelopeBaseSchema
+    .extend({
+      type: z.enum([
+        "game_updated",
+        "player_action",
+        "ai_decision",
+        "hand_started",
+        "hand_completed",
+        "seat_count_updated",
+        "table_settings_updated",
+        "cards_revealed",
+      ]),
+    })
+    .strict(),
+  z.object({
+    type: z.enum([
+      "seat_claimed",
+      "seat_name_updated",
+      "seat_released",
+      "seat_bot_assigned",
+    ]),
+    gameId: z.string().min(1),
+  }).strict(),
+]);
+
+export type RealtimeNotification = z.infer<typeof realtimeNotificationSchema>;
+
+export const realtimeGameEventSchema = z.union([
+  realtimeNotificationSchema,
+  legacyRealtimeGameEventSchema.transform((event): RealtimeNotification => {
+    if ("seat" in event) return { type: event.type, gameId: event.gameId };
+    return { type: event.type, gameId: event.gameId, version: event.version };
+  }),
 ]);
 
 export type RealtimeGameEvent = z.infer<typeof realtimeGameEventSchema>;

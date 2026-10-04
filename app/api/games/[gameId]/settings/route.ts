@@ -8,7 +8,7 @@ import {
 } from "@/lib/poker/game-service";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import type { TableSettings } from "@/lib/poker/types";
-import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
+import { scheduleGameEvent } from "@/lib/realtime/schedule";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
@@ -70,9 +70,7 @@ export async function PATCH(request: Request, context: SettingsRouteContext) {
       getOrCreatePlayerToken(request),
     );
     invalidatePublicDirectory();
-    void publishGameEvent(gameId, "table_settings_updated", game.version, {
-      game: toBroadcastGame(game),
-    });
+    scheduleGameEvent(gameId, "table_settings_updated", game.version);
     return NextResponse.json({ game });
   } catch (error) {
     if (error instanceof GameNotFoundError) {

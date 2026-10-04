@@ -5,7 +5,7 @@ import {
   GameNotFoundError,
   updatePlayerName,
 } from "@/lib/poker/game-service";
-import { publishSeatEvent } from "@/lib/realtime/publish";
+import { scheduleSeatEvent } from "@/lib/realtime/schedule";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
 interface PlayerNameRouteContext {
@@ -39,7 +39,7 @@ export async function PATCH(request: Request, context: PlayerNameRouteContext) {
       getOrCreatePlayerToken(request),
       (body as { name: string }).name,
     );
-    void publishSeatEvent(gameId, "seat_name_updated", assignment);
+    scheduleSeatEvent(gameId, "seat_name_updated");
     return NextResponse.json({ seat: assignment }, { status: 200 });
   } catch (error) {
     if (error instanceof GameNotFoundError) {

@@ -1,126 +1,123 @@
-# Supabase Realtime (Broadcast) for Game Events
+# Supabase Realtime notifications
 
-## Why This Is Last
+Postgres and the poker engine remain authoritative. Broadcast only prompts a
+viewer to refetch its own HTTP projection; clients never apply broadcast contents
+to game state. Channels remain public `game:<gameId>` channels for this demo.
+Knowing a game URL intentionally allows viewing and subscribing; it grants no
+seat ownership or bot-advancement rights.
 
-The original plan is explicit: "Do not begin Realtime work until the normal
-HTTP flow passes the UI gate," and "Realtime should distribute changes, not
-become the source of truth."
-([01-mvp-typesafe-poker.md](./01-mvp-typesafe-poker.md)). This plan assumes
-plans [02](./02-game-urls-and-identity.md), [03](./03-seats-and-bots.md), and
-[04](./04-spectator-mode.md) already work correctly over plain HTTP
-request/response (polling or manual refresh). Realtime is purely a transport
-upgrade on top of that — it must not change who is authoritative (Postgres +
-the poker engine adapter remain authoritative; Realtime only announces that
-something changed).
+## Delivery lifecycle
 
-## Outcome
+All game and seat mutation routes register `lib/realtime/schedule.ts` only after
+a successful service mutation. The shared scheduler validates and copies the
+compact envelope before registering a Next.js `after()` callback. The callback
+awaits one publication attempt and channel removal. No response, seat assignment,
+AI decision, repository, or game snapshot is captured.
 
-* Every browser viewing a game (player or spectator) sees seat claims, human
-  actions, AI decisions, and hand transitions appear live, without polling.
-* If Realtime is unavailable or a message is dropped, the client still
-  converges to correct state on next load/poll — Realtime is an optimization,
-  not a requirement for correctness.
+Next.js `after()` keeps post-response work within the platform's invocation
+lifetime. Vercel recommends it for Next.js 15.1 and newer:
+[Functions API reference](https://vercel.com/docs/functions/functions-api-reference/vercel-functions-package#usage-with-nextjs).
+Delivery remains best-effort within the function's execution limit. Registration
+and publication failures cannot turn a committed mutation into an HTTP failure.
+There is no queue or retry.
 
-## Design
+The installed Supabase transport uses `channel.send(message, { timeout: 5000 })`
+and its existing REST fallback for an unsubscribed server channel. Cleanup is
+awaited in `finally`, including after failed sends. Logs contain only the phase,
+event type, game ID, committed version when present, and elapsed milliseconds.
+Raw errors, credentials, game contents, and provider responses are excluded.
+The current SDK warns that its automatic REST fallback will be deprecated; a
+transport migration is separate from this lifecycle change.
 
-### Transport choice: Broadcast, not Postgres Changes
+## Notification contract
 
-Use a Supabase Realtime **Broadcast** channel per game, e.g. `game:<gameId>`,
-matching the channel/event names the original plan already sketches:
+Outgoing envelopes reject every additional field:
 
-```text
-game_updated
-player_action
-ai_decision
-hand_started
-hand_completed
-seat_claimed      (new, from plan 03)
+- Game events: `{ type, gameId, version }`, using the committed version.
+- Seat events: `{ type, gameId }`, without a version.
+
+Game event types are `game_updated`, `player_action`, `ai_decision`,
+`hand_started`, `hand_completed`, `seat_count_updated`, `table_settings_updated`,
+and `cards_revealed`. Seat types are `seat_claimed`, `seat_name_updated`,
+`seat_released`, and `seat_bot_assigned`. Event names and channels are unchanged.
+Mutation HTTP responses retain their existing data. Seat notifications require
+no game read or projection; a public-directory join requires no extra assignment
+lookup to publish its signal.
+
+New clients accept compact envelopes and strictly validated legacy envelopes
+with masked game/seat/AI payloads, normalizing both to compact refresh signals.
+Matching seat events always refresh, including name changes that retain the game
+version. Matching game events refresh only when newer than the current version
+(or when no version is loaded). Unrelated or malformed events are ignored.
+
+Existing 75 ms debounce, serialized/coalesced refetches, and polling are retained:
+30 seconds when subscribed, 5 seconds when unavailable. Hidden/offline tabs pause
+polling and refetch immediately on returning. Old open clients may reject compact
+notifications and recover through polling until reloaded. New clients accept
+legacy publishers during deployment overlap. No migration is required.
+
+## Verification and payload measurement
+
+Route lifecycle tests cover every publisher route: scheduling only on successful
+mutations, unchanged HTTP responses before callbacks run, registration failures,
+and delivery failures. Publisher tests cover exact envelopes, transport timeout,
+cleanup, sanitized failure logs, and no seat-related database reads. Client and
+refresh-coordinator tests cover compatibility, filtering, debounce and polling.
+
+Run `npm run check` and `npm run build`, then the focused browser tests:
+
+```sh
+npm run test:e2e -- test/e2e/realtime.spec.ts test/e2e/bot-advancement.spec.ts
 ```
 
-Broadcast (not Postgres Changes) because:
+The Realtime smoke test uses two independent browser contexts, real WebSocket
+frames and committed mutations. It requires compact game and same-version seat
+notifications and visible refetched changes before polling. A blocked WebSocket
+case verifies fallback polling. The separate spectator case checks bot-step 403s.
 
-* Events are already well-defined application concepts (we emit exactly what
-  changed, e.g. "seat 1 claimed" or "AI decided raise"), not raw row diffs
-  that the client would have to reinterpret.
-* It avoids exposing `games`/`game_players`/`actions` row contents directly
-  over Realtime, which matters here because those rows can contain private
-  AI state (`ai_decisions.state`, `raw_response`) that must stay hidden until
-  a hand completes — Postgres Changes would require very careful RLS/column
-  filtering per subscriber to avoid leaking it, whereas Broadcast payloads
-  are exactly the sanitized public DTOs the HTTP routes already produce.
+Run the same smoke check against a Vercel preview **containing this change**:
 
-### Emitting events
+```sh
+E2E_BASE_URL=https://your-preview.vercel.app npm run test:e2e -- test/e2e/realtime.spec.ts
+```
 
-* Emit Broadcast events from the **server**, right after each successful
-  version-checked write (`/action`, `/step`, seat claim/assign-bot, next-hand
-  start) — not from the client, so a browser can't forge an event for a
-  mutation it didn't actually cause.
-* Payload = the same sanitized DTO the HTTP response already returns
-  (`PublicGame`, `PublicAIDecision`, etc.) plus a small envelope
-  (`type`, `gameId`, `version`). Never include private hole cards or raw
-  AI state in a broadcast that spectators/opponents also receive — same
-  masking rules as plan 04, applied per-recipient is not possible with a
-  single shared channel, so **the broadcast itself must already be the
-  fully-masked "no active secrets" projection**; anything seat-private (a
-  human's own hole cards) is *not* sent over Realtime at all and stays a
-  per-request HTTP concern (client refetches its own private view after
-  being notified something changed).
-* Use the `version` field for staleness detection: if a client receives an
-  event with `version <= ` the version it already has, ignore it (it's a
-  redundant re-send, not a regression — Postgres remains the source of
-  truth for actual state).
+`E2E_BASE_URL` skips local Supabase discovery and local server startup. These tests
+create private demo tables on the supplied deployment. A passing local test or a
+smoke check of an older deployed build cannot verify the changed Vercel lifecycle.
+Record the tested deployment URL and revision with its result.
 
-### Consuming events
+Reproduce UTF-8 JSON payload sizes with:
 
-* Client subscribes to `game:<gameId>` on mount (game page from plan 02),
-  for both seated players and spectators (plan 04).
-* On any event, the simplest and most robust reaction is: refetch
-  `GET /api/games/:id` (and `/history` if relevant) rather than trying to
-  apply the broadcast payload as a state patch. This keeps Realtime as a
-  "wake up and refetch" signal, minimizing the chance of client/server
-  drift. Only optimize to "apply payload directly" later if refetch traffic
-  becomes a real problem.
-* Keep the existing polling/manual-refresh path working as a fallback if the
-  channel disconnects (Supabase client reconnect handling), so the app
-  degrades gracefully rather than silently going stale.
+```sh
+node scripts/measure-realtime-payloads.mjs
+```
 
-### Security
+Synthetic six-seat flop fixture, one human plus five rules bots; old envelopes
+include the fully masked game and the relevant AI decision/seat. Counts exclude
+Supabase/HTTP/WebSocket framing:
 
-* Use Supabase's Realtime Authorization for Broadcast (private channels) so
-  only requests presenting a valid context can subscribe/publish; since this
-  app has no real auth yet, scope this minimally (e.g. anyone who knows the
-  `gameId` can subscribe, matching the existing "URL is the access control"
-  demo posture) and document that this is intentionally permissive for the
-  demo, not production-ready.
-* The server-side emit must use the service-role/secret key (never exposed
-  to the browser), consistent with how `SUPABASE_SECRET_KEY` is already kept
-  server-only ([server.ts](../lib/env/server.ts)).
+| Event | Before | After | Reduction |
+| --- | ---: | ---: | ---: |
+| `player_action` | 3,140 B | 85 B | 97.29% |
+| `ai_decision` | 3,377 B | 83 B | 97.54% |
+| `seat_name_updated` | 3,335 B | 76 B | 97.72% |
 
-## Steps
+Durable queues, retries, provider deadlines, and polling changes are outside this
+change.
 
-1. Add a small `lib/realtime/publish.ts` server-side helper wrapping the
-   Supabase Realtime Broadcast send, given `gameId`, event `type`, and a
-   pre-sanitized payload.
-2. Call it from the end of each existing mutating route
-   (`/action`, `/step`, seat claim/assign-bot from plan 03, next-hand) right
-   after the DB write succeeds — fire-and-forget, must not block or fail the
-   HTTP response if the broadcast send errors (log and continue).
-3. Add a client hook (`lib/realtime/useGameChannel.ts` or similar) that
-   subscribes to `game:<gameId>` and triggers a refetch callback on any
-   event.
-4. Wire the hook into the game page/`PokerApp` so it replaces (or
-   supplements, initially) the current polling.
-5. Manual test: two browser windows on the same game URL; confirm an action
-   in one appears in the other within roughly a second, without a manual
-   refresh.
-6. Test the degraded path: simulate a dropped channel (or just don't
-   subscribe) and confirm the existing request/response flow still works
-   unchanged.
+## Verification record — 2026-10-04
 
-## Explicit non-goals here
+Working branch: `codex/reliable-realtime-notifications` (local working changes).
+`npm run check` passed: 52 files, 535 tests. The production build passed using
+`NEXT_DIST_DIR=.next-e2e npm run build` to preserve the running development
+server's output. All eight focused Chromium tests passed against local Supabase,
+including actual compact delivery with browser timers frozen so polling cannot
+satisfy the assertions, same-version name changes, fallback polling, and spectator
+bot-step denial. The delivery case completed in 2.9 seconds.
 
-* No Realtime Presence (viewer counts) — mentioned only as a possible
-  future addition in plan 04, not part of this plan.
-* No client-side optimistic state application from broadcast payloads —
-  refetch-on-signal only, to keep the authoritative-state architecture
-  simple, per the original plan's explicit caution.
+The supplied live URL, `https://ai-holdem.vercel.app`, was also tested with two
+browser contexts. It delivered a legacy `table_settings_updated` envelope
+containing a game snapshot, so the compact-envelope assertion failed as expected
+for the older deployment. This does **not** verify this branch's Vercel response
+lifecycle. The remaining deployment check requires a preview containing these
+changes and rerunning the command above; no deployment was made during this work.

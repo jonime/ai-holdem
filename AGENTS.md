@@ -88,7 +88,18 @@ Supabase or TypeSafe services.
   including mutation responses, filter both game ID and hand number in SQL.
   Apply the additive snapshot migration before application code; no backfill.
 - Postgres is the source of truth. Realtime events are best-effort wake-up
-	signals; clients refetch and must continue to work if Broadcast is unavailable.
+  signals; clients refetch and must continue to work if Broadcast is unavailable.
+  After successful mutations, use the shared Next.js `after()` scheduler; never
+  detach publishing promises. Capture only validated compact envelopes: game
+  events `{ type, gameId, version }` with the committed version, seat events
+  `{ type, gameId }`. Reject extra outgoing fields; no notification-only reads.
+  Await one send (five-second Supabase timeout) and channel cleanup. Scheduling
+  and delivery failures preserve HTTP success; log only event identifiers,
+  phase, and elapsed time. Clients normalize validated legacy envelopes to
+  refresh signals, filter stale game versions, always refresh matching seat
+  events, and retain debounce/coalescing and polling. Verify lifecycle changes
+  with the two-browser smoke test on a Vercel preview containing the change;
+  local tests alone cannot prove the deployed response lifecycle.
 - Public discovery is opt-in and lease-backed. Missing `game_listings` rows are
 	private; only waiting games with an open seat and an unexpired two-minute host
 	lease are listed. Visible hosts renew every 30 seconds without changing the

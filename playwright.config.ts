@@ -43,6 +43,8 @@ function getLocalSupabaseEnvironment(): Record<string, string> {
   };
 }
 
+const externalBaseURL = process.env.E2E_BASE_URL;
+
 export default defineConfig({
   testDir: "./test/e2e",
   fullyParallel: false,
@@ -50,11 +52,11 @@ export default defineConfig({
   retries: 0,
   reporter: "list",
   use: {
-    baseURL: "http://localhost:3002",
+    baseURL: externalBaseURL ?? "http://localhost:3002",
     trace: "retain-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  webServer: {
+  webServer: externalBaseURL ? undefined : {
     command: "npx next dev",
     url: "http://localhost:3002",
     reuseExistingServer: false,

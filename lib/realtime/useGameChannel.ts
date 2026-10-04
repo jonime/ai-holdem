@@ -23,7 +23,9 @@ export function shouldRefreshForGameEvent(
     event.type === "seat_released" ||
     event.type === "seat_bot_assigned";
   return (
-    isSeatEvent || currentVersion === null || event.version > currentVersion
+    isSeatEvent ||
+    currentVersion === null ||
+    ("version" in event && event.version > currentVersion)
   );
 }
 

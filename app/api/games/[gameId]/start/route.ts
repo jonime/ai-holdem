@@ -5,7 +5,7 @@ import { GameNotFoundError, startGame } from "@/lib/poker/game-service";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
-import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
+import { scheduleGameEvent } from "@/lib/realtime/schedule";
 
 interface StartRouteContext {
   readonly params: Promise<{ gameId: string }>;
@@ -37,9 +37,7 @@ export async function POST(request: Request, context: StartRouteContext) {
       getOrCreatePlayerToken(request),
     );
     invalidatePublicDirectory();
-    void publishGameEvent(gameId, "hand_started", game.version, {
-      game: toBroadcastGame(game),
-    });
+    scheduleGameEvent(gameId, "hand_started", game.version);
     return NextResponse.json({ game });
   } catch (error) {
     if (error instanceof GameNotFoundError) {

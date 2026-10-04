@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { updatePlayerNameMock, publishSeatEventMock } = vi.hoisted(() => ({
+const { updatePlayerNameMock, scheduleSeatEventMock } = vi.hoisted(() => ({
   updatePlayerNameMock: vi.fn(),
-  publishSeatEventMock: vi.fn(),
+  scheduleSeatEventMock: vi.fn(),
 }));
 
 vi.mock("@/lib/poker/game-service", async (importOriginal) => ({
@@ -14,8 +14,8 @@ vi.mock("@/lib/supabase/server", () => ({
   createSupabaseGameRepository: vi.fn(() => ({})),
 }));
 
-vi.mock("@/lib/realtime/publish", () => ({
-  publishSeatEvent: (...args: unknown[]) => publishSeatEventMock(...args),
+vi.mock("@/lib/realtime/schedule", () => ({
+  scheduleSeatEvent: (...args: unknown[]) => scheduleSeatEventMock(...args),
 }));
 
 import { PATCH } from "./route";
@@ -57,10 +57,9 @@ describe("PATCH /api/games/[gameId]/seats/[seat]/name", () => {
       "host-token",
       "Ada",
     );
-    expect(publishSeatEventMock).toHaveBeenCalledWith(
+    expect(scheduleSeatEventMock).toHaveBeenCalledWith(
       "game-1",
       "seat_name_updated",
-      assignment,
     );
   });
 

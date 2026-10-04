@@ -70,6 +70,26 @@ Record request counts, body bytes, median/p95 and reveal query plans using the
 CI threshold. Keep the original sequential read path only in that measurement
 script, never as a production fallback.
 
+## Realtime lifecycle changes
+
+Run `npm run check`, `npm run build`, and the focused browser tests:
+
+```sh
+npm run test:e2e -- test/e2e/realtime.spec.ts test/e2e/bot-advancement.spec.ts
+```
+
+Also run the two-browser smoke test on a Vercel preview containing your change:
+
+```sh
+E2E_BASE_URL=https://your-preview.vercel.app npm run test:e2e -- test/e2e/realtime.spec.ts
+```
+
+With `E2E_BASE_URL`, Playwright uses that deployment and skips local Supabase and
+server startup; tests create private demo tables there. Record the deployment URL,
+revision and result. An older live deployment does not verify changed lifecycle
+behavior. See [Realtime guidance](plans/05-realtime-broadcast.md) for the contract,
+rollout compatibility and reproducible before/after payload sizes.
+
 ## Translations
 
 Translations are physically split by route and usage under `lib/i18n/dictionaries/`:

@@ -1,175 +1,59 @@
 import "server-only";
 
-import {
-  getPublicGame,
-  type PublicAIDecision,
-  type PublicGame,
-  type SeatAssignment,
-} from "@/lib/poker/game-service";
-import { realtimeGameEventSchema } from "@/lib/http/schemas";
-import {
-  createSupabaseGameRepository,
-  createSupabaseServerClient,
-} from "@/lib/supabase/server";
+import { realtimeNotificationSchema, type RealtimeNotification } from "@/lib/http/schemas";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export type GameEventType =
-  | "game_updated"
-  | "player_action"
-  | "ai_decision"
-  | "hand_started"
-  | "hand_completed"
-  | "seat_claimed"
-  | "seat_name_updated"
-  | "seat_released"
-  | "seat_bot_assigned"
-  | "seat_count_updated"
-  | "table_settings_updated"
-  | "cards_revealed";
-
-export interface BroadcastGame {
-  readonly id: string;
-  readonly status: PublicGame["status"];
-  readonly version: number;
-  readonly viewerIsHost: false;
-  readonly publication: null;
-  readonly poker: Omit<PublicGame["poker"], "legalActions" | "players"> & {
-    readonly legalActions: readonly [];
-    readonly players: readonly (Omit<
-      PublicGame["poker"]["players"][number],
-      "playerToken" | "holeCards"
-    > & {
-      readonly playerToken: null;
-      readonly holeCards: null;
-    })[];
-  };
-}
-
-export function toBroadcastGame(game: PublicGame): BroadcastGame {
-  return {
-    ...game,
-    viewerIsHost: false,
-    publication: null,
-    poker: {
-      ...game.poker,
-      legalActions: [],
-      players: game.poker.players.map((player) => ({
-        ...player,
-        playerToken: null,
-        holeCards: null,
-      })),
-    },
-  };
-}
-
-export interface GameEventPayload {
-  readonly game?: BroadcastGame;
-  readonly aiDecision?: PublicAIDecision;
-  readonly seat?: BroadcastSeat;
-}
-
-export interface BroadcastSeat {
-  readonly gameId: string;
-  readonly seat: number;
-  readonly name?: string;
-  readonly status: SeatAssignment["status"];
-  readonly controller: SeatAssignment["controller"];
-  readonly bot?: SeatAssignment["bot"];
-  readonly aiDifficulty?: SeatAssignment["aiDifficulty"];
-  readonly isHost: boolean;
-  readonly leaving?: boolean;
-  readonly playerToken: null;
-}
-
-export function toBroadcastSeat(assignment: SeatAssignment): BroadcastSeat {
-  return {
-    gameId: assignment.gameId,
-    seat: assignment.seat,
-    ...(assignment.name === undefined ? {} : { name: assignment.name }),
-    status: assignment.status,
-    controller: assignment.controller,
-    ...(assignment.bot === undefined ? {} : { bot: assignment.bot }),
-    ...(assignment.aiDifficulty === undefined
-      ? {}
-      : { aiDifficulty: assignment.aiDifficulty }),
-    isHost: assignment.isHost,
-    ...(assignment.leaving === undefined
-      ? {}
-      : { leaving: assignment.leaving }),
-    playerToken: null,
-  };
-}
+export type GameEventType = Extract<RealtimeNotification, { version: number }>["type"];
+export type SeatEventType = Exclude<RealtimeNotification["type"], GameEventType>;
+export const REALTIME_SEND_TIMEOUT_MS = 5_000;
 
 export type PublishGameEventResult =
   | { readonly ok: true }
   | { readonly ok: false; readonly error: Error };
 
-export async function publishGameEvent(
-  gameId: string,
-  type: GameEventType,
-  version: number,
-  payload: GameEventPayload,
-): Promise<PublishGameEventResult> {
-  let client: ReturnType<typeof createSupabaseServerClient> | null = null;
-  let channel: ReturnType<
-    ReturnType<typeof createSupabaseServerClient>["channel"]
-  > | null = null;
-  try {
-    const event = realtimeGameEventSchema.parse({
-      type,
-      gameId,
-      version,
-      ...payload,
-    });
-    client = createSupabaseServerClient();
-    channel = client.channel(`game:${gameId}`);
-    const result = await channel.send({
-      type: "broadcast",
-      event: type,
-      payload: event,
-    });
-    if (result !== "ok") {
-      throw new Error(`Supabase Realtime returned ${result}`);
-    }
-    return { ok: true };
-  } catch (error) {
-    console.error(`Unable to publish ${type} for game ${gameId}`, error);
-    return {
-      ok: false,
-      error: error instanceof Error ? error : new Error(String(error)),
-    };
-  } finally {
-    if (client && channel) {
-      await client.removeChannel(channel).catch(() => undefined);
-    }
-  }
+// Do not log exceptions: transport errors can contain credentials or response data.
+export function logNotificationFailure(
+  phase: "schedule" | "publish" | "cleanup",
+  event: RealtimeNotification,
+  startedAt: number,
+): void {
+  console.error("Realtime notification failed", {
+    phase,
+    type: event.type,
+    gameId: event.gameId,
+    ...("version" in event ? { version: event.version } : {}),
+    elapsedMs: Math.max(0, Date.now() - startedAt),
+  });
 }
 
-export async function publishSeatEvent(
-  gameId: string,
-  type: Extract<
-    GameEventType,
-    | "seat_claimed"
-    | "seat_name_updated"
-    | "seat_released"
-    | "seat_bot_assigned"
-  >,
-  assignment: SeatAssignment,
-): Promise<PublishGameEventResult> {
+export async function publishNotification(input: RealtimeNotification): Promise<PublishGameEventResult> {
+  const startedAt = Date.now();
+  let event: RealtimeNotification | undefined;
+  let client: ReturnType<typeof createSupabaseServerClient> | undefined;
+  let channel: ReturnType<ReturnType<typeof createSupabaseServerClient>["channel"]> | undefined;
   try {
-    const game = await getPublicGame(
-      createSupabaseGameRepository(),
-      gameId,
-      null,
-    );
-    return await publishGameEvent(gameId, type, game.version, {
-      game: toBroadcastGame(game),
-      seat: toBroadcastSeat(assignment),
-    });
-  } catch (error) {
-    console.error(`Unable to prepare ${type} for game ${gameId}`, error);
-    return {
-      ok: false,
-      error: error instanceof Error ? error : new Error(String(error)),
-    };
+    event = realtimeNotificationSchema.parse(input);
+    client = createSupabaseServerClient();
+    channel = client.channel(`game:${event.gameId}`);
+    const result = await channel.send({
+      type: "broadcast",
+      event: event.type,
+      payload: event,
+    }, { timeout: REALTIME_SEND_TIMEOUT_MS });
+    if (result !== "ok") throw new Error("Realtime delivery failed");
+    return { ok: true };
+  } catch {
+    // Invalid input is never logged; only validated notification fields are safe.
+    if (event) logNotificationFailure("publish", event, startedAt);
+    return { ok: false, error: new Error("Realtime delivery failed") };
+  } finally {
+    if (client && channel) {
+      try {
+        const result = await client.removeChannel(channel);
+        if (result !== "ok" && event) logNotificationFailure("cleanup", event, startedAt);
+      } catch {
+        if (event) logNotificationFailure("cleanup", event, startedAt);
+      }
+    }
   }
 }

@@ -59,3 +59,35 @@ describe("realtimeGameEventSchema", () => {
     expect(realtimeGameEventSchema.safeParse(invalidEvent).success).toBe(false);
   });
 });
+
+it("normalizes legacy seat payloads without retaining their contents or version", () => {
+  expect(realtimeGameEventSchema.parse(event)).toEqual({ type: "seat_claimed", gameId: "game-1" });
+});
+
+it.each([
+  { type: "player_action", gameId: "game-1", version: 3 },
+  { type: "ai_decision", gameId: "game-1", version: 3 },
+  { type: "seat_name_updated", gameId: "game-1" },
+])("accepts a compact $type event", compact => {
+  expect(realtimeGameEventSchema.parse(compact)).toEqual(compact);
+});
+
+it("normalizes a validated legacy game and AI decision", () => {
+  const legacy = { type: event.type, gameId: event.gameId, version: event.version, game: event.game };
+  expect(realtimeGameEventSchema.parse({ ...legacy, type: "player_action" })).toEqual({ type: "player_action", gameId: "game-1", version: 3 });
+  expect(realtimeGameEventSchema.parse({ ...legacy, type: "ai_decision", aiDecision: {
+    action: "check", amount: null, bot: { id: "rules", label: "Rules", provider: "rules", modelId: null },
+    botProfileId: null, probabilities: null, confidence: null, sizing: null, matchedRule: null,
+  } })).toEqual({ type: "ai_decision", gameId: "game-1", version: 3 });
+});
+
+it.each([
+  { type: "player_action", gameId: "game-1" },
+  { type: "player_action", gameId: "game-1", version: 3, privateState: "secret" },
+  { type: "seat_name_updated", gameId: "game-1", version: 3 },
+  { type: "seat_claimed", gameId: "" },
+  { type: "ai_decision", gameId: "game-1", version: 3, game: {} },
+  null,
+])("rejects malformed compact payloads", invalid => {
+  expect(realtimeGameEventSchema.safeParse(invalid).success).toBe(false);
+});

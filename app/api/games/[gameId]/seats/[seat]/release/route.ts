@@ -4,7 +4,7 @@ import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
 import { releaseSeat } from "@/lib/poker/game-service";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
-import { publishSeatEvent } from "@/lib/realtime/publish";
+import { scheduleSeatEvent } from "@/lib/realtime/schedule";
 
 interface ReleaseSeatRouteContext {
   readonly params: Promise<{ gameId: string; seat: string }>;
@@ -33,7 +33,7 @@ export async function POST(request: Request, context: ReleaseSeatRouteContext) {
       expectedVersion as number,
     );
     invalidatePublicDirectory();
-    void publishSeatEvent(gameId, "seat_released", assignment);
+    scheduleSeatEvent(gameId, "seat_released");
     return NextResponse.json({ seat: assignment }, { status: 200 });
   } catch (error) {
     if (error instanceof Error && error.name === "GameConflictError") {

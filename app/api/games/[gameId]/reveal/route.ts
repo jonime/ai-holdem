@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
 import { GameNotFoundError, revealHumanCards } from "@/lib/poker/game-service";
-import { publishGameEvent, toBroadcastGame } from "@/lib/realtime/publish";
+import { scheduleGameEvent } from "@/lib/realtime/schedule";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
@@ -37,9 +37,7 @@ export async function POST(request: Request, context: RevealRouteContext) {
       input.handNumber,
       getOrCreatePlayerToken(request),
     );
-    void publishGameEvent(gameId, "cards_revealed", game.version, {
-      game: toBroadcastGame(game),
-    });
+    scheduleGameEvent(gameId, "cards_revealed", game.version);
     return NextResponse.json({ game });
   } catch (error) {
     if (error instanceof GameNotFoundError) {

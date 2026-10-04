@@ -4,7 +4,7 @@ import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
 import { assignBotToSeat } from "@/lib/poker/game-service";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
-import { publishSeatEvent } from "@/lib/realtime/publish";
+import { scheduleSeatEvent } from "@/lib/realtime/schedule";
 import type { AIDifficulty } from "@/lib/poker/types";
 import { getBotCatalog } from "@/lib/bots/registry";
 import { isBotPlaystyleId } from "@/lib/bots/llm-playstyles";
@@ -88,7 +88,7 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
       expectedVersion as number,
     );
     invalidatePublicDirectory();
-    void publishSeatEvent(gameId, "seat_bot_assigned", assignment);
+    scheduleSeatEvent(gameId, "seat_bot_assigned");
     return NextResponse.json({ seat: assignment }, { status: 200 });
   } catch (error) {
     if (error instanceof Error && error.name === "GameConflictError") {
