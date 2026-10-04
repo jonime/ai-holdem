@@ -217,7 +217,12 @@ Every route is served under `/{locale}/` for ten supported locales. Dictionaries
 live in `lib/i18n/dictionaries/` as `server-only` modules split by route group
 (`metadata`, `landing-server`, `join-game`, `game`). Server Components load them directly
 through `lib/i18n/server`; client game components receive the game route's
-`I18nProvider`. The landing page uses a server-rendered language menu and plain
+`I18nProvider`. The landing and About pages use a server-only language menu with a native
+`<dialog popover="auto">`: outside clicks and Escape dismiss it, and ordinary
+locale links navigate to a new document so the menu closes on selection. CSS
+anchor positioning places it below the trigger, with a centered fallback;
+browsers without popover support show the language links inline.
+The landing page uses plain
 HTML forms for one-click quick play and custom-table creation without JavaScript. See
 [CONTRIBUTING.md](CONTRIBUTING.md) for how to add keys or locales.
 

@@ -6,11 +6,14 @@
   color: #56716b;
   font-family: var(--font-space-grotesk), sans-serif;
   font-size: 14px;
+  text-align: center;
   font-weight: 700;
 }
 
-.menu summary {
+.menu button {
+  anchor-name: --language-menu-trigger;
   min-width: 126px;
+  font: inherit;
   padding: 7px 10px;
   border: 1px solid #9db5aa;
   border-radius: 4px;
@@ -20,24 +23,55 @@
   text-align: center;
 }
 
-.menu summary:focus-visible {
+.menu button:focus-visible {
   outline: 3px solid rgba(226, 123, 85, 0.45);
   outline-offset: 2px;
 }
 
-.menu ul {
-  position: absolute;
-  top: calc(100% + 5px);
-  right: 0;
+.menu dialog {
+  position: fixed;
+  inset: 0;
   width: max-content;
-  min-width: 100%;
-  margin: 0;
+  min-width: 126px;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  margin: auto;
   padding: 5px;
+  overflow: auto;
   border: 1px solid #9db5aa;
   border-radius: 4px;
   background: #fffdf7;
+  color: var(--felt-dark);
   box-shadow: 3px 4px 0 rgba(16, 59, 51, 0.15);
+}
+
+@supports (top: anchor(bottom)) {
+  .menu dialog {
+    position-anchor: --language-menu-trigger;
+    inset: auto;
+    top: anchor(bottom);
+    right: anchor(right);
+    margin: 5px 0 0;
+    max-height: min(440px, calc(100dvh - 120px));
+  }
+}
+
+.menu ul {
+  margin: 0;
+  padding: 0;
   list-style: none;
+}
+
+/* Keep language navigation available in older browsers without popovers. */
+@supports not selector(:popover-open) {
+  .menu button {
+    display: none;
+  }
+
+  .menu dialog {
+    display: block;
+    position: static;
+  }
 }
 
 .menu li + li {

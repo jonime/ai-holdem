@@ -26,58 +26,64 @@
 .homeLink {
   padding: 8px 0;
   text-decoration: none;
+  color: var(--felt-dark);
 }
 
-.card h1,
-.card h2,
-.card h3,
-.card h4 {
+.homeLink:hover,
+.homeLink:focus-visible {
+  color: var(--coral);
+}
+
+.content h1,
+.content h2,
+.content h3,
+.content h4 {
   font-family: var(--font-space-grotesk), sans-serif;
 }
 
-.card h1 {
+.content h1 {
   margin-bottom: 24px;
 }
 
-.card h2 {
+.content h2 {
   margin: 40px 0 14px;
   color: var(--felt-dark);
   font-size: clamp(24px, 4vw, 32px);
 }
 
-.card h3 {
+.content h3 {
   margin: 28px 0 10px;
   color: var(--coral);
   font-size: 21px;
 }
 
-.card h4 {
+.content h4 {
   margin: 18px 0 8px;
   font-size: 17px;
 }
 
-.card p,
-.card li {
+.content p,
+.content li {
   color: #405d57;
   font-size: 17px;
   line-height: 1.65;
 }
 
-.card ul {
+.content ul {
   padding-left: 24px;
 }
 
-.card li + li {
+.content li + li {
   margin-top: 8px;
 }
 
-.card a {
+.content a {
   color: var(--felt-dark);
   font-weight: 700;
 }
 
-.card a:hover,
-.card a:focus-visible {
+.content a:hover,
+.content a:focus-visible {
   color: var(--coral);
 }
 

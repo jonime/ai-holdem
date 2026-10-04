@@ -44,7 +44,9 @@ export default async function AboutPage({ params }: AboutPageProps) {
           </Link>
           <LanguageMenu locale={lang} pathname="/about" />
         </nav>
-        <AboutContent />
+        <div className={styles.content}>
+          <AboutContent />
+        </div>
       </article>
     </main>
   );
