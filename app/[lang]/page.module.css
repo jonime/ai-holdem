@@ -105,6 +105,64 @@
   color: var(--coral);
 }
 
+.content {
+  max-width: 640px;
+  margin: 28px auto 0;
+  padding: 24px;
+  border: 1px solid var(--line);
+  background: #f6f5ee;
+  color: #344d45;
+  font-size: 16px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.content section + section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+
+.content h2,
+.content h3 {
+  color: var(--felt-dark);
+  font-family: var(--font-space-grotesk), sans-serif;
+  line-height: 1.35;
+}
+
+.content h2 {
+  margin: 0 0 14px;
+  font-size: 20px;
+}
+
+.content h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.content p {
+  margin-bottom: 12px;
+}
+
+.content p:last-child {
+  margin-bottom: 0;
+}
+
+.content a {
+  color: var(--felt-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.content a:hover,
+.content a:focus-visible {
+  color: var(--felt);
+}
+
+.faqItem + .faqItem {
+  margin-top: 18px;
+}
+
 @media (max-width: 560px) {
   .home {
     padding: 10px 8px 16px;
@@ -122,5 +180,9 @@
 
   .joinGame {
     width: 100%;
+  }
+
+  .content {
+    padding: 20px;
   }
 }

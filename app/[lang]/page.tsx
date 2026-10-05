@@ -32,6 +32,16 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
     isAccessibleForFree: true,
     codeRepository: "https://github.com/jonime/ai-holdem",
   };
+  const faqItems = Object.values(landing.content.faq.items);
+  const faqStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map(({ question, answer }) => ({
+      "@type": "Question",
+      name: question,
+      acceptedAnswer: { "@type": "Answer", text: answer },
+    })),
+  };
 
   return (
     <main className={styles.home}>
@@ -93,6 +103,37 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
           GitHub
         </a>
       </nav>
+      <div className={styles.content}>
+        <section aria-labelledby="play-heading">
+          <h2 id="play-heading">{landing.content.play.title}</h2>
+          <p>{landing.content.play.intro}</p>
+          <p>{landing.content.play.tables}</p>
+        </section>
+        <section aria-labelledby="bots-heading">
+          <h2 id="bots-heading">{landing.content.bots.title}</h2>
+          <p>{landing.content.bots.description}</p>
+          <p>
+            <Link href={`/${lang}/about`}>
+              {landing.content.bots.aboutLink}
+            </Link>
+          </p>
+        </section>
+        <section aria-labelledby="faq-heading">
+          <h2 id="faq-heading">{landing.content.faq.title}</h2>
+          {faqItems.map(({ question, answer }) => (
+            <div className={styles.faqItem} key={question}>
+              <h3>{question}</h3>
+              <p>{answer}</p>
+            </div>
+          ))}
+        </section>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(faqStructuredData).replace(/</g, "\\u003c"),
+          }}
+        />
+      </div>
     </main>
   );
 }
