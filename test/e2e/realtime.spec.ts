@@ -28,7 +28,7 @@ async function createTable(page: Page) {
 }
 
 // Run these against a changed Vercel preview as well as the isolated local server.
-test("actual Realtime delivers committed game and same-version seat changes before polling", async ({ page, browser }) => {
+test("actual Realtime delivers committed game and same-version seat changes before polling", { tag: "@smoke" }, async ({ page, browser }) => {
   test.setTimeout(45_000);
   const gameId = await createTable(page);
   const secondContext = await browser.newContext();
@@ -71,7 +71,7 @@ test("actual Realtime delivers committed game and same-version seat changes befo
   }
 });
 
-test("blocked delivery recovers through fallback polling", async ({ page, browser }) => {
+test("blocked delivery recovers through fallback polling", { tag: "@smoke" }, async ({ page, browser }) => {
   test.setTimeout(30_000);
   const gameId = await createTable(page);
   const secondContext = await browser.newContext();

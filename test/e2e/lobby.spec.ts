@@ -9,7 +9,7 @@ async function waitForPlayableHuman(page: Page) {
   return actionButton;
 }
 
-test("starts six-seat Quick Play and advances the opening bot turns", async ({
+test("starts six-seat Quick Play and advances the opening bot turns", { tag: "@smoke" }, async ({
   page,
 }) => {
   test.setTimeout(30_000);
@@ -193,7 +193,7 @@ test("recovers through polling and after coming back online", async ({
   await spectatorContext.close();
 });
 
-test("runs the deterministic bot through completion, history, and another hand", async ({
+test("runs the deterministic bot through completion, history, and another hand", { tag: "@smoke" }, async ({
   page,
 }) => {
   test.setTimeout(60_000);
@@ -224,12 +224,12 @@ test("runs the deterministic bot through completion, history, and another hand",
   await expect(fold).toBeEnabled({ timeout: 10_000 });
   await fold.click();
   await expect(page.getByText("COMPLETE")).toBeVisible({ timeout: 15_000 });
-  await page.getByRole("button", { name: "History" }).click();
-  await expect(page.getByText("Action History")).toBeVisible();
-  await expect(
-    page.getByRole("listitem").filter({ hasText: "Equity Rules" }).first(),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Close action history" }).click();
+  const actions = page.getByRole("complementary", { name: "Actions" });
+  await expect(actions).toBeVisible();
+  await expect(actions.getByRole("listitem").filter({ hasText: "Equity Rules" }).first()).toBeVisible();
+  const gameId = new URL(page.url()).pathname.split("/").at(-1);
+  const history = await page.request.get(`/api/games/${gameId}/history?hand=1`);
+  expect(history.ok()).toBe(true);
 
   await page.getByRole("button", { name: "Next Hand" }).click();
   await expect(page.getByText("Hand 2")).toBeVisible({ timeout: 15_000 });
@@ -319,7 +319,7 @@ test("copies a clean invite URL and exposes a manual fallback", async ({
     .toEqual([0, cleanUrl.length]);
 });
 
-test("claims, moves, assigns bots, and releases seats while retaining unseated host authority", async ({ page, browser }) => {
+test("claims, moves, assigns bots, and releases seats while retaining unseated host authority", { tag: "@smoke" }, async ({ page, browser }) => {
   await page.goto("/en-US");
   await page.getByRole("button", { name: "Create custom table" }).click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();

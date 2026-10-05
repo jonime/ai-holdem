@@ -9,3 +9,5 @@ test-results
 next-env.d.ts
 supabase/.branches/
 supabase/.temp/
+playwright-report
+integration-logs
