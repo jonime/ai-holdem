@@ -224,6 +224,7 @@ const dictionary = {
     botRateLimited: "Botin palveluntarjoaja rajoittaa pyyntöjä. Peli on tauolla; voit yrittää myöhemmin uudelleen.",
     botInvalidResponse: "Botin palveluntarjoaja palautti virheellisen vastauksen. Peli on tauolla; voit yrittää uudelleen.",
     botProvider: "Botin palveluntarjoajalla tapahtui virhe. Peli on tauolla; voit yrittää uudelleen.",
+    botTurnUnfinished: "Botin vuoro ei valmistunut. Yritä uudelleen.",
     retryBot: "Yritä bottia uudelleen",
     submitAction: "Toiminnon lähettäminen epäonnistui",
     nextHand: "Seuraavan käden aloittaminen epäonnistui",

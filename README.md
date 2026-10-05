@@ -39,6 +39,10 @@ Other spectators watch passively; new hands require explicit interaction.
 See the [gameplay guide](docs/gameplay.md) for betting controls, invitations,
 watching, results, and the Actions timeline.
 
+Every bot turn uses a 90-second Postgres claim so competing browsers quietly
+observe while one request infers. An abandoned turn requires explicit **Retry bot**
+after its wait expires. Claims fence late results and do not guarantee exactly-once
+provider billing. Apply the claim migration before deploying and drain old instances.
 TypeSafe and LLM requests share a 60-second deadline. Temporary failures pause
 play with a localized error and explicit **Retry bot**; polling does not retry
 the failed turn. See [provider behavior](docs/architecture.md) and the

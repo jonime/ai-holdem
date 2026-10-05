@@ -1,3 +1,5 @@
+import { withBotClaims } from "@/test/fixtures/bot-claims";
+import { BotStepInProgressError } from "./bot-step-claims";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { BotProviderError, LLM_CREDIT_EXIT_RULE } from "@/lib/bots/types";
 import { providerHttpFailureDiagnostics } from "@/lib/bots/provider-http-failure";
@@ -37,7 +39,7 @@ function setup(status = 402, provider: BotDescriptor["provider"] = "llm") {
       return stored;
     }),
   };
-  return { repository, registry: { get: () => ({ bot: { decide }, descriptor: botDescriptor }) }, decide, failure, currentState };
+  return { repository: withBotClaims(repository), registry: { get: () => ({ bot: { decide }, descriptor: botDescriptor }) }, decide, failure, currentState };
 }
 
 afterEach(() => vi.restoreAllMocks());
@@ -118,7 +120,7 @@ describe("bot credit departure", () => {
     ]);
     expect(results.filter(result => result.status === "fulfilled")).toHaveLength(1);
     const rejected = results.find(result => result.status === "rejected");
-    expect(rejected?.status === "rejected" && rejected.reason).toBeInstanceOf(GameConflictError);
+    expect(rejected?.status === "rejected" && rejected.reason).toBeInstanceOf(BotStepInProgressError);
     expect((await repository.getGame()).version).toBe(2);
     expect((await repository.getSeatAssignments())[1].leaving).toBe(true);
     expect(warn).toHaveBeenCalledOnce();

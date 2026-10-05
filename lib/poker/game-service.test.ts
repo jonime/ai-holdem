@@ -1,3 +1,5 @@
+import { withBotClaims } from "@/test/fixtures/bot-claims";
+import { BotStepInProgressError } from "./bot-step-claims";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -2055,7 +2057,7 @@ describe("bot driver authorization", () => {
     const get = vi.fn();
     const repository = { getGame: async () => game, getHostToken: async () => null,
       getSeatAssignments: async () => [], persistAIAction };
-    await expect(stepBotAction(repository, { get }, "game-1", 0, token)).rejects.toBeInstanceOf(BotStepForbiddenError);
+    await expect(stepBotAction(withBotClaims(repository), { get }, "game-1", 0, token)).rejects.toBeInstanceOf(BotStepForbiddenError);
     await expect(stepTypesafeAction(repository, { evaluate }, "game-1", token)).rejects.toBeInstanceOf(BotStepForbiddenError);
     expect(get).not.toHaveBeenCalled();
     expect(evaluate).not.toHaveBeenCalled();
@@ -2070,7 +2072,7 @@ describe("bot driver authorization", () => {
         gameId: "game-1", seat: 0, controller: "human" as const, status: "claimed" as const,
         playerToken: token, isHost: false,
       }], persistAIAction: vi.fn() };
-    await expect(stepBotAction(repository, { get }, "game-1", 1, token)).rejects.toThrow("provider reached");
+    await expect(stepBotAction(withBotClaims(repository), { get }, "game-1", 1, token)).rejects.toThrow("provider reached");
     expect(get).toHaveBeenCalledOnce();
     expect(repository.persistAIAction).not.toHaveBeenCalled();
   });
@@ -2078,11 +2080,7 @@ describe("bot driver authorization", () => {
   it("persists exactly one action when two authorized browsers race", async () => {
     let stored: PersistedGame = game;
     let commits = 0;
-    let release!: () => void;
-    const both = new Promise<void>(resolve => { release = resolve; });
     const decide = vi.fn(async () => {
-      if (decide.mock.calls.length === 2) release();
-      await both;
       return { action: { type: "check" as const }, diagnostics: emptyDiagnostics(), rawResponse: null };
     });
     const repository = {
@@ -2098,16 +2096,17 @@ describe("bot driver authorization", () => {
     const registry = { get: () => ({ bot: { decide }, descriptor: {
       id: "rules", label: "Rules", provider: "rules" as const, modelId: null,
     } }) };
+    const claimedRepository = withBotClaims(repository);
     const results = await Promise.allSettled([
-      stepBotAction(repository, registry, "game-1", 1, "owner"),
-      stepBotAction(repository, registry, "game-1", 1, "owner"),
+      stepBotAction(claimedRepository, registry, "game-1", 1, "owner"),
+      stepBotAction(claimedRepository, registry, "game-1", 1, "owner"),
     ]);
-    expect(decide).toHaveBeenCalledTimes(2);
+    expect(decide).toHaveBeenCalledTimes(1);
     expect(commits).toBe(1);
     expect(stored.version).toBe(2);
     expect(results.filter(result => result.status === "fulfilled")).toHaveLength(1);
     const rejected = results.find(result => result.status === "rejected");
-    expect(rejected?.status === "rejected" && rejected.reason).toBeInstanceOf(GameConflictError);
+    expect(rejected?.status === "rejected" && rejected.reason).toBeInstanceOf(BotStepInProgressError);
   });
 
   it("fails closed when ownership and identity are absent in the legacy seam", async () => {

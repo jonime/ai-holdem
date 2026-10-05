@@ -225,6 +225,7 @@ const dictionary = {
     botRateLimited: "Dostawca bota ogranicza liczbę żądań. Gra jest wstrzymana; możesz spróbować ponownie później.",
     botInvalidResponse: "Dostawca bota zwrócił nieprawidłową odpowiedź. Gra jest wstrzymana; możesz spróbować ponownie.",
     botProvider: "Wystąpił błąd dostawcy bota. Gra jest wstrzymana; możesz spróbować ponownie.",
+    botTurnUnfinished: "Tura bota nie została zakończona. Spróbuj ponownie.",
     retryBot: "Spróbuj ponownie",
     submitAction: "Nie udało się wysłać akcji",
     nextHand: "Nie udało się rozpocząć następnego rozdania",

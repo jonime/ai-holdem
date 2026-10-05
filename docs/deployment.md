@@ -87,6 +87,15 @@ for local SQL, benchmark, and browser verification.
 Broadcast requires no additional SQL migration. Realtime lifecycle changes also
 require the [deployed two-browser smoke test](../CONTRIBUTING.md#realtime-lifecycle-changes).
 
+`20261015000000_add_bot_step_claims.sql` adds the service-role-only claim table,
+90-second acquisition/release RPCs and ordinary/credit-departure commit wrappers.
+Apply it after all earlier migrations and before deploying claim-aware code.
+Drain old application instances before relying on inference deduplication: older
+instances can still call the unfenced mutation RPCs. Claims require no backfill,
+scheduler or lease renewal. Verify with `npm run test:sql:bot-claims` and
+`npm run test:e2e:smoke -- --grep claim`. Expired leases permit crash recovery but
+do not guarantee exactly-once provider billing.
+
 `20261014000000_add_atomic_bot_credit_departure.sql` adds the service-role-only
 `apply_ai_action_and_leave_if_version` RPC. Apply it before deploying the LLM
 credit fallback. It atomically commits a legal fold and marks the bot leaving;

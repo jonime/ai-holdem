@@ -1,3 +1,4 @@
+import { BotStepInProgressError, BotStepClaimLostError } from "@/lib/poker/bot-step-claims";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "./route";
 import { POST as action } from "./action/route";
@@ -160,4 +161,15 @@ describe("gameplay route contracts", () => {
     } finally { warn.mockRestore(); }
   });
 
+});
+
+it.each([
+  { error: new BotStepInProgressError(90_000), body: { error: "Bot step in progress", code: "BOT_STEP_IN_PROGRESS", retryAfterMs: 90_000 } },
+  { error: new BotStepClaimLostError(), body: { error: "Bot step claim lost", code: "BOT_STEP_CLAIM_LOST" } },
+])("returns neutral claim conflicts without scheduling notifications", async ({ error, body }) => {
+  advance.mockRejectedValue(error);
+  const response = await step(request({ expectedVersion: 1 }), context);
+  expect(response.status).toBe(409);
+  expect(await response.json()).toEqual(body);
+  expect(schedule).not.toHaveBeenCalled();
 });

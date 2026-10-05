@@ -28,12 +28,38 @@ unauthorized `/step` requests with HTTP 403 before resolving a provider or
 requesting inference. Bots pause when no eligible browser remains open.
 
 Each browser runs at most one advancement loop, stopping at a human turn or hand
-completion. Starting another hand still requires explicit interaction. Multiple
-authorized browsers can race and request duplicate inference, but expected-version
-checks allow only one action to commit. A losing bot-step loop stops and refetches
-silently; refresh failures and genuine provider errors remain visible, and eligible
-viewers can retry. There is no worker, leader election, cross-browser lock, or
-inference deduplication.
+completion. Starting another hand still requires explicit interaction. Every
+production step, including Equity Rules, requires an atomic Postgres claim after
+caller authorization, expected-version and bot-turn checks, before provider
+resolution, context preparation or inference. The service-role-only
+`bot_step_claims` table holds at most one claim per game, cascading on deletion.
+`acquire_bot_step_claim` locks the game row and creates/replaces an expired or
+obsolete claim, or returns busy with a database-time expiry and bounded wait.
+The 90-second lease exceeds the provider's 60-second deadline, is never renewed,
+and holds no database transaction open during inference.
+
+`commit_bot_action_with_claim` and `commit_bot_departure_with_claim` lock the game,
+verify the version, actor, token and unexpired ownership, call the existing
+mutation, and consume the claim in the same transaction. Existing history,
+reveals and credit-departure behavior remain intact. Lost tokens cannot commit.
+A token-matched release runs in `finally`; cleanup failures never mask the original
+error or invalidate a committed action. Expiry provides abandoned-request recovery.
+Claim operations do not increment game versions or publish Realtime events, and
+tokens remain internal and absent from DTOs, notifications and logs.
+
+HTTP 409 `BOT_STEP_IN_PROGRESS` includes validated `retryAfterMs` (1–90,000).
+Observing browsers stop posting and wait neutrally for existing Realtime/polling.
+Advancement clears version-scoped waits and resumes eligibility-based stepping.
+An unchanged version at the wait deadline displays a localized unfinished-turn
+message and requires explicit retry, which refetches latest state and guards
+duplicate clicks. Navigation or eligibility loss cancels timers. HTTP 409
+`BOT_STEP_CLAIM_LOST` immediately refetches and offers explicit retry if the same
+bot turn remains. Neither code is a provider failure. Provider errors remain
+visible in the initiating browser; observers may wait until their deadline.
+Version conflicts stop the stale loop and refetch silently; refresh failures stay
+visible. No background worker, scheduler, general rate limiter or exactly-once
+billing guarantee is introduced. Lease expiry can permit another inference after
+a crash; fencing protects commits. Full deduplication requires old instances to drain.
 
 Game updates use Supabase Realtime Broadcast as a refetch signal. Successful
 mutations schedule one send through Next.js `after()` so publication and cleanup

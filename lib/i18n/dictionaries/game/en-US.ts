@@ -224,6 +224,7 @@ const dictionary = {
     botRateLimited: "The bot provider is rate limiting requests. Play is paused; you may retry later.",
     botInvalidResponse: "The bot provider returned an invalid response. Play is paused; you may retry.",
     botProvider: "The bot provider failed. Play is paused; you may retry.",
+    botTurnUnfinished: "The bot turn did not finish. Retry.",
     retryBot: "Retry bot",
     submitAction: "Unable to submit action",
     nextHand: "Unable to start next hand",

@@ -1,3 +1,4 @@
+import { BotStepClaimLostError } from "@/lib/poker/bot-step-claims";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -88,6 +89,17 @@ describe("SupabaseGameRepository", () => {
       leaveSeat ? "apply_ai_action_and_leave_if_version" : "apply_ai_action_if_version",
       expect.objectContaining({ p_expected_version: 3, p_action: "fold", p_player_engine_id: "bot" }),
     );
+    rpc.mockClear();
+    const claimed = { ...input, claimToken: "d06c1650-b45f-4ead-8ab9-65de9d402b17" };
+    await expect(repository.persistClaimedAIAction({ ...claimed, claimToken: "" })).rejects.toThrow();
+    expect(rpc).not.toHaveBeenCalled();
+    await repository.persistClaimedAIAction(claimed);
+    expect(rpc).toHaveBeenCalledExactlyOnceWith(
+      leaveSeat ? "commit_bot_departure_with_claim" : "commit_bot_action_with_claim",
+      expect.objectContaining({ p_claim_token: "d06c1650-b45f-4ead-8ab9-65de9d402b17", p_expected_version: 3, p_action: "fold" }),
+    );
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "BOT_STEP_CLAIM_LOST" } });
+    await expect(repository.persistClaimedAIAction(claimed)).rejects.toBeInstanceOf(BotStepClaimLostError);
     expect(update).not.toHaveBeenCalled();
     rpc.mockResolvedValue({ data: [], error: null });
     await expect(repository.persistAIAction(input)).rejects.toBeInstanceOf(GameConflictError);
@@ -742,4 +754,22 @@ describe("private bot hand context read", () => {
     rpc.mockResolvedValue({ data:null,error:{ message:"database unavailable" } });
     await expect(repo.getBotHandContext("game-1",2)).rejects.toThrow("Unable to load bot hand context");
   });
+});
+
+it("parses claim outcomes defensively and releases only the supplied token", async () => {
+  const { client, rpc } = createClient({ updateResult: { outcome: "acquired" } });
+  const repository = new SupabaseGameRepository(client);
+  const input = { gameId: "game", expectedVersion: 1, actorEngineId: "bot", claimToken: "secret" };
+  await expect(repository.acquireBotStepClaim(input)).resolves.toEqual({ outcome: "acquired" });
+  expect(rpc).toHaveBeenLastCalledWith("acquire_bot_step_claim", { p_game_id: "game", p_expected_version: 1, p_actor_engine_id: "bot", p_claim_token: "secret" });
+  rpc.mockResolvedValueOnce({ data: { outcome: "busy", expiresAt: new Date().toISOString(), retryAfterMs: 90000 }, error: null });
+  await expect(repository.acquireBotStepClaim(input)).resolves.toMatchObject({ outcome: "busy", retryAfterMs: 90000 });
+  rpc.mockResolvedValueOnce({ data: { outcome: "busy", retryAfterMs: -1 }, error: null });
+  await expect(repository.acquireBotStepClaim(input)).rejects.toThrow();
+  rpc.mockResolvedValueOnce({ data: { outcome: "conflict" }, error: null });
+  await expect(repository.acquireBotStepClaim(input)).rejects.toBeInstanceOf(GameConflictError);
+  rpc.mockResolvedValueOnce({ data: null, error: { message: "private token secret" } });
+  await expect(repository.acquireBotStepClaim(input)).rejects.toThrow("Unable to acquire bot step claim");
+  await repository.releaseBotStepClaim("game", "secret");
+  expect(rpc).toHaveBeenLastCalledWith("release_bot_step_claim", { p_game_id: "game", p_claim_token: "secret" });
 });

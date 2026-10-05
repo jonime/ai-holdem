@@ -200,3 +200,14 @@ it("preserves abort identity when JSON decoding rejects after cancellation", asy
   } }));
   await expect(api.games.get({ gameId: "game" }, { signal: controller.signal })).rejects.toMatchObject({ name: "AbortError" });
 });
+
+it("validates the bounded contention wait and preserves claim-lost errors", async () => {
+  mockResponse({ code: "BOT_STEP_IN_PROGRESS", retryAfterMs: 90_000 }, 409);
+  await expect(api.games.stepBot({ gameId: "game", expectedVersion: 1 })).rejects.toMatchObject({ status: 409, code: "BOT_STEP_IN_PROGRESS", retryAfterMs: 90_000 });
+  for (const retryAfterMs of [undefined, -1, 0, 90_001, 1.5, "1000"]) {
+    mockResponse({ code: "BOT_STEP_IN_PROGRESS", retryAfterMs }, 409);
+    await expect(api.games.stepBot({ gameId: "game", expectedVersion: 1 })).rejects.toThrow("Invalid error response payload");
+  }
+  mockResponse({ code: "BOT_STEP_CLAIM_LOST" }, 409);
+  await expect(api.games.stepBot({ gameId: "game", expectedVersion: 1 })).rejects.toMatchObject({ code: "BOT_STEP_CLAIM_LOST", status: 409 });
+});

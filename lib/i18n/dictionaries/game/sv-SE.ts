@@ -224,6 +224,7 @@ const dictionary = {
     botRateLimited: "Bottens leverantör begränsar antalet förfrågningar. Spelet är pausat; du kan försöka igen senare.",
     botInvalidResponse: "Bottens leverantör gav ett ogiltigt svar. Spelet är pausat; du kan försöka igen.",
     botProvider: "Ett fel uppstod hos bottens leverantör. Spelet är pausat; du kan försöka igen.",
+    botTurnUnfinished: "Bottens tur blev inte klar. Försök igen.",
     retryBot: "Försök med botten igen",
     submitAction: "Det gick inte att skicka åtgärden",
     nextHand: "Det gick inte att starta nästa giv",

@@ -224,6 +224,7 @@ const dictionary = {
     botRateLimited: "Il fornitore del bot sta limitando le richieste. La partita è in pausa; puoi riprovare più tardi.",
     botInvalidResponse: "Il fornitore del bot ha restituito una risposta non valida. La partita è in pausa; puoi riprovare.",
     botProvider: "Si è verificato un errore del fornitore del bot. La partita è in pausa; puoi riprovare.",
+    botTurnUnfinished: "Il turno del bot non è terminato. Riprova.",
     retryBot: "Riprova con il bot",
     submitAction: "Impossibile inviare l’azione",
     nextHand: "Impossibile avviare la mano successiva",

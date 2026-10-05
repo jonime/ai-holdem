@@ -21,7 +21,7 @@ async function fixture(page: Page) {
 
 async function open(page: Page, gameId: string) {
   await page.goto(`/en-US/game/${gameId}`);
-  await expect(page.getByRole("button", { name: "History", exact: true })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Actions", exact: true })).toBeVisible();
 }
 
 async function triggerRefresh(page: Page) {
@@ -153,7 +153,7 @@ test("provider failures allow retry, conflict refresh failures are visible, comp
   await page.route(`**/api/games/${f.gameId}`, r => r.fulfill({ json: { game: f.current() } }));
   await page.getByRole("button", { name: /Retry/ }).click();
   await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
-  expect(steps).toBe(3);
+  await expect.poll(() => steps).toBe(3);
   expect(nextHands).toBe(0);
 });
 
@@ -307,7 +307,7 @@ test("an explicit retry still recovers silently from a competing commit", async 
   await page.getByRole("button", { name: "Retry bot", exact: true }).click();
   await expect(page.getByRole("button", { name: "Retry bot", exact: true })).toHaveCount(0);
   await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
-  expect(steps).toBe(2);
+  await expect.poll(() => steps).toBe(2);
 });
 
 test("a failure after a successful bot step cannot be retried by polling", async ({ page }) => {
@@ -331,4 +331,171 @@ test("a failure after a successful bot step cannot be retried by polling", async
   await page.clock.fastForward(31_000);
   await triggerRefresh(page);
   expect(steps).toBe(2);
+});
+
+test("claim contention waits neutrally, then polling completion resumes advancement", async ({ page }) => {
+  const f = await fixture(page);
+  await page.clock.install();
+  let steps = 0;
+  await page.route(`**/api/games/${f.gameId}/step`, async route => {
+    steps++;
+    if (steps === 1) await route.fulfill({ status: 409, json: { code: "BOT_STEP_IN_PROGRESS", retryAfterMs: 90_000 } });
+    else {
+      f.set(humanTurn(f.current()));
+      await route.fulfill({ json: { game: f.current(), aiDecision: gameplayDecision } });
+    }
+  });
+  await open(page, f.gameId);
+  await expect.poll(() => steps).toBe(1);
+  await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+  await page.clock.fastForward(31_000);
+  expect(steps).toBe(1);
+  f.set({ ...f.current(), version: f.current().version + 1 });
+  await page.clock.fastForward(31_000);
+  await expect.poll(() => steps).toBe(2);
+  await page.clock.fastForward(90_000);
+  await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+  expect(steps).toBe(2);
+});
+
+test("claim contention completes via Realtime without waiting for lease expiry", async ({ page }) => {
+  const f = await fixture(page);
+  await page.clock.install();
+  let sendUpdate: (() => void) | undefined;
+  await page.routeWebSocket(/\/realtime\/v1\/websocket/, socket => {
+    socket.onMessage(message => {
+      if (typeof message !== "string") return;
+      const [joinRef, ref, topic, event] = JSON.parse(message);
+      if (event === "phx_join" || event === "heartbeat") socket.send(JSON.stringify([joinRef, ref, topic, "phx_reply", { status: "ok", response: {} }]));
+      if (event === "phx_join") sendUpdate = () => socket.send(JSON.stringify([joinRef, null, topic, "broadcast", {
+        type: "broadcast", event: "game_updated", payload: { type: "game_updated", gameId: f.gameId, version: f.current().version },
+      }]));
+    });
+  });
+  let steps = 0;
+  let reads = 0;
+  await page.route(`**/api/games/${f.gameId}`, route => { reads++; return route.fulfill({ json: { game: f.current() } }); });
+  await page.route(`**/api/games/${f.gameId}/step`, route => {
+    steps++;
+    return route.fulfill({ status: 409, json: { code: "BOT_STEP_IN_PROGRESS", retryAfterMs: 90_000 } });
+  });
+  await open(page, f.gameId);
+  await expect.poll(() => steps).toBe(1);
+  await expect.poll(() => Boolean(sendUpdate)).toBe(true);
+  f.set(humanTurn(f.current()));
+  sendUpdate!();
+  await page.clock.fastForward(250);
+  await expect.poll(() => reads).toBeGreaterThanOrEqual(2);
+  await page.clock.fastForward(90_000);
+  await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+  expect(steps).toBe(1);
+});
+
+test("claim expiry needs explicit retry, refreshes latest state and rejects duplicate clicks", async ({ page }) => {
+  const f = await fixture(page);
+  await page.clock.install();
+  let steps = 0;
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  await page.route(`**/api/games/${f.gameId}/step`, async route => {
+    steps++;
+    if (steps === 1) return route.fulfill({ status: 409, json: { code: "BOT_STEP_IN_PROGRESS", retryAfterMs: 90_000 } });
+    expect(route.request().postDataJSON().expectedVersion).toBe(f.current().version);
+    await held;
+    f.set(humanTurn(f.current()));
+    await route.fulfill({ json: { game: f.current(), aiDecision: gameplayDecision } });
+  });
+  const contentionResponse = page.waitForResponse(r => r.url().endsWith(`/api/games/${f.gameId}/step`));
+  await open(page, f.gameId);
+  await contentionResponse;
+  await expect.poll(() => steps).toBe(1);
+  await expect(page.getByRole("button", { name: "Stand up", exact: true })).toBeEnabled();
+  // Freeze after hydration and after the contention catch has registered its timer.
+  await page.clock.pauseAt(await page.evaluate(() => Date.now() + 1_000));
+  await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+  await page.clock.fastForward(90_001);
+  await expect(page.locator("main").getByRole("alert")).toContainText("The bot turn did not finish. Retry.");
+  const pollFinished = page.waitForResponse(r => r.url().endsWith(`/api/games/${f.gameId}`));
+  await page.clock.fastForward(31_000);
+  await pollFinished;
+  await expect(page.locator("main").getByRole("alert")).toContainText("The bot turn did not finish. Retry.");
+  expect(steps).toBe(1);
+  // The retry's GET observes a new version before any polling has seen it.
+  f.set({ ...f.current(), version: f.current().version + 1 });
+  await page.getByRole("button", { name: "Retry bot", exact: true }).evaluate(button => {
+    (button as HTMLButtonElement).click(); (button as HTMLButtonElement).click();
+  });
+  await expect.poll(() => steps).toBe(2);
+  release();
+  await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+  expect(steps).toBe(2);
+});
+
+test("lost claim immediately refreshes and requires retry on the same turn", async ({ page }) => {
+  const f = await fixture(page);
+  await page.clock.install();
+  let steps = 0;
+  let reads = 0;
+  await page.route(`**/api/games/${f.gameId}`, route => { reads++; return route.fulfill({ json: { game: f.current() } }); });
+  await page.route(`**/api/games/${f.gameId}/step`, async route => {
+    steps++;
+    if (steps === 1) await route.fulfill({ status: 409, json: { code: "BOT_STEP_CLAIM_LOST" } });
+    else {
+      f.set(humanTurn(f.current()));
+      await route.fulfill({ json: { game: f.current(), aiDecision: gameplayDecision } });
+    }
+  });
+  await open(page, f.gameId);
+  await expect(page.locator("main").getByRole("alert")).toContainText("The bot turn did not finish. Retry.");
+  expect(reads).toBeGreaterThanOrEqual(2);
+  await page.clock.fastForward(31_000);
+  expect(steps).toBe(1);
+  await page.getByRole("button", { name: "Retry bot", exact: true }).click();
+  await expect.poll(() => steps).toBe(2);
+  await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+});
+
+for (const destination of ["navigation", "eligibility loss"] as const) {
+  test(`claim wait is cancelled on ${destination}`, async ({ page }) => {
+    const f = await fixture(page);
+    await page.clock.install();
+    let steps = 0;
+    await page.route(`**/api/games/${f.gameId}/step`, route => {
+      steps++;
+      return route.fulfill({ status: 409, json: { code: "BOT_STEP_IN_PROGRESS", retryAfterMs: 90_000 } });
+    });
+    await open(page, f.gameId);
+    await expect.poll(() => steps).toBe(1);
+    if (destination === "navigation") {
+      page.once("dialog", dialog => dialog.accept());
+      await page.getByRole("button", { name: "Exit", exact: true }).click();
+      await expect(page).not.toHaveURL(new RegExp(f.gameId));
+    } else {
+      f.set({ ...f.current(), viewerIsHost: false, poker: { ...f.current().poker,
+        players: f.current().poker.players.map(p => ({ ...p, playerToken: null, holeCards: null })) } });
+      const refresh = page.waitForResponse(r => r.url().endsWith(`/api/games/${f.gameId}`));
+      await triggerRefresh(page); await refresh;
+    }
+    await page.clock.fastForward(90_001);
+    await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+    expect(steps).toBe(1);
+  });
+}
+
+test("lost claim with an advanced version resumes even when the actor is unchanged", async ({ page }) => {
+  const f = await fixture(page);
+  let steps = 0;
+  await page.route(`**/api/games/${f.gameId}/step`, async route => {
+    steps++;
+    if (steps === 1) {
+      f.set({ ...f.current(), version: f.current().version + 1 });
+      await route.fulfill({ status: 409, json: { code: "BOT_STEP_CLAIM_LOST" } });
+    } else {
+      f.set(humanTurn(f.current()));
+      await route.fulfill({ json: { game: f.current(), aiDecision: gameplayDecision } });
+    }
+  });
+  await open(page, f.gameId);
+  await expect.poll(() => steps).toBe(2);
+  await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
 });

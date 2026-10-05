@@ -94,6 +94,10 @@ jobs:
         timeout-minutes: 3
         run: npm run test:sql:seats
 
+      - name: Verify SQL bot claims
+        timeout-minutes: 3
+        run: npm run test:sql:bot-claims
+
       - name: Build and test the production application
         timeout-minutes: 18
         run: npm run test:e2e:smoke

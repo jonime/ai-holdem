@@ -1,3 +1,4 @@
+import { BotStepClaimLostError } from "@/lib/poker/bot-step-claims";
 import { z } from "zod";
 import type { BotHandContext } from "@/lib/poker/bot-history";
 import { pokerEngineAdapter } from "@/lib/poker/adapter";
@@ -246,6 +247,10 @@ export interface GameDatabaseClient {
   rpc(
     functionName:
       | "apply_human_action_if_version"
+      | "acquire_bot_step_claim"
+      | "release_bot_step_claim"
+      | "commit_bot_action_with_claim"
+      | "commit_bot_departure_with_claim"
       | "apply_ai_action_if_version"
       | "apply_ai_action_and_leave_if_version"
       | "create_game_session"
@@ -1235,10 +1240,48 @@ export class SupabaseGameRepository {
     return toPersistedGame(data[0]);
   }
 
+  async acquireBotStepClaim(input: { gameId: string; expectedVersion: number; actorEngineId: string; claimToken: string }) {
+    const { data, error } = await this.client.rpc("acquire_bot_step_claim", {
+      p_game_id: input.gameId, p_expected_version: input.expectedVersion,
+      p_actor_engine_id: input.actorEngineId, p_claim_token: input.claimToken,
+    });
+    if (error) throw new Error("Unable to acquire bot step claim");
+    const result = z.discriminatedUnion("outcome", [
+      z.object({ outcome: z.literal("acquired") }),
+      z.object({ outcome: z.literal("conflict") }),
+      z.object({ outcome: z.literal("busy"), retryAfterMs: z.number().int().min(1).max(90_000), expiresAt: z.iso.datetime({ offset: true }) }),
+    ]).parse(data);
+    if (result.outcome === "conflict") throw new GameConflictError(input.gameId, input.expectedVersion);
+    return result;
+  }
+
+  async releaseBotStepClaim(gameId: string, claimToken: string): Promise<void> {
+    const { error } = await this.client.rpc("release_bot_step_claim", { p_game_id: gameId, p_claim_token: claimToken });
+    if (error) throw new Error("Unable to release bot step claim");
+  }
+
+  async persistClaimedAIAction(input: PersistAIActionInput & { claimToken: string }): Promise<PersistedGame> {
+    const claimToken = z.uuid().parse(input.claimToken);
+    return this.writeAIAction(input,
+      input.leaveSeat ? "commit_bot_departure_with_claim" : "commit_bot_action_with_claim",
+      { p_claim_token: claimToken });
+  }
+
   async persistAIAction(input: PersistAIActionInput): Promise<PersistedGame> {
+    return this.writeAIAction(input,
+      input.leaveSeat ? "apply_ai_action_and_leave_if_version" : "apply_ai_action_if_version", {});
+  }
+
+  private async writeAIAction(
+    input: PersistAIActionInput,
+    functionName: "commit_bot_departure_with_claim" | "commit_bot_action_with_claim" |
+      "apply_ai_action_and_leave_if_version" | "apply_ai_action_if_version",
+    claimArguments: { p_claim_token: string } | Record<string, never>,
+  ): Promise<PersistedGame> {
     const { data, error } = await this.client.rpc(
-      input.leaveSeat ? "apply_ai_action_and_leave_if_version" : "apply_ai_action_if_version",
+      functionName,
       {
+        ...claimArguments,
         p_game_id: input.gameId,
         p_expected_version: input.expectedVersion,
         p_player_engine_id: input.playerEngineId,
@@ -1275,7 +1318,8 @@ export class SupabaseGameRepository {
     );
 
     if (error) {
-      throw new Error(`Unable to persist AI action: ${error.message}`);
+      if (error.message === "BOT_STEP_CLAIM_LOST") throw new BotStepClaimLostError();
+      throw new Error("Unable to persist AI action");
     }
 
     if (!Array.isArray(data) || data.length === 0) {

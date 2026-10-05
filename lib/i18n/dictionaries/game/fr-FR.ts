@@ -224,6 +224,7 @@ const dictionary = {
     botRateLimited: "Le fournisseur du bot limite les requêtes. La partie est en pause ; vous pouvez réessayer plus tard.",
     botInvalidResponse: "Le fournisseur du bot a renvoyé une réponse invalide. La partie est en pause ; vous pouvez réessayer.",
     botProvider: "Le fournisseur du bot a rencontré une erreur. La partie est en pause ; vous pouvez réessayer.",
+    botTurnUnfinished: "Le tour du bot ne s’est pas terminé. Réessayez.",
     retryBot: "Réessayer avec le bot",
     submitAction: "Impossible d’envoyer l’action",
     nextHand: "Impossible de démarrer la main suivante",

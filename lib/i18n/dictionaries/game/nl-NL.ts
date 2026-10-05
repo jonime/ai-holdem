@@ -224,6 +224,7 @@ const dictionary = {
     botRateLimited: "De botprovider beperkt het aantal verzoeken. Het spel is gepauzeerd; je kunt het later opnieuw proberen.",
     botInvalidResponse: "De botprovider gaf een ongeldig antwoord. Het spel is gepauzeerd; je kunt het opnieuw proberen.",
     botProvider: "Er is een fout opgetreden bij de botprovider. Het spel is gepauzeerd; je kunt het opnieuw proberen.",
+    botTurnUnfinished: "De beurt van de bot is niet voltooid. Probeer opnieuw.",
     retryBot: "Bot opnieuw proberen",
     submitAction: "Actie kon niet worden verzonden",
     nextHand: "Volgende hand kon niet worden gestart",

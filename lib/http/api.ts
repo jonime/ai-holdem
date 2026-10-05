@@ -29,7 +29,7 @@ import {
 } from "./discovery-contracts";
 
 export class HttpError extends Error {
-  constructor(message: string, readonly status: number, readonly code?: string) {
+  constructor(message: string, readonly status: number, readonly code?: string, readonly retryAfterMs?: number) {
     super(message);
     this.name = "HttpError";
   }
@@ -54,10 +54,12 @@ async function send<S extends z.ZodType>(url: string, schema: S, init: RequestIn
   init.signal?.throwIfAborted();
   if (!response.ok) {
     const failure = errorEnvelopeSchema.safeParse(body);
+    if (!failure.success && typeof body === "object" && body !== null && "code" in body && body.code === "BOT_STEP_IN_PROGRESS") throw new Error("Invalid error response payload");
     throw new HttpError(
       failure.success ? failure.data.error ?? "Request failed" : "Request failed",
       response.status,
       failure.success ? failure.data.code : undefined,
+      failure.success ? failure.data.retryAfterMs : undefined,
     );
   }
   const parsed = schema.safeParse(body);

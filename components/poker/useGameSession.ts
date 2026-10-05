@@ -14,7 +14,7 @@ import { botErrorMessage } from "./bot-error";
 import { advanceBotTurns, hasBotTurn } from "./bot-advancement";
 import { canAdvanceBots, tableFlow } from "@/components/poker/view-model";
 import { getClientPlayerToken } from "@/lib/identity/player-token-client";
-import { api } from "@/lib/http/api";
+import { HttpError, api } from "@/lib/http/api";
 import type { HumanAction } from "@/lib/http/gameplay-contracts";
 import { LLM_CREDIT_EXIT_RULE } from "@/lib/bots/types";
 import { useGameChannel } from "@/lib/realtime/useGameChannel";
@@ -73,6 +73,11 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   const latestGame = useRef<Game | null>(null);
   const retryPending = useRef(false);
   const pausedBotTurn = useRef<string | null>(null);
+  const botWait = useRef<{ gameId: string; version: number; timer: ReturnType<typeof setTimeout> } | null>(null);
+  const clearBotWait = useCallback(() => {
+    if (botWait.current) clearTimeout(botWait.current.timer);
+    botWait.current = null;
+  }, []);
   const botLoop = useRef<symbol | null>(null);
   const botEligibilityEpoch = useRef(0);
   const nextResponseSequence = useRef(0);
@@ -86,12 +91,14 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     activeGameId.current = gameId;
     automaticallyAdvancedVersions.current.clear();
     pausedBotTurn.current = null;
+    clearBotWait();
     return () => {
+      clearBotWait();
       activeGameId.current = undefined;
       botLoop.current = null;
       latestGame.current = null;
     };
-  }, [gameId]);
+  }, [gameId, clearBotWait]);
 
   const applyGame = useCallback(
     (incoming: Game, sequence: number, targetGameId = incoming.id) => {
@@ -106,6 +113,13 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       );
       lastAppliedResponse.current = reconciled.applied;
       latestGame.current = reconciled.game;
+      if (botWait.current && (reconciled.game.version !== botWait.current.version ||
+          reconciled.game.id !== botWait.current.gameId || !hasBotTurn(reconciled.game) ||
+          !canAdvanceBots(reconciled.game, getClientPlayerToken()))) {
+        clearBotWait();
+        pausedBotTurn.current = null;
+        setError(null);
+      }
       if (reconciled.game && pausedBotTurn.current !== botTurnKey(reconciled.game)) {
         pausedBotTurn.current = null;
       }
@@ -117,7 +131,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
         refreshFeed(reconciled.game.version);
       }
     },
-    [refreshFeed],
+    [refreshFeed, clearBotWait],
   );
 
   const loadGame = useCallback(
@@ -464,13 +478,42 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       } catch (requestError) {
         if (isActive()) {
           pausedBotTurn.current = botTurnKey(attemptedGame);
-          setError(botErrorMessage(requestError, t));
+          if (requestError instanceof HttpError && requestError.code === "BOT_STEP_IN_PROGRESS" &&
+              requestError.retryAfterMs !== undefined) {
+            const current = latestGame.current;
+            if (current?.version !== attemptedGame.version) { pausedBotTurn.current = null; return; }
+            clearBotWait();
+            setError(null);
+            const timer = setTimeout(() => {
+              const latest = latestGame.current;
+              if (activeGameId.current === attemptedGame.id && latest?.version === attemptedGame.version &&
+                  hasBotTurn(latest) && canAdvanceBots(latest, getClientPlayerToken())) {
+                setError(t("errors.botTurnUnfinished"));
+              }
+              // Retain the version fence until explicit retry or authoritative advancement.
+            }, requestError.retryAfterMs);
+            botWait.current = { gameId: attemptedGame.id, version: attemptedGame.version, timer };
+          } else if (requestError instanceof HttpError && requestError.code === "BOT_STEP_CLAIM_LOST") {
+            try { await loadGame(nextGame.id); }
+            catch (refreshError) {
+              if (isActive()) setError(botErrorMessage(refreshError, t));
+              return;
+            }
+            if (isActive() && latestGame.current?.version === attemptedGame.version &&
+                botTurnKey(latestGame.current) === botTurnKey(attemptedGame)) {
+              setError(t("errors.botTurnUnfinished"));
+            } else if (latestGame.current?.version !== attemptedGame.version) {
+              pausedBotTurn.current = null;
+            }
+          } else {
+            setError(botErrorMessage(requestError, t));
+          }
         }
       } finally {
         if (botLoop.current === loop) botLoop.current = null;
       }
     },
-    [applyGame, loadGame, t],
+    [applyGame, loadGame, t, clearBotWait],
   );
 
   const automaticallyAdvanceAiTurn = useEffectEvent(async (nextGame: Game) => {
@@ -488,6 +531,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     if (!current || retryPending.current || botLoop.current ||
         !canAdvanceBots(current, getClientPlayerToken())) return;
     retryPending.current = true;
+    clearBotWait();
     const eligibilityEpoch = botEligibilityEpoch.current;
     setLoading(true);
     setError(null);
@@ -504,7 +548,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       retryPending.current = false;
       if (activeGameId.current === current.id) setLoading(false);
     }
-  }, [advanceAiTurns, loadGame, t]);
+  }, [advanceAiTurns, loadGame, t, clearBotWait]);
 
   useEffect(() => {
     if (

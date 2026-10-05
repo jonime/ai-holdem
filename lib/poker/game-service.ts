@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+import { BotStepInProgressError, type BotStepClaimRepository } from "./bot-step-claims";
 import { BotHistoryConflictError, projectBotHistory, legacyDecisionHistory, type BotHandContext } from "./bot-history";
 import { isCallerHost, type GameHostReader } from "./host-authorization";
 import type { SeatAssignment, SeatAssignmentRepository } from "./seat-contracts";
@@ -1215,6 +1217,7 @@ async function stepResolvedBotAction(
   gameId: string,
   expectedVersion: number,
   viewerToken: string | null = null,
+  commit: AIActionWriter["persistAIAction"] = input => repository.persistAIAction(input),
 ): Promise<BotStepResult> {
   const game = await repository.getGame(gameId);
   if (!game) {
@@ -1274,7 +1277,7 @@ async function stepResolvedBotAction(
     decision.action,
   );
   const snapshotAfter = pokerEngineAdapter.snapshot(stateAfter);
-  const persistedGame = await repository.persistAIAction({
+  const persistedGame = await commit({
     gameId,
     expectedVersion,
     leaveSeat: creditFailure !== undefined,
@@ -1355,7 +1358,7 @@ async function stepResolvedBotAction(
 }
 
 export async function stepBotAction(
-  repository: Parameters<typeof stepResolvedBotAction>[0],
+  repository: Parameters<typeof stepResolvedBotAction>[0] & BotStepClaimRepository,
   registry: BotRegistry,
   gameId: string,
   expectedVersion: number,
@@ -1368,26 +1371,36 @@ export async function stepBotAction(
     throw new GameConflictError(gameId, expectedVersion);
   }
   const state = restorePersistedState(game.currentState);
-  const actorId = pokerEngineAdapter.snapshot(state).currentActorId;
+  const snapshot = pokerEngineAdapter.snapshot(state);
+  const actorId = snapshot.currentActorId;
   const player = state.config.players.find(
     (candidate) => candidate.id === actorId,
   );
-  if (!player || player.controller === "human") {
+  if (!player || player.controller === "human" || !snapshot.street || snapshot.street === "complete") {
     throw new Error("It is not a bot turn");
   }
-  const botId = player.bot?.id ?? "jev";
-  const resolved = registry.get({
-    botId,
-    profileId: player.botProfileId,
-  });
-  return stepResolvedBotAction(
-    repository,
-    resolved.bot,
-    resolved.descriptor,
-    gameId,
-    expectedVersion,
-    viewerToken,
-  );
+  const claimToken = randomUUID();
+  const claim = await repository.acquireBotStepClaim({ gameId, expectedVersion, actorEngineId: player.id, claimToken });
+  if (claim.outcome === "busy") throw new BotStepInProgressError(claim.retryAfterMs);
+  try {
+    const botId = player.bot?.id ?? "jev";
+    const resolved = registry.get({
+      botId,
+      profileId: player.botProfileId,
+    });
+    return await stepResolvedBotAction(
+      repository,
+      resolved.bot,
+      resolved.descriptor,
+      gameId,
+      expectedVersion,
+      viewerToken,
+      input => repository.persistClaimedAIAction({ ...input, claimToken }),
+    );
+  } finally {
+    try { await repository.releaseBotStepClaim(gameId, claimToken); }
+    catch { console.warn("Bot claim cleanup failed", { gameId }); }
+  }
 }
 
 /** Legacy test seam retained while callers migrate to the bot registry. */

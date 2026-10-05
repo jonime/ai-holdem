@@ -66,8 +66,8 @@ placeholder values; unit tests must not depend on live Supabase or TypeSafe.
 An independent 30-minute integration job uses Docker, pinned Supabase CLI 2.119.0,
 and the installed Playwright Chromium with system dependencies. It starts a
 healthy full local stack (including Realtime), applies every migration to its
-disposable database, then runs `test:sql:game-reads`, `test:sql:seats`, and
-`test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore
+disposable database, then runs `test:sql:game-reads`, `test:sql:bot-context`, `test:sql:seats`,
+`test:sql:bot-claims`, and `test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore
 health checks. Preserve workflow cancellation for superseded commits.
 
 Local production smoke requires an already-running migrated local Supabase and
@@ -99,9 +99,19 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
 - Only hosts and owned seated human players may advance bots, including folded or
   eliminated seated humans and unseated bot-only hosts. Spectators only refetch.
   Check ownership before provider resolution or inference; unauthorized steps return
-  403. One browser runs one bot loop; authorized browsers can still race and incur
-  duplicate inference, but only one version-checked action commits. Conflicts stop
-  the stale loop and refresh silently; refresh and provider failures stay visible.
+  403. One browser runs one bot loop. Every production bot step, including rules,
+  requires a service-role-only 90-second database-time claim before provider
+  resolution or context preparation. Only the matching unexpired token can commit
+  an action or credit departure; commits consume the claim atomically. Cleanup is
+  token-matched and best-effort, with no lease renewal or transaction during inference.
+  BOT_STEP_IN_PROGRESS (409) waits quietly for Realtime/polling; unchanged versions
+  at the bounded wait expiry require explicit retry. BOT_STEP_CLAIM_LOST (409)
+  refetches immediately and requires explicit retry if the same turn remains.
+  Version conflicts stop the stale loop and refresh silently; refresh and provider
+  failures stay visible. Claims never change versions or publish notifications.
+  Apply 20261015000000_add_bot_step_claims.sql before application code; full
+  deduplication starts after old instances drain. Expiry permits crash recovery,
+  but this does not guarantee exactly-once provider billing.
   Provider requests share a server-only 60-second deadline covering headers and body.
   Temporary failures return allowlisted BOT_* codes with HTTP 502 and pause the
   failed hand/actor turn, including across polling/version-only refreshes. Retry
@@ -111,7 +121,8 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
   Stop at human turns, completed hands, navigation, or lost eligibility. Next hands
   require explicit interaction; bots pause without an eligible open browser.
 - Confirmed LLM credit failures apply one engine-validated fold and mark the seat
-  leaving atomically through `apply_ai_action_and_leave_if_version`; next-hand
+  leaving atomically through `commit_bot_departure_with_claim`, which wraps
+  `apply_ai_action_and_leave_if_version`; next-hand
   reconciliation removes it. Apply `20261014000000_add_atomic_bot_credit_departure.sql`
   before deploying the code. OpenRouter temporary in-flight spending holds and
   rate limits remain paused, as do undocumented Jev credit failures. Preserve

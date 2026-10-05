@@ -79,7 +79,9 @@ migrations, then run these commands in order:
 
 ```sh
 npm run test:sql:game-reads
+npm run test:sql:bot-context
 npm run test:sql:seats
+npm run test:sql:bot-claims
 npm run test:e2e:smoke
 ```
 
@@ -279,9 +281,19 @@ Docs are part of the implementation.
 - Only hosts and owned seated human players may advance bots, including folded or
   eliminated seated humans and unseated bot-only hosts. Spectators only refetch.
   Check ownership before provider resolution or inference; unauthorized steps return
-  403. One browser runs one bot loop; authorized browsers can still race and incur
-  duplicate inference, but only one version-checked action commits. Conflicts stop
-  the stale loop and refresh silently; refresh and provider failures stay visible.
+  403. One browser runs one bot loop. Every production bot step, including rules,
+  requires a service-role-only 90-second database-time claim before provider
+  resolution or context preparation. Only the matching unexpired token can commit
+  an action or credit departure; commits consume the claim atomically. Cleanup is
+  token-matched and best-effort, with no lease renewal or transaction during inference.
+  BOT_STEP_IN_PROGRESS (409) waits quietly for Realtime/polling; unchanged versions
+  at the bounded wait expiry require explicit retry. BOT_STEP_CLAIM_LOST (409)
+  refetches immediately and requires explicit retry if the same turn remains.
+  Version conflicts stop the stale loop and refresh silently; refresh and provider
+  failures stay visible. Claims never change versions or publish notifications.
+  Apply 20261015000000_add_bot_step_claims.sql before application code; full
+  deduplication starts after old instances drain. Expiry permits crash recovery,
+  but this does not guarantee exactly-once provider billing.
   Stop at human turns, completed hands, navigation, or lost eligibility. Next hands
   require explicit interaction; bots pause without an eligible open browser.
 - Keep database mutations atomic and scoped to at most one action per request.
@@ -462,3 +474,24 @@ retry, pending-click guards, and silent conflict recovery. These tests do not
 contact providers or wait for the real deadline. Run `npm run check` and
 `npm run build`, then perform the required
 [deployed duration check](docs/deployment.md) before release.
+
+## Bot inference claims
+
+Run `npm run test:sql:bot-claims` against migrated local Supabase. It checks
+independent-connection contention, database-time expiry/takeover, token-matched
+release, stale/expired fencing, atomic ordinary/credit-departure commits and
+rollback, cascade deletion, and restricted SQL roles. It preserves existing games,
+cleans up its fixtures, and never loads application `.env` or contacts providers.
+This command also runs in the integration job.
+
+Service tests use controlled provider promises and fake clocks. For claim recovery
+in a production browser, run:
+
+```sh
+npm run test:e2e:smoke -- --grep claim
+```
+
+The final `--grep` selects the claim tests instead of the usual `@smoke` subset,
+using the same isolated build/server environment. Playwright clocks cover neutral
+waiting, polling/Realtime completion, explicit retry at expiry, lost claims,
+duplicate retry clicks, navigation and eligibility cleanup without real lease waits.
