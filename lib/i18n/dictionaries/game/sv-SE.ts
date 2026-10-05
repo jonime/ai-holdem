@@ -211,6 +211,7 @@ const dictionary = {
     of: "{rank} i {suit}",
   },
   errors: {
+    llmCredits: "{bot} nådde sin kreditgräns, lade sig och lämnar före nästa hand.",
     createGame: "Det gick inte att skapa spelet",
     refreshGame: "Det gick inte att uppdatera det senaste spelläget.",
     loadGame: "Det gick inte att läsa in det begärda spelet.",

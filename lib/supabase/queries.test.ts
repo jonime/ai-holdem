@@ -4,6 +4,7 @@ import {
   GameConflictError,
   type GameDatabaseClient,
   type FilteredQueryResult,
+  type PersistAIActionInput,
   SupabaseGameRepository,
 } from "./queries";
 
@@ -70,6 +71,27 @@ function createClient(options: {
 }
 
 describe("SupabaseGameRepository", () => {
+  it.each([false, true])("uses one atomic action RPC with leaveSeat=%s", async leaveSeat => {
+    const { client, rpc, update } = createClient({ updateResult: [persistedGame] });
+    const input = {
+      gameId: "game-1", expectedVersion: 3, playerEngineId: "bot",
+      currentState: {}, stateSchemaVersion: 1, handNumber: 1, status: "complete",
+      street: "preflop", action: "fold", amount: null, stateBefore: {}, handComplete: true,
+      aiState: {}, legalActions: [{ type: "fold" }], choice: "fold",
+      bot: { id: "llm", label: "LLM", provider: "llm", modelId: "mock" },
+      probabilities: null, confidence: null, raiseSizeChoice: null, raiseSizeProbabilities: null,
+      rawResponse: null, matchedRule: "llm_credit_limit_exit", leaveSeat,
+    } satisfies PersistAIActionInput;
+    const repository = new SupabaseGameRepository(client);
+    await repository.persistAIAction(input);
+    expect(rpc).toHaveBeenCalledExactlyOnceWith(
+      leaveSeat ? "apply_ai_action_and_leave_if_version" : "apply_ai_action_if_version",
+      expect.objectContaining({ p_expected_version: 3, p_action: "fold", p_player_engine_id: "bot" }),
+    );
+    expect(update).not.toHaveBeenCalled();
+    rpc.mockResolvedValue({ data: [], error: null });
+    await expect(repository.persistAIAction(input)).rejects.toBeInstanceOf(GameConflictError);
+  });
   it("loads only validated game IDs for visitor-specific directory exclusions", async () => {
     const { client, rpc } = createClient({
       updateResult: [{ game_id: "game-1" }, { game_id: "game-2" }],

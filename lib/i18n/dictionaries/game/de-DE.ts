@@ -211,6 +211,7 @@ const dictionary = {
     of: "{rank} von {suit}",
   },
   errors: {
+    llmCredits: "{bot} hat das Kreditlimit erreicht, gepasst und verlässt den Tisch vor der nächsten Hand.",
     createGame: "Spiel konnte nicht erstellt werden",
     refreshGame: "Der aktuelle Spielstand konnte nicht aktualisiert werden.",
     loadGame: "Das angeforderte Spiel konnte nicht geladen werden.",

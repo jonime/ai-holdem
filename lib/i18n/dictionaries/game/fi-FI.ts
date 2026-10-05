@@ -211,6 +211,7 @@ const dictionary = {
     of: "{rank} {suit}",
   },
   errors: {
+    llmCredits: "{bot} saavutti krediittirajansa, kippasi ja poistuu ennen seuraavaa kättä.",
     createGame: "Pelin luominen epäonnistui",
     refreshGame: "Uusimman pelitilan päivitys epäonnistui.",
     loadGame: "Pyydetyn pelin lataaminen epäonnistui.",

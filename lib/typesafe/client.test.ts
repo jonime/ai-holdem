@@ -68,4 +68,17 @@ describe("TypesafeSystemOneClient", () => {
     ).rejects.toThrow("External inference is disabled");
     expect(fetcher).not.toHaveBeenCalled();
   });
+
+  it("preserves safe clues for an undocumented credit response without retaining the response", async () => {
+    process.env.EXTERNAL_INFERENCE_ENABLED = "true";
+    process.env.TYPESAFE_API_KEY = "test-key";
+    const client = new TypesafeSystemOneClient(async () => new Response(JSON.stringify({
+      error: "Credits exhausted secret-key As Ks", error_type: "quota_exceeded",
+    }), { status: 402 }));
+    const error = await client.evaluate({ model: "jev-latest", state: {}, questions: {} }).catch(error => error);
+    expect(error).toMatchObject({ httpFailure: {
+      httpStatus: 402, creditMentioned: true, quotaMentioned: true,
+    } });
+    expect(JSON.stringify(error)).not.toMatch(/secret-key|As Ks/);
+  });
 });

@@ -3,6 +3,8 @@ import "server-only";
 import { getTypesafeServerEnv } from "@/lib/env/server";
 
 import type { SystemOneRequest } from "./types";
+import { providerHttpFailureDiagnostics } from "@/lib/bots/provider-http-failure";
+import type { ProviderHttpFailureDiagnostics } from "@/lib/bots/types";
 
 const systemOneEndpoint = "https://api.typesafe.ai/v1/systemone";
 
@@ -11,7 +13,7 @@ export interface FetchLike {
 }
 
 export class TypesafeRequestError extends Error {
-  constructor(message: string) {
+  constructor(message: string, readonly httpFailure?: ProviderHttpFailureDiagnostics) {
     super(message);
     this.name = "TypesafeRequestError";
   }
@@ -43,6 +45,7 @@ export class TypesafeSystemOneClient {
     if (!response.ok) {
       throw new TypesafeRequestError(
         `TypeSafe request failed with HTTP ${response.status}`,
+        providerHttpFailureDiagnostics(response, body),
       );
     }
 

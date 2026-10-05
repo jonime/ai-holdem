@@ -211,6 +211,7 @@ const dictionary = {
     of: "{rank} di {suit}",
   },
   errors: {
+    llmCredits: "{bot} ha raggiunto il limite di crediti, ha passato e lascerà il tavolo prima della prossima mano.",
     createGame: "Impossibile creare la partita",
     refreshGame: "Impossibile aggiornare lo stato della partita.",
     loadGame: "Impossibile caricare la partita richiesta.",

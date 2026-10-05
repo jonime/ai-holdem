@@ -71,6 +71,7 @@ export interface PersistHumanActionInput extends CompareAndSwapGameInput {
 }
 
 export interface PersistAIActionInput extends PersistHumanActionInput {
+  readonly leaveSeat?: boolean;
   readonly aiState: unknown;
   readonly legalActions: unknown;
   readonly choice: string;
@@ -246,6 +247,7 @@ export interface GameDatabaseClient {
     functionName:
       | "apply_human_action_if_version"
       | "apply_ai_action_if_version"
+      | "apply_ai_action_and_leave_if_version"
       | "create_game_session"
       | "get_game_read_snapshot"
       | "get_hand_history"
@@ -1235,7 +1237,7 @@ export class SupabaseGameRepository {
 
   async persistAIAction(input: PersistAIActionInput): Promise<PersistedGame> {
     const { data, error } = await this.client.rpc(
-      "apply_ai_action_if_version",
+      input.leaveSeat ? "apply_ai_action_and_leave_if_version" : "apply_ai_action_if_version",
       {
         p_game_id: input.gameId,
         p_expected_version: input.expectedVersion,

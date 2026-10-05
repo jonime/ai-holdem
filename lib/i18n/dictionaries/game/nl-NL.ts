@@ -211,6 +211,7 @@ const dictionary = {
     of: "{rank} van {suit}",
   },
   errors: {
+    llmCredits: "{bot} heeft de kredietlimiet bereikt, gefold en verlaat de tafel vóór de volgende hand.",
     createGame: "Spel kon niet worden gemaakt",
     refreshGame: "De nieuwste spelstatus kon niet worden vernieuwd.",
     loadGame: "Het gevraagde spel kon niet worden geladen.",

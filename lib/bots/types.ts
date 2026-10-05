@@ -55,8 +55,21 @@ export function botProviderFailureReason(error: BotProviderError): string {
   return http ? `http_${http[1]}` : "unknown";
 }
 
+export interface ProviderHttpFailureDiagnostics {
+  readonly httpStatus: number;
+  readonly providerErrorCode: number | null;
+  readonly retryAfterSeconds: number | null;
+  readonly retryAfterPresent: boolean;
+  readonly creditMentioned: boolean;
+  readonly quotaMentioned: boolean;
+  readonly rateLimitMentioned: boolean;
+  readonly limitSource: "openrouter_key_limit" | "openrouter_credits" | "openrouter_in_flight_budget" | "unknown" | null;
+}
+
+export const LLM_CREDIT_EXIT_RULE = "llm_credit_limit_exit";
+
 export class BotProviderError extends Error {
-  constructor(message: string) {
+  constructor(message: string, readonly httpFailure?: ProviderHttpFailureDiagnostics) {
     super(message);
     this.name = "BotProviderError";
   }

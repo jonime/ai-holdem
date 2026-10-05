@@ -15,6 +15,7 @@ import { canAdvanceBots, tableFlow } from "@/components/poker/view-model";
 import { getClientPlayerToken } from "@/lib/identity/player-token-client";
 import { api } from "@/lib/http/api";
 import type { HumanAction } from "@/lib/http/gameplay-contracts";
+import { LLM_CREDIT_EXIT_RULE } from "@/lib/bots/types";
 import { useGameChannel } from "@/lib/realtime/useGameChannel";
 import {
   RefreshCoordinator,
@@ -431,6 +432,9 @@ export function useGameSession(gameId?: string, historyOpen = false) {
           apply: body => {
             applyGame(body.game, stepSequence);
             setLiveDecisions(previous => [...previous, body.aiDecision]);
+            if (body.aiDecision.matchedRule === LLM_CREDIT_EXIT_RULE) {
+              setError(t("errors.llmCredits", { bot: body.aiDecision.bot.label }));
+            }
           },
           refresh: async () => {
             try {

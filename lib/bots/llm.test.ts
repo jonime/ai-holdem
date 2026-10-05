@@ -170,6 +170,33 @@ describe("LlmPokerBot", () => {
       new LlmPokerBot("vendor/model", fetcher).decide(context),
     ).rejects.toThrow("illegal action");
   });
+
+  it("carries safe HTTP failure diagnostics to the route without the raw error body", async () => {
+    vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", "true");
+    vi.stubEnv("LLM_API_ENDPOINT", "https://llm.example.test/chat/completions");
+    vi.stubEnv("LLM_API_KEY", "key");
+    const fetcher = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      error: { code: 402, message: "Insufficient credits secret-key", metadata: { raw: "As Ks" } },
+    }), { status: 402 }));
+    const error = await new LlmPokerBot("vendor/model", fetcher).decide(context).catch(error => error);
+    expect(error).toMatchObject({
+      message: "LLM provider request failed with HTTP 402",
+      httpFailure: { httpStatus: 402, providerErrorCode: 402, creditMentioned: true },
+    });
+    expect(JSON.stringify(error)).not.toMatch(/secret-key|As Ks/);
+    expect(fetcher).toHaveBeenCalledOnce();
+  });
+  it("recognizes provider error envelopes even with HTTP 200", async () => {
+    vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", "true");
+    vi.stubEnv("LLM_API_ENDPOINT", "https://llm.example.test/chat/completions");
+    vi.stubEnv("LLM_API_KEY", "key");
+    const bot = new LlmPokerBot("vendor/model", async () => new Response(JSON.stringify({
+      error: { code: 402, message: "Insufficient credits" },
+    })));
+    await expect(bot.decide(context)).rejects.toMatchObject({
+      httpFailure: { httpStatus: 200, providerErrorCode: 402 },
+    });
+  });
 });
 
 describe("LLM supplied analysis audit and strict output", () => {

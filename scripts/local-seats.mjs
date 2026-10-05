@@ -2,12 +2,14 @@
 import assert from "node:assert/strict";
 import { execFileSync, execFile, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { promisify } from "node:util";
 
 const args = ["exec", "-i", "supabase_db_ai-holdem", "psql", "-U", "postgres", "-d", "postgres", "-v", "ON_ERROR_STOP=1", "-Atq"];
 const sql = input => execFileSync("docker", args, { input, encoding: "utf8", timeout: 30000 });
 const status = JSON.parse(execFileSync("supabase", ["status", "-o", "json"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
 assert(["localhost", "127.0.0.1", "::1"].includes(new URL(status.API_URL).hostname), "Only local Supabase is allowed");
+sql(readFileSync(new URL("../test/sql/bot-credit-departure.sql", import.meta.url), "utf8"));
 const id = randomUUID();
 const claim = (version, seat, token) => `public.claim_game_seat_if_version('${id}',${version},${seat},'${token}',null)`;
 const release = (version, seat, token) => `public.release_game_seat_if_version('${id}',${version},${seat},'${token}')`;
