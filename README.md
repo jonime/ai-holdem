@@ -4,7 +4,7 @@ A no-limit Texas Hold’em demo for two to six human and bot players. Play again
 Equity Rules, TypeSafe Jev, or configurable LLM bots; the poker engine remains
 authoritative for cards, turns, legal actions, betting, pots, and winners.
 
-[Play the demo](https://ai-holdem.vercel.app) ·
+[Play the demo](https://www.aiholdem.gg) ·
 [Source code](https://github.com/jonime/ai-holdem)
 
 ## Overview
@@ -130,7 +130,8 @@ Bot evaluations and benchmarks are documented in [benchmarks/README.md](benchmar
 Import the repository into Vercel, use the default Next.js build settings
 (`npm run build`), and configure the environment variables for Production and
 Preview. Apply required database migrations before deploying application code.
-For a custom domain, set `NEXT_PUBLIC_APP_URL` before building.
+The canonical domain defaults to `https://www.aiholdem.gg`. To override it, set
+`NEXT_PUBLIC_APP_URL` before building.
 See the [deployment guide](docs/deployment.md) for the full procedure.
 
 ## Documentation

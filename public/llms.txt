@@ -6,9 +6,9 @@ The application supports two to six seats, private table links, configurable bli
 
 ## Product
 
-- [AI Hold'em](https://ai-holdem.vercel.app/en-US): Create a table and learn how human and AI seats play together.
-- [About AI Hold'em](https://ai-holdem.vercel.app/en-US/about): Learn how the available bots, their settings, the poker engine, and privacy boundaries work.
-- [Developer resources](https://ai-holdem.vercel.app/en-US/developers): Architecture, integration status, source documentation, and discovery resources.
+- [AI Hold'em](https://www.aiholdem.gg/en-US): Create a table and learn how human and AI seats play together.
+- [About AI Hold'em](https://www.aiholdem.gg/en-US/about): Learn how the available bots, their settings, the poker engine, and privacy boundaries work.
+- [Developer resources](https://www.aiholdem.gg/en-US/developers): Architecture, integration status, source documentation, and discovery resources.
 
 ## Documentation
 
@@ -18,5 +18,5 @@ The application supports two to six seats, private table links, configurable bli
 
 ## Optional
 
-- [XML sitemap](https://ai-holdem.vercel.app/sitemap.xml): Index of localized public pages.
+- [XML sitemap](https://www.aiholdem.gg/sitemap.xml): Index of localized public pages.
 - [TypeSafe](https://typesafe.ai/): Provider used by one available AI poker seat.

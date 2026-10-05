@@ -251,8 +251,8 @@ Keep localized search titles and descriptions in the server-only `metadata`
 dictionaries. `lib/seo.ts` builds page-specific canonicals, language alternates,
 and social cards; About metadata comes from its localized MDX document.
 The sitemap includes only durable public content. Keep game tables and the
-visitor-specific directory marked `noindex, follow`. Set `NEXT_PUBLIC_APP_URL`
-for custom domains before building; see [deployment guidance](docs/deployment.md#search-and-social-previews)
+visitor-specific directory marked `noindex, follow`. The canonical origin defaults
+to `https://www.aiholdem.gg`; set `NEXT_PUBLIC_APP_URL` before building to override it; see [deployment guidance](docs/deployment.md#search-and-social-previews)
 for origin fallbacks and social image replacement.
 
 ## Agent and search discovery

@@ -79,11 +79,13 @@ localized landing and About pages and the canonical English developer page.
 Individual game pages and the changing public-table directory use `noindex, follow`.
 This is search-indexing guidance, not access control; table URLs remain shareable.
 
-Set `NEXT_PUBLIC_APP_URL` to your public HTTP(S) origin when using a custom domain.
-Without it, metadata uses `VERCEL_PROJECT_PRODUCTION_URL`, then
-`https://ai-holdem.vercel.app`. These values are resolved at build time for static
-pages, so rebuild after changing the domain. Submit `/sitemap.xml` in Google Search
-Console after deploying.
+The canonical public origin defaults to `https://www.aiholdem.gg`, independently
+of the Vercel deployment hostname. The bare domain `https://aiholdem.gg` redirects
+to the `www` domain in Vercel. Set `NEXT_PUBLIC_APP_URL` to an absolute HTTP(S)
+origin only to override this default; update or remove any existing override
+pointing to the old deployment domain. These values are resolved at build time
+for static pages, so rebuild after changing the domain. Submit `/sitemap.xml`
+in Google Search Console after deploying.
 
 Open Graph and Twitter cards use the supplied 1731 × 909 `public/social-preview.png`.
 The image is committed and needs no runtime service. When replacing it, update

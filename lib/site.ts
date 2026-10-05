@@ -1,11 +1,7 @@
-export const PRODUCTION_ORIGIN = "https://ai-holdem.vercel.app";
+export const PRODUCTION_ORIGIN = "https://www.aiholdem.gg";
 
 export function getSiteOrigin(): string {
-  const configuredOrigin =
-    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : undefined);
+  const configuredOrigin = process.env.NEXT_PUBLIC_APP_URL?.trim();
 
   if (!configuredOrigin) return PRODUCTION_ORIGIN;
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { proxy } from "./proxy";
 
 function request(pathname: string, accept: string) {
-  const url = new URL(pathname, "https://ai-holdem.vercel.app");
+  const url = new URL(pathname, "https://www.aiholdem.gg");
   const value = new Request(url, { headers: { Accept: accept } }) as Request & {
     readonly nextUrl: URL;
   };
@@ -34,7 +34,7 @@ describe("agent content proxy", () => {
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
-      "https://ai-holdem.vercel.app/en-US",
+      "https://www.aiholdem.gg/en-US",
     );
     expect(response.headers.get("vary")).toBe("Accept");
   });

@@ -14,11 +14,16 @@ describe("site origin", () => {
     expect(getSiteOrigin()).toBe("https://poker.example");
   });
 
-  it("uses the production deployment domain when the optional origin is blank", () => {
-    vi.stubEnv("NEXT_PUBLIC_APP_URL", " ");
-    vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", "poker.example");
-    expect(getSiteOrigin()).toBe("https://poker.example");
-  });
+  it.each([undefined, " "])(
+    "defaults to the public domain regardless of the Vercel deployment hostname: %s",
+    (origin) => {
+      vi.stubEnv("NEXT_PUBLIC_APP_URL", origin);
+      vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", "ai-holdem.vercel.app");
+      expect(getSiteOrigin()).toBe("https://www.aiholdem.gg");
+      expect(robots()).toMatchObject({ sitemap: "https://www.aiholdem.gg/sitemap.xml" });
+      expect(sitemap()[0]?.url).toBe("https://www.aiholdem.gg/en-US");
+    },
+  );
 
   it.each(["invalid", "file:///tmp/poker", "javascript:alert(1)"])(
     "rejects an unusable canonical origin: %s", (origin) => {

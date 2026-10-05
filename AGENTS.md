@@ -137,7 +137,9 @@ Supabase or TypeSafe services.
 - SEO metadata remains server-owned in `lib/seo.ts` and the metadata dictionaries.
   Only durable public content belongs in the sitemap. Game pages and the public
   directory use `noindex, follow`; robots guidance is not an access-control boundary.
-  `NEXT_PUBLIC_APP_URL` sets a custom canonical HTTP(S) origin at build time.
+  The canonical origin defaults to `https://www.aiholdem.gg`, independently of
+  the Vercel deployment hostname; `NEXT_PUBLIC_APP_URL` overrides it with a
+  custom canonical HTTP(S) origin at build time.
   When replacing `public/social-preview.png`, keep its dimensions and alt text
   in `lib/seo.ts` synchronized with the committed asset.
 - End-of-table UI derives from authoritative public stacks, participation, and the

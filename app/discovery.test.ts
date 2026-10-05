@@ -47,7 +47,7 @@ describe("machine-readable discovery", () => {
 
     expect(contents.startsWith("# AI Hold'em\n\n> ")).toBe(true);
     expect(contents).toContain(
-      "[About AI Hold'em](https://ai-holdem.vercel.app/en-US/about)",
+      "[About AI Hold'em](https://www.aiholdem.gg/en-US/about)",
     );
     expect(contents).toMatch(/\n## Developer|\n## Product/);
     for (const section of contents.split(/\n## /).slice(1)) {

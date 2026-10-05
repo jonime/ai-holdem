@@ -121,7 +121,7 @@ received legacy snapshots. After the user confirmed deployment of the implementa
 commit, the same two-browser smoke suite passed on that live Vercel deployment:
 
 ```sh
-E2E_BASE_URL=https://ai-holdem.vercel.app npm run test:e2e -- test/e2e/realtime.spec.ts
+E2E_BASE_URL=https://www.aiholdem.gg npm run test:e2e -- test/e2e/realtime.spec.ts
 ```
 
 Both tests passed in 22.6 seconds. The actual-delivery case (13.4 seconds including
