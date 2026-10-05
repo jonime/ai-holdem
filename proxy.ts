@@ -6,7 +6,8 @@ import {
   NOT_FOUND_MARKDOWN,
 } from "@/lib/agent-content";
 import { negotiatePageRepresentation } from "@/lib/http/content-negotiation";
-import { DEFAULT_LOCALE, hasLocale } from "@/lib/i18n";
+import { hasLocale } from "@/lib/i18n";
+import { negotiateLocale } from "@/lib/i18n/negotiation";
 
 const markdownHeaders = {
   "Content-Type": "text/markdown; charset=utf-8",
@@ -102,9 +103,16 @@ export function proxy(request: Request & { readonly nextUrl: URL }) {
   }
 
   const url = new URL(request.url);
+  const locale = negotiateLocale(request.headers.get("Accept-Language"));
   url.pathname =
-    pathname === "/" ? `/${DEFAULT_LOCALE}` : `/${DEFAULT_LOCALE}${pathname}`;
-  return withVaryAccept(NextResponse.redirect(url));
+    pathname === "/" ? `/${locale}` : `/${locale}${pathname}`;
+  const response = withVaryAccept(NextResponse.redirect(url, 307));
+  response.headers.append("Vary", "Accept-Language");
+  // Locale selection belongs to this request, never a shared or browser cache.
+  response.headers.set("Cache-Control", "private, no-store");
+  response.headers.set("CDN-Cache-Control", "no-store");
+  response.headers.set("Vercel-CDN-Cache-Control", "no-store");
+  return response;
 }
 
 export const config = {

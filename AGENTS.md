@@ -163,6 +163,10 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
 	bots only. Rules and TypeSafe bots use medium difficulty, while LLM bots use
 	random server-owned playstyles. Custom tables retain their six-seat default and 2–6-seat lobby.
 	Never import dictionary values into client components or shared client utilities.
+- Unprefixed HTML URLs use a temporary browser-language redirect with English
+  fallback; explicit locale URLs win. Keep these redirects private/no-store for
+  browsers and CDNs and vary by Accept and Accept-Language. Locale-prefixed page
+  caching and Markdown content negotiation remain independent.
 - The About route is Markdown-authored but remains server-only. Load its MDX
 	through `lib/about/server`; do not add `use client`, client providers, runtime
 	content fetching, or imports from the About documents into client modules.

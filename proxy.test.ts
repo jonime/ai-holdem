@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { proxy } from "./proxy";
 
-function request(pathname: string, accept: string) {
+function request(pathname: string, accept: string, language?: string) {
   const url = new URL(pathname, "https://www.aiholdem.gg");
-  const value = new Request(url, { headers: { Accept: accept } }) as Request & {
+  const headers = new Headers({ Accept: accept });
+  if (language !== undefined) headers.set("Accept-Language", language);
+  const value = new Request(url, { headers }) as Request & {
     readonly nextUrl: URL;
   };
   Object.defineProperty(value, "nextUrl", { value: url });
@@ -29,14 +31,60 @@ describe("agent content proxy", () => {
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 
-  it("varies the root HTML redirect by Accept", () => {
+  it("prevents caching the temporary root HTML redirect", () => {
     const response = proxy(request("/", "text/html"));
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
       "https://www.aiholdem.gg/en-US",
     );
+    expect(response.headers.get("vary")).toBe("Accept, Accept-Language");
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get("cdn-cache-control")).toBe("no-store");
+    expect(response.headers.get("vercel-cdn-cache-control")).toBe("no-store");
+  });
+
+  it("selects a language independently for each visitor", () => {
+    for (const [language, locale] of [
+      ["fi", "fi-FI"],
+      ["de", "de-DE"],
+    ]) {
+      const response = proxy(request("/", "text/html", language));
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toBe(
+        `https://www.aiholdem.gg/${locale}`,
+      );
+      expect(response.headers.get("cache-control")).toBe("private, no-store");
+    }
+  });
+
+  it("preserves the unprefixed path and query string", () => {
+    const response = proxy(request("/about?source=home", "text/html", "fi"));
+    expect(response.headers.get("location")).toBe(
+      "https://www.aiholdem.gg/fi-FI/about?source=home",
+    );
+  });
+
+  it("keeps explicit locale URLs independent of browser language", () => {
+    const response = proxy(request("/en-US/about", "text/html", "fi"));
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+    expect(response.headers.has("location")).toBe(false);
+    expect(response.headers.has("cache-control")).toBe(false);
     expect(response.headers.get("vary")).toBe("Accept");
+  });
+
+  it("does not redirect unsupported explicit locale URLs", () => {
+    const response = proxy(request("/ja-JP", "text/html", "fi"));
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+    expect(response.headers.has("location")).toBe(false);
+  });
+
+  it("keeps Markdown negotiation independent of browser language", async () => {
+    const response = proxy(request("/", "text/markdown", "fi"));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("vary")).toBe("Accept");
+    expect(response.headers.has("location")).toBe(false);
+    expect(await response.text()).toContain("# AI Hold'em");
   });
 
   it("serves a Markdown 404 with a discovery link", async () => {

@@ -217,6 +217,17 @@ structure and links aligned across all ten documents when changing About copy.
 
 There are ten locales (`en-US`, `fi-FI`, `es-ES`, `de-DE`, `sv-SE`, `fr-FR`, `pt-BR`, `it-IT`, `nl-NL`, `pl-PL`). The English module exports `as const`; every other locale uses `satisfies` with the corresponding type from `lib/i18n/types.ts`. Every dictionary module imports `server-only`.
 
+`proxy.ts` redirects unprefixed HTML URLs with a temporary 307, matching
+`Accept-Language` in descending quality order through `lib/i18n/negotiation.ts`.
+Exact supported locales win within each preference, then the same language's
+supported regional variant; missing, malformed, wildcard-only, or unsupported
+preferences fall back to `en-US`. Zero-quality entries are skipped. Explicit
+locale URLs retain their language. No locale cookie is stored. Redirects preserve
+the path and query and send `Vary: Accept, Accept-Language`,
+`Cache-Control: private, no-store`, and CDN/Vercel CDN `no-store` headers so browser
+and shared caches cannot reuse another visitor's locale decision. Localized pages
+keep their existing caching, and Markdown negotiation still runs first.
+
 - To add a key, add it to the English dictionary and to every other locale in the same directory; `lib/i18n/dictionaries/dictionaries.test.ts` compares leaf-key paths and placeholders against English.
 - To add a locale, add `<locale>.ts` to each dictionary directory, register it in `SUPPORTED_LOCALES` in `lib/i18n/index.ts`, and add its dynamic import entry to the matching map in `lib/i18n/server.ts`.
 - Server Components load dictionaries directly through the loaders in `lib/i18n/server` (`getMetadataDictionary`, `getLandingServerDictionary`, `getGameDictionary`).
