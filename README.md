@@ -122,7 +122,8 @@ or TypeSafe services. Also run `npm run build` for changes affecting routing,
 rendering, environment handling, or deployment behavior.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the contributor workflow, translations,
-local Supabase E2E and SQL checks, HTTP contracts, and deployed Realtime verification.
+local Supabase E2E and SQL checks, production smoke CI (`npm run test:e2e:smoke`),
+HTTP contracts, and deployed Realtime verification.
 Bot evaluations and benchmarks are documented in [benchmarks/README.md](benchmarks/README.md).
 
 ## Deployment

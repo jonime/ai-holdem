@@ -61,9 +61,34 @@ Run `npm run check` after code changes. It runs ESLint, the strict TypeScript
 check, and the Vitest suite. Run `npm run build` for changes affecting Next.js
 routing, rendering, environment handling, or deployment behavior.
 
-Pull requests and pushes to `main` run both commands in `.github/workflows/ci.yml`
-using non-secret placeholder environment values. Tests must not depend on live
-Supabase or TypeSafe services.
+Pull requests and pushes to `main` retain the fast check/build job with non-secret
+placeholder values; unit tests must not depend on live Supabase or TypeSafe.
+An independent 30-minute integration job uses Docker, pinned Supabase CLI 2.119.0,
+and the installed Playwright Chromium with system dependencies. It starts a
+healthy full local stack (including Realtime), applies every migration to its
+disposable database, then runs `test:sql:game-reads`, `test:sql:seats`, and
+`test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore
+health checks. Preserve workflow cancellation for superseded commits.
+
+Local production smoke requires an already-running migrated local Supabase and
+Chromium (`npx playwright install chromium`). `npm run test:e2e:smoke` builds an
+isolated copy without application `.env*`, uses `.next-e2e` and port 3002, and
+starts `next start` with identical local build/server environment values. Never
+reuse a server or read hosted credentials. Validate loopback status origins,
+mask credentials, disable external inference, and clear provider credentials.
+Reject `E2E_BASE_URL` in CI; keep development and explicit preview modes outside
+CI. The five reused `@smoke` tests cover Quick Play, unseated host seat authority,
+Equity Rules completion/history/next hand, real two-browser Realtime game/seat
+events, and intentionally blocked WebSocket polling recovery. Use Chromium with
+one worker and no retries. Ordinary local smoke/SQL commands never reset the DB.
+
+Keep failure traces/screenshots, HTML reports, and sanitized application/startup
+logs in `test-results/`, `playwright-report/`, and `integration-logs/`; upload CI
+diagnostics for seven days. Never upload status/environment dumps, service-role
+keys, database contents, or production data. Always tear down the application
+and CI Supabase even after failures; local smoke preserves the running stack.
+See `CONTRIBUTING.md` for prerequisites, selection and artifact inspection. This
+integration job does not replace the Vercel two-browser lifecycle smoke test.
 
 ## Architecture Rules
 

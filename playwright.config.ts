@@ -1,66 +1,31 @@
-import { execFileSync } from "node:child_process";
+import { localEnvironment, rejectCIOverride } from "./scripts/e2e/local-environment.mjs";
 
 import { defineConfig, devices } from "@playwright/test";
 
-function getLocalSupabaseEnvironment(): Record<string, string> {
-  const output = execFileSync("supabase", ["status", "-o", "env"], {
-    encoding: "utf8",
-  });
-  const values = Object.fromEntries(
-    output
-      .split("\n")
-      .map((line) => line.match(/^([A-Z_]+)=(.*)$/))
-      .filter((match): match is RegExpMatchArray => match !== null)
-      .map((match) => [match[1], match[2].replace(/^\"|\"$/g, "")]),
-  );
-
-  const url = values.API_URL;
-  const publishableKey = values.ANON_KEY;
-  const secretKey = values.SERVICE_ROLE_KEY;
-  if (!url || !publishableKey || !secretKey) {
-    throw new Error(
-      "Local Supabase is running, but status did not provide API_URL, ANON_KEY, and SERVICE_ROLE_KEY",
-    );
-  }
-
-  return {
-    PORT: "3002",
-    NEXT_DIST_DIR: ".next-e2e",
-    NEXT_PUBLIC_SUPABASE_URL: url,
-    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: publishableKey,
-    SUPABASE_SECRET_KEY: secretKey,
-    TYPESAFE_API_KEY: "",
-    LLM_API_ENDPOINT: "",
-    LLM_API_KEY: "",
-    LLM_BOT_MODELS: JSON.stringify([
-      {
-        id: "llm-test-model",
-        label: "LLM Test Model",
-        modelId: "test/model",
-      },
-    ]),
-    EXTERNAL_INFERENCE_ENABLED: "false",
-  };
-}
+rejectCIOverride();
 
 const externalBaseURL = process.env.E2E_BASE_URL;
+const production = process.env.E2E_PRODUCTION === "true";
+if (production && (!process.env.E2E_WORKSPACE || externalBaseURL)) throw new Error("Use npm run test:e2e:smoke for local production mode.");
 
 export default defineConfig({
   testDir: "./test/e2e",
   fullyParallel: false,
   workers: 1,
   retries: 0,
-  reporter: "list",
+  reporter: [["list"], ["html", { open: "never" }]],
   use: {
     baseURL: externalBaseURL ?? "http://localhost:3002",
     trace: "retain-on-failure",
+    screenshot: "only-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: externalBaseURL ? undefined : {
-    command: "npx next dev",
+    command: production ? "node scripts/e2e/server.mjs" : "npx next dev",
     url: "http://localhost:3002",
     reuseExistingServer: false,
     timeout: 120_000,
-    env: getLocalSupabaseEnvironment(),
+    gracefulShutdown: { signal: "SIGTERM", timeout: 10_000 },
+    env: production ? undefined : localEnvironment(),
   },
 });

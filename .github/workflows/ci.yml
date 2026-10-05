@@ -43,3 +43,70 @@ jobs:
 
       - name: Build production application
         run: npm run build
+
+  integration:
+    name: Local SQL and production browser smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "true"
+      EXTERNAL_INFERENCE_ENABLED: "false"
+      TYPESAFE_API_KEY: ""
+      LLM_API_ENDPOINT: ""
+      LLM_API_KEY: ""
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        timeout-minutes: 3
+        run: npm ci
+
+      - name: Set up pinned Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.119.0
+
+      - name: Install Chromium and system dependencies
+        timeout-minutes: 8
+        run: npx playwright install --with-deps chromium
+
+      - name: Start disposable Supabase and apply migrations
+        timeout-minutes: 12
+        run: node scripts/e2e/supabase.mjs
+
+      - name: Verify SQL game reads
+        timeout-minutes: 3
+        run: npm run test:sql:game-reads
+
+      - name: Verify SQL seat mutations
+        timeout-minutes: 3
+        run: npm run test:sql:seats
+
+      - name: Build and test the production application
+        timeout-minutes: 18
+        run: npm run test:e2e:smoke
+
+      - name: Stop disposable Supabase
+        if: always()
+        timeout-minutes: 2
+        run: node scripts/e2e/supabase.mjs stop
+
+      - name: Upload integration diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-diagnostics
+          path: |
+            playwright-report/
+            test-results/
+            integration-logs/
+          retention-days: 7
+          if-no-files-found: ignore

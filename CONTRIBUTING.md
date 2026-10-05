@@ -63,6 +63,69 @@ Use a clean local database when validating migration-dependent behavior:
 npm run test:e2e:reset
 ```
 
+## Production smoke integration
+
+CI runs an independent integration job alongside the unchanged
+lint/typecheck/unit-test/build job on pull requests and pushes to `main`. It has a
+30-minute limit and preserves cancellation of superseded commits. It uses Node
+from `.nvmrc`, `npm ci`, Supabase CLI **2.119.0**, and the installed Playwright
+version's Chromium (`npx playwright install --with-deps chromium` on Ubuntu).
+Docker and a healthy local Supabase stack including Realtime are prerequisites.
+Setup follows the official [Supabase CI guide](https://supabase.com/docs/guides/deployment/ci/testing)
+and [Playwright CI guide](https://playwright.dev/docs/ci).
+
+For local production verification, start Supabase and apply all committed
+migrations, then run these commands in order:
+
+```sh
+npm run test:sql:game-reads
+npm run test:sql:seats
+npm run test:e2e:smoke
+```
+
+`test:e2e:smoke` builds an isolated temporary source/dependency copy that excludes
+application `.env*` files. It uses the normal Turbopack production build with
+`.next-e2e`, then Playwright starts `next start` on port **3002**, waits for
+readiness, and never reuses an existing server. Build and startup inherit the
+same validated loopback credentials from `supabase status`; credentials are
+masked in Actions and logs are sanitized. External inference is forced off and
+provider credentials are cleared. `E2E_BASE_URL` is rejected by the smoke runner
+and by all Playwright modes in CI. No hosted credentials are needed.
+
+Exactly five existing tests carry `@smoke`: six-seat Quick Play to a human turn;
+seat claims/moves/bot assignments/releases with an unseated host; an Equity Rules
+hand through history and another hand; actual two-browser Realtime for versioned
+game and same-version seat changes; and polling recovery with intentionally
+blocked WebSockets. Selection uses `--grep @smoke`, Chromium, one worker, and no
+retries. To inspect selection without building, use
+`npm run test:e2e -- --grep @smoke --list` with local Supabase running.
+
+The CI setup script starts the full stack with health checks enabled and resets
+only its disposable local database to apply committed migrations. Neither SQL
+suite nor `test:e2e:smoke` resets ordinary local databases; SQL fixtures keep their
+existing isolation and cleanup. Playwright tears down the application after
+success or failure, the runner removes its temporary workspace, and an `always()`
+workflow step stops Supabase without a backup. Local smoke leaves your already
+running Supabase available.
+
+HTML reports are generated in `playwright-report/`; failure traces/screenshots
+are retained in `test-results/`. Sanitized build/application/startup logs go to
+`integration-logs/`. CI uploads these paths as `integration-diagnostics` with
+seven-day retention even on failure. Do not upload environment dumps, raw
+Supabase status, database dumps, or production data. Browser artifacts may
+contain disposable test identities. Open reports with `npx playwright show-report`
+and traces with `npx playwright show-trace path/to/trace.zip`.
+
+To validate CI failure handling, temporarily add a failing assertion to a tagged
+test on a test branch, verify that the integration job fails and its artifact
+contains the HTML report, screenshot, trace, and sanitized logs, then remove the
+assertion and verify a green run. Keep `npm run check` and the normal
+`npm run build` check. Development testing still uses `npm run test:e2e` with
+`next dev`; explicit Vercel preview testing still uses `E2E_BASE_URL` outside CI.
+This local production suite does **not** replace the deployed Vercel two-browser
+smoke test for notification lifecycle changes. Broader coverage and branch
+protection configuration are outside this job.
+
 ## Seat-mutation checks
 
 Claims, bot assignments, and releases belong in `lib/poker/seat-service.ts` and
