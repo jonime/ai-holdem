@@ -212,6 +212,7 @@ const dictionary = {
     of: "{rank} {suit}",
   },
   errors: {
+    llmCredits: "{bot} osiągnął limit kredytów, spasował i odejdzie przed następnym rozdaniem.",
     createGame: "Nie udało się utworzyć gry",
     refreshGame: "Nie udało się odświeżyć stanu gry.",
     loadGame: "Nie udało się wczytać wybranej gry.",

@@ -211,6 +211,7 @@ const dictionary = {
     of: "{rank} of {suit}",
   },
   errors: {
+    llmCredits: "{bot} reached its credit limit, folded, and will leave before the next hand.",
     createGame: "Unable to create game",
     refreshGame: "Unable to refresh the latest game state.",
     loadGame: "Unable to load the requested game.",

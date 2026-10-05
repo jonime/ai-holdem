@@ -109,7 +109,8 @@ Seat claims, bot assignments, and releases use versioned atomic RPCs through
 including when the host is unseated; missing records grant no host authority.
 Mutation responses parse the committed RPC seat row without rereading seats.
 Run `npm run test:sql:seats` with migrated local Supabase, Docker, and Supabase CLI
-to check locking, conflicts, retries, moves, permissions, and release states using
+to check locking, conflicts, retries, moves, permissions, release states, and
+atomic bot credit departures (including rollback after departure failure) using
 isolated fixtures. See [contributor testing instructions](../CONTRIBUTING.md).
 
 See [deployment prerequisites](deployment.md#migration-prerequisites) for the
@@ -150,7 +151,35 @@ safeguards, authorization, one request per decision, and version-checked
 persistence are retained. See [context and evaluation methodology](../benchmarks/poker-context.md)
 for position, sizing, pressure and research assumptions.
 
-Provider failures keep the public generic 502 response. Server logs include only
-the game ID and a fixed failure reason (or validated HTTP status), never provider
-messages, inputs, responses, keys or cards. LLM passive actions require null
+Provider failures normally keep the public generic 502 response. A confirmed
+LLM credit failure instead applies one engine-validated fold and atomically marks
+the seat leaving using `apply_ai_action_and_leave_if_version`. Apply
+`20261014000000_add_atomic_bot_credit_departure.sql` before deploying the code.
+The existing next-hand reconciliation removes the seat; current-hand results
+and all-in settlement remain authoritative. The successful response carries
+the fixed `llm_credit_limit_exit` matched rule, which displays a localized notice.
+The fallback records no raw provider response or invented probabilities.
+
+OpenRouter's [credit-limit contract](https://openrouter.ai/docs/api/reference/limits)
+uses 402 with `openrouter_key_limit` or `openrouter_credits`. Plain 402 without
+a `Retry-After` header also uses the credit fallback. A 402 with
+`openrouter_in_flight_budget`, an unknown limit source, or an unclassified 402
+with a `Retry-After` header,
+remains paused; 429 and other provider errors never trigger departure. Error
+envelopes carried in HTTP 200 are classified using their numeric error code.
+Jev credit exhaustion is undocumented, so Jev failures remain paused.
+
+In Vercel runtime logs, search for `llm_provider_http_failure` or
+`typesafe_provider_http_failure` to find structured LLM or Jev HTTP failures:
+game ID, fixed reason, HTTP status, numeric provider error code (100–599),
+numeric `Retry-After` seconds when supplied, its presence (including date-format
+headers), and boolean `creditMentioned`,
+`quotaMentioned`, and `rateLimitMentioned` indicators derived from the provider's
+error message. These indicators are clues, not proof of exhausted credits;
+unknown/non-JSON bodies still log their HTTP status. The allowlisted `limitSource`
+helps distinguish OpenRouter credit caps from temporary spending holds. A committed
+credit fold includes `outcome: "fold_and_leave"`; failed/stale commits never claim
+that outcome. Other bot failures use
+`bot_decision_failed`. Logs never include raw provider messages, inputs,
+responses, headers, keys or cards. LLM passive actions require null
 sizing; their schema advertises only null when no aggressive action remains.

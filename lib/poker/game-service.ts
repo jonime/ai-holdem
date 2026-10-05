@@ -34,7 +34,9 @@ import {
   getBotCatalog,
   type BotRegistry,
 } from "@/lib/bots/registry";
-import type { PokerBot } from "@/lib/bots/types";
+import { emptyDiagnostics, LLM_CREDIT_EXIT_RULE, type BotDecision, type PokerBot } from "@/lib/bots/types";
+import { isLlmCreditFailure } from "@/lib/bots/provider-http-failure";
+import { logBotProviderFailure } from "@/lib/bots/provider-logging";
 
 export interface CreateDemoGameOptions {
   readonly seatCount?: number;
@@ -1252,7 +1254,20 @@ async function stepResolvedBotAction(
   });
   const context = { ...aiState, sizingOptions: botDescriptor.provider === "rules"
     ? createLegacySizingOptions(aiState) : createSizingOptions(aiState) };
-  const decision = await bot.decide(context);
+  let decision: BotDecision;
+  let creditFailure: unknown;
+  try {
+    decision = await bot.decide(context);
+  } catch (error) {
+    if (botDescriptor.provider !== "llm" || !isLlmCreditFailure(error) ||
+        !pokerEngineAdapter.getLegalActions(stateBefore).some(action => action.type === "fold")) throw error;
+    creditFailure = error;
+    decision = {
+      action: { type: "fold" },
+      diagnostics: emptyDiagnostics({ matchedRule: LLM_CREDIT_EXIT_RULE, botProfileId: botPlayer.botProfileId ?? null }),
+      rawResponse: null,
+    };
+  }
   const stateAfter = pokerEngineAdapter.applyAction(
     stateBefore,
     botPlayer.id,
@@ -1262,6 +1277,7 @@ async function stepResolvedBotAction(
   const persistedGame = await repository.persistAIAction({
     gameId,
     expectedVersion,
+    leaveSeat: creditFailure !== undefined,
     playerEngineId: botPlayer.id,
     currentState: stateAfter,
     stateSchemaVersion: stateAfter.stateSchemaVersion,
@@ -1300,6 +1316,8 @@ async function stepResolvedBotAction(
         : {};
     })(),
   });
+
+  if (creditFailure !== undefined) logBotProviderFailure(gameId, creditFailure, "fold_and_leave");
 
   const projectedState = repository.getSeatAssignments
     ? await withOpenSeatPlaceholders(

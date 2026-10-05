@@ -18,6 +18,7 @@ import {
   type PokerBot,
 } from "./types";
 import { resolveLlmPlaystyle } from "./llm-playstyles";
+import { providerHttpFailureDiagnostics } from "./provider-http-failure";
 
 const invariantPolicy =
   "Use only the supplied information and optimize expected chip value in this no-rake cash game. Choose only a supplied action candidate and, when required, a supplied sizing. The candidates already exclude provably bad decisions; playstyle preferences never override these restrictions. Showdown equity is against random opponent hands, not the opponent's betting range. Compare range-adjusted equity with the supplied contestable-pot odds. Evaluate the best five cards including kickers; a strong category on the board does not mean HERO beats the opponent. On the river no future cards remain, so do not semi-bluff missed draws. Never invent hidden cards or absent information. For fold, check, or call, sizing must be null. For bet or raise, sizing must be one of the supplied concrete sizing choices. Return only the schema-constrained JSON.";
@@ -202,9 +203,10 @@ export class LlmPokerBot implements PokerBot {
       );
     }
     const body: unknown = await response.json().catch(() => null);
-    if (!response.ok) {
+    if (!response.ok || (isRecord(body) && isRecord(body.error))) {
       throw new BotProviderError(
         `LLM provider request failed with HTTP ${response.status}`,
+        providerHttpFailureDiagnostics(response, body),
       );
     }
     const parsed = parseOutput(body, candidates);

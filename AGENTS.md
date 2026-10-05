@@ -104,6 +104,13 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
   the stale loop and refresh silently; refresh and provider failures stay visible.
   Stop at human turns, completed hands, navigation, or lost eligibility. Next hands
   require explicit interaction; bots pause without an eligible open browser.
+- Confirmed LLM credit failures apply one engine-validated fold and mark the seat
+  leaving atomically through `apply_ai_action_and_leave_if_version`; next-hand
+  reconciliation removes it. Apply `20261014000000_add_atomic_bot_credit_departure.sql`
+  before deploying the code. OpenRouter temporary in-flight spending holds and
+  rate limits remain paused, as do undocumented Jev credit failures. Preserve
+  safe structured LLM/Jev HTTP logs and the localized credit-departure notice;
+  never log raw provider messages, inputs, responses, headers, keys or cards.
 - Each mutation applies at most one action and uses the expected game version.
 	Preserve optimistic-concurrency conflict handling in service and API layers.
 - Game refreshes use one uncached, service-role-only `get_game_read_snapshot`
@@ -233,7 +240,9 @@ The local-only runner uses isolated fixtures and independent connections to chec
 game-row locking, competing claims, stale versions, idempotent retries, atomic
 moves, durable host authorization (including unseated and missing hosts), and
 waiting versus non-waiting release behavior. It requires Docker and Supabase CLI,
-cleans up its fixtures, and never loads application `.env` or calls bot providers.
+also checks atomic LLM credit folds/departures, stale retries, restricted SQL
+roles, and rollback after a departure failure. It cleans up its fixtures and
+never loads application `.env` or calls bot providers.
 
 ## Bot scenario evaluations
 

@@ -5,6 +5,8 @@ import { POST as step } from "./step/route";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { HumanActionError } from "@/lib/poker/human-actions";
 import { BotProviderError } from "@/lib/bots/types";
+import { providerHttpFailureDiagnostics } from "@/lib/bots/provider-http-failure";
+import { TypesafeRequestError } from "@/lib/typesafe/client";
 import { getGameResponseSchema, submitActionResponseSchema, stepBotResponseSchema, GAME_VERSION_CONFLICT } from "@/lib/http/gameplay-contracts";
 import { gameplayGame as game, gameplayDecision as aiDecision } from "@/test/fixtures/gameplay";
 
@@ -100,8 +102,46 @@ describe("gameplay route contracts", () => {
     const response = await step(request({ expectedVersion: 1 }), context);
     expect(response.status).toBe(502);
     expect(await response.json()).toEqual({ error: "AI decision failed" });
-    expect(warn).toHaveBeenCalledWith("Bot decision failed",{ gameId:"game-1",reason:"unknown" });
+    expect(warn).toHaveBeenCalledWith("Bot decision failed", JSON.stringify({ event:"bot_decision_failed",gameId:"game-1",reason:"unknown" }));
     expect(JSON.stringify(warn.mock.calls)).not.toContain("secret-body");
     warn.mockRestore();
+  });
+  it("logs searchable LLM credit failures while keeping the public response generic", async () => {
+    const diagnostics = providerHttpFailureDiagnostics(new Response(null, { status: 402 }), {
+      error: { code: 402, message: "Insufficient credits secret-body", metadata: { raw: "As Ks" } },
+    });
+    advance.mockRejectedValue(new BotProviderError("LLM provider request failed with HTTP 402", diagnostics));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const response = await step(request({ expectedVersion: 1 }), context);
+      expect(response.status).toBe(502);
+      expect(await response.json()).toEqual({ error: "AI decision failed" });
+      expect(warn).toHaveBeenCalledExactlyOnceWith("Bot decision failed", JSON.stringify({
+        event: "llm_provider_http_failure", gameId: "game-1", reason: "http_402", ...diagnostics,
+      }));
+      expect(JSON.stringify(warn.mock.calls)).not.toMatch(/secret-body|As Ks|owner/);
+      expect(schedule).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
+  });
+  it("logs searchable Jev HTTP failures without exposing raw messages", async () => {
+    const diagnostics = providerHttpFailureDiagnostics(new Response(null, { status: 402 }), {
+      error: "Credits exhausted secret-body As Ks",
+    });
+    advance.mockRejectedValue(new TypesafeRequestError("TypeSafe request failed with HTTP 402", diagnostics));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const response = await step(request({ expectedVersion: 1 }), context);
+      expect(response.status).toBe(502);
+      expect(await response.json()).toEqual({ error: "AI decision failed" });
+      expect(warn).toHaveBeenCalledExactlyOnceWith("Bot decision failed", JSON.stringify({
+        event: "typesafe_provider_http_failure", gameId: "game-1", reason: "typesafe_request", ...diagnostics,
+      }));
+      expect(JSON.stringify(warn.mock.calls)).not.toMatch(/secret-body|As Ks|owner/);
+      expect(schedule).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
   });
 });

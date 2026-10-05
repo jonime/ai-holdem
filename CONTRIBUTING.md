@@ -274,6 +274,12 @@ Docs are part of the implementation.
   Stop at human turns, completed hands, navigation, or lost eligibility. Next hands
   require explicit interaction; bots pause without an eligible open browser.
 - Keep database mutations atomic and scoped to at most one action per request.
+  LLM credit failures fold and mark the bot leaving in one version-checked RPC;
+  apply `20261014000000_add_atomic_bot_credit_departure.sql` before deploying.
+  Temporary OpenRouter spending holds, rate limits, and undocumented Jev credit
+  failures remain paused. Search Vercel runtime logs for
+  `llm_provider_http_failure` or `typesafe_provider_http_failure`; see
+  [provider failure behavior](docs/architecture.md) for safe fields and classification.
 - Public listings are private by default. Preserve the two-minute database-time
   host lease, 30-second visible-host heartbeat, and server-role-only access.
   Seat claims, moves, bot assignments, releases, start, and settings changes

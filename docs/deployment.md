@@ -51,6 +51,14 @@ for local SQL, benchmark, and browser verification.
 Broadcast requires no additional SQL migration. Realtime lifecycle changes also
 require the [deployed two-browser smoke test](../CONTRIBUTING.md#realtime-lifecycle-changes).
 
+`20261014000000_add_atomic_bot_credit_departure.sql` adds the service-role-only
+`apply_ai_action_and_leave_if_version` RPC. Apply it before deploying the LLM
+credit fallback. It atomically commits a legal fold and marks the bot leaving;
+the existing next-hand reconciliation removes the seat. No backfill is required.
+`npm run test:sql:seats` includes isolated rollback, conflict, and role checks for
+this RPC. See [provider failure behavior](architecture.md) for credit detection
+and Vercel log search terms, including Jev HTTP failures.
+
 ## Automatic production migrations
 
 Migrations deploy via Supabase's native GitHub integration rather than a

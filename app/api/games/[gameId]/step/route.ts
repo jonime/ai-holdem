@@ -9,19 +9,13 @@ import {
   stepBotAction,
 } from "@/lib/poker/game-service";
 import { ServerBotRegistry } from "@/lib/bots/registry";
-import { BotProviderError, botProviderFailureReason } from "@/lib/bots/types";
+import { BotProviderError } from "@/lib/bots/types";
+import { logBotProviderFailure } from "@/lib/bots/provider-logging";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { TypesafeRequestError } from "@/lib/typesafe/client";
 import { TypesafeResponseError } from "@/lib/typesafe/types";
 import { scheduleGameEvent } from "@/lib/realtime/schedule";
-
-function providerFailureReason(error: unknown): string {
-  if (error instanceof BotProviderError) return botProviderFailureReason(error);
-  if (error instanceof TypesafeRequestError) return "typesafe_request";
-  if (error instanceof TypesafeResponseError) return "typesafe_response";
-  return "inference_disabled";
-}
 
 interface StepRouteContext {
   readonly params: Promise<{ gameId: string }>;
@@ -73,7 +67,7 @@ export async function POST(request: Request, context: StepRouteContext) {
       error instanceof BotProviderError ||
       (error instanceof Error && error.message === "External inference is disabled")
     ) {
-      console.warn("Bot decision failed", { gameId, reason: providerFailureReason(error) });
+      logBotProviderFailure(gameId, error);
       return NextResponse.json(
         { error: "AI decision failed" },
         { status: 502 },
