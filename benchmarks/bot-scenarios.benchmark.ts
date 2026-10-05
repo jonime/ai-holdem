@@ -1,3 +1,4 @@
+import { cappedBot, liveDecisionBudget } from "./poker-context-harness";
 import { describe, expect, it } from "vitest";
 
 import { isBotPlaystyleId, LLM_PLAYSTYLES } from "@/lib/bots/llm-playstyles";
@@ -13,6 +14,7 @@ if (!Number.isInteger(repeats) || repeats < 1 || repeats > 20) {
 
 const liveEnabled = process.env.BOT_SCENARIO_LIVE === "true";
 const bots = getBotCatalog();
+let liveBudget: { remaining:number } | undefined;
 
 for (const descriptor of bots) {
   const model = descriptor.modelId ? ` (${descriptor.modelId})` : "";
@@ -46,7 +48,8 @@ for (const descriptor of bots) {
                   botId: descriptor.id,
                   profileId,
                 });
-                const report = await evaluateScenario(bot, scenario, {
+                if (descriptor.provider !== "rules") liveBudget ??= liveDecisionBudget();
+                const report = await evaluateScenario(descriptor.provider === "rules" ? bot : cappedBot(bot,liveBudget!), scenario, {
                   difficulty,
                   typesafePolicyV2: descriptor.provider === "typesafe",
                 });

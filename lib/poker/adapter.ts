@@ -263,7 +263,71 @@ export function createDeterministicDeck(
   return deck;
 }
 
+export type PokerPosition = "button" | "small_blind" | "big_blind" | "cutoff" | "hijack" | "UTG";
+
+/** Hand participants include folded players and exclude empty/sitting-out seats. */
+function decisionView(state: PokerGameState) {
+  const table = engineStateFrom(state);
+  const hand = table.hand;
+  if (!hand) throw new PokerRuleError("No active hand");
+  const ordered = [...hand.players].sort((a, b) => a.seat - b.seat);
+  const clockwise = (start: number) => [...ordered.filter(p => p.seat > start), ...ordered.filter(p => p.seat <= start)];
+  const positions = new Map<number, PokerPosition>();
+  positions.set(hand.buttonSeat, "button");
+  if (hand.players.length > 2) positions.set(hand.smallBlindSeat, "small_blind");
+  positions.set(hand.bigBlindSeat, "big_blind");
+  const others = clockwise(hand.bigBlindSeat).filter(p => !positions.has(p.seat));
+  const labels: PokerPosition[] = others.length === 3 ? ["UTG", "hijack", "cutoff"] : others.length === 2 ? ["hijack", "cutoff"] : ["cutoff"];
+  others.forEach((p, i) => positions.set(p.seat, labels[i]));
+  return {
+    street: hand.stage,
+    handNumber: hand.handNumber,
+    buttonSeat: hand.buttonSeat,
+    smallBlindSeat: hand.smallBlindSeat,
+    bigBlindSeat: hand.bigBlindSeat,
+    currentActorSeat: hand.currentActorSeat,
+    currentBet: hand.currentBet,
+    bigBlind: table.config.bigBlind,
+    smallBlind: table.config.smallBlind,
+    pot: hand.players.reduce((sum, p) => sum + p.committedHand, 0),
+    legacyPot: hand.pots.reduce((sum, p) => sum + p.amount, 0),
+    communityCards: hand.communityCards.map(cardToString),
+    preflopOrder: clockwise(hand.bigBlindSeat).map(p => p.seat),
+    postflopOrder: clockwise(hand.buttonSeat).map(p => p.seat),
+    remainingOrder: clockwise(hand.currentActorSeat ?? hand.buttonSeat).map(p => p.seat),
+    players: hand.players.map(p => ({
+      id: p.playerId, seat: p.seat, position: positions.get(p.seat)!,
+      stack: table.seats[p.seat]?.stack ?? 0,
+      committedStreet: p.committedStreet, committedHand: p.committedHand,
+      folded: p.folded, allIn: p.allIn,
+      needsAction: !p.folded && !p.allIn && (p.lastActedBet === null || p.lastActedBet < hand.currentBet),
+    })),
+  };
+}
+
+/** Evaluates only explicitly supplied visible cards; no state or deck leaves the adapter. */
+export function evaluateVisibleCards(hole: readonly string[], board: readonly string[]) {
+  const cards = [...hole, ...board];
+  if (new Set(cards).size !== cards.length) throw new PokerRuleError("Duplicate visible cards");
+  const parsed = cards.map(parseCard);
+  const rank = parsed.length >= 5 ? evaluateHand(parsed) : null;
+  const boardRank = board.length === 5 ? evaluateHand(board.map(parseCard)) : null;
+  return {
+    category: rank?.category ?? null,
+    tiebreak: rank?.tiebreak ?? [],
+    bestFive: rank?.cards.map(cardToString) ?? [],
+    boardOnly: boardRank !== null && rank !== null && compareHandRanks(rank, boardRank) === 0,
+  };
+}
+
 export const pokerEngineAdapter = {
+  decisionView,
+
+  heroCards(state: PokerGameState, playerId: string): readonly string[] {
+    const player = engineStateFrom(state).hand?.players.find(p => p.playerId === playerId);
+    if (!player) throw new PokerRuleError("Player is not in hand");
+    return player.holeCards.map(cardToString);
+  },
   createGame(config: GameConfig): PokerGameState {
     if (config.players.length < 1) {
       throw new PokerRuleError("A poker table requires at least one player");

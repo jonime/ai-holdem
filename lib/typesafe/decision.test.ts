@@ -119,8 +119,8 @@ describe("TypeSafe poker decision", () => {
     expect(pokerState.opponents[0]).not.toHaveProperty("name");
     expect(pokerState.actionHistory).toEqual([
       expect.objectContaining({
-        actorSeat: 0,
-        actor: "opponent",
+        actorSeat: null,
+        actor: "unknown",
         controller: "human",
       }),
     ]);
@@ -147,6 +147,7 @@ describe("TypeSafe poker decision", () => {
       createDeterministicDeck(),
     );
     const openingState = createPokerAIState(started, "human", {
+      historyStatus: "complete",
       equitySamples: 10,
       typesafePolicyV2: true,
     });

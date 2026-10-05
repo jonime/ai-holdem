@@ -133,3 +133,24 @@ Repeated clicks are guarded while “Starting…” is shown. Failure keeps the 
 table intact and displays a localized retryable error without automatic retries.
 Replay never resets stacks, releases seats, or moves other players; watching deals
 only on request.
+
+## Private bot decision context
+
+Jev and LLMs share server-owned decision facts and exact sizing. The uncached,
+service-role-only `get_bot_hand_context` RPC returns one hand’s immutable initial
+state and ordered persisted pre-action states plus the current game version.
+Local replay resolves actors by engine turn and initial configuration, then
+projects only visible action facts. Version/replay conflicts stop before
+inference; legacy gaps are explicitly unknown and DB errors remain visible.
+
+LLMs receive selected original advisory guidance in their system instructions.
+Facts, advice and policy have independent versions; the supplied context and
+advice identifiers are kept in existing private audit storage. Candidate
+safeguards, authorization, one request per decision, and version-checked
+persistence are retained. See [context and evaluation methodology](../benchmarks/poker-context.md)
+for position, sizing, pressure and research assumptions.
+
+Provider failures keep the public generic 502 response. Server logs include only
+the game ID and a fixed failure reason (or validated HTTP status), never provider
+messages, inputs, responses, keys or cards. LLM passive actions require null
+sizing; their schema advertises only null when no aggressive action remains.

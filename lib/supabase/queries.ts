@@ -1,3 +1,6 @@
+import { z } from "zod";
+import type { BotHandContext } from "@/lib/poker/bot-history";
+import { pokerEngineAdapter } from "@/lib/poker/adapter";
 import type { AtomicSeatAssignmentRepository, SeatAssignment, SeatStatus } from "@/lib/poker/seat-contracts";
 import "server-only";
 
@@ -246,6 +249,7 @@ export interface GameDatabaseClient {
       | "create_game_session"
       | "get_game_read_snapshot"
       | "get_hand_history"
+      | "get_bot_hand_context"
       | "get_game_feed"
       | "get_game_feed_since"
       | "start_next_hand_if_version"
@@ -1018,6 +1022,32 @@ export class SupabaseGameRepository {
       version,
       duplicate: data.duplicate === true,
     };
+  }
+
+  async getBotHandContext(gameId: string, handNumber: number): Promise<BotHandContext | null> {
+    const { data, error } = await this.client.rpc("get_bot_hand_context", { p_game_id: gameId, p_hand_number: handNumber });
+    if (error) throw new Error(`Unable to load bot hand context: ${error.message}`);
+    if (data === null) return null;
+    const state = z.object({ stateSchemaVersion: z.literal(1), config: z.object({
+      smallBlind: z.number().int().positive(), bigBlind: z.number().int().positive(),
+      players: z.array(z.object({ id: z.string(), seat: z.number().int().nonnegative(), name: z.string(),
+        controller: z.enum(["human", "bot", "typesafe_ai"]), stack: z.number().int().nonnegative() }).passthrough()),
+    }).passthrough(), engineState: z.unknown() }).passthrough().transform(raw => pokerEngineAdapter.restore(raw));
+    // Empty historical records explicitly mean unknown; malformed nonempty states fail visibly.
+    const legacyState = z.union([z.null(), z.object({}).strict().transform(() => null), state]);
+    const action = z.discriminatedUnion("type", [
+      z.object({ type: z.literal("fold") }), z.object({ type: z.literal("check") }),
+      z.object({ type: z.literal("call"), amount: z.number().int().nonnegative().optional() }),
+      z.object({ type: z.literal("bet"), amount: z.number().int().nonnegative() }),
+      z.object({ type: z.literal("raise"), amount: z.number().int().nonnegative() }),
+    ]);
+    const parsed = z.object({ version: z.number().int().nonnegative(), handNumber: z.literal(handNumber),
+      initialState: legacyState, actions: z.array(z.object({ sequence: z.number().int().positive(),
+        action: z.string(), amount: z.number().int().nonnegative().nullable(), stateBefore: legacyState,
+      }).transform(row => ({ sequence: row.sequence, stateBefore: row.stateBefore,
+        action: row.action === "all_in" ? null : action.parse({ type: row.action, ...(row.amount === null ? {} : { amount: row.amount }) }) }))),
+    }).parse(data);
+    return parsed;
   }
 
   async getHandHistory(

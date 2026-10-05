@@ -703,3 +703,21 @@ describe("atomic seat RPC results", () => {
     expect(from).not.toHaveBeenCalled();
   });
 });
+
+describe("private bot hand context read", () => {
+  it("calls only the hand-filtered RPC and treats empty legacy state as unknown", async () => {
+    const { client,rpc }=createClient({ updateResult:{ version:4,handNumber:2,initialState:{},actions:[] } });
+    const result=await new SupabaseGameRepository(client).getBotHandContext("game-1",2);
+    expect(result).toEqual({ version:4,handNumber:2,initialState:null,actions:[] });
+    expect(rpc).toHaveBeenCalledExactlyOnceWith("get_bot_hand_context",{ p_game_id:"game-1",p_hand_number:2 });
+  });
+  it("rejects cross-hand and malformed states, and keeps DB failures visible", async () => {
+    const { client,rpc }=createClient({ updateResult:{ version:4,handNumber:3,initialState:{},actions:[] } });
+    const repo=new SupabaseGameRepository(client);
+    await expect(repo.getBotHandContext("game-1",2)).rejects.toThrow();
+    rpc.mockResolvedValue({ data:{ version:4,handNumber:2,initialState:{ stateSchemaVersion:1 },actions:[] },error:null });
+    await expect(repo.getBotHandContext("game-1",2)).rejects.toThrow();
+    rpc.mockResolvedValue({ data:null,error:{ message:"database unavailable" } });
+    await expect(repo.getBotHandContext("game-1",2)).rejects.toThrow("Unable to load bot hand context");
+  });
+});

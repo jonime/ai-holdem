@@ -1,9 +1,10 @@
+import { BotHistoryConflictError, projectBotHistory, legacyDecisionHistory, type BotHandContext } from "./bot-history";
 import { isCallerHost, type GameHostReader } from "./host-authorization";
 import type { SeatAssignment, SeatAssignmentRepository } from "./seat-contracts";
 export type { SeatAssignment, SeatAssignmentRepository } from "./seat-contracts";
 import { pokerEngineAdapter } from "./adapter";
 import { createPokerAIState } from "./ai-state";
-import { createSizingOptions } from "@/lib/typesafe/questions";
+import { createSizingOptions, createLegacySizingOptions } from "@/lib/typesafe/questions";
 import { applyHumanAction, type HumanActionSubmission } from "./human-actions";
 import type {
   BotDescriptor,
@@ -172,6 +173,10 @@ export interface HumanActionWriter {
 
 export interface AIActionWriter {
   persistAIAction(input: PersistAIActionInput): Promise<PersistedGame>;
+}
+
+export interface BotHandContextReader {
+  getBotHandContext(gameId: string, handNumber: number): Promise<BotHandContext | null>;
 }
 
 export interface HandHistoryReader {
@@ -1199,6 +1204,7 @@ async function stepResolvedBotAction(
     GameHostReader &
     Partial<
       SeatAssignmentRepository &
+        BotHandContextReader &
         HandHistoryReader &
         HandRevealReader
     >,
@@ -1229,15 +1235,23 @@ async function stepResolvedBotAction(
     throw new Error("The current hand is not accepting actions");
   }
 
-  const history = repository.getHandHistory
-    ? await repository.getHandHistory(gameId, snapshotBefore.handNumber)
-    : null;
+  const history = repository.getBotHandContext
+    ? await repository.getBotHandContext(gameId, snapshotBefore.handNumber) : null;
+  if (history && history.version !== expectedVersion) throw new GameConflictError(gameId, expectedVersion);
+  let projectedHistory: ReturnType<typeof projectBotHistory>;
+  try { projectedHistory = projectBotHistory(history, stateBefore, botPlayer.id); }
+  catch (error) {
+    if (error instanceof BotHistoryConflictError) throw new GameConflictError(gameId, expectedVersion);
+    throw error;
+  }
   const aiState = createPokerAIState(stateBefore, botPlayer.id, {
     difficulty: botPlayer.aiDifficulty ?? "medium",
-    actionHistory: history?.actions ?? [],
-    typesafePolicyV2: botDescriptor.provider === "typesafe",
+    decisionHistory: botDescriptor.provider === "rules" ? legacyDecisionHistory(projectedHistory.actions) : projectedHistory.actions,
+    historyStatus: projectedHistory.status,
+    correctedContext: botDescriptor.provider !== "rules",
   });
-  const context = { ...aiState, sizingOptions: createSizingOptions(aiState) };
+  const context = { ...aiState, sizingOptions: botDescriptor.provider === "rules"
+    ? createLegacySizingOptions(aiState) : createSizingOptions(aiState) };
   const decision = await bot.decide(context);
   const stateAfter = pokerEngineAdapter.applyAction(
     stateBefore,
@@ -1259,7 +1273,7 @@ async function stepResolvedBotAction(
       "amount" in decision.action ? (decision.action.amount ?? null) : null,
     stateBefore,
     handComplete: snapshotAfter.street === "complete",
-    aiState,
+    aiState: decision.suppliedContext ?? context,
     legalActions: aiState.legalActions,
     choice: decision.action.type,
     bot: botDescriptor,

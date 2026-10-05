@@ -87,6 +87,11 @@ Reasoning defaults to `minimal` when omitted.
 LLM_BOT_MODELS='[{"id":"my-llm","label":"My LLM","modelId":"provider/model","reasoning":"low"}]'
 ```
 
+Jev and LLM bots share verified positions, action history, payment arithmetic and
+visible-card facts. LLMs receive advisory strategy guidance while preserving
+their playstyles and legal candidates. See [context evaluation](benchmarks/poker-context.md).
+Apply the additive bot-context migration before deploying this code.
+
 LLM playstyles (Balanced, Tight, Aggressive) are server-owned and selected
 independently of model configuration; custom prompt text is not accepted.
 

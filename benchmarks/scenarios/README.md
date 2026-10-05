@@ -44,16 +44,16 @@ npm run test:bots -- -t 'equity-rules-v2.*hard'
 npm run test:bots -- -t 'equity-rules-v2.*free-check'
 
 # Live TypeSafe only: 24 decisions per repetition (8 cases x 3 difficulties)
-BOT_SCENARIO_LIVE=true EXTERNAL_INFERENCE_ENABLED=true npm run test:bots -- -t 'jev'
+BOT_DECISION_CALL_CAP=100 EXTERNAL_INFERENCE_ENABLED=true BOT_SCENARIO_LIVE=true npm run test:bots -- -t 'jev'
 
 # One live LLM, all profiles: 24 decisions per repetition (8 cases x 3 profiles)
-BOT_SCENARIO_LIVE=true EXTERNAL_INFERENCE_ENABLED=true npm run test:bots -- -t 'my-llm'
+BOT_DECISION_CALL_CAP=100 EXTERNAL_INFERENCE_ENABLED=true BOT_SCENARIO_LIVE=true npm run test:bots -- -t 'my-llm'
 
 # One LLM profile: 8 decisions per repetition
-BOT_SCENARIO_LIVE=true EXTERNAL_INFERENCE_ENABLED=true npm run test:bots -- -t 'my-llm.*tight'
+BOT_DECISION_CALL_CAP=100 EXTERNAL_INFERENCE_ENABLED=true BOT_SCENARIO_LIVE=true npm run test:bots -- -t 'my-llm.*tight'
 
 # All bots, including TypeSafe and every configured LLM
-BOT_SCENARIO_LIVE=true EXTERNAL_INFERENCE_ENABLED=true npm run test:bots
+BOT_DECISION_CALL_CAP=100 EXTERNAL_INFERENCE_ENABLED=true BOT_SCENARIO_LIVE=true npm run test:bots
 
 # Repeat to observe nondeterministic decisions (1–20; default 1)
 BOT_SCENARIO_REPEATS=3 npm run test:bots -- -t 'equity-rules-v2'
@@ -75,7 +75,7 @@ LLM_API_KEY=your-llm-provider-key
 LLM_BOT_MODELS='[{"id":"my-llm","label":"My LLM","modelId":"provider/model","reasoning":"low"}]'
 ```
 
-Keep `BOT_SCENARIO_LIVE=true` in the command when opting into live scenarios. Live runs incur provider charges;
+Keep `BOT_DECISION_CALL_CAP=100 EXTERNAL_INFERENCE_ENABLED=true BOT_SCENARIO_LIVE=true` in the command when opting into live scenarios. Live runs incur provider charges;
 CI never runs them. A timeout or provider failure is not evidence of bad poker.
 The command uses the production registry, playstyle validation, context options,
 and decision implementations. TypeSafe receives its production corrected
@@ -134,5 +134,5 @@ correct live-bet sizing and short-stack odds, and retention of uncertain choices
 
 ```sh
 # Run the configured GPT models on synthetic fixtures (paid external calls)
-BOT_SCENARIO_LIVE=true EXTERNAL_INFERENCE_ENABLED=true npm run test:bots -- -t 'gpt'
+BOT_DECISION_CALL_CAP=100 EXTERNAL_INFERENCE_ENABLED=true BOT_SCENARIO_LIVE=true npm run test:bots -- -t 'gpt'
 ```

@@ -6,9 +6,9 @@ import {
 } from "@/lib/env/server";
 import type { PokerAction } from "@/lib/poker/types";
 import type { BotPlaystyleId } from "@/lib/poker/types";
-import type { SizingChoice } from "@/lib/typesafe/questions";
-import { prepareProviderContext } from "@/lib/poker/provider-context";
-import { selectPokerAdvice } from "@/lib/poker/strategy-advice";
+import type { SizingChoice } from "./questions-v2";
+import { createSizingOptions } from "./questions-v2";
+import { decisionCandidates } from "@/lib/poker/decision-candidates";
 
 import {
   BotProviderError,
@@ -16,11 +16,33 @@ import {
   type BotContext,
   type BotDecision,
   type PokerBot,
-} from "./types";
-import { resolveLlmPlaystyle } from "./llm-playstyles";
+} from "@/lib/bots/types";
+import { resolveLlmPlaystyle } from "@/lib/bots/llm-playstyles";
 
 const invariantPolicy =
-  "Use only the supplied information and optimize expected chip value in this no-rake cash game. Choose only a supplied action candidate and, when required, a supplied sizing. The candidates already exclude provably bad decisions; playstyle preferences never override these restrictions. Showdown equity is against random opponent hands, not the opponent's betting range. Compare range-adjusted equity with the supplied contestable-pot odds. Evaluate the best five cards including kickers; a strong category on the board does not mean HERO beats the opponent. On the river no future cards remain, so do not semi-bluff missed draws. Never invent hidden cards or absent information. For fold, check, or call, sizing must be null. For bet or raise, sizing must be one of the supplied concrete sizing choices. Return only the schema-constrained JSON.";
+  "Use only the supplied information and optimize expected chip value in this no-rake cash game. Choose only a supplied action candidate and, when required, a supplied sizing. The candidates already exclude provably bad decisions; playstyle preferences never override these restrictions. Showdown equity is against random opponent hands, not the opponent's betting range. Compare range-adjusted equity with the supplied contestable-pot odds. Evaluate the best five cards including kickers; a strong category on the board does not mean HERO beats the opponent. On the river no future cards remain, so do not semi-bluff missed draws. Never invent hidden cards or absent information. Return only the schema-constrained JSON.";
+
+function decisionContext(context: BotContext): BotContext {
+  const call = context.legalActions.find((action) => action.type === "call");
+  const callCost = call?.type === "call" ? call.amount : 0;
+  const potAfterCall = context.analysis.contestablePotAfterCall;
+  // The legacy hand.pot omits current street bets. Reconstruct the contestable
+  // pot from commitments so both the model's odds and its sizing use live bets.
+  const pot = Math.max(0, potAfterCall - callCost);
+  const corrected: BotContext = {
+    ...context,
+    hand: { ...context.hand, pot },
+    hero: { ...context.hero, amountToCall: callCost },
+    analysis: {
+      ...context.analysis,
+      callCost,
+      potOddsToCall: potAfterCall > 0 ? callCost / potAfterCall : 0,
+      stackToPotRatio: pot > 0 ? context.analysis.effectiveStack / pot : 0,
+    },
+    legalActions: decisionCandidates(context),
+  };
+  return { ...corrected, sizingOptions: createSizingOptions(corrected) };
+}
 
 interface FetchLike {
   (input: string, init: RequestInit): Promise<Response>;
@@ -70,9 +92,7 @@ function parseOutput(
   } catch {
     throw new BotProviderError("LLM provider returned invalid decision JSON");
   }
-  if (!isRecord(output) || typeof output.action !== "string" ||
-      Object.keys(output).length !== 2 || !("sizing" in output) ||
-      Object.keys(output).some(key => key !== "action" && key !== "sizing")) {
+  if (!isRecord(output) || typeof output.action !== "string") {
     throw new BotProviderError("LLM provider returned an invalid decision");
   }
   const legal = context.legalActions.find(
@@ -80,9 +100,6 @@ function parseOutput(
   );
   if (!legal)
     throw new BotProviderError("LLM provider selected an illegal action");
-  if ((legal.type === "fold" || legal.type === "check" || legal.type === "call") && output.sizing !== null) {
-    throw new BotProviderError("LLM provider selected sizing for a passive action");
-  }
   if (legal.type === "fold" || legal.type === "check") {
     return { action: legal, sizingChoice: null };
   }
@@ -112,7 +129,6 @@ export class LlmPokerBot implements PokerBot {
   private readonly profileId: BotPlaystyleId;
   private readonly reasoning: LlmReasoningEffort;
   private readonly fetcher: FetchLike;
-  private readonly guidance: boolean;
 
   constructor(
     private readonly modelId: string,
@@ -121,13 +137,10 @@ export class LlmPokerBot implements PokerBot {
       | {
           readonly profileId?: BotPlaystyleId;
           readonly reasoning?: LlmReasoningEffort;
-          /** Benchmark ablation only; production always uses the default. */
-          readonly guidance?: boolean;
         }
       | FetchLike = "balanced",
     fetcher: FetchLike = fetch,
   ) {
-    this.guidance = typeof profileIdOrOptionsOrFetcher !== "object" || profileIdOrOptionsOrFetcher.guidance !== false;
     this.profileId =
       typeof profileIdOrOptionsOrFetcher === "function"
         ? "balanced"
@@ -146,9 +159,7 @@ export class LlmPokerBot implements PokerBot {
 
   async decide(context: BotContext): Promise<BotDecision> {
     const started = performance.now();
-    const candidates = prepareProviderContext(context);
-    const advice = this.guidance ? selectPokerAdvice(candidates) : null;
-    const sizingChoices = candidates.sizingOptions.filter(option => option.amount !== null).map(option => option.choice);
+    const candidates = decisionContext(context);
     let response: Response;
     try {
       const { apiEndpoint, apiKey } = getLlmServerEnv();
@@ -164,7 +175,7 @@ export class LlmPokerBot implements PokerBot {
           messages: [
             {
               role: "system",
-              content: `${invariantPolicy}\n\nPlaystyle preference: ${resolveLlmPlaystyle(this.profileId).instruction}\n\n${advice ? JSON.stringify(advice) : ""}`,
+              content: `${invariantPolicy}\n\nPlaystyle preference: ${resolveLlmPlaystyle(this.profileId).instruction}`,
             },
             { role: "user", content: JSON.stringify(candidates) },
           ],
@@ -183,9 +194,11 @@ export class LlmPokerBot implements PokerBot {
                     enum: candidates.legalActions.map((action) => action.type),
                   },
                   sizing: {
-                    type: sizingChoices.length > 0 ? ["string", "null"] : "null",
-                    enum: [...sizingChoices, null],
-                    description: "Null for fold, check, or call. A supplied concrete sizing choice is required for bet or raise.",
+                    type: ["string", "null"],
+                    enum: [
+                      ...candidates.sizingOptions.map((option) => option.choice),
+                      null,
+                    ],
                   },
                 },
               },
@@ -212,7 +225,6 @@ export class LlmPokerBot implements PokerBot {
     const cost = usage && typeof usage.cost === "number" ? usage.cost : null;
     return {
       action: parsed.action,
-      suppliedContext: { ...candidates, strategyAdvice: advice },
       diagnostics: emptyDiagnostics({
         sizing: parsed.sizingChoice
           ? {
@@ -221,7 +233,7 @@ export class LlmPokerBot implements PokerBot {
               confidence: null,
             }
           : null,
-        promptVersion: `llm-poker-v3.1-${this.guidance ? "guided" : "facts"}-${this.profileId}`,
+        promptVersion: `llm-poker-v2.1-${this.profileId}`,
         botProfileId: this.profileId,
         durationMs: Math.round(performance.now() - started),
         usage,

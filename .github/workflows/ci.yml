@@ -86,6 +86,10 @@ jobs:
         timeout-minutes: 3
         run: npm run test:sql:game-reads
 
+      - name: Verify SQL bot context
+        timeout-minutes: 3
+        run: npm run test:sql:bot-context
+
       - name: Verify SQL seat mutations
         timeout-minutes: 3
         run: npm run test:sql:seats

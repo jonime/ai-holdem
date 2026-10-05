@@ -1,7 +1,8 @@
+import { cappedBot, liveDecisionBudget } from "./poker-context-harness";
+import { JevPokerBot } from "@/lib/bots/jev";
 import { describe, expect, it } from "vitest";
 
 import { TypesafeSystemOneClient } from "@/lib/typesafe/client";
-import { decidePokerAction } from "@/lib/typesafe/decision";
 
 import {
   type BenchmarkPolicy,
@@ -17,11 +18,12 @@ describe("opt-in live TypeSafe benchmark", () => {
   it.skipIf(!enabled)(
     "reports actual Jev decisions separately from mocked CI checks",
     async () => {
-      const client = new TypesafeSystemOneClient();
+      const budget=liveDecisionBudget("TYPESAFE_LIVE_BENCHMARK");
+      const bot=cappedBot(new JevPokerBot(new TypesafeSystemOneClient()),budget);
       const livePolicy: BenchmarkPolicy = {
-        name: "typesafe-poker-v2-live",
+        name: "typesafe-poker-v3-live",
         async decide(context) {
-          return (await decidePokerAction(client, context)).action;
+          return (await bot.decide(context)).action;
         },
       };
       const reports = [];
@@ -36,7 +38,7 @@ describe("opt-in live TypeSafe benchmark", () => {
       }
 
       console.log(JSON.stringify({ kind: "live-typesafe", reports }, null, 2));
-      expect(reports.every((report) => report.hands > 0)).toBe(true);
+      expect(reports.every((report) => report.hands > 0 && report.failures === 0)).toBe(true);
     },
   );
 });

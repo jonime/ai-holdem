@@ -252,3 +252,20 @@ Vitest automatically loads the optional root `.env.test` file for unit tests and
 benchmarks before collecting tests. Existing shell/CI variables take precedence;
 `.env` is not loaded. `.env.test` is ignored by Git and can hold local provider
 credentials. Live bot evaluations still require their explicit opt-in flags.
+
+## Shared Jev/LLM context and evaluations
+
+Use `get_bot_hand_context` for inference history, never the inspection history RPC.
+Apply `20261013000000_add_bot_hand_context.sql` before app deployment. Resolve
+actors by authoritative pre-action engine turns and immutable hand configuration.
+Validate the version and replay before inference; incomplete legacy history is
+unknown, database failures remain visible, and mismatches use conflict/refetch.
+Only allowlisted visible facts may enter provider requests. Facts and guidance
+are server-owned with independent versions. LLM advice is original and advisory;
+it never removes candidates or overrides exact river safeguards or playstyles.
+Keep Equity Rules strategy outside this policy change.
+
+Run `npm run benchmark:poker-context` offline and `npm run test:sql:bot-context`
+against migrated local Supabase. Live evaluations require explicit inference
+opt-ins and a supplied shared `BOT_DECISION_CALL_CAP`. Separate deterministic
+correctness from playing strength. See `benchmarks/poker-context.md`.

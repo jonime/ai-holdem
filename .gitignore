@@ -11,3 +11,6 @@ supabase/.branches/
 supabase/.temp/
 playwright-report
 integration-logs
+
+.next-context-check
+benchmarks/results/

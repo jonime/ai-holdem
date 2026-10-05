@@ -27,7 +27,10 @@
     "test:e2e:reset": "supabase db reset --local --yes && playwright test",
     "check": "npm run lint && npm run typecheck && npm test",
     "test:bots": "vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/bot-scenarios.benchmark.ts",
-    "test:sql:seats": "node scripts/local-seats.mjs"
+    "test:sql:seats": "node scripts/local-seats.mjs",
+    "test:sql:bot-context": "node scripts/local-bot-context.mjs",
+    "benchmark:poker-context": "BOT_SCENARIO_LIVE=false vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/poker-context.benchmark.ts",
+    "benchmark:poker-context:live": "BOT_SCENARIO_LIVE=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/poker-context.benchmark.ts -t \"capped live\""
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",

@@ -420,3 +420,16 @@ shared transport serialization/cancellation/error tests, and actual route respon
 checks for every JSON endpoint. Run `npm run check`, `npm run build`, and local
 Playwright lobby, end-game, betting, bot-advancement, hand-results/actions and
 public-lobby suites after changes to these flows.
+
+## Shared bot context checks
+
+Apply `20261013000000_add_bot_hand_context.sql` before deploying bot-context code.
+Run `npm run benchmark:poker-context` for the offline weighted 169-class matrix
+and seeded heads-up/six-seat wrapper comparisons, and `npm run test:sql:bot-context`
+with migrated local Supabase running for private RPC roles and game/hand
+isolation. Fixtures roll back; no backfill or reset is needed. CI runs this SQL
+suite alongside game reads and seats. Keep server-only facts, projected full
+history, independent policy/advice versions, audit privacy and conflict handling
+intact. See [methodology and capped live commands](benchmarks/poker-context.md).
+All live bot evaluation commands require explicit inference enablement and a
+positive `BOT_DECISION_CALL_CAP`, shared across the selected run.

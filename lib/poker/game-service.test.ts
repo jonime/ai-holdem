@@ -1052,19 +1052,9 @@ describe("stepTypesafeAction", () => {
             handNumber: 1,
             version: 1,
           }),
-          getHandHistory: vi.fn().mockResolvedValue({
-            status: "playing",
-            actions: [
-              {
-                sequence: 1,
-                street: "preflop",
-                action: "call",
-                amount: 50,
-                player: "You",
-                controller: "human",
-              },
-            ],
-            aiDecisions: [],
+          getBotHandContext: vi.fn().mockResolvedValue({
+            version: 1, handNumber: 1, initialState: started,
+            actions: [{ sequence: 1, action: { type: "call", amount: 50 }, stateBefore: started }],
           }),
           persistAIAction,
         },
@@ -1132,9 +1122,9 @@ describe("stepTypesafeAction", () => {
               }),
             ],
           }),
-          promptVersion: "typesafe-poker-v2.1",
+          promptVersion: "typesafe-poker-v3.0",
           rawResponse: expect.objectContaining({
-            policyVersion: "typesafe-poker-v2.1",
+            policyVersion: "typesafe-poker-v3.0",
             decision: expect.objectContaining({
               selectedCandidate: "check",
               candidateProbabilities: expect.any(Object),
@@ -2125,5 +2115,24 @@ describe("bot driver authorization", () => {
     await expect(stepTypesafeAction({ getHostToken: async () => null, getGame: async () => game, persistAIAction: vi.fn() },
       { evaluate }, "game-1")).rejects.toBeInstanceOf(BotStepForbiddenError);
     expect(evaluate).not.toHaveBeenCalled();
+  });
+});
+
+describe("bot history validation before inference", () => {
+  it.each(["version","history","database"] as const)("rejects %s failure before a provider call", async kind => {
+    const initial=pokerEngineAdapter.startHand(pokerEngineAdapter.createGame({ smallBlind:1,bigBlind:2,
+      players:[{ id:"human",seat:0,name:"Duplicate",controller:"human",stack:200,playerToken:"host" },
+        { id:"bot",seat:1,name:"Duplicate",controller:"bot",stack:200 }] }),createDeterministicDeck());
+    const current=pokerEngineAdapter.applyAction(initial,"human",{ type:"call",amount:1 });
+    const evaluate=vi.fn();
+    const persistAIAction=vi.fn();
+    const getBotHandContext=vi.fn(async () => {
+      if (kind === "database") throw new Error("Database failed");
+      return { version:kind === "version" ? 2 : 1,handNumber:1,initialState:initial,actions:[] };
+    });
+    const promise=stepTypesafeAction({ getHostToken:async () => "host",getGame:async () => ({ id:"game-1",status:"playing",version:1,handNumber:1,stateSchemaVersion:1,currentState:current }),getBotHandContext,persistAIAction },{ evaluate },"game-1","host");
+    await expect(promise).rejects.toThrow(kind === "database" ? "Database failed" : GameConflictError);
+    expect(evaluate).not.toHaveBeenCalled();
+    expect(persistAIAction).not.toHaveBeenCalled();
   });
 });

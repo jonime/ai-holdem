@@ -95,9 +95,13 @@ describe("gameplay route contracts", () => {
     expect(schedule).not.toHaveBeenCalled();
   });
   it("preserves provider failures", async () => {
-    advance.mockRejectedValue(new BotProviderError("provider failed"));
+    advance.mockRejectedValue(new BotProviderError("provider failed secret-body"));
+    const warn = vi.spyOn(console,"warn").mockImplementation(() => {});
     const response = await step(request({ expectedVersion: 1 }), context);
     expect(response.status).toBe(502);
     expect(await response.json()).toEqual({ error: "AI decision failed" });
+    expect(warn).toHaveBeenCalledWith("Bot decision failed",{ gameId:"game-1",reason:"unknown" });
+    expect(JSON.stringify(warn.mock.calls)).not.toContain("secret-body");
+    warn.mockRestore();
   });
 });

@@ -1,6 +1,7 @@
+import { projectBotHistory, type BotHandContext } from "@/lib/poker/bot-history";
 import type { BotContext, PokerBot } from "@/lib/bots/types";
 import { createDeterministicDeck, pokerEngineAdapter as engine } from "@/lib/poker/adapter";
-import { createPokerAIState, type PokerAIActionHistoryItem } from "@/lib/poker/ai-state";
+import { createPokerAIState } from "@/lib/poker/ai-state";
 import type { AIDifficulty, PokerAction } from "@/lib/poker/types";
 import { createSizingOptions } from "@/lib/typesafe/questions";
 
@@ -94,17 +95,17 @@ export function buildScenario(scenario: Scenario, options: {
       id: `seat-${seat}`, name: `Seat ${seat}`, controller: "bot" as const, seat, stack: 200,
     })),
   }), createDeterministicDeck(scenario.deck));
-  const history: PokerAIActionHistoryItem[] = [];
+  const initialState = state;
+  const history: BotHandContext["actions"][number][] = [];
   function act(action: PokerAction) {
     const snapshot = engine.snapshot(state);
     if (!snapshot.currentActorId || !snapshot.street || snapshot.street === "complete") {
       throw new Error("Scenario ended before its decision point");
     }
     const player = state.config.players.find((entry) => entry.id === snapshot.currentActorId)!;
+    const before=state;
     state = engine.applyAction(state, player.id, action);
-    history.push({ sequence: history.length + 1, street: snapshot.street,
-      action: action.type, amount: "amount" in action ? action.amount ?? null : null,
-      player: player.name, controller: "bot" });
+    history.push({ sequence:history.length+1,action,stateBefore:before });
   }
   for (let step = 0; engine.snapshot(state).street !== "river"; step++) {
     if (step >= 12) throw new Error("Could not reach scenario river");
@@ -120,7 +121,8 @@ export function buildScenario(scenario: Scenario, options: {
   }
   const heroId = engine.snapshot(state).currentActorId;
   if (heroId !== "seat-0") throw new Error("Unexpected scenario hero");
-  const aiState = createPokerAIState(state, heroId, { ...options, actionHistory: history, equitySamples: 500 });
+  const projected=projectBotHistory({ version:0,handNumber:engine.snapshot(state).handNumber,initialState,actions:history },state,heroId);
+  const aiState = createPokerAIState(state, heroId, { ...options, decisionHistory:projected.actions,historyStatus:projected.status,equitySamples:500 });
   const context: BotContext = { ...aiState, sizingOptions: createSizingOptions(aiState) };
   return { state, heroId, context };
 }

@@ -85,7 +85,7 @@ describe("LLM scenario safeguards", () => {
     await new LlmPokerBot("test-model", fetcher).decide({ ...context, analysis: { ...context.analysis, showdownEquity: 1 } });
   });
 
-  it("uses the stack-capped call and excludes unmatched opponent chips", async () => {
+  it("uses the stack-capped call and separates live from contestable pot", async () => {
     let game = engine.startHand(engine.createGame({
       smallBlind: 1, bigBlind: 2,
       players: [
@@ -101,7 +101,7 @@ describe("LLM scenario safeguards", () => {
       const request = JSON.parse(String(init.body));
       const visible = JSON.parse(request.messages[1].content);
       expect(visible.hero.amountToCall).toBe(48);
-      expect(visible.hand.pot).toBe(52);
+      expect(visible.hand.pot).toBe(102);
       expect(visible.analysis).toMatchObject({ callCost: 48, contestablePotAfterCall: 100, potOddsToCall: 0.48 });
       return response("call");
     });

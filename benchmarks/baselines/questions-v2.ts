@@ -2,9 +2,9 @@ import type { PokerAIState } from "@/lib/poker/ai-state";
 import { decisionCandidates } from "@/lib/poker/decision-candidates";
 import type { LegalAction, PokerAction } from "@/lib/poker/types";
 
-import type { ChoiceQuestion, SystemOneRequest } from "./types";
+import type { ChoiceQuestion, SystemOneRequest } from "@/lib/typesafe/types";
 
-export const typesafePokerPolicyVersion = "typesafe-poker-v3.0";
+export const typesafePokerPolicyVersion = "typesafe-poker-v2.1";
 
 export type SizingChoice =
   | "two_big_blinds"
@@ -62,7 +62,7 @@ function clamp(amount: number, minimum: number, maximum: number): number {
 function isUnopenedPreflopPot(state: PokerAIState): boolean {
   return (
     state.hand.street === "preflop" &&
-    (state.situation ? state.situation.preflop === "unopened" : !state.actionHistory.some((item) => item.street === "preflop" && item.action !== "fold"))
+    !state.actionHistory.some((item) => item.street === "preflop")
   );
 }
 
@@ -72,8 +72,8 @@ function aggressiveAction(state: PokerAIState) {
   );
 }
 
-/** Fractional sizing retained for the unchanged Equity Rules policy. */
-export function createLegacySizingOptions(state: PokerAIState): readonly SizingOption[] {
+/** Legacy shared sizing used by non-TypeSafe providers. */
+export function createSizingOptions(state: PokerAIState): readonly SizingOption[] {
   const action = aggressiveAction(state);
   if (!action || (action.type !== "bet" && action.type !== "raise")) {
     return [
@@ -120,8 +120,6 @@ export function createLegacySizingOptions(state: PokerAIState): readonly SizingO
   return [...byAmount.values()];
 }
 
-export const createSizingOptions = createTypesafeSizingOptions;
-
 export function createTypesafeSizingOptions(
   state: PokerAIState,
 ): readonly SizingOption[] {
@@ -142,7 +140,7 @@ export function createTypesafeSizingOptions(
     if (byAmount.has(amount)) return;
     const additional = amount - state.hero.investedThisStreet;
     const resultingPot =
-      state.hand.pot + additional;
+      state.hand.pot + state.hero.amountToCall + additional;
     byAmount.set(amount, {
       choice,
       amount,

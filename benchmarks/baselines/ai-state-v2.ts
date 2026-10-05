@@ -1,13 +1,19 @@
-import { pokerEngineAdapter, type PokerPosition } from "./adapter";
+import {
+  assertTableState,
+  cardToString,
+  type TableState,
+} from "@hivetech/poker-engine";
+
+import { pokerEngineAdapter } from "@/lib/poker/adapter";
 import type {
   LegalAction,
   PlayerController,
   PokerGameState,
   PokerHandStrength,
   PokerStreet,
-} from "./types";
-import type { AIDifficulty } from "./types";
-import { calculateShowdownEquity } from "./equity";
+} from "@/lib/poker/types";
+import type { AIDifficulty } from "@/lib/poker/types";
+import { calculateShowdownEquity } from "@/lib/poker/equity";
 
 export interface PokerAIActionHistoryItem {
   readonly sequence: number;
@@ -26,39 +32,17 @@ export interface PokerAIDecisionHistoryItem {
   readonly actorSeat: number | null;
   readonly actor: "hero" | "opponent" | "unknown";
   readonly controller: PlayerController;
-  readonly payment?: number;
-  readonly commitment?: number;
-  readonly potBefore?: number;
-  readonly potAfter?: number;
-  readonly raiseIncrement?: number;
-  readonly pressureRatio?: number;
-  readonly activeSeats?: readonly number[];
 }
 
 export interface CreatePokerAIStateOptions {
   readonly actionHistory?: readonly PokerAIActionHistoryItem[];
   readonly difficulty?: AIDifficulty;
   readonly equitySamples?: number;
-  /** Compatibility option for existing fixtures; providers use correctedContext. */
+  /** Opts only TypeSafe v2 into corrected call and contestable-pot context. */
   readonly typesafePolicyV2?: boolean;
-  readonly correctedContext?: boolean;
-  readonly decisionHistory?: readonly PokerAIDecisionHistoryItem[];
-  readonly historyStatus?: "complete" | "unknown";
 }
 
 export interface PokerAIState {
-  readonly facts?: import("./decision-facts").PokerDecisionFacts;
-  readonly situation?: {
-    readonly historyStatus: "complete" | "unknown";
-    readonly preflop: "unopened" | "limped" | "raised" | "re-raised" | "unknown";
-    readonly activeOpponentCount: number;
-    readonly playersStillToAct: readonly number[];
-    readonly postflopPosition: "in_position" | "out_of_position" | "between";
-    readonly buttonIsSmallBlind: boolean;
-    readonly preflopOrder: readonly number[];
-    readonly postflopOrder: readonly number[];
-    readonly effectiveStacks: readonly { readonly seat: number; readonly stack: number }[];
-  };
   readonly difficulty: AIDifficulty;
   readonly game: {
     readonly variant: "no_limit_texas_holdem";
@@ -75,7 +59,7 @@ export interface PokerAIState {
     readonly seat: number;
     readonly controller: PlayerController;
     readonly holeCards: readonly string[];
-    readonly position: PokerPosition;
+    readonly position: "button" | "small_blind" | "big_blind";
     readonly stack: number;
     readonly investedThisStreet: number;
     readonly amountToCall: number;
@@ -84,12 +68,11 @@ export interface PokerAIState {
   readonly opponents: readonly {
     readonly seat: number;
     readonly controller: PlayerController;
-    readonly position: PokerPosition;
+    readonly position: "button" | "small_blind" | "big_blind";
     readonly stack: number;
     readonly status: "active" | "folded" | "all_in";
   }[];
   readonly analysis: {
-    readonly livePot?: number;
     readonly showdownEquity: number;
     readonly equityBasis: "random_opponent_hands";
     readonly equitySamples: number;
@@ -111,10 +94,15 @@ function normalizedController(
 
 function projectActionHistory(
   history: readonly PokerAIActionHistoryItem[],
+  players: PokerGameState["config"]["players"],
   heroSeat: number,
 ): readonly PokerAIDecisionHistoryItem[] {
   return history.map((item) => {
-    const actorSeat: number | null = null;
+    const matchingPlayers = players.filter(
+      (player) => player.name === item.player,
+    );
+    const actorSeat =
+      matchingPlayers.length === 1 ? matchingPlayers[0].seat : null;
     return {
       sequence: item.sequence,
       street: item.street,
@@ -132,19 +120,62 @@ function projectActionHistory(
   });
 }
 
-function contestablePotAfterCall(players: ReturnType<typeof pokerEngineAdapter.decisionView>["players"], heroId: string, callCost: number): number {
-  const hero = players.find(p => p.id === heroId);
+function contestablePotAfterCall(
+  hand: NonNullable<TableState["hand"]>,
+  heroId: string,
+  callCost: number,
+): number {
+  const commitments = hand.players.map((player) => ({
+    playerId: player.playerId,
+    folded: player.folded,
+    committedHand:
+      player.committedHand + (player.playerId === heroId ? callCost : 0),
+  }));
+  const hero = commitments.find((player) => player.playerId === heroId);
   if (!hero || hero.folded) return 0;
-  const cap = hero.committedHand + callCost;
-  const amounts = players.map(p => Math.min(cap, p.committedHand + (p.id === heroId ? callCost : 0)));
-  const levels = [...new Set(amounts)].filter(n => n > 0).sort((a,b) => a-b);
-  let previous = 0, total = 0;
+
+  const levels = [...new Set(commitments.map((player) => player.committedHand))]
+    .filter((amount) => amount > 0)
+    .sort((left, right) => left - right);
+  let previousLevel = 0;
+  let total = 0;
   for (const level of levels) {
-    const contributors = amounts.filter(n => n >= level).length;
-    if (contributors >= 2) total += (level - previous) * contributors;
-    previous = level;
+    const contributors = commitments.filter(
+      (player) => player.committedHand >= level,
+    );
+    const amount = (level - previousLevel) * contributors.length;
+    previousLevel = level;
+    if (
+      contributors.length >= 2 &&
+      contributors.some((player) => player.playerId === heroId)
+    ) {
+      total += amount;
+    }
   }
   return total;
+}
+
+function engineStateFrom(state: PokerGameState): TableState {
+  const engineState = state.engineState as TableState;
+  assertTableState(engineState);
+  return engineState;
+}
+
+function positionForSeat(
+  table: TableState,
+  seat: number,
+): "button" | "small_blind" | "big_blind" {
+  const hand = table.hand;
+  if (!hand) {
+    throw new Error("Cannot build AI state without an active hand");
+  }
+  if (seat === hand.buttonSeat) {
+    return "button";
+  }
+  if (seat === hand.smallBlindSeat) {
+    return "small_blind";
+  }
+  return "big_blind";
 }
 
 export function createPokerAIState(
@@ -152,24 +183,24 @@ export function createPokerAIState(
   heroId: string,
   options: CreatePokerAIStateOptions = {},
 ): PokerAIState {
-  const hand = pokerEngineAdapter.decisionView(state);
-  const corrected = options.correctedContext ?? options.typesafePolicyV2 ?? false;
-  if (!hand || hand.street === "complete") {
+  const table = engineStateFrom(state);
+  const hand = table.hand;
+  if (!hand || hand.stage === "complete") {
     throw new Error("Cannot build AI state for a completed hand");
   }
 
-  const hero = hand.players.find((player) => player.id === heroId);
-  const heroSeat = hero ? hand.players.find(p => p.seat === hero.seat) : null;
+  const hero = hand.players.find((player) => player.playerId === heroId);
+  const heroSeat = hero ? table.seats[hero.seat] : null;
   if (!hero || !heroSeat) {
     throw new Error("AI player is not seated in the active hand");
   }
 
   const opponents = hand.players
-    .filter((player) => player.id !== heroId)
+    .filter((player) => player.playerId !== heroId)
     .map((player) => {
-      const seat = hand.players.find(p => p.seat === player.seat);
+      const seat = table.seats[player.seat];
       const config = state.config.players.find(
-        (candidate) => candidate.id === player.id,
+        (candidate) => candidate.id === player.playerId,
       );
       if (!seat || !config) {
         throw new Error("Opponent is missing table configuration");
@@ -177,21 +208,21 @@ export function createPokerAIState(
       return {
         seat: player.seat,
         controller: normalizedController(config.controller),
-        position: player.position,
+        position: positionForSeat(table, player.seat),
         stack: seat.stack,
         status: player.folded ? "folded" : player.allIn ? "all_in" : "active",
       } as const;
     });
   const legalActions = pokerEngineAdapter.getLegalActions(state);
-  const pot = corrected ? hand.pot : hand.legacyPot;
+  const pot = hand.pots.reduce((total, currentPot) => total + currentPot.amount, 0);
   const legalCall = legalActions.find((action) => action.type === "call");
   const actualCallCost = legalCall?.type === "call" ? legalCall.amount : 0;
   const nominalCallCost = Math.max(0, hand.currentBet - hero.committedStreet);
-  const amountToCall = corrected
+  const amountToCall = options.typesafePolicyV2
     ? actualCallCost
     : nominalCallCost;
   const projectedContestablePot = contestablePotAfterCall(
-    hand.players,
+    hand,
     heroId,
     actualCallCost,
   );
@@ -203,10 +234,11 @@ export function createPokerAIState(
     Math.max(0, ...activeOpponentStacks),
   );
   const equitySamples = options.equitySamples ?? 5_000;
-  const holeCards = pokerEngineAdapter.heroCards(state, heroId);
-  const communityCards = hand.communityCards;
-  const actionHistory = options.decisionHistory ?? projectActionHistory(
+  const holeCards = hero.holeCards.map(cardToString);
+  const communityCards = hand.communityCards.map(cardToString);
+  const actionHistory = projectActionHistory(
     options.actionHistory ?? [],
+    state.config.players,
     hero.seat,
   );
   const heroConfig = state.config.players.find((player) => player.id === heroId);
@@ -214,31 +246,16 @@ export function createPokerAIState(
     throw new Error("AI player is missing from the game configuration");
   }
 
-  const active = hand.players.filter(p => !p.folded);
-  const order = hand.postflopOrder.filter(seat => active.some(p => p.seat === seat));
-  const historyStatus = options.historyStatus ?? "unknown";
-  const preflopActions = actionHistory.filter(a => a.street === "preflop");
-  const raises = preflopActions.filter(a => a.action === "raise" || a.action === "bet").length;
   return {
-    situation: {
-      historyStatus,
-      preflop: historyStatus === "unknown" ? "unknown" : raises > 1 ? "re-raised" : raises === 1 ? "raised" : preflopActions.some(a => a.action === "call") ? "limped" : "unopened",
-      activeOpponentCount: active.filter(p => p.id !== heroId).length,
-      playersStillToAct: hand.remainingOrder.filter(seat => hand.players.some(p => p.seat === seat && p.id !== heroId && p.needsAction)),
-      postflopPosition: order.at(-1) === hero.seat ? "in_position" : order[0] === hero.seat ? "out_of_position" : "between",
-      buttonIsSmallBlind: hand.buttonSeat === hand.smallBlindSeat,
-      preflopOrder: hand.preflopOrder, postflopOrder: hand.postflopOrder,
-      effectiveStacks: active.filter(p => p.id !== heroId).map(p => ({ seat: p.seat, stack: Math.min(heroSeat.stack, p.stack) })),
-    },
     difficulty: options.difficulty ?? "medium",
     game: {
       variant: "no_limit_texas_holdem",
-      smallBlind: hand.smallBlind,
-      bigBlind: hand.bigBlind,
+      smallBlind: table.config.smallBlind,
+      bigBlind: table.config.bigBlind,
       handNumber: hand.handNumber,
     },
     hand: {
-      street: hand.street,
+      street: hand.stage,
       pot,
       communityCards,
     },
@@ -246,7 +263,7 @@ export function createPokerAIState(
       seat: hero.seat,
       controller: normalizedController(heroConfig.controller),
       holeCards,
-      position: hero.position,
+      position: positionForSeat(table, hero.seat),
       stack: heroSeat.stack,
       investedThisStreet: hero.committedStreet,
       amountToCall,
@@ -254,7 +271,6 @@ export function createPokerAIState(
     },
     opponents,
     analysis: {
-      livePot: hand.pot,
       showdownEquity: calculateShowdownEquity({
         heroHoleCards: holeCards,
         communityCards,
@@ -274,7 +290,7 @@ export function createPokerAIState(
       potOddsToCall:
         amountToCall === 0
           ? 0
-          : corrected
+          : options.typesafePolicyV2
             ? Math.round((actualCallCost / projectedContestablePot) * 10_000) /
               10_000
             : Math.round((amountToCall / (pot + amountToCall)) * 10_000) /
