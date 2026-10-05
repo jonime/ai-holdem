@@ -31,6 +31,7 @@ test("starts six-seat Quick Play and advances the opening bot turns", { tag: "@s
   ).toBeVisible();
   await firstBotStep;
   await waitForPlayableHuman(page);
+  expect(false, "Temporary CI artifact acceptance probe").toBe(true);
 });
 
 test("runs a two-player hand in a six-seat lobby", async ({
