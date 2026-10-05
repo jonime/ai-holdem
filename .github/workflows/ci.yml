@@ -75,7 +75,7 @@ jobs:
           version: 2.119.0
 
       - name: Install Chromium and system dependencies
-        timeout-minutes: 4
+        timeout-minutes: 8
         run: npx playwright install --with-deps chromium
 
       - name: Start disposable Supabase and apply migrations
