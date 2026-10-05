@@ -12,6 +12,27 @@ The application uses the Supabase Data API from Next.js server routes, so keep
 the Supabase Data API enabled. The browser never receives the Supabase secret
 or TypeSafe API key.
 
+## Bot-step duration release check
+
+`app/api/games/[gameId]/step/route.ts` exports `maxDuration = 90`, leaving
+30 seconds around the shared 60-second provider deadline for authorization,
+context reads, persistence, projection, and notification cleanup. Vercel consumes
+this route configuration from the build output; see its
+[function duration documentation](https://vercel.com/docs/functions/configuring-functions/duration).
+
+Before releasing a deployment containing this change, inspect its bot-step
+function configuration in Vercel and confirm the **effective duration is at least
+90 seconds**. Record the deployment URL/commit and observed duration in the
+release evidence. If the project/plan or legacy compute setting caps execution
+below 90 seconds, enable a supported compute setting (such as Fluid Compute),
+adjust the permitted function duration, and redeploy before release. A 60-second
+platform limit is insufficient for a useful localized timeout response.
+
+Local unit/browser tests and `.next/server/functions-config-manifest.json` can
+verify the requested duration, but cannot prove Vercel's deployed effective limit
+or timeout behavior. No deployed configuration has been verified as part of the
+local implementation; this release check remains required.
+
 ## Speed Insights
 
 The locale root layout includes `@vercel/speed-insights/next` to measure Web

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import { api, HttpError } from "./api";
-import { GAME_VERSION_CONFLICT, type GetGameResponse, type StepBotResponse, type SubmitActionResponse } from "./gameplay-contracts";
+import { GAME_VERSION_CONFLICT, botFailureCodes, type GetGameResponse, type StepBotResponse, type SubmitActionResponse } from "./gameplay-contracts";
 import { gameplayGame as game, gameplayDecision as aiDecision } from "@/test/fixtures/gameplay";
 
 afterEach(() => vi.unstubAllGlobals());
@@ -55,6 +55,12 @@ describe("gameplay client", () => {
     });
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("broken", { status: 502 })));
     await expect(api.games.get({ gameId: "game" })).rejects.toEqual(new HttpError("Request failed", 502));
+  });
+  it.each(Object.values(botFailureCodes))("carries %s through HttpError", async code => {
+    mockResponse({ error: "AI decision failed", code }, 502);
+    await expect(api.games.stepBot({ gameId: "game", expectedVersion: 1 })).rejects.toMatchObject({
+      status: 502, code, message: "AI decision failed",
+    });
   });
   it("rejects responses aborted while decoding, even if fetch resolves", async () => {
     const controller = new AbortController();

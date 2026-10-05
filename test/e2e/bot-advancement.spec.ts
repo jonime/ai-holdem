@@ -150,6 +150,7 @@ test("provider failures allow retry, conflict refresh failures are visible, comp
   await expect(page.locator("main").getByRole("alert")).toContainText("AI decision failed");
   await page.getByRole("button", { name: /Retry/ }).click();
   await expect(page.locator("main").getByRole("alert")).toContainText("Refresh failed");
+  await page.route(`**/api/games/${f.gameId}`, r => r.fulfill({ json: { game: f.current() } }));
   await page.getByRole("button", { name: /Retry/ }).click();
   await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
   expect(steps).toBe(3);
@@ -240,3 +241,94 @@ for (const failure of [
     await expect(page.getByRole("button", { name: /Retry/ })).toBeVisible();
   });
 }
+
+for (const failure of [
+  { code: "BOT_TIMEOUT", message: "The bot request timed out." },
+  { code: "BOT_NETWORK_ERROR", message: "The bot could not connect to its provider." },
+  { code: "BOT_RATE_LIMITED", message: "The bot provider is rate limiting requests." },
+  { code: "BOT_INVALID_RESPONSE", message: "The bot provider returned an invalid response." },
+  { code: "BOT_PROVIDER_ERROR", message: "The bot provider failed." },
+]) {
+  test(`${failure.code} pauses polling and one explicit retry uses fresh state`, async ({ page }) => {
+    const f = await fixture(page);
+    await page.clock.install();
+    let steps = 0;
+    let release!: () => void;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    await page.route(`**/api/games/${f.gameId}/step`, async route => {
+      steps++;
+      if (steps === 1) {
+        await route.fulfill({ status: 502, json: { error: "AI decision failed", code: failure.code } });
+        return;
+      }
+      expect(route.request().postDataJSON().expectedVersion).toBe(f.current().version);
+      await held;
+      f.set(humanTurn(f.current()));
+      await route.fulfill({ json: { game: f.current(), aiDecision: gameplayDecision } });
+    });
+    await open(page, f.gameId);
+    await expect(page.locator("main").getByRole("alert")).toContainText(failure.message);
+    await expect(page.locator("main").getByRole("alert")).toContainText("Play is paused");
+    await page.clock.fastForward(31_000);
+    await triggerRefresh(page);
+    expect(steps).toBe(1);
+    // A new authoritative version on the same turn still needs explicit retry.
+    f.set({ ...f.current(), version: f.current().version + 1 });
+    const refresh = page.waitForResponse(r => r.url().endsWith(`/api/games/${f.gameId}`));
+    await triggerRefresh(page);
+    await refresh;
+    const retry = page.getByRole("button", { name: "Retry bot", exact: true });
+    await expect(retry).toBeEnabled();
+    await retry.evaluate(button => { (button as HTMLButtonElement).click(); (button as HTMLButtonElement).click(); });
+    await expect.poll(() => steps).toBe(2);
+    await page.clock.fastForward(31_000);
+    expect(steps).toBe(2);
+    release();
+    await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Retry bot", exact: true })).toHaveCount(0);
+    expect(steps).toBe(2);
+  });
+}
+
+test("an explicit retry still recovers silently from a competing commit", async ({ page }) => {
+  const f = await fixture(page);
+  let steps = 0;
+  await page.route(`**/api/games/${f.gameId}/step`, async route => {
+    steps++;
+    if (steps === 1) {
+      await route.fulfill({ status: 502, json: { error: "AI decision failed", code: "BOT_NETWORK_ERROR" } });
+    } else {
+      f.set(humanTurn(f.current()));
+      await route.fulfill({ status: 409, json: { error: "Game version conflict", code: "GAME_VERSION_CONFLICT" } });
+    }
+  });
+  await open(page, f.gameId);
+  await expect(page.locator("main").getByRole("alert")).toContainText("Play is paused");
+  await page.getByRole("button", { name: "Retry bot", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Retry bot", exact: true })).toHaveCount(0);
+  await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+  expect(steps).toBe(2);
+});
+
+test("a failure after a successful bot step cannot be retried by polling", async ({ page }) => {
+  const f = await fixture(page);
+  await page.clock.install();
+  let steps = 0;
+  await page.route(`**/api/games/${f.gameId}/step`, async route => {
+    steps++;
+    if (steps === 1) {
+      const bots = f.current().poker.players.filter(p => p.controller === "bot");
+      const nextBot = bots.find(p => p.id !== f.current().poker.currentActorId)!;
+      f.set({ ...f.current(), version: f.current().version + 1,
+        poker: { ...f.current().poker, currentActorId: nextBot.id } });
+      await route.fulfill({ json: { game: f.current(), aiDecision: gameplayDecision } });
+    } else {
+      await route.fulfill({ status: 502, json: { error: "AI decision failed", code: "BOT_TIMEOUT" } });
+    }
+  });
+  await open(page, f.gameId);
+  await expect(page.locator("main").getByRole("alert")).toContainText("The bot request timed out.");
+  await page.clock.fastForward(31_000);
+  await triggerRefresh(page);
+  expect(steps).toBe(2);
+});

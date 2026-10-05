@@ -1,5 +1,5 @@
 import { gameParamsSchema } from "@/lib/http/common-contracts";
-import { stepBotRequestSchema, GAME_VERSION_CONFLICT, type BotStepResponseEnvelope } from "@/lib/http/gameplay-contracts";
+import { stepBotRequestSchema, GAME_VERSION_CONFLICT, botFailureCodes, type BotStepResponseEnvelope } from "@/lib/http/gameplay-contracts";
 import { NextResponse } from "next/server";
 
 import { getPlayerTokenFromRequest } from "@/lib/identity/player-token";
@@ -16,6 +16,9 @@ import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { TypesafeRequestError } from "@/lib/typesafe/client";
 import { TypesafeResponseError } from "@/lib/typesafe/types";
 import { scheduleGameEvent } from "@/lib/realtime/schedule";
+
+// Allow database processing and notification cleanup around the provider deadline.
+export const maxDuration = 90;
 
 interface StepRouteContext {
   readonly params: Promise<{ gameId: string }>;
@@ -69,7 +72,10 @@ export async function POST(request: Request, context: StepRouteContext) {
     ) {
       logBotProviderFailure(gameId, error);
       return NextResponse.json(
-        { error: "AI decision failed" },
+        { error: "AI decision failed", code: botFailureCodes[
+          error instanceof BotProviderError ? error.category
+            : error instanceof TypesafeResponseError ? "invalid_response" : "provider"
+        ] },
         { status: 502 },
       );
     }

@@ -450,3 +450,15 @@ history, independent policy/advice versions, audit privacy and conflict handling
 intact. See [methodology and capped live commands](benchmarks/poker-context.md).
 All live bot evaluation commands require explicit inference enablement and a
 positive `BOT_DECISION_CALL_CAP`, shared across the selected run.
+
+## Provider failure regressions
+
+`lib/bots/provider-request.test.ts` uses fake timers and abort-aware header/body
+mocks for the shared 60-second deadline. Bot-step, credit-departure, typed HTTP,
+and localized message tests cover failure categories without live inference.
+Run `npx playwright test test/e2e/bot-advancement.spec.ts` against the migrated
+local Supabase stack for synthetic API failures, polling suppression, fresh-state
+retry, pending-click guards, and silent conflict recovery. These tests do not
+contact providers or wait for the real deadline. Run `npm run check` and
+`npm run build`, then perform the required
+[deployed duration check](docs/deployment.md) before release.

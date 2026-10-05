@@ -169,9 +169,32 @@ remains paused; 429 and other provider errors never trigger departure. Error
 envelopes carried in HTTP 200 are classified using their numeric error code.
 Jev credit exhaustion is undocumented, so Jev failures remain paused.
 
+TypeSafe and LLM requests use the same server-only helper with one 60-second
+deadline spanning response headers and JSON body consumption. Expiry aborts the
+request, including an active body read, and every outcome clears the timer.
+Failures carry explicit `timeout`, `network`, `rate_limit`, `invalid_response`,
+or `provider` categories. HTTP 429 and the supported numeric embedded code 429
+identify rate limits; message text does not. Malformed successful JSON and
+invalid decisions are invalid responses; malformed error JSON retains its HTTP
+classification. Body-read timeouts remain timeouts even on HTTP 402 and cannot
+retire a seat. Network errors and invalid responses cannot retire seats either.
+
+The step API retains HTTP 502 and `AI decision failed`, adding `BOT_TIMEOUT`,
+`BOT_NETWORK_ERROR`, `BOT_RATE_LIMITED`, `BOT_INVALID_RESPONSE`, or
+`BOT_PROVIDER_ERROR`. The existing typed transport preserves these codes in
+`HttpError`. Every locale has server-owned pause/retry messages; uncoded or
+unknown errors keep the existing fallback. The client pauses the failed
+hand/actor turn, including version-only changes and polling, and records every
+attempted version in multi-step loops. Explicit Retry refreshes authoritative
+state before inference and holds a synchronous pending guard through refresh
+and stepping. Authorization, session/navigation guards and version checks remain
+in force; competing commits still refresh silently. There are no automatic
+retries, fallback poker actions, new provider settings, or schema changes.
+
 In Vercel runtime logs, search for `llm_provider_http_failure` or
 `typesafe_provider_http_failure` to find structured LLM or Jev HTTP failures:
-game ID, fixed reason, HTTP status, numeric provider error code (100–599),
+game ID, fixed reason, allowlisted category, request phase (`headers`, `body`,
+`response`) and elapsed milliseconds when available, HTTP status, numeric provider error code (100–599),
 numeric `Retry-After` seconds when supplied, its presence (including date-format
 headers), and boolean `creditMentioned`,
 `quotaMentioned`, and `rateLimitMentioned` indicators derived from the provider's

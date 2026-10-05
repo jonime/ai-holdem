@@ -65,6 +65,17 @@ describe("bot credit departure", () => {
     expect(repository.persistAIAction).not.toHaveBeenCalled();
   });
 
+
+  it.each(["timeout", "network", "rate_limit", "invalid_response", "provider"] as const)("keeps %s failures seated with no commit", async category => {
+    const { repository, registry, decide } = setup();
+    const failure = new BotProviderError("private text", undefined, { category });
+    decide.mockRejectedValue(failure);
+    await expect(stepBotAction(repository, registry, "game-1", 1, "owner")).rejects.toBe(failure);
+    expect(repository.persistAIAction).not.toHaveBeenCalled();
+    expect((await repository.getGame()).version).toBe(1);
+    expect((await repository.getSeatAssignments())[1].leaving).toBe(false);
+  });
+
   it("does not infer Jev credit exhaustion from an LLM error", async () => {
     const { repository, registry, failure } = setup(402, "typesafe");
     await expect(stepBotAction(repository, registry, "game-1", 1, "owner")).rejects.toBe(failure);

@@ -39,6 +39,11 @@ Other spectators watch passively; new hands require explicit interaction.
 See the [gameplay guide](docs/gameplay.md) for betting controls, invitations,
 watching, results, and the Actions timeline.
 
+TypeSafe and LLM requests share a 60-second deadline. Temporary failures pause
+play with a localized error and explicit **Retry bot**; polling does not retry
+the failed turn. See [provider behavior](docs/architecture.md) and the
+[bot-step duration release check](docs/deployment.md).
+
 ## Local setup
 
 Use Node.js 24 or newer (`.nvmrc` selects Node 24).

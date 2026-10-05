@@ -50,3 +50,12 @@ export type RevealRequest = z.infer<typeof revealRequestSchema>;
 export type SettingsRequest = z.infer<typeof settingsRequestSchema>;
 export type SeatCountRequest = z.infer<typeof seatCountRequestSchema>;
 export type TableSettings = z.infer<typeof tableSettingsSchema>;
+
+export const botFailureCodes = {
+  timeout: "BOT_TIMEOUT",
+  network: "BOT_NETWORK_ERROR",
+  rate_limit: "BOT_RATE_LIMITED",
+  invalid_response: "BOT_INVALID_RESPONSE",
+  provider: "BOT_PROVIDER_ERROR",
+} as const;
+export type BotFailureCode = typeof botFailureCodes[keyof typeof botFailureCodes];

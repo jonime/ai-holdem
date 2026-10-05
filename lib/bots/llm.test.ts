@@ -180,7 +180,8 @@ describe("LlmPokerBot", () => {
     }), { status: 402 }));
     const error = await new LlmPokerBot("vendor/model", fetcher).decide(context).catch(error => error);
     expect(error).toMatchObject({
-      message: "LLM provider request failed with HTTP 402",
+      message: "Provider request failed with HTTP 402",
+      category: "provider",
       httpFailure: { httpStatus: 402, providerErrorCode: 402, creditMentioned: true },
     });
     expect(JSON.stringify(error)).not.toMatch(/secret-key|As Ks/);

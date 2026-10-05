@@ -3,8 +3,8 @@ import "server-only";
 import { getTypesafeServerEnv } from "@/lib/env/server";
 
 import type { SystemOneRequest } from "./types";
-import { providerHttpFailureDiagnostics } from "@/lib/bots/provider-http-failure";
-import type { ProviderHttpFailureDiagnostics } from "@/lib/bots/types";
+import { requestProviderJson } from "@/lib/bots/provider-request";
+import { BotProviderError } from "@/lib/bots/types";
 
 const systemOneEndpoint = "https://api.typesafe.ai/v1/systemone";
 
@@ -12,11 +12,8 @@ export interface FetchLike {
   (input: string, init: RequestInit): Promise<Response>;
 }
 
-export class TypesafeRequestError extends Error {
-  constructor(message: string, readonly httpFailure?: ProviderHttpFailureDiagnostics) {
-    super(message);
-    this.name = "TypesafeRequestError";
-  }
+export class TypesafeRequestError extends BotProviderError {
+  override name = "TypesafeRequestError";
 }
 
 export class TypesafeSystemOneClient {
@@ -32,23 +29,20 @@ export class TypesafeSystemOneClient {
       }
       throw new TypesafeRequestError("TypeSafe credentials are not configured");
     }
-    const response = await this.fetcher(systemOneEndpoint, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${typesafeApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    });
-    const body: unknown = await response.json().catch(() => null);
-
-    if (!response.ok) {
-      throw new TypesafeRequestError(
-        `TypeSafe request failed with HTTP ${response.status}`,
-        providerHttpFailureDiagnostics(response, body),
-      );
+    try {
+      return await requestProviderJson(this.fetcher, systemOneEndpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${typesafeApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(request),
+      });
+    } catch (error) {
+      if (error instanceof BotProviderError) {
+        throw new TypesafeRequestError(error.message, error.httpFailure, error.requestFailure);
+      }
+      throw error;
     }
-
-    return body;
   }
 }

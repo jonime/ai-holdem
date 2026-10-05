@@ -35,6 +35,7 @@ describe("TypesafeSystemOneClient", () => {
     expect(fetcher).toHaveBeenCalledWith(
       "https://api.typesafe.ai/v1/systemone",
       {
+        signal: expect.any(AbortSignal),
         method: "POST",
         headers: {
           Authorization: "Bearer test-key",
@@ -55,6 +56,20 @@ describe("TypesafeSystemOneClient", () => {
     await expect(
       client.evaluate({ model: "jev-latest", state: {}, questions: {} }),
     ).rejects.toThrow("HTTP 422");
+  });
+
+  it.each([
+    { status: 429, body: "broken", category: "rate_limit" },
+    { status: 200, body: '{"error":{"code":429}}', category: "rate_limit" },
+    { status: 200, body: "broken", category: "invalid_response" },
+    { status: 503, body: "broken", category: "provider" },
+  ])("preserves $category in its provider error class", async ({ status, body, category }) => {
+    process.env.TYPESAFE_API_KEY = "test-key";
+    process.env.EXTERNAL_INFERENCE_ENABLED = "true";
+    const client = new TypesafeSystemOneClient(async () => new Response(body, { status }));
+    await expect(client.evaluate({ model: "jev-latest", state: {}, questions: {} })).rejects.toMatchObject({
+      name: "TypesafeRequestError", category, httpFailure: { httpStatus: status },
+    });
   });
 
   it("enforces the external-inference guard before calling TypeSafe", async () => {

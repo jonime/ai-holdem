@@ -101,8 +101,8 @@ describe("gameplay route contracts", () => {
     const warn = vi.spyOn(console,"warn").mockImplementation(() => {});
     const response = await step(request({ expectedVersion: 1 }), context);
     expect(response.status).toBe(502);
-    expect(await response.json()).toEqual({ error: "AI decision failed" });
-    expect(warn).toHaveBeenCalledWith("Bot decision failed", JSON.stringify({ event:"bot_decision_failed",gameId:"game-1",reason:"unknown" }));
+    expect(await response.json()).toEqual({ error: "AI decision failed", code: "BOT_PROVIDER_ERROR" });
+    expect(warn).toHaveBeenCalledWith("Bot decision failed", JSON.stringify({ event:"bot_decision_failed",gameId:"game-1",reason:"unknown",category:"provider" }));
     expect(JSON.stringify(warn.mock.calls)).not.toContain("secret-body");
     warn.mockRestore();
   });
@@ -115,9 +115,9 @@ describe("gameplay route contracts", () => {
     try {
       const response = await step(request({ expectedVersion: 1 }), context);
       expect(response.status).toBe(502);
-      expect(await response.json()).toEqual({ error: "AI decision failed" });
+      expect(await response.json()).toEqual({ error: "AI decision failed", code: "BOT_PROVIDER_ERROR" });
       expect(warn).toHaveBeenCalledExactlyOnceWith("Bot decision failed", JSON.stringify({
-        event: "llm_provider_http_failure", gameId: "game-1", reason: "http_402", ...diagnostics,
+        event: "llm_provider_http_failure", gameId: "game-1", reason: "http_402", ...diagnostics, category: "provider",
       }));
       expect(JSON.stringify(warn.mock.calls)).not.toMatch(/secret-body|As Ks|owner/);
       expect(schedule).not.toHaveBeenCalled();
@@ -134,9 +134,9 @@ describe("gameplay route contracts", () => {
     try {
       const response = await step(request({ expectedVersion: 1 }), context);
       expect(response.status).toBe(502);
-      expect(await response.json()).toEqual({ error: "AI decision failed" });
+      expect(await response.json()).toEqual({ error: "AI decision failed", code: "BOT_PROVIDER_ERROR" });
       expect(warn).toHaveBeenCalledExactlyOnceWith("Bot decision failed", JSON.stringify({
-        event: "typesafe_provider_http_failure", gameId: "game-1", reason: "typesafe_request", ...diagnostics,
+        event: "typesafe_provider_http_failure", gameId: "game-1", reason: "typesafe_request", ...diagnostics, category: "provider",
       }));
       expect(JSON.stringify(warn.mock.calls)).not.toMatch(/secret-body|As Ks|owner/);
       expect(schedule).not.toHaveBeenCalled();
@@ -144,4 +144,20 @@ describe("gameplay route contracts", () => {
       warn.mockRestore();
     }
   });
+  it.each([
+    ["timeout", "BOT_TIMEOUT"], ["network", "BOT_NETWORK_ERROR"],
+    ["rate_limit", "BOT_RATE_LIMITED"], ["invalid_response", "BOT_INVALID_RESPONSE"],
+    ["provider", "BOT_PROVIDER_ERROR"],
+  ] as const)("returns safe %s failures without success notifications", async (category, code) => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      advance.mockRejectedValue(new BotProviderError("private provider text", undefined, { category }));
+      const response = await step(request({ expectedVersion: 1 }), context);
+      expect(response.status).toBe(502);
+      expect(await response.json()).toEqual({ error: "AI decision failed", code });
+      expect(schedule).not.toHaveBeenCalled();
+      expect(JSON.stringify(warn.mock.calls)).not.toContain("private provider text");
+    } finally { warn.mockRestore(); }
+  });
+
 });

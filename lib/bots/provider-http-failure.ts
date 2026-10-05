@@ -38,7 +38,7 @@ export function providerHttpFailureDiagnostics(
 
 /** A plain 402 is the documented credit error; transient spending holds stay paused. */
 export function isLlmCreditFailure(error: unknown): error is BotProviderError {
-  if (!(error instanceof BotProviderError) || !error.httpFailure) return false;
+  if (!(error instanceof BotProviderError) || error.category !== "provider" || !error.httpFailure) return false;
   const details = error.httpFailure;
   if (details.httpStatus !== 402 && !(details.httpStatus === 200 && details.providerErrorCode === 402)) return false;
   if (details.limitSource === "openrouter_in_flight_budget" || details.limitSource === "unknown") return false;

@@ -68,3 +68,14 @@ pauses following, and Latest action resumes it. Reopening starts at the latest
 event. The debugging History button and modal are available only in development
 (`npm run dev`); production builds, including deployed previews, hide them and
 do not load history for the modal. The history API still enforces access and privacy rules.
+
+## Provider pauses and retry
+
+TypeSafe and LLM requests have a 60-second deadline, including reading the response.
+A timeout, connection failure, rate limit, invalid response, or provider error
+pauses play and leaves the bot seated without changing the game. The error banner
+explains the failure in the selected language. Use **Retry bot** to refresh the
+latest game and try again; polling does not retry the failed turn. A rate limit
+may need time to clear. Only an eligible host or seated human can retry, and
+repeated clicks cannot start parallel requests. Confirmed LLM credit failures
+retain their existing legal fold and departure behavior.

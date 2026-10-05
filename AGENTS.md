@@ -102,6 +102,12 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
   403. One browser runs one bot loop; authorized browsers can still race and incur
   duplicate inference, but only one version-checked action commits. Conflicts stop
   the stale loop and refresh silently; refresh and provider failures stay visible.
+  Provider requests share a server-only 60-second deadline covering headers and body.
+  Temporary failures return allowlisted BOT_* codes with HTTP 502 and pause the
+  failed hand/actor turn, including across polling/version-only refreshes. Retry
+  explicitly refetches authoritative state and prevents parallel loops; no retries
+  or fallback actions run automatically. The bot-step route requests 90 seconds
+  on Vercel; verify the deployed effective duration before release.
   Stop at human turns, completed hands, navigation, or lost eligibility. Next hands
   require explicit interaction; bots pause without an eligible open browser.
 - Confirmed LLM credit failures apply one engine-validated fold and mark the seat

@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import { useGameFeed } from "./useGameFeed";
+import { botErrorMessage } from "./bot-error";
 import { advanceBotTurns, hasBotTurn } from "./bot-advancement";
 import { canAdvanceBots, tableFlow } from "@/components/poker/view-model";
 import { getClientPlayerToken } from "@/lib/identity/player-token-client";
@@ -41,6 +42,10 @@ import type {
   TableSettings,
 } from "@/components/poker/types";
 
+function botTurnKey(game: Game): string {
+  return `${game.id}:${game.poker.handNumber}:${game.poker.currentActorId}`;
+}
+
 export function useGameSession(gameId?: string, historyOpen = false) {
   const [game, setGame] = useState<Game | null>(null);
   const [liveDecisions, setLiveDecisions] = useState<readonly AIDecision[]>([]);
@@ -66,6 +71,8 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   const automaticallyAdvancedVersions = useRef(new Set<number>());
   const activeGameId = useRef(gameId);
   const latestGame = useRef<Game | null>(null);
+  const retryPending = useRef(false);
+  const pausedBotTurn = useRef<string | null>(null);
   const botLoop = useRef<symbol | null>(null);
   const botEligibilityEpoch = useRef(0);
   const nextResponseSequence = useRef(0);
@@ -78,6 +85,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   useEffect(() => {
     activeGameId.current = gameId;
     automaticallyAdvancedVersions.current.clear();
+    pausedBotTurn.current = null;
     return () => {
       activeGameId.current = undefined;
       botLoop.current = null;
@@ -98,6 +106,9 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       );
       lastAppliedResponse.current = reconciled.applied;
       latestGame.current = reconciled.game;
+      if (reconciled.game && pausedBotTurn.current !== botTurnKey(reconciled.game)) {
+        pausedBotTurn.current = null;
+      }
       if (reconciled.game && !canAdvanceBots(reconciled.game, getClientPlayerToken())) {
         botEligibilityEpoch.current++;
       }
@@ -415,6 +426,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       const eligibilityEpoch = botEligibilityEpoch.current;
       botLoop.current = loop;
       let stepSequence = 0;
+      let attemptedGame = nextGame;
       const isActive = () => botLoop.current === loop &&
         botEligibilityEpoch.current === eligibilityEpoch &&
         activeGameId.current === nextGame.id &&
@@ -425,11 +437,14 @@ export function useGameSession(gameId?: string, historyOpen = false) {
           viewerToken: getClientPlayerToken,
           isActive,
           step: async current => {
+            attemptedGame = current;
+            automaticallyAdvancedVersions.current.add(current.version);
             stepSequence = ++nextResponseSequence.current;
             const body = await api.games.stepBot({ gameId: current.id, expectedVersion: current.version });
             return body;
           },
           apply: body => {
+            pausedBotTurn.current = null;
             applyGame(body.game, stepSequence);
             setLiveDecisions(previous => [...previous, body.aiDecision]);
             if (body.aiDecision.matchedRule === LLM_CREDIT_EXIT_RULE) {
@@ -447,8 +462,10 @@ export function useGameSession(gameId?: string, historyOpen = false) {
           },
         });
       } catch (requestError) {
-        if (isActive()) setError(requestError instanceof Error
-          ? requestError.message : t("errors.advanceAi"));
+        if (isActive()) {
+          pausedBotTurn.current = botTurnKey(attemptedGame);
+          setError(botErrorMessage(requestError, t));
+        }
       } finally {
         if (botLoop.current === loop) botLoop.current = null;
       }
@@ -467,15 +484,27 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   });
 
   const retryBotTurn = useCallback(async () => {
-    if (!game || botLoop.current || !canAdvanceBots(game, getClientPlayerToken())) return;
+    const current = latestGame.current;
+    if (!current || retryPending.current || botLoop.current ||
+        !canAdvanceBots(current, getClientPlayerToken())) return;
+    retryPending.current = true;
+    const eligibilityEpoch = botEligibilityEpoch.current;
     setLoading(true);
     setError(null);
     try {
-      await advanceAiTurns(game);
+      await loadGame(current.id);
+      const authoritative = latestGame.current;
+      if (activeGameId.current === current.id &&
+          botEligibilityEpoch.current === eligibilityEpoch && authoritative) {
+        await advanceAiTurns(authoritative);
+      }
+    } catch (requestError) {
+      if (activeGameId.current === current.id) setError(botErrorMessage(requestError, t));
     } finally {
-      if (activeGameId.current === game.id) setLoading(false);
+      retryPending.current = false;
+      if (activeGameId.current === current.id) setLoading(false);
     }
-  }, [advanceAiTurns, game]);
+  }, [advanceAiTurns, loadGame, t]);
 
   useEffect(() => {
     if (
@@ -483,7 +512,9 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       loading ||
       !canAdvanceBots(game, getClientPlayerToken()) ||
       botLoop.current !== null ||
+      retryPending.current ||
       !hasBotTurn(game) ||
+      pausedBotTurn.current === botTurnKey(game) ||
       automaticallyAdvancedVersions.current.has(game.version)
     ) {
       return;

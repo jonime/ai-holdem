@@ -35,6 +35,13 @@ export interface PokerBot {
   decide(context: BotContext): Promise<BotDecision>;
 }
 
+export type ProviderFailureCategory = "timeout" | "network" | "rate_limit" | "invalid_response" | "provider";
+export interface ProviderRequestDiagnostics {
+  readonly category: ProviderFailureCategory;
+  readonly phase?: "headers" | "body" | "response";
+  readonly elapsedMs?: number;
+}
+
 export const botProviderFailureReasons = {
   "LLM provider returned a malformed response": "malformed_response",
   "LLM provider returned no structured decision": "missing_decision",
@@ -49,10 +56,10 @@ export const botProviderFailureReasons = {
 } as const;
 
 export function botProviderFailureReason(error: BotProviderError): string {
+  // Fixed diagnostic detail is secondary; API/credit classification uses category.
+  if (error.httpFailure) return `http_${error.httpFailure.httpStatus}`;
   const known = Object.entries(botProviderFailureReasons).find(([message]) => message === error.message);
-  if (known) return known[1];
-  const http = /^LLM provider request failed with HTTP ([1-5][0-9]{2})$/.exec(error.message);
-  return http ? `http_${http[1]}` : "unknown";
+  return known ? known[1] : error.category === "provider" ? "unknown" : error.category;
 }
 
 export interface ProviderHttpFailureDiagnostics {
@@ -69,10 +76,15 @@ export interface ProviderHttpFailureDiagnostics {
 export const LLM_CREDIT_EXIT_RULE = "llm_credit_limit_exit";
 
 export class BotProviderError extends Error {
-  constructor(message: string, readonly httpFailure?: ProviderHttpFailureDiagnostics) {
+  constructor(message: string, readonly httpFailure?: ProviderHttpFailureDiagnostics,
+    readonly requestFailure: ProviderRequestDiagnostics = {
+      category: httpFailure?.httpStatus === 429 || httpFailure?.providerErrorCode === 429 ? "rate_limit" : "provider",
+    }) {
     super(message);
     this.name = "BotProviderError";
   }
+
+  get category(): ProviderFailureCategory { return this.requestFailure.category; }
 }
 
 export function emptyDiagnostics(

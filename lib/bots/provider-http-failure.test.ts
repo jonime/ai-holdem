@@ -70,3 +70,8 @@ describe("LLM credit departure classification", () => {
     expect(isLlmCreditFailure(new BotProviderError("request failed", details))).toBe(false);
   });
 });
+
+it.each(["timeout", "network", "rate_limit", "invalid_response"] as const)("never retires a %s failure even with credit HTTP diagnostics", category => {
+  const details = providerHttpFailureDiagnostics(new Response(null, { status: 402 }), { error: { code: 402 } });
+  expect(isLlmCreditFailure(new BotProviderError("private", details, { category }))).toBe(false);
+});

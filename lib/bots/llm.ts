@@ -18,7 +18,7 @@ import {
   type PokerBot,
 } from "./types";
 import { resolveLlmPlaystyle } from "./llm-playstyles";
-import { providerHttpFailureDiagnostics } from "./provider-http-failure";
+import { requestProviderJson } from "./provider-request";
 
 const invariantPolicy =
   "Use only the supplied information and optimize expected chip value in this no-rake cash game. Choose only a supplied action candidate and, when required, a supplied sizing. The candidates already exclude provably bad decisions; playstyle preferences never override these restrictions. Showdown equity is against random opponent hands, not the opponent's betting range. Compare range-adjusted equity with the supplied contestable-pot odds. Evaluate the best five cards including kickers; a strong category on the board does not mean HERO beats the opponent. On the river no future cards remain, so do not semi-bluff missed draws. Never invent hidden cards or absent information. For fold, check, or call, sizing must be null. For bet or raise, sizing must be one of the supplied concrete sizing choices. Return only the schema-constrained JSON.";
@@ -59,30 +59,30 @@ function parseOutput(
     !Array.isArray(body.choices) ||
     !isRecord(body.choices[0])
   ) {
-    throw new BotProviderError("LLM provider returned a malformed response");
+    throw new BotProviderError("LLM provider returned a malformed response", undefined, { category: "invalid_response", phase: "response" });
   }
   const message = body.choices[0].message;
   if (!isRecord(message) || typeof message.content !== "string") {
-    throw new BotProviderError("LLM provider returned no structured decision");
+    throw new BotProviderError("LLM provider returned no structured decision", undefined, { category: "invalid_response", phase: "response" });
   }
   let output: unknown;
   try {
     output = JSON.parse(message.content);
   } catch {
-    throw new BotProviderError("LLM provider returned invalid decision JSON");
+    throw new BotProviderError("LLM provider returned invalid decision JSON", undefined, { category: "invalid_response", phase: "response" });
   }
   if (!isRecord(output) || typeof output.action !== "string" ||
       Object.keys(output).length !== 2 || !("sizing" in output) ||
       Object.keys(output).some(key => key !== "action" && key !== "sizing")) {
-    throw new BotProviderError("LLM provider returned an invalid decision");
+    throw new BotProviderError("LLM provider returned an invalid decision", undefined, { category: "invalid_response", phase: "response" });
   }
   const legal = context.legalActions.find(
     (action) => action.type === output.action,
   );
   if (!legal)
-    throw new BotProviderError("LLM provider selected an illegal action");
+    throw new BotProviderError("LLM provider selected an illegal action", undefined, { category: "invalid_response", phase: "response" });
   if ((legal.type === "fold" || legal.type === "check" || legal.type === "call") && output.sizing !== null) {
-    throw new BotProviderError("LLM provider selected sizing for a passive action");
+    throw new BotProviderError("LLM provider selected sizing for a passive action", undefined, { category: "invalid_response", phase: "response" });
   }
   if (legal.type === "fold" || legal.type === "check") {
     return { action: legal, sizingChoice: null };
@@ -94,14 +94,14 @@ function parseOutput(
     };
   }
   if (typeof output.sizing !== "string") {
-    throw new BotProviderError("LLM provider omitted a required sizing choice");
+    throw new BotProviderError("LLM provider omitted a required sizing choice", undefined, { category: "invalid_response", phase: "response" });
   }
   const sizing = context.sizingOptions.find(
     (option) => option.choice === output.sizing,
   );
   if (!sizing || sizing.amount === null ||
     sizing.amount < legal.minAmount || sizing.amount > legal.maxAmount) {
-    throw new BotProviderError("LLM provider selected an unavailable sizing");
+    throw new BotProviderError("LLM provider selected an unavailable sizing", undefined, { category: "invalid_response", phase: "response" });
   }
   return {
     action: { type: legal.type, amount: sizing.amount },
@@ -150,10 +150,10 @@ export class LlmPokerBot implements PokerBot {
     const candidates = prepareProviderContext(context);
     const advice = this.guidance ? selectPokerAdvice(candidates) : null;
     const sizingChoices = candidates.sizingOptions.filter(option => option.amount !== null).map(option => option.choice);
-    let response: Response;
+    let body: unknown;
     try {
       const { apiEndpoint, apiKey } = getLlmServerEnv();
-      response = await this.fetcher(apiEndpoint, {
+      body = await requestProviderJson(this.fetcher, apiEndpoint, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -193,23 +193,20 @@ export class LlmPokerBot implements PokerBot {
             },
           },
         }),
-        signal: AbortSignal.timeout(60_000),
       });
     } catch (error) {
-      throw new BotProviderError(
-        error instanceof Error && error.name === "TimeoutError"
-          ? "LLM provider timed out"
-          : "LLM provider request failed",
-      );
+      if (error instanceof BotProviderError) throw error;
+      throw new BotProviderError("LLM provider request failed");
     }
-    const body: unknown = await response.json().catch(() => null);
-    if (!response.ok || (isRecord(body) && isRecord(body.error))) {
-      throw new BotProviderError(
-        `LLM provider request failed with HTTP ${response.status}`,
-        providerHttpFailureDiagnostics(response, body),
-      );
+    let parsed;
+    try {
+      parsed = parseOutput(body, candidates);
+    } catch (error) {
+      if (error instanceof BotProviderError) throw new BotProviderError(error.message, error.httpFailure, {
+        ...error.requestFailure, elapsedMs: Math.round(performance.now() - started),
+      });
+      throw error;
     }
-    const parsed = parseOutput(body, candidates);
     const usage = isRecord(body) && isRecord(body.usage) ? body.usage : null;
     const cost = usage && typeof usage.cost === "number" ? usage.cost : null;
     return {

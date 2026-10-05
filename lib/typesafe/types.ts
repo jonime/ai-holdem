@@ -28,6 +28,7 @@ export interface AIDecision {
 }
 
 export class TypesafeResponseError extends Error {
+  readonly category = "invalid_response" as const;
   constructor(message: string) {
     super(message);
     this.name = "TypesafeResponseError";
