@@ -1,12 +1,12 @@
 # AI Hold'em
 
-> AI Hold'em is an open-source browser-based Texas Hold'em demo where people play with provider-backed or deterministic AI poker bots under rules enforced by an authoritative poker engine.
+> AI Hold'em is an open-source browser-based Texas Hold'em game where people play with provider-backed or deterministic AI poker bots under rules enforced by an authoritative poker engine.
 
-The application supports two to six seats, private table links, configurable blinds and stacks, live state refreshes, action and hand history, and privacy-aware public projections. It is a technical demonstration, not a real-money gambling service. The application JSON routes are internal and are not currently a versioned public API.
+The application supports two to six seats, private table links, configurable blinds and stacks, live state refreshes, action and hand history, and privacy-aware public projections. Games use virtual chips, with no real-money betting or cash prizes. The application JSON routes are internal and are not currently a versioned public API.
 
 ## Product
 
-- [AI Hold'em](https://www.aiholdem.gg/en-US): Create a table and learn how human and AI seats play together.
+- [AI Hold'em](https://www.aiholdem.gg/en-US): Play against AI bots, invite friends to a table, or watch bots play.
 - [About AI Hold'em](https://www.aiholdem.gg/en-US/about): Learn how the available bots, their settings, the poker engine, and privacy boundaries work.
 - [Developer resources](https://www.aiholdem.gg/en-US/developers): Architecture, integration status, source documentation, and discovery resources.
 

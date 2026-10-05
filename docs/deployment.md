@@ -76,7 +76,7 @@ is applied to production automatically — no GitHub secrets or `supabase
 link` required (that command only caches credentials locally in the
 gitignored `supabase/.temp/`).
 
-This demo does not configure Supabase per-branch databases. Preview deployments
+This project does not configure Supabase per-branch databases. Preview deployments
 use the Supabase connection values configured in Vercel for Preview.
 
 ## Search and social previews

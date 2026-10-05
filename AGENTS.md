@@ -12,7 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Purpose
 
-This is a TypeScript demo of no-limit Texas Hold'em with one-click private
+This is a TypeScript no-limit Texas Hold'em game with one-click private
 six-seat play and customizable 2–6-seat tables. Humans and provider-backed AI
 seats occupy the table, including TypeSafe, deterministic offline `Equity
 Rules`, and configurable LLM bots, while
@@ -184,7 +184,7 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
   advances manually; New Quick Play creates a distinct private randomized six-seat
   game through the localized quick-game endpoint, retaining identity cookies and
   guarding pending requests. Preserve final results, Actions, and eligible reveals.
-- Anonymous player tokens support this demo's seat ownership; they are not
+- Anonymous player tokens support this game's seat ownership; they are not
 	production authentication. Knowing a game URL intentionally permits viewing.
 
 ## Code Map

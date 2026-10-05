@@ -37,8 +37,8 @@ export default async function DeveloperResources({ params }: DeveloperPageProps)
         <p className={styles.eyebrow}>AI Hold&apos;em</p>
         <h1>Developer resources</h1>
         <p>
-          AI Hold&apos;em is an open-source Next.js and TypeScript demonstration
-          of multiplayer, agent-assisted Texas Hold&apos;em. The installed poker
+          AI Hold&apos;em is an open-source multiplayer Texas Hold&apos;em
+          game built with Next.js and TypeScript. The installed poker
           engine remains authoritative while server services validate human and
           AI actions and persist version-checked state in Supabase.
         </p>

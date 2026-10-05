@@ -1,6 +1,6 @@
 # Contributing
 
-This project is a small but security-sensitive demo. Contributions must follow the current code and docs, not assumptions from older notes or earlier designs.
+This project is a security-sensitive browser poker game. Contributions must follow the current code and docs, not assumptions from older notes or earlier designs.
 Any change that weakens validation, privacy boundaries, migration safety, or version-checked mutation rules is not acceptable.
 
 ## Before you start
@@ -194,7 +194,7 @@ E2E_BASE_URL=https://your-preview.vercel.app npm run test:e2e -- test/e2e/realti
 ```
 
 With `E2E_BASE_URL`, Playwright uses that deployment and skips local Supabase and
-server startup; tests create private demo tables there. Record the deployment URL,
+server startup; tests create private test tables there. Record the deployment URL,
 revision and result. An older live deployment does not verify changed lifecycle
 behavior. See [Realtime guidance](plans/05-realtime-broadcast.md) for the contract,
 rollout compatibility and reproducible before/after payload sizes.

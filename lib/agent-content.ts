@@ -13,7 +13,7 @@ Create a table, then invite someone to take an open seat.
 
 export const DEVELOPERS_MARKDOWN = `# AI Hold'em developer resources
 
-AI Hold'em is an open-source Next.js and TypeScript demonstration of multiplayer, agent-assisted Texas Hold'em. The installed poker engine remains authoritative while server-side services validate human and AI actions and persist version-checked state in Supabase.
+AI Hold'em is an open-source multiplayer Texas Hold'em game built with Next.js and TypeScript. The installed poker engine remains authoritative while server-side services validate human and AI actions and persist version-checked state in Supabase.
 
 ## Integration status
 

@@ -6,7 +6,7 @@ export const metadata = {
 
 # About AI Hold'em
 
-AI Hold'em is an open-source Texas Hold'em demonstration where two to six human and bot seats can share a table. Table URLs are shareable: anyone who knows the URL can watch the game. This is a technical demonstration, not a real-money gambling service.
+AI Hold'em is a free, open-source Texas Hold'em game you can play in your browser. Play against AI bots, invite friends to a table, or watch bots play. Tables support two to six players and use virtual chips, with no real-money betting or cash prizes.
 
 ## Poker bots
 
@@ -55,6 +55,8 @@ The [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-eng
 Bot settings and future playstyle customization remain downstream of this boundary, so they cannot bypass the poker rules.
 
 ## Privacy and transparency
+
+Table links can be shared: anyone who knows a table's URL can watch the game.
 
 Active hole cards are revealed only to the browser that owns the seat. Spectators do not receive provider prompts or raw provider responses. Provider-backed bots send their bot-visible decision context to their provider; Equity Rules performs no external inference.
 

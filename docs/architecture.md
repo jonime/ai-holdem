@@ -46,7 +46,7 @@ decision data is published. New clients normalize validated legacy payloads to
 refresh signals; already-open old clients can recover through polling until
 reloaded. See [Realtime architecture and verification](../plans/05-realtime-broadcast.md)
 for payload measurements and local/Vercel smoke checks. No additional
-SQL migration is required for Broadcast. The demo intentionally uses public
+SQL migration is required for Broadcast. The application intentionally uses public
 game channels, so anyone who knows a game URL can subscribe; this is not an
 authorization boundary for production. Broadcast is best-effort: a successful
 database mutation remains successful when delivery is unavailable, and clients

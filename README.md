@@ -1,10 +1,10 @@
 # AI Hold’em
 
-A no-limit Texas Hold’em demo for two to six human and bot players. Play against
-Equity Rules, TypeSafe Jev, or configurable LLM bots; the poker engine remains
+An open-source no-limit Texas Hold’em game for two to six human and AI players.
+Play against Equity Rules, TypeSafe Jev, or configurable LLM bots; the poker engine remains
 authoritative for cards, turns, legal actions, betting, pots, and winners.
 
-[Play the demo](https://www.aiholdem.gg) ·
+[Play AI Hold’em](https://www.aiholdem.gg) ·
 [Source code](https://github.com/jonime/ai-holdem)
 
 ## Overview
@@ -20,7 +20,8 @@ authoritative for cards, turns, legal actions, betting, pots, and winners.
 
 Active hole cards are visible only to the browser that owns the seat. Tables are
 unlisted by default, but anyone who knows a table URL can view it. Anonymous
-identity cookies provide demo seat ownership, not production authentication.
+identity cookies provide seat ownership for this game, not production
+authentication.
 
 ## Play
 
