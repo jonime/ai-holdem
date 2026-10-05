@@ -22,7 +22,7 @@ describe("local smoke environment boundary", () => {
     expect(env.LLM_API_KEY).toBe("");
     expect(env.LLM_API_ENDPOINT).toBe("");
   });
-  it.each(["https://project.supabase.co", "http://localhost.attacker.test", "http://secret@localhost:54321", "http://localhost:54321/other", "http://localhost:54321/?secret=yes"])("rejects unsafe origin %s", origin => {
+  it.each(["https://project.supabase.co", "http://localhost.attacker.test", "http://secret@localhost:54321", "http://localhost:54321/other", "http://localhost:54321/?secret=yes", "invalid-url"])("rejects unsafe origin %s", origin => {
     vi.mocked(execFileSync).mockReturnValue(JSON.stringify({ API_URL: origin, ANON_KEY: "anon", SERVICE_ROLE_KEY: "secret" }));
     expect(() => localEnvironment()).toThrow("loopback");
   });

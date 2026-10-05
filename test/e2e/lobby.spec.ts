@@ -31,7 +31,6 @@ test("starts six-seat Quick Play and advances the opening bot turns", { tag: "@s
   ).toBeVisible();
   await firstBotStep;
   await waitForPlayableHuman(page);
-  expect(false, "Temporary CI artifact acceptance probe").toBe(true);
 });
 
 test("runs a two-player hand in a six-seat lobby", async ({
@@ -336,6 +335,9 @@ test("claims, moves, assigns bots, and releases seats while retaining unseated h
     await expect(seat(guest, 2).getByRole("button", { name: "Sit here" })).toBeVisible();
     await seat(guest, 3).getByRole("button", { name: "Stand up" }).click();
     await expect(seat(guest, 3).getByRole("button", { name: "Sit here" })).toBeVisible();
+    // Load committed guest changes before the version-checked host mutation.
+    await page.reload();
+    await expect(page.getByText("WAITING ROOM")).toBeVisible();
     await page.getByRole("button", { name: "Stand up" }).click();
     await expect(seat(page, 1).getByRole("button", { name: "Sit here" })).toBeVisible();
     await page.getByLabel("Bot for seat 2").selectOption("equity-rules-v2");

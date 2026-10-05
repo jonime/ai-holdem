@@ -2,6 +2,7 @@ import { run } from "./process.mjs";
 import { localEnvironment } from "./local-environment.mjs";
 
 const stop = process.argv[2] === "stop";
+if (!stop && !process.env.CI) throw new Error("Disposable Supabase setup is CI-only; locally use supabase start and apply migrations.");
 await run("supabase", stop ? ["stop", "--no-backup"] : ["start"], {
   phase: stop ? "supabase-stop" : "supabase-start", timeout: stop ? 90_000 : 480_000,
   discardStdout: true,

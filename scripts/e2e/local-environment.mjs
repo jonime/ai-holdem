@@ -9,7 +9,8 @@ export function localEnvironment() {
   } catch {
     throw new Error("Local Supabase status failed; start a healthy local stack first.");
   }
-  const url = new URL(status.API_URL);
+  let url;
+  try { url = new URL(status.API_URL); } catch { throw new Error("Local status must provide a valid loopback HTTP origin."); }
   if (url.protocol !== "http:" || !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) || url.username || url.password || url.pathname !== "/" || url.search || url.hash) {
     throw new Error("Only a loopback local Supabase HTTP origin is allowed.");
   }

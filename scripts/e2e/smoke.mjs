@@ -8,8 +8,9 @@ import { run } from "./process.mjs";
 rejectCIOverride();
 if (process.env.E2E_BASE_URL) throw new Error("Production smoke requires local Supabase and port 3002.");
 const root = process.cwd();
+const local = localEnvironment();
 const workspace = mkdtempSync(join(tmpdir(), "ai-holdem-smoke-"));
-const env = { ...process.env, ...localEnvironment(), NODE_ENV: "production", E2E_PRODUCTION: "true", E2E_WORKSPACE: workspace };
+const env = { ...process.env, ...local, NODE_ENV: "production", E2E_PRODUCTION: "true", E2E_WORKSPACE: workspace };
 try {
   for (const path of ["app", "components", "lib", "content", "public", "test", "benchmarks", "scripts", ...readdirSync(root).filter(name => !name.startsWith(".env") && /\.(?:[cm]?[jt]sx?|json)$/.test(name))]) {
     cpSync(resolve(root, path), join(workspace, path), { recursive: true, filter: source => !source.split(/[\\/]/).at(-1).startsWith(".env") });

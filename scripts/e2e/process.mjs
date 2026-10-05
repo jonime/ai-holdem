@@ -10,6 +10,7 @@ export async function run(command, args, { cwd = process.cwd(), env = process.en
     for (const secret of secrets) text = text.split(secret).join("[redacted]");
     return text.replace(/eyJ[\w-]+\.[\w-]+\.[\w-]+/g, "[redacted-jwt]")
       .replace(/sb_(?:secret|publishable)_[\w-]+/g, "[redacted-key]")
+      .replace(/postgres(?:ql)?:\/\/[^\s]+/g, "[redacted-db-url]")
       .split("\n").filter(line => !/password|service.role|anon.key|secret.key|DATABASE_URL|INSERT INTO|COPY public\./i.test(line)).join("\n");
   };
   const child = spawn(command, args, { cwd, env, detached: true, stdio: ["ignore", "pipe", "pipe"] });
