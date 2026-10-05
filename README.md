@@ -141,6 +141,8 @@ Preview. Apply required database migrations before deploying application code.
 The canonical domain defaults to `https://www.aiholdem.gg`. To override it, set
 `NEXT_PUBLIC_APP_URL` before building.
 See the [deployment guide](docs/deployment.md) for the full procedure.
+Enable Speed Insights in the Vercel project dashboard to collect Web Vitals;
+the application includes its SDK with private table URLs redacted.
 
 ## Documentation
 

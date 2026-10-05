@@ -12,6 +12,21 @@ The application uses the Supabase Data API from Next.js server routes, so keep
 the Supabase Data API enabled. The browser never receives the Supabase secret
 or TypeSafe API key.
 
+## Speed Insights
+
+The locale root layout includes `@vercel/speed-insights/next` to measure Web
+Vitals across the application's pages. Enable **Speed Insights** in the Vercel
+project dashboard before deploying this integration, then visit the deployed
+site and check the Speed Insights dashboard. No additional application
+environment variables or database migrations are needed.
+
+Performance events remove query strings and fragments, replace table IDs with
+`[gameId]`, and report only known page shapes. Debug logging is disabled. Keep
+this filtering in `lib/observability/performance.ts` when adding routes or
+changing telemetry. See Vercel's [privacy documentation](https://vercel.com/docs/speed-insights/privacy-policy)
+for the performance data it collects. Web Analytics is not enabled by this
+integration.
+
 ## Migration prerequisites
 
 Apply every SQL file in [supabase/migrations](../supabase/migrations) in filename

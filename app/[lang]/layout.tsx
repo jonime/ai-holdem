@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Space_Grotesk } from "next/font/google";
 
+import { PerformanceInsights } from "@/components/PerformanceInsights";
 import { hasLocale, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { getMetadataDictionary } from "@/lib/i18n/server";
 import { getSiteOrigin } from "@/lib/site";
@@ -59,7 +60,10 @@ export default async function LocaleLayout({
 
   return (
     <html lang={lang}>
-      <body className={spaceGrotesk.variable}>{children}</body>
+      <body className={spaceGrotesk.variable}>
+        {children}
+        <PerformanceInsights />
+      </body>
     </html>
   );
 }
