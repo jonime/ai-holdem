@@ -74,6 +74,17 @@ Docker and a healthy local Supabase stack including Realtime are prerequisites.
 Setup follows the official [Supabase CI guide](https://supabase.com/docs/guides/deployment/ci/testing)
 and [Playwright CI guide](https://playwright.dev/docs/ci).
 
+CI caches Supabase registry images as a `docker image save` archive and loads
+them before startup on a cache hit. The exact cache key includes the runner OS
+and architecture, `SUPABASE_CLI_VERSION` in the workflow, and
+`supabase/config.toml`; CLI or configuration changes create a new cache. Migration
+changes reuse the image cache. Only images are cached: every run still starts a
+fresh disposable stack, applies all migrations, and checks health. Cache failures
+fall back to normal startup, and a healthy cold startup saves the archive before
+tests run. The first run for a key pays the download/export/upload cost; compare
+total integration time on subsequent hits, including restore/load time. Bump the
+`supabase-images-v1` prefix to force a refresh if an archive becomes unusable.
+
 For local production verification, start Supabase and apply all committed
 migrations, then run these commands in order:
 

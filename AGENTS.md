@@ -64,7 +64,10 @@ routing, rendering, environment handling, or deployment behavior.
 Pull requests and pushes to `main` retain the fast check/build job with non-secret
 placeholder values; unit tests must not depend on live Supabase or TypeSafe.
 An independent 30-minute integration job uses Docker, pinned Supabase CLI 2.119.0,
-and the installed Playwright Chromium with system dependencies. It starts a
+and the installed Playwright Chromium with system dependencies. Supabase registry
+images are cached by runner OS/architecture, CLI version, and config hash using
+Docker save/load; never cache containers, volumes, or database state. Cache
+failures fall back to ordinary startup; migrations always run. It starts a
 healthy full local stack (including Realtime), applies every migration to its
 disposable database, then runs `test:sql:game-reads`, `test:sql:bot-context`, `test:sql:seats`,
 `test:sql:bot-claims`, and `test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore

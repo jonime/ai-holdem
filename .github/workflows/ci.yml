@@ -50,6 +50,7 @@ jobs:
     timeout-minutes: 30
     env:
       CI: "true"
+      SUPABASE_CLI_VERSION: "2.119.0"
       EXTERNAL_INFERENCE_ENABLED: "false"
       TYPESAFE_API_KEY: ""
       LLM_API_ENDPOINT: ""
@@ -72,7 +73,23 @@ jobs:
       - name: Set up pinned Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: 2.119.0
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      # Cache only registry images, never containers, volumes, or database state.
+      # Migrations do not affect image versions and still run on every job.
+      - name: Restore Supabase Docker image archive
+        id: supabase-images
+        uses: actions/cache/restore@v4
+        continue-on-error: true
+        with:
+          path: ${{ runner.temp }}/supabase-docker-images/images.tar
+          key: supabase-images-v1-${{ runner.os }}-${{ runner.arch }}-${{ env.SUPABASE_CLI_VERSION }}-${{ hashFiles('supabase/config.toml') }}
+
+      - name: Load cached Supabase Docker images
+        if: steps.supabase-images.outputs.cache-hit == 'true'
+        timeout-minutes: 3
+        continue-on-error: true
+        run: docker image load --input "$RUNNER_TEMP/supabase-docker-images/images.tar"
 
       - name: Install Chromium and system dependencies
         timeout-minutes: 8
@@ -81,6 +98,34 @@ jobs:
       - name: Start disposable Supabase and apply migrations
         timeout-minutes: 12
         run: node scripts/e2e/supabase.mjs
+
+      - name: Export Supabase Docker images on cache miss
+        id: export-supabase-images
+        if: steps.supabase-images.outputs.cache-hit != 'true'
+        timeout-minutes: 3
+        continue-on-error: true
+        shell: bash
+        run: |
+          mapfile -t images < <(docker image ls \
+            --filter 'reference=public.ecr.aws/supabase/*' \
+            --filter 'reference=ghcr.io/supabase/*' \
+            --filter 'reference=supabase/*' \
+            --format '{{.Repository}}:{{.Tag}}' | sort -u)
+          if (( ${#images[@]} == 0 )); then
+            echo "::warning::No Supabase registry images found to cache."
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/supabase-docker-images"
+          docker image save --output "$RUNNER_TEMP/supabase-docker-images/images.tar" "${images[@]}"
+
+      # Save after healthy startup so a later test failure does not lose the cache.
+      - name: Save Supabase Docker image archive
+        if: steps.export-supabase-images.outcome == 'success'
+        uses: actions/cache/save@v4
+        continue-on-error: true
+        with:
+          path: ${{ runner.temp }}/supabase-docker-images/images.tar
+          key: ${{ steps.supabase-images.outputs.cache-primary-key }}
 
       - name: Verify SQL game reads
         timeout-minutes: 3
