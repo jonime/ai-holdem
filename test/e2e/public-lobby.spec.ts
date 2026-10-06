@@ -28,14 +28,14 @@ test("@smoke publishes, refreshes, reports unavailable, preserves a name, and jo
 
   await page.getByRole("button", { name: "Make private" }).click();
   await expect(page.getByText("Private (unlisted)", { exact: true })).toBeVisible();
-  await directoryCard.getByRole("button", { name: "Join" }).click();
+  await directoryCard.getByRole("button", { name: /^Join:/ }).click();
   await expect(guest.getByText("That table is no longer available. The list has been refreshed.")).toBeVisible();
 
   await page.getByRole("button", { name: "Make public" }).click();
   await expect(page.getByText("Public listing", { exact: true })).toBeVisible();
-  await guest.getByRole("button", { name: "Refresh all tables" }).click();
+  await guest.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(guest.getByText(tableTitle, { exact: true })).toBeVisible();
-  await guest.getByRole("listitem").filter({ hasText: tableTitle }).getByRole("button", { name: "Join" }).click();
+  await guest.getByRole("listitem").filter({ hasText: tableTitle }).getByRole("button", { name: /^Join:/ }).click();
   await expect(guest).toHaveURL(/\/en-US\/game\/[0-9a-f-]+$/);
   await expect(guest.getByText("Directory Guest", { exact: true })).toBeVisible();
 

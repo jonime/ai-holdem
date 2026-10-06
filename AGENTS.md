@@ -224,7 +224,7 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
 - `lib/realtime/`: server publishing and client refetch subscriptions.
 - `lib/i18n/`: locale helpers, server-only dictionary loaders, and per-locale
 	dictionaries split by route group (`metadata`, `landing-server`,
-	`join-game`, `game`) under `lib/i18n/dictionaries/`.
+	`join-game`, `play`, `game`) under `lib/i18n/dictionaries/`.
 - `content/about/`: localized MDX for the server-only About route; every locale
 	exports its own title and description metadata and follows the same heading
 	structure.

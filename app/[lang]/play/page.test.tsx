@@ -24,7 +24,7 @@ it("renders browser ownership, status and return links when the public section f
   directory.mockRejectedValue(new Error("failure"));
   mine.mockResolvedValue([{ gameId: "11111111-1111-4111-8111-111111111111", title: null, status: "complete", updatedAt: "2026-10-06T12:00:00Z", occupiedSeats: 2, totalSeats: 6 }]);
   const html = await personal();
-  expect(html).toContain("Recently active"); expect(html).toContain("Hand complete"); expect(html).toContain("2/6 seats"); expect(html).toContain("Return to table"); expect(html).toContain("These tables belong to this browser");
+  expect(html).not.toContain("Recently active"); expect(html).toContain("Hand complete"); expect(html).toContain("2/6 seats"); expect(html).toContain("Return to table"); expect(html).not.toContain("These tables belong to this browser");
   const publicMarkup = renderToStaticMarkup(await DirectoryContent({ lang: "en-US", dictionary: await getJoinGameDictionary("en-US") }));
   expect(publicMarkup).toContain("Public tables could not be loaded"); expect(publicMarkup).not.toContain("No public tables are available");
 });

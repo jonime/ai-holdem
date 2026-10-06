@@ -574,4 +574,7 @@ Personal and public initial loads must remain in separate uncached Suspense
 boundaries. Personal failures must remain visible and private; do not log lists,
 tokens or repository errors. Preserve shared candidate caching only for the public
 directory, with request-specific host/seated exclusions. Play never polls or subscribes
-to Realtime. Both creation forms use their existing localized POST routes.
+to Realtime. Personal tables load on page entry and offer Retry after failure; the
+public section has an accessible refresh icon. The optional joining name appears at
+the top. Compact personal rows are links and public rows are native buttons, retaining
+keyboard activation and pending join protection. Both creation forms use their existing localized POST routes.

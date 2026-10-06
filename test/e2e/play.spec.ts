@@ -15,7 +15,7 @@ test("@smoke Play navigation, empty state, custom creation, return and identity 
   const gameUrl = page.url(); const gameId = new URL(gameUrl).pathname.split("/").at(-1);
   await page.goto("/en-US/play");
   const mine = page.getByRole("region", { name: "Your tables" });
-  await expect(mine).toContainText("Recently active"); await expect(mine).toContainText("Waiting");
+  await expect(mine).not.toContainText("Recently active"); await expect(mine).toContainText("Waiting");
   const visitor = await browser.newContext();
   try {
     const visitorPage = await visitor.newPage(); await visitorPage.goto(gameUrl);
@@ -29,23 +29,22 @@ test("@smoke Play navigation, empty state, custom creation, return and identity 
     expect(first.games.map((game: { gameId: string }) => game.gameId)).toEqual([gameId]);
     expect(second.games.map((game: { gameId: string }) => game.gameId)).toEqual([visitorId]);
   } finally { await visitor.close(); }
-  await mine.getByRole("link", { name: "Return to table" }).click(); await expect(page).toHaveURL(gameUrl);
+  await mine.getByRole("link", { name: /^Return to table:/ }).press("Enter"); await expect(page).toHaveURL(gameUrl);
 });
 
-test("@smoke Play refresh failures remain independent and recover with Retry", async ({ page }) => {
+test("@smoke Play public refresh failures recover without refreshing personal tables", async ({ page }) => {
   await page.goto("/en-US/play");
-  await page.route("**/api/games/mine", route => route.fulfill({ status: 500, json: { error: "Failed" } }));
-  await page.route("**/api/games/public*", route => route.fulfill({ json: { games: [], nextCursor: null } }));
-  await page.getByRole("button", { name: "Refresh all tables" }).click();
-  await expect(page.getByRole("region", { name: "Your tables" }).getByRole("alert")).toHaveText("Your tables could not be loaded.");
-  await expect(page.getByText("No public tables are available right now.")).toBeVisible();
-  await page.unroute("**/api/games/mine");
-  await page.getByRole("region", { name: "Your tables" }).getByRole("button", { name: "Retry", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Your tables" })).toHaveCount(0);
+  let personalRequests = 0;
+  page.on("request", request => { if (request.url().endsWith("/api/games/mine")) personalRequests++; });
+  await expect(page.getByRole("button", { name: "Refresh all tables" })).toHaveCount(0);
   await page.route("**/api/games/public*", route => route.fulfill({ status: 500, json: { error: "Failed" } }));
-  await page.getByRole("button", { name: "Refresh all tables" }).click();
-  await expect(page.getByText("Public tables could not be loaded.").first()).toBeVisible();
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(page.getByText("Public tables could not be loaded.")).toBeVisible();
   await expect(page.getByText("No public tables are available right now.")).toHaveCount(0);
+  await page.route("**/api/games/public*", route => route.fulfill({ json: { games: [], nextCursor: null } }));
+  await page.getByRole("button", { name: "Try again", exact: true }).click();
+  await expect(page.getByText("No public tables are available right now.")).toBeVisible();
+  expect(personalRequests).toBe(0);
 });
 
 test("@smoke Play directory pagination, join conflict, redirects, mobile and keyboard", async ({ page }, testInfo) => {
@@ -56,15 +55,25 @@ test("@smoke Play directory pagination, join conflict, redirects, mobile and key
   const entry = { gameId: "11111111-1111-4111-8111-111111111111", title: "Pagination table", version: 1, occupiedSeats: 1, totalSeats: 6, humanCount: 1, botCount: 0, smallBlind: 10, bigBlind: 20, startingStack: 1000, publishedAt: "2026-10-06T12:00:00Z" };
   let calls = 0;
   await page.route("**/api/games/public*", route => route.fulfill({ json: ++calls === 1 ? { games: [], nextCursor: "next" } : { games: [entry], nextCursor: null } }));
-  await page.getByRole("button", { name: "Refresh all tables" }).click();
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await page.getByRole("button", { name: "Load more", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Pagination table" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Join: Pagination table" })).toBeVisible();
   await page.route("**/api/games/*/join", route => route.fulfill({ status: 409, json: { error: "Conflict", code: "GAME_CONFLICT" } }));
-  await page.getByRole("button", { name: "Join", exact: true }).click();
+  await page.getByRole("button", { name: "Join: Pagination table", exact: true }).press("Enter");
   await expect(page.getByText("That table changed. Review the refreshed list and try again.")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const create = page.getByRole("button", { name: "Create table", exact: true });
-  await create.focus(); await page.keyboard.press("Tab"); await expect(page.getByRole("button", { name: "Refresh all tables" })).toBeFocused();
+  await page.getByLabel("Your name (optional)").focus(); await page.keyboard.press("Tab"); await expect(create).toBeFocused();
+  await page.keyboard.press("Tab"); await expect(page.getByRole("button", { name: "Refresh", exact: true })).toBeFocused();
   await expect(page.locator("h1")).toHaveText("Play");
+  await expect(page.getByText("Choose a public table with an active host.")).toHaveCount(0);
+  const refresh = page.getByRole("button", { name: "Refresh", exact: true });
+  const centered = await refresh.evaluate(button => {
+    const rect = button.getBoundingClientRect();
+    const icon = button.querySelector("svg")!.getBoundingClientRect();
+    return Math.abs(rect.x + rect.width / 2 - icon.x - icon.width / 2) < 1 &&
+      Math.abs(rect.y + rect.height / 2 - icon.y - icon.height / 2) < 1;
+  });
+  expect(centered).toBe(true);
   await page.screenshot({ path: testInfo.outputPath("play-mobile.png"), fullPage: true });
 });

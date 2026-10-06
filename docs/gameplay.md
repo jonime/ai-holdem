@@ -88,6 +88,10 @@ tables where this browser owns a claimed human seat or is the durable host, incl
 unseated hosts and completed hands. Spectator visits do not add tables. Activity is
 game activity, not visit history; returning does not promise another hand can start.
 A successfully empty personal section is hidden. Each section reports its own failures
-and offers retry; **Refresh all tables** refreshes both independently. There is no
+and offers retry; the refresh icon beside **Open public tables** refreshes public availability. There is no
 automatic refresh on Play. Public joining retains optional player names and pagination.
 Quick Play still starts a separate private six-seat game in one click.
+
+The optional name field sits at the top of Play and is remembered for public joins.
+Select a personal row to return, or a public row to join. Rows support keyboard
+activation; the refresh icon has a localized accessible label.
