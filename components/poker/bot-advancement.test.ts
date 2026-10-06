@@ -98,4 +98,24 @@ describe("bot advancement", () => {
     await advanceBotTurns(game, d);
     expect(d.step).toHaveBeenCalledOnce();
   });
+  it("bounds a continuing bot loop to twelve requests", async () => {
+    const d = driver();
+    d.step.mockResolvedValue({ game, aiDecision });
+    await advanceBotTurns(game, d);
+    expect(d.step).toHaveBeenCalledTimes(12);
+    expect(d.apply).toHaveBeenCalledTimes(12);
+  });
+  it("discards a deferred response after invalidation", async () => {
+    let active = true;
+    let resolve!: (value: { game: Game; aiDecision: AIDecision }) => void;
+    const d = { ...driver(), isActive: () => active };
+    d.step.mockImplementation(() => new Promise(r => { resolve = r; }));
+    const pending = advanceBotTurns(game, d);
+    active = false;
+    resolve({ game, aiDecision });
+    await pending;
+    expect(d.apply).not.toHaveBeenCalled();
+    expect(d.step).toHaveBeenCalledOnce();
+  });
+
 });

@@ -4,19 +4,18 @@ import { useRouter } from "next/navigation";
 import {
   useCallback,
   useEffect,
-  useEffectEvent,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react";
 
 import { useGameFeed } from "./useGameFeed";
 import { botErrorMessage } from "./bot-error";
-import { advanceBotTurns, hasBotTurn } from "./bot-advancement";
-import { canAdvanceBots, tableFlow } from "@/components/poker/view-model";
+import { useBotLifecycle, type BotLifecycle } from "./useBotLifecycle";
+import { tableFlow } from "@/components/poker/view-model";
 import { getClientPlayerToken } from "@/lib/identity/player-token-client";
-import { HttpError, api } from "@/lib/http/api";
+import { api } from "@/lib/http/api";
 import type { HumanAction } from "@/lib/http/gameplay-contracts";
-import { LLM_CREDIT_EXIT_RULE } from "@/lib/bots/types";
 import { useGameChannel } from "@/lib/realtime/useGameChannel";
 import {
   RefreshCoordinator,
@@ -42,10 +41,6 @@ import type {
   TableSettings,
 } from "@/components/poker/types";
 
-function botTurnKey(game: Game): string {
-  return `${game.id}:${game.poker.handNumber}:${game.poker.currentActorId}`;
-}
-
 export function useGameSession(gameId?: string, historyOpen = false) {
   const [game, setGame] = useState<Game | null>(null);
   const [liveDecisions, setLiveDecisions] = useState<readonly AIDecision[]>([]);
@@ -58,15 +53,6 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   );
   const { feed, refreshFeed } = useGameFeed(gameId);
   const [loading, setLoading] = useState(false);
-  const [usageNotice, setUsageNotice] = useState<{ gameId: string; version: number; until: number } | null>(null);
-  const [usageRetryAfterMs, setUsageRetryAfterMs] = useState(0);
-  const usageNoticeRef = useRef(usageNotice);
-  useEffect(() => {
-    if (!usageNotice || usageNotice.gameId !== gameId) return;
-    const tick = () => setUsageRetryAfterMs(Math.max(0, usageNotice.until - Date.now()));
-    const timer = setInterval(tick, 250);
-    return () => clearInterval(timer);
-  }, [usageNotice, gameId]);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
@@ -77,18 +63,9 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     typeof document === "undefined" ? true : document.visibilityState === "visible",
   );
   const [botCatalog, setBotCatalog] = useState<readonly BotDescriptor[]>([]);
-  const automaticallyAdvancedVersions = useRef(new Set<number>());
   const activeGameId = useRef(gameId);
   const latestGame = useRef<Game | null>(null);
-  const retryPending = useRef(false);
-  const pausedBotTurn = useRef<string | null>(null);
-  const botWait = useRef<{ gameId: string; version: number; timer: ReturnType<typeof setTimeout> } | null>(null);
-  const clearBotWait = useCallback(() => {
-    if (botWait.current) clearTimeout(botWait.current.timer);
-    botWait.current = null;
-  }, []);
-  const botLoop = useRef<symbol | null>(null);
-  const botEligibilityEpoch = useRef(0);
+  const botLifecycle = useRef<BotLifecycle | null>(null);
   const nextResponseSequence = useRef(0);
   const lastAppliedResponse = useRef<AppliedGameResponse | null>(null);
   const refreshCoordinator = useRef<RefreshCoordinator | null>(null);
@@ -98,22 +75,16 @@ export function useGameSession(gameId?: string, historyOpen = false) {
 
   useEffect(() => {
     activeGameId.current = gameId;
-    automaticallyAdvancedVersions.current.clear();
-    pausedBotTurn.current = null;
-    usageNoticeRef.current = null;
-    clearBotWait();
     return () => {
-      clearBotWait();
       activeGameId.current = undefined;
-      botLoop.current = null;
       latestGame.current = null;
     };
-  }, [gameId, clearBotWait]);
+  }, [gameId]);
 
   const applyGame = useCallback(
     (incoming: Game, sequence: number, targetGameId = incoming.id) => {
       if (activeGameId.current !== targetGameId || incoming.id !== targetGameId) {
-        return;
+        return false;
       }
       const reconciled = reconcileGame(
         latestGame.current,
@@ -123,44 +94,24 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       );
       lastAppliedResponse.current = reconciled.applied;
       latestGame.current = reconciled.game;
-      const notice = usageNoticeRef.current;
-      if (notice && (notice.gameId !== reconciled.game.id || notice.version !== reconciled.game.version ||
-          !hasBotTurn(reconciled.game))) {
-        usageNoticeRef.current = null;
-        pausedBotTurn.current = null;
-        setUsageNotice(null);
-        setUsageRetryAfterMs(0);
-        setError(null);
-      }
-      if (botWait.current && (reconciled.game.version !== botWait.current.version ||
-          reconciled.game.id !== botWait.current.gameId || !hasBotTurn(reconciled.game) ||
-          !canAdvanceBots(reconciled.game, getClientPlayerToken()))) {
-        clearBotWait();
-        pausedBotTurn.current = null;
-        setError(null);
-      }
-      if (reconciled.game && pausedBotTurn.current !== botTurnKey(reconciled.game)) {
-        pausedBotTurn.current = null;
-      }
-      if (reconciled.game && !canAdvanceBots(reconciled.game, getClientPlayerToken())) {
-        botEligibilityEpoch.current++;
-      }
+      botLifecycle.current?.reconcile(reconciled.game);
       setGame(reconciled.game);
       if (reconciled.applied.sequence === sequence) {
         refreshFeed(reconciled.game.version);
       }
+      return reconciled.applied.sequence === sequence;
     },
-    [refreshFeed, clearBotWait],
+    [refreshFeed],
   );
 
   const loadGame = useCallback(
-    async (targetGameId: string) => {
+    async (targetGameId: string, isCurrent: () => boolean = () => true) => {
       const sequence = ++nextResponseSequence.current;
       const { controller, cancel } = createRefreshTimeout();
       refreshAbortControllers.current.add(controller);
       try {
         const body = await api.games.get({ gameId: targetGameId }, { signal: controller.signal });
-        applyGame(body.game, sequence, targetGameId);
+        if (isCurrent()) applyGame(body.game, sequence, targetGameId);
         return body.game;
       } finally {
         cancel();
@@ -169,6 +120,30 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     },
     [applyGame],
   );
+
+  const bots = useBotLifecycle(gameId, game, loading, {
+    readGame: () => latestGame.current,
+    viewerToken: getClientPlayerToken,
+    step: async current => {
+      const sequence = ++nextResponseSequence.current;
+      const result = await api.games.stepBot({ gameId: current.id, expectedVersion: current.version });
+      return { result, sequence };
+    },
+    apply: applyGame,
+    refresh: loadGame,
+    reportDecision: decision => setLiveDecisions(previous => [...previous, decision]),
+    refreshFailed: setRefreshFailed,
+    clearError: () => setError(null),
+    errorMessage: requestError => botErrorMessage(requestError, t),
+    unfinishedMessage: () => t("errors.botTurnUnfinished"),
+    creditMessage: decision => t("errors.llmCredits", { bot: decision.bot.label }),
+  });
+  useLayoutEffect(() => {
+    botLifecycle.current = bots.lifecycle;
+    return () => { botLifecycle.current = null; };
+  }, [bots.lifecycle]);
+  const advanceAiTurns = bots.advance;
+  const retryBotTurn = bots.retry;
 
   const performRefresh = useCallback(async () => {
     if (!gameId || !navigator.onLine) return;
@@ -301,6 +276,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   const createGame = useCallback(async () => {
     setLoading(true);
     setError(null);
+    botLifecycle.current?.clearNotice();
     setLiveDecisions([]);
     setSelectedHistoryHand(null);
     try {
@@ -323,6 +299,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       if (!game) return false;
       setLoading(true);
       setError(null);
+      botLifecycle.current?.clearNotice();
       try {
         await action();
         await loadGame(game.id);
@@ -398,6 +375,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       if (!game) return;
       setLoading(true);
       setError(null);
+      botLifecycle.current?.clearNotice();
       try {
         let currentGame = game;
         const settingsChanged =
@@ -434,6 +412,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       if (!game) return;
       setLoading(true);
       setError(null);
+      botLifecycle.current?.clearNotice();
       try {
         const sequence = ++nextResponseSequence.current;
         const body = await api.games.settings({ ...settings, gameId: game.id, expectedVersion: game.version });
@@ -451,155 +430,6 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     [applyGame, game, t],
   );
 
-  const advanceAiTurns = useCallback(
-    async (nextGame: Game) => {
-      if (botLoop.current || activeGameId.current !== nextGame.id ||
-          !canAdvanceBots(nextGame, getClientPlayerToken())) return;
-      const loop = Symbol("bot loop");
-      const eligibilityEpoch = botEligibilityEpoch.current;
-      botLoop.current = loop;
-      let stepSequence = 0;
-      let attemptedGame = nextGame;
-      const isActive = () => botLoop.current === loop &&
-        botEligibilityEpoch.current === eligibilityEpoch &&
-        activeGameId.current === nextGame.id &&
-        hasBotTurn(latestGame.current ?? nextGame) &&
-        canAdvanceBots(latestGame.current ?? nextGame, getClientPlayerToken());
-      try {
-        await advanceBotTurns(nextGame, {
-          viewerToken: getClientPlayerToken,
-          isActive,
-          step: async current => {
-            attemptedGame = current;
-            automaticallyAdvancedVersions.current.add(current.version);
-            stepSequence = ++nextResponseSequence.current;
-            const body = await api.games.stepBot({ gameId: current.id, expectedVersion: current.version });
-            return body;
-          },
-          apply: body => {
-            pausedBotTurn.current = null;
-            applyGame(body.game, stepSequence);
-            setLiveDecisions(previous => [...previous, body.aiDecision]);
-            if (body.aiDecision.matchedRule === LLM_CREDIT_EXIT_RULE) {
-              setError(t("errors.llmCredits", { bot: body.aiDecision.bot.label }));
-            }
-          },
-          refresh: async () => {
-            try {
-              await loadGame(nextGame.id);
-              if (activeGameId.current === nextGame.id) setRefreshFailed(false);
-            } catch (refreshError) {
-              if (isActive()) setRefreshFailed(true);
-              throw refreshError;
-            }
-          },
-        });
-      } catch (requestError) {
-        if (isActive()) {
-          pausedBotTurn.current = botTurnKey(attemptedGame);
-          if (requestError instanceof HttpError &&
-              (requestError.code === "OWNER_AI_LIMIT" || requestError.code === "GAME_AI_RATE_LIMIT") &&
-              requestError.retryAfterMs !== undefined) {
-            if (latestGame.current?.version !== attemptedGame.version) { pausedBotTurn.current = null; return; }
-            const notice = { gameId: attemptedGame.id, version: attemptedGame.version, until: Date.now() + requestError.retryAfterMs };
-            usageNoticeRef.current = notice;
-            setUsageNotice(notice);
-            setUsageRetryAfterMs(requestError.retryAfterMs);
-            setError(botErrorMessage(requestError, t));
-          } else if (requestError instanceof HttpError && requestError.code === "BOT_STEP_IN_PROGRESS" &&
-              requestError.retryAfterMs !== undefined) {
-            const current = latestGame.current;
-            if (current?.version !== attemptedGame.version) { pausedBotTurn.current = null; return; }
-            clearBotWait();
-            setError(null);
-            const timer = setTimeout(() => {
-              const latest = latestGame.current;
-              if (activeGameId.current === attemptedGame.id && latest?.version === attemptedGame.version &&
-                  hasBotTurn(latest) && canAdvanceBots(latest, getClientPlayerToken())) {
-                setError(t("errors.botTurnUnfinished"));
-              }
-              // Retain the version fence until explicit retry or authoritative advancement.
-            }, requestError.retryAfterMs);
-            botWait.current = { gameId: attemptedGame.id, version: attemptedGame.version, timer };
-          } else if (requestError instanceof HttpError && requestError.code === "BOT_STEP_CLAIM_LOST") {
-            try { await loadGame(nextGame.id); }
-            catch (refreshError) {
-              if (isActive()) setError(botErrorMessage(refreshError, t));
-              return;
-            }
-            if (isActive() && latestGame.current?.version === attemptedGame.version &&
-                botTurnKey(latestGame.current) === botTurnKey(attemptedGame)) {
-              setError(t("errors.botTurnUnfinished"));
-            } else if (latestGame.current?.version !== attemptedGame.version) {
-              pausedBotTurn.current = null;
-            }
-          } else {
-            setError(botErrorMessage(requestError, t));
-          }
-        }
-      } finally {
-        if (botLoop.current === loop) botLoop.current = null;
-      }
-    },
-    [applyGame, loadGame, t, clearBotWait],
-  );
-
-  const automaticallyAdvanceAiTurn = useEffectEvent(async (nextGame: Game) => {
-    setLoading(true);
-    setError(null);
-    try {
-      await advanceAiTurns(nextGame);
-    } finally {
-      if (activeGameId.current === nextGame.id) setLoading(false);
-    }
-  });
-
-  const retryBotTurn = useCallback(async () => {
-    const current = latestGame.current;
-    if ((usageNoticeRef.current?.until ?? 0) > Date.now()) return;
-    if (!current || retryPending.current || botLoop.current ||
-        !canAdvanceBots(current, getClientPlayerToken())) return;
-    usageNoticeRef.current = null;
-    setUsageNotice(null);
-    setUsageRetryAfterMs(0);
-    retryPending.current = true;
-    clearBotWait();
-    const eligibilityEpoch = botEligibilityEpoch.current;
-    setLoading(true);
-    setError(null);
-    try {
-      await loadGame(current.id);
-      const authoritative = latestGame.current;
-      if (activeGameId.current === current.id &&
-          botEligibilityEpoch.current === eligibilityEpoch && authoritative) {
-        await advanceAiTurns(authoritative);
-      }
-    } catch (requestError) {
-      if (activeGameId.current === current.id) setError(botErrorMessage(requestError, t));
-    } finally {
-      retryPending.current = false;
-      if (activeGameId.current === current.id) setLoading(false);
-    }
-  }, [advanceAiTurns, loadGame, t, clearBotWait]);
-
-  useEffect(() => {
-    if (
-      !game ||
-      loading ||
-      !canAdvanceBots(game, getClientPlayerToken()) ||
-      botLoop.current !== null ||
-      retryPending.current ||
-      !hasBotTurn(game) ||
-      pausedBotTurn.current === botTurnKey(game) ||
-      automaticallyAdvancedVersions.current.has(game.version)
-    ) {
-      return;
-    }
-
-    automaticallyAdvancedVersions.current.add(game.version);
-    void automaticallyAdvanceAiTurn(game);
-  }, [game, loading]);
-
   const submitAction = useCallback(
     async (action: LegalAction, amountOverride: number | null = null) => {
       if (!game) return;
@@ -613,6 +443,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
 
       setLoading(true);
       setError(null);
+      botLifecycle.current?.clearNotice();
       try {
         const sequence = ++nextResponseSequence.current;
         const body = await api.games.submitAction({ gameId: game.id, expectedVersion: game.version, action: proposedAction });
@@ -633,11 +464,12 @@ export function useGameSession(gameId?: string, historyOpen = false) {
 
   const nextHandPending = useRef(false);
   const beginNextHand = useCallback(async () => {
-    if (!game || loading || nextHandPending.current ||
+    if (!game || loading || bots.loading || nextHandPending.current ||
       !tableFlow(game.poker.players, game.poker.street, getClientPlayerToken(), game.viewerIsHost).canStartNextHand) return;
     nextHandPending.current = true;
     setLoading(true);
     setError(null);
+    botLifecycle.current?.clearNotice();
     setLiveDecisions([]);
     setSelectedHistoryHand(null);
     try {
@@ -655,12 +487,13 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       nextHandPending.current = false;
       setLoading(false);
     }
-  }, [advanceAiTurns, applyGame, game, loading, t]);
+  }, [advanceAiTurns, applyGame, game, loading, bots.loading, t]);
 
   const revealCards = useCallback(async () => {
     if (!game) return;
     setLoading(true);
     setError(null);
+    botLifecycle.current?.clearNotice();
     try {
       const sequence = ++nextResponseSequence.current;
       const body = await api.games.reveal({ gameId: game.id, expectedVersion: game.version, handNumber: game.poker.handNumber });
@@ -706,10 +539,10 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     feedLoading: Boolean(gameId_) && feed === null,
     selectedHistoryHand,
     liveDecisions,
-    loading,
-    error,
-    usageLimited: usageNotice?.gameId === gameId,
-    usageRetryAfterMs: usageNotice?.gameId === gameId ? usageRetryAfterMs : 0,
+    loading: loading || bots.loading,
+    error: error ?? bots.notice,
+    usageLimited: bots.usageLimited,
+    usageRetryAfterMs: bots.usageRetryAfterMs,
     connectionStatus: liveConnectionStatus,
     refreshing,
     refreshGame,

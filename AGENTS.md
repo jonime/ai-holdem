@@ -229,6 +229,11 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
 	exports its own title and description metadata and follows the same heading
 	structure.
 - `components/poker/`: client game, lobby, and spectator experience.
+  `bot-lifecycle.ts` owns pure bot state transitions; `useBotLifecycle.ts` owns
+  advancement, waits, provider pauses, usage countdowns, retries and generation
+  guards. `useGameSession.ts` retains authoritative state/reconciliation, response
+  sequences, polling/Realtime, feed/history and non-bot mutations. See the compact
+  transition table in `CONTRIBUTING.md`.
 - `supabase/migrations/`: ordered schema and atomic RPC changes.
 
 ## Change Guidance

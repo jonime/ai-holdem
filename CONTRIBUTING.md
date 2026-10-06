@@ -519,3 +519,39 @@ and require explicit retry; rules-only Quick Play creates a separate private gam
 Run `npm run test:sql:usage` against migrated local Supabase; CI includes it before
 production browser smoke. The smoke suite also covers fair-use countdowns,
 explicit retry, rules replay, and localized HTML/typed JSON creation denials.
+
+## Client bot lifecycle
+
+`components/poker/bot-lifecycle.ts` owns pure transitions. `useBotLifecycle.ts`
+executes them through the testable `BotLifecycle` driver, owns timers and request
+generations, and calls the existing twelve-step `advanceBotTurns` helper. All
+advancement entry points share its guard. `useGameSession.ts` retains authoritative
+state, response sequences/reconciliation, polling, Realtime, feed/history, and
+non-bot mutations. Reconciliation notifies the lifecycle synchronously; lifecycle
+refreshes carry a generation predicate before session reconciliation. Inference
+already running on the server is never cancelled.
+
+| State / event | Result |
+| --- | --- |
+| Idle, eligible new automatic version or explicit continuation | Running; one loop |
+| Running, successful step | Reconcile and report accepted decision; continue up to twelve steps |
+| Running, version conflict | Refresh silently and end stale loop; refresh failures remain visible |
+| Running, provider failure | Paused by game/hand/actor, including version-only refreshes |
+| Running, claim in progress | Quiet version-fenced wait until advancement or deadline |
+| Claim deadline | Paused with retry notice; no inference |
+| Running, lost claim | Immediate refresh; same attempted turn/version needs explicit retry |
+| Running, usage denial | Usage limited with retained deadline and 250 ms countdown |
+| Usage deadline | Explicit retry enabled; no inference |
+| Manual retry | One guarded authoritative refresh, then recheck eligibility and advance |
+| Authoritative turn change, lost eligibility, navigation or unmount | Invalidate pending continuations and clean timers |
+
+Run `npm run check`, `npm run build`, and the isolated production scenarios:
+
+```bash
+npm run test:e2e:smoke -- test/e2e/bot-advancement.spec.ts --grep ''
+npm run test:e2e:smoke
+```
+
+Run those browser selections separately: selecting the full bot suite plus other
+creation-heavy suites in one run can exhaust the real local IP creation allowance.
+See [extraction characterization notes](docs/bot-lifecycle-characterization.md).

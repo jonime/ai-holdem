@@ -593,3 +593,39 @@ test("fair-use rules replay creation denial keeps countdown and original table",
   await button.click();
   await expect.poll(() => creations).toBe(2);
 });
+
+test("polling during a held retry refresh cannot start a parallel bot loop", async ({ page }) => {
+  const f = await fixture(page);
+  await page.clock.install();
+  await page.routeWebSocket(/\/realtime\/v1\/websocket/, socket => socket.close());
+  let steps = 0;
+  let refreshes = 0;
+  let holdRefresh = false;
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  await page.route(`**/api/games/${f.gameId}`, async route => {
+    if (holdRefresh && ++refreshes === 1) await held;
+    await route.fulfill({ json: { game: f.current() } });
+  });
+  await page.route(`**/api/games/${f.gameId}/step`, async route => {
+    steps++;
+    if (steps === 1) return route.fulfill({ status: 502, json: { code: "BOT_TIMEOUT" } });
+    expect(route.request().postDataJSON().expectedVersion).toBe(f.current().version);
+    f.set(humanTurn(f.current()));
+    await route.fulfill({ json: { game: f.current(), aiDecision: gameplayDecision } });
+  });
+  await open(page, f.gameId);
+  await expect(page.getByRole("button", { name: "Retry bot", exact: true })).toBeEnabled();
+  holdRefresh = true;
+  await page.getByRole("button", { name: "Retry bot", exact: true }).evaluate(button => {
+    (button as HTMLButtonElement).click(); (button as HTMLButtonElement).click();
+  });
+  await expect.poll(() => refreshes).toBe(1);
+  f.set({ ...f.current(), version: f.current().version + 1 });
+  await page.clock.fastForward(5_001);
+  await expect.poll(() => refreshes).toBeGreaterThan(1);
+  expect(steps).toBe(1);
+  release();
+  await expect.poll(() => steps).toBe(2);
+  await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+});
