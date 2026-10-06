@@ -2,6 +2,7 @@ import { UsageUnavailableError } from "@/lib/usage/errors";
 import { admitInference } from "@/lib/usage/admission";
 import { BotStepClaimLostError } from "@/lib/poker/bot-step-claims";
 import { z } from "zod";
+import { myGamesResponseSchema, type MyGameSummary } from "@/lib/http/discovery-contracts";
 import type { BotHandContext } from "@/lib/poker/bot-history";
 import { pokerEngineAdapter } from "@/lib/poker/adapter";
 import type { AtomicSeatAssignmentRepository, SeatAssignment, SeatStatus } from "@/lib/poker/seat-contracts";
@@ -267,6 +268,7 @@ export interface GameDatabaseClient {
       | "update_seat_count_if_version"
       | "update_table_settings_if_version"
       | "reveal_human_cards_if_version"
+      | "list_my_games"
       | "list_public_games"
       | "list_public_game_exclusions"
       | "set_game_publication_if_version"
@@ -942,6 +944,17 @@ export class SupabaseGameRepository {
     if (error) throw new Error(`Unable to load game listing: ${error.message}`);
     if (data === null) return null;
     return toGameListing(data);
+  }
+
+  async listMyGames(playerToken: string): Promise<readonly MyGameSummary[]> {
+    const { data, error } = await this.client.rpc("list_my_games", { p_player_token: playerToken });
+    if (error || !Array.isArray(data)) throw new Error("Unable to load personal tables");
+    const games = data.map(row => {
+      if (!isRecord(row)) throw new Error("Invalid personal table summary");
+      return { gameId: row.game_id, title: row.title, status: row.status,
+        updatedAt: row.updated_at, occupiedSeats: row.occupied_seats, totalSeats: row.total_seats };
+    });
+    return myGamesResponseSchema.parse({ games }).games;
   }
 
   async listPublicGames(input: {

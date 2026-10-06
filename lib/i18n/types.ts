@@ -13,3 +13,6 @@ export type LandingServerDictionary = DictionaryShape<
 >;
 export type GameDictionary = DictionaryShape<typeof enGame>;
 export type JoinGameDictionary = DictionaryShape<typeof enJoinGame>;
+
+import type enPlay from "./dictionaries/play/en-US";
+export type PlayDictionary = DictionaryShape<typeof enPlay>;

@@ -12,7 +12,7 @@ export function redactPerformanceEvent(event: PerformanceEvent): PerformanceEven
   try {
     const url = new URL(event.url);
     if (url.protocol !== "https:" && url.protocol !== "http:") return null;
-    const match = /^\/([^/]+)(?:\/(about|developers|join-game)|\/game\/[^/]+)?\/?$/.exec(url.pathname);
+    const match = /^\/([^/]+)(?:\/(about|developers|play|join-game)|\/game\/[^/]+)?\/?$/.exec(url.pathname);
     if (!match) return null;
 
     const [, locale, page] = match;

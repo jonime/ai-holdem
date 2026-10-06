@@ -23,7 +23,7 @@ import {
   type HistoryQuery, type FeedQuery,
 } from "./history-contracts";
 import {
-  directoryQuerySchema, directoryResponseSchema, joinRequestSchema,
+  myGamesResponseSchema, directoryQuerySchema, directoryResponseSchema, joinRequestSchema,
   publicationRequestSchema, joinResponseSchema, publicationResponseSchema,
   heartbeatResponseSchema, type DirectoryQuery, type JoinRequest, type PublicationRequest,
 } from "./discovery-contracts";
@@ -110,6 +110,9 @@ export const api = {
     },
   },
   discovery: {
+    mine(options: Options = {}) {
+      return send("/api/games/mine", myGamesResponseSchema, { cache: "no-store", signal: options.signal });
+    },
     join({ gameId, ...body }: GameParams & JoinRequest, options: Options = {}) {
       return mutation({ gameId }, "join", body, joinRequestSchema, joinResponseSchema, options);
     },

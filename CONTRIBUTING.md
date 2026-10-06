@@ -104,7 +104,7 @@ masked in Actions and logs are sanitized. External inference is forced off and
 provider credentials are cleared. `E2E_BASE_URL` is rejected by the smoke runner
 and by all Playwright modes in CI. No hosted credentials are needed.
 
-Nine tests carry `@smoke`, including four fair-use tests (both countdown codes, rules-only replay/navigation, and shared HTML/JSON creation denials) and these five lifecycle tests: six-seat Quick Play to a human turn;
+The `@smoke` suites cover Play navigation, browser identity isolation, personal/public failures, retries, pagination, redirects, mobile and keyboard behavior, public joining, plus four fair-use tests (both countdown codes, rules-only replay/navigation, and shared HTML/JSON creation denials) and these five lifecycle tests: six-seat Quick Play to a human turn;
 seat claims/moves/bot assignments/releases with an unseated host; an Equity Rules
 hand through history and another hand; actual two-browser Realtime for versioned
 game and same-version seat changes; and polling recovery with intentionally
@@ -219,7 +219,8 @@ Translations are physically split by route and usage under `lib/i18n/dictionarie
 |---|---|
 | `metadata/<locale>.ts` | `generateMetadata` in the locale layout |
 | `landing-server/<locale>.ts` | landing page Server Component prose |
-| `join-game/<locale>.ts` | public-directory strings passed into its client island |
+| `play/<locale>.ts` | Play headings, statuses, personal table strings passed into client islands |
+| `join-game/<locale>.ts` | reusable public-directory strings passed into the Play client island |
 | `game/<locale>.ts` | combined lobby/table/history/feed/cards/errors dictionary |
 
 The About route is the exception to the TypeScript dictionary layout: its long-form
@@ -243,11 +244,11 @@ keep their existing caching, and Markdown negotiation still runs first.
 - To add a key, add it to the English dictionary and to every other locale in the same directory; `lib/i18n/dictionaries/dictionaries.test.ts` compares leaf-key paths and placeholders against English.
 - To add a locale, add `<locale>.ts` to each dictionary directory, register it in `SUPPORTED_LOCALES` in `lib/i18n/index.ts`, and add its dynamic import entry to the matching map in `lib/i18n/server.ts`.
 - Server Components load dictionaries directly through the loaders in `lib/i18n/server` (`getMetadataDictionary`, `getLandingServerDictionary`, `getGameDictionary`).
-- The landing page is cached server output: `LanguageMenu` uses locale links and the new-game control is a plain POST form. Keep request cookies and game creation in `app/[lang]/new-game/route.ts`, outside the cached page.
-- Keep the landing-page **Join game** control a plain server-rendered anchor.
+- The landing page is cached server output: `LanguageMenu` uses locale links and the Quick Play control is a plain POST form. Keep request cookies and game creation in `app/[lang]/new-game/route.ts`, outside the cached page.
+- Keep the landing-page **Play** control a plain server-rendered anchor.
   Keep the directory heading and navigation in the server-rendered shell and
   stream its initial data through a Suspense-wrapped request-time Server
-  Component; only its form, polling, pagination, and navigation are client code.
+  Component; only its form, explicit refresh, pagination, and navigation are client code.
   Cache only visitor-independent candidate pages. Player-token host/seated
   exclusions must remain request-specific, and directory mutations must
   invalidate the shared candidate cache.
@@ -265,7 +266,7 @@ The landing and About pages use a server-only language menu with a native
 `<dialog popover="auto">`. Outside clicks and Escape dismiss it; ordinary locale
 links navigate to a new document. CSS anchor positioning places it below the
 trigger with a centered fallback. Browsers without popover support show the links
-inline. Landing-page Quick Play and custom-table creation use plain HTML forms
+inline. Landing-page Quick Play and Play-page custom-table creation use plain HTML forms
 and work without JavaScript.
 
 ## Documentation standards
@@ -425,6 +426,7 @@ The endpoint-to-contract/client checklist is complete:
 | `GET /api/bots` | no parameters | `botCatalogResponseSchema` | `bots.catalog` |
 | `GET /api/games/:gameId/history?hand=N` | game params / `historyRouteQuerySchema` | `historyResponseSchema` | `games.history` |
 | `GET /api/games/:gameId/feed?sinceHand=N` | game params / `feedRouteQuerySchema` | `feedResponseSchema` | `games.feed` |
+| `GET /api/games/mine` | cookie identity only | `myGamesResponseSchema` | `discovery.mine` |
 | `GET /api/games/public?cursor=...` | `directoryRouteQuerySchema`, `directoryCursorSchema` | `directoryResponseSchema` | `discovery.list` |
 | `POST /api/games/:gameId/join` | game params / `joinRequestSchema` | `joinResponseSchema` | `discovery.join` |
 | `PATCH /api/games/:gameId/publication` | game params / `publicationRequestSchema`, `listingTitleSchema` | `publicationResponseSchema` | `discovery.publication` |
@@ -555,3 +557,24 @@ npm run test:e2e:smoke
 Run those browser selections separately: selecting the full bot suite plus other
 creation-heavy suites in one run can exhaust the real local IP creation allowance.
 See [extraction characterization notes](docs/bot-lifecycle-characterization.md).
+
+## Personal table verification and rollout
+
+Apply `20261017000000_add_my_games.sql` before deploying Play application code.
+With the migrated local stack running, `npm run test:sql:my-games` checks seated
+owners, unseated hosts, host/seat deduplication, released seats, unrelated visitors,
+completed/error games, assignment counts, stable ordering, five-item limits and
+restricted SQL roles. Fixtures roll back; the runner never reads application `.env`
+or resets the database. CI runs it before production browser smoke.
+
+`npm run test:e2e:smoke -- test/e2e/play.spec.ts test/e2e/public-lobby.spec.ts`
+checks the production Play experience against local Supabase with isolated browser
+identities. All Play cases carry `@smoke`; retain normal diagnostics and teardown.
+Personal and public initial loads must remain in separate uncached Suspense
+boundaries. Personal failures must remain visible and private; do not log lists,
+tokens or repository errors. Preserve shared candidate caching only for the public
+directory, with request-specific host/seated exclusions. Play never polls or subscribes
+to Realtime. Personal tables load on page entry and offer Retry after failure; the
+public section has an accessible refresh icon. The optional joining name appears at
+the top. Compact personal rows are links and public rows are native buttons, retaining
+keyboard activation and pending join protection. Both creation forms use their existing localized POST routes.

@@ -22,7 +22,8 @@ function observeRealtime(page: Page) {
 
 async function createTable(page: Page) {
   await page.goto("/en-US");
-  await page.getByRole("button", { name: "Create custom table" }).click();
+  await page.goto("/en-US/play");
+  await page.getByRole("button", { name: "Create table" }).click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
   return new URL(page.url()).pathname.split("/").at(-1)!;
 }

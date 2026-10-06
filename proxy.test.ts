@@ -123,3 +123,10 @@ describe("agent content proxy", () => {
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 });
+
+it.each(["/play", "/join-game", "/en-US/play", "/en-US/join-game"])("recognizes the Play and compatibility route %s", async path => {
+  expect(proxy(request(path, "text/markdown")).status).toBe(406);
+  const html = proxy(request(path, "text/html", "fi"));
+  if (path.startsWith("/en-US")) expect(html.headers.get("x-middleware-next")).toBe("1");
+  else { expect(html.status).toBe(307); expect(html.headers.get("location")).toContain(`/fi-FI${path}`); expect(html.headers.get("cache-control")).toBe("private, no-store"); }
+});

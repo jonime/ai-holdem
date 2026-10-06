@@ -79,3 +79,19 @@ latest game and try again; polling does not retry the failed turn. A rate limit
 may need time to clear. Only an eligible host or seated human can retry, and
 repeated clicks cannot start parallel requests. Confirmed LLM credit failures
 retain their existing legal fold and departure behavior.
+
+## Returning and finding tables
+
+Choose **Play** from the landing page to return to this browser’s tables, find open
+public tables, or **Create table**. **Your tables** shows up to five recently active
+tables where this browser owns a claimed human seat or is the durable host, including
+unseated hosts and completed hands. Spectator visits do not add tables. Activity is
+game activity, not visit history; returning does not promise another hand can start.
+A successfully empty personal section is hidden. Each section reports its own failures
+and offers retry; the refresh icon beside **Open public tables** refreshes public availability. There is no
+automatic refresh on Play. Public joining retains optional player names and pagination.
+Quick Play still starts a separate private six-seat game in one click.
+
+The optional name field sits at the top of Play and is remembered for public joins.
+Select a personal row to return, or a public row to join. Rows support keyboard
+activation; the refresh icon has a localized accessible label.
