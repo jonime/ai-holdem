@@ -22,6 +22,15 @@ allowances. Existing games keep their durable host record. Missing owners block
 external inference. Supabase admission failures fail closed for external calls
 and creation, while existing rules turns keep working.
 
+Local development also requires this secret: put a generated value in the ignored
+`.env` file and restart `npm run dev`. Copying `.env.example` leaves the value
+empty. Without a value of at least 32 bytes, both Quick Play and custom table
+creation return `503 USAGE_UNAVAILABLE`, rather than a quota denial (`429`).
+For Vercel production, generate a separate value, save it as
+`USAGE_LIMIT_HASH_SECRET` in the project's Production environment variables,
+and redeploy. Configure Preview separately if needed; do not reuse the local
+secret or rotate deployed values on every build.
+
 Service-role-only RPCs use database time, exact rolling windows, and consistently
 ordered key locks. Admission checks the game version and matching unexpired claim
 after authorization, turn validation, claim acquisition, and context preparation.

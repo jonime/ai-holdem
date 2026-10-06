@@ -67,7 +67,16 @@ Set the Supabase connection details in `.env`:
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SECRET_KEY=
+USAGE_LIMIT_HASH_SECRET=
 ```
+
+Generate a separate secret for each environment with `openssl rand -hex 32` and
+paste it into `USAGE_LIMIT_HASH_SECRET`. This server-only value is required even
+for local development and rules-only games. Keep it stable across deployments
+and never commit it. Missing or short values make Quick Play and custom table
+creation return `503 USAGE_UNAVAILABLE`. Restart the server after changing `.env`.
+For Vercel, set a separate production value in the project's environment variables
+and redeploy; see [fair-use setup](docs/fair-use.md).
 
 To play with Equity Rules without provider credentials, set:
 
