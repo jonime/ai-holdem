@@ -93,6 +93,7 @@ npm run test:sql:game-reads
 npm run test:sql:bot-context
 npm run test:sql:seats
 npm run test:sql:bot-claims
+npm run test:sql:usage
 npm run test:e2e:smoke
 ```
 
@@ -105,7 +106,7 @@ masked in Actions and logs are sanitized. External inference is forced off and
 provider credentials are cleared. `E2E_BASE_URL` is rejected by the smoke runner
 and by all Playwright modes in CI. No hosted credentials are needed.
 
-Exactly five existing tests carry `@smoke`: six-seat Quick Play to a human turn;
+Nine tests carry `@smoke`, including four fair-use tests (both countdown codes, rules-only replay/navigation, and shared HTML/JSON creation denials) and these five lifecycle tests: six-seat Quick Play to a human turn;
 seat claims/moves/bot assignments/releases with an unseated host; an Equity Rules
 hand through history and another hand; actual two-browser Realtime for versioned
 game and same-version seat changes; and polling recovery with intentionally
@@ -506,3 +507,17 @@ The final `--grep` selects the claim tests instead of the usual `@smoke` subset,
 using the same isolated build/server environment. Playwright clocks cover neutral
 waiting, polling/Realtime completion, explicit retry at expiry, lost claims,
 duplicate retry clicks, navigation and eligibility cleanup without real lease waits.
+
+## Anonymous fair-use admission
+
+See [docs/fair-use.md](docs/fair-use.md) for provisional server-owned allowances,
+privacy, proxy assumptions, and rollout. Deploy
+`20261016000000_add_usage_admission.sql` and the server-only
+`USAGE_LIMIT_HASH_SECRET` (at least 32 random bytes) before application code.
+All creation endpoints share owner/IP counters; external TypeSafe/LLM attempts
+charge the durable table host and game only after context validation and claim
+verification. Rules turns bypass inference allowances. Denials preserve tables
+and require explicit retry; rules-only Quick Play creates a separate private game.
+Run `npm run test:sql:usage` against migrated local Supabase; CI includes it before
+production browser smoke. The smoke suite also covers fair-use countdowns,
+explicit retry, rules replay, and localized HTML/typed JSON creation denials.

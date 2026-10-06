@@ -11,7 +11,7 @@ function deferred<T>() {
   const promise = new Promise<T>(done => { resolve = done; });
   return { promise, resolve };
 }
-function setup() {
+function setup(provider: "rules" | "llm" | "typesafe" = "rules", hostToken = "owner") {
   const initial = pokerEngineAdapter.startHand(pokerEngineAdapter.createGame({
     smallBlind: 1, bigBlind: 2, players: [
       { id: "human", seat: 0, name: "Human", controller: "human", stack: 200, playerToken: "owner" },
@@ -20,7 +20,7 @@ function setup() {
   }), createDeterministicDeck());
   let stored: PersistedGame = { id: "game", status: "playing", currentState: pokerEngineAdapter.applyAction(initial, "human", { type: "call", amount: 1 }), stateSchemaVersion: 1, handNumber: 1, version: 1 };
   const repository = withBotClaims({
-    getGame: async () => stored, getHostToken: async () => "owner",
+    getGame: async () => stored, getHostToken: async () => hostToken,
     persistAIAction: vi.fn(async (input: PersistAIActionInput) => {
       if (stored.version !== input.expectedVersion) throw new GameConflictError("game", input.expectedVersion);
       stored = { ...stored, currentState: input.currentState, version: stored.version + 1 };
@@ -34,7 +34,7 @@ function setup() {
     await response.promise;
     return { action: { type: "check" as const }, diagnostics: emptyDiagnostics(), rawResponse: null };
   });
-  const registry = { get: vi.fn(() => ({ bot: { decide }, descriptor: { id: "rules", label: "Rules", provider: "rules" as const, modelId: null } })) };
+  const registry = { get: vi.fn(() => ({ bot: { decide }, descriptor: { id: "rules", label: "Rules", provider, modelId: null } })) };
   const step = (token = "owner") => stepBotAction(repository, registry, "game", 1, token);
   return { repository, registry, decide, entered, response, step };
 }
@@ -122,4 +122,49 @@ describe("bot step claims", () => {
     f.response.resolve();
     expect((await f.step()).game.version).toBe(2);
   });
+});
+
+
+describe("usage admission placement", () => {
+  it("rules bots consume no external allowance", async () => {
+    const f = setup(); f.response.resolve(); await f.step();
+    expect(f.repository.admitExternalBotCall).not.toHaveBeenCalled();
+  });
+  it.each(["llm", "typesafe"] as const)("admits %s before inference, including failed providers", async provider => {
+    const f = setup(provider);
+    const failed = new Error("provider failure");
+    f.decide.mockRejectedValueOnce(failed);
+    await expect(f.step("owner")).rejects.toBe(failed);
+    expect(f.repository.admitExternalBotCall).toHaveBeenCalledOnce();
+    expect(f.repository.persistClaimedAIAction).not.toHaveBeenCalled();
+    expect(f.repository.releaseBotStepClaim).toHaveBeenCalledOnce();
+  });
+  it("allowance denials release claims without inference or credit retirement", async () => {
+    const f = setup("llm");
+    const { UsageLimitError } = await import("@/lib/usage/errors");
+    const denial = new UsageLimitError("OWNER_AI_LIMIT", 3600000);
+    f.repository.admitExternalBotCall.mockRejectedValueOnce(denial);
+    await expect(f.step()).rejects.toBe(denial);
+    expect(f.decide).not.toHaveBeenCalled();
+    expect(f.repository.persistClaimedAIAction).not.toHaveBeenCalled();
+    expect(f.repository.releaseBotStepClaim).toHaveBeenCalledOnce();
+  });
+});
+
+
+it("another owned seated browser can drive external bots without becoming the usage owner", async () => {
+  const f = setup("typesafe", "durable-host");
+  f.response.resolve();
+  await expect(f.step("owner")).resolves.toMatchObject({ game: { version: 2 } });
+  expect(f.repository.admitExternalBotCall).toHaveBeenCalledOnce();
+  expect(f.repository.admitExternalBotCall.mock.calls[0]).toEqual([expect.objectContaining({ gameId: "game", expectedVersion: 1 })]);
+});
+
+it("locally rejected context consumes no allowance", async () => {
+  const f = setup("llm");
+  const repository = Object.assign(f.repository, { getBotHandContext: vi.fn().mockResolvedValue({ version: 2 }) });
+  await expect(stepBotAction(repository, f.registry, "game", 1, "owner")).rejects.toBeInstanceOf(GameConflictError);
+  expect(f.repository.admitExternalBotCall).not.toHaveBeenCalled();
+  expect(f.decide).not.toHaveBeenCalled();
+  expect(f.repository.releaseBotStepClaim).toHaveBeenCalledOnce();
 });

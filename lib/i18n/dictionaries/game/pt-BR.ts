@@ -211,6 +211,14 @@ const dictionary = {
     of: "{rank} de {suit}",
   },
   errors: {
+    ownerAILimit: "A cota de IA do dono da mesa é compartilhada entre suas mesas. Aguarde antes de tentar novamente.",
+    gameAIRateLimit: "Esta mesa está avançando os bots externos rápido demais. Aguarde antes de tentar novamente.",
+    gameCreationLimit: "A criação de jogos está temporariamente limitada. Aguarde antes de tentar novamente.",
+    retryAvailable: "Nova tentativa disponível em {seconds} segundos.",
+    rulesOnlyGame: "Iniciar um jogo apenas com bots de regras",
+    home: "Início",
+    usageUnavailable: "Esta solicitação está temporariamente indisponível. Tente novamente mais tarde.",
+
     llmCredits: "{bot} atingiu o limite de créditos, desistiu e sairá antes da próxima mão.",
     createGame: "Não foi possível criar o jogo",
     refreshGame: "Não foi possível atualizar o estado do jogo.",

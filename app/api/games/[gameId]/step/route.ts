@@ -1,3 +1,4 @@
+import { usageJsonResponse } from "@/lib/usage/response";
 import { BotStepInProgressError, BotStepClaimLostError } from "@/lib/poker/bot-step-claims";
 import { gameParamsSchema } from "@/lib/http/common-contracts";
 import { stepBotRequestSchema, GAME_VERSION_CONFLICT, botFailureCodes, type BotStepResponseEnvelope } from "@/lib/http/gameplay-contracts";
@@ -53,6 +54,8 @@ export async function POST(request: Request, context: StepRouteContext) {
     );
     return NextResponse.json(result satisfies BotStepResponseEnvelope);
   } catch (error) {
+    const limited = usageJsonResponse(error);
+    if (limited) return limited;
     if (error instanceof BotStepInProgressError) {
       return NextResponse.json({ error: "Bot step in progress", code: "BOT_STEP_IN_PROGRESS", retryAfterMs: error.retryAfterMs }, { status: 409 });
     }

@@ -1,0 +1,42 @@
+import { beforeEach, expect, it, vi } from "vitest";
+import { UsageLimitError, UsageUnavailableError } from "./errors";
+const { admit, create } = vi.hoisted(() => ({ admit: vi.fn(), create: vi.fn() }));
+vi.mock("./creation", () => ({ admitGameCreation: admit }));
+vi.mock("@/lib/poker/game-service", () => ({ createDemoGame: create, createQuickPlayGame: create }));
+vi.mock("@/lib/supabase/server", () => ({ createSupabaseGameRepository: () => ({}) }));
+import { POST as quick } from "@/app/[lang]/quick-game/route";
+import { POST as formCustom } from "@/app/[lang]/new-game/route";
+import { POST as custom } from "@/app/api/games/route";
+const context = { params: Promise.resolve({ lang: "fi-FI" }) };
+beforeEach(() => { admit.mockReset(); create.mockReset(); create.mockResolvedValue({ gameId: "fixture" }); });
+it("returns typed JSON and localized HTML 429s before persistence", async () => {
+  admit.mockRejectedValue(new UsageLimitError("GAME_CREATION_LIMIT", 600_000));
+  const json = await quick(new Request("http://localhost/fi-FI/quick-game", { method: "POST", headers: { accept: "application/json" } }), context);
+  expect(json.status).toBe(429);
+  expect(json.headers.get("retry-after")).toBe("600");
+  expect(await json.json()).toMatchObject({ code: "GAME_CREATION_LIMIT", retryAfterMs: 600_000 });
+  const html = await quick(new Request("http://localhost/fi-FI/quick-game", { method: "POST" }), context);
+  expect(html.status).toBe(429);
+  expect(html.headers.get("content-type")).toContain("text/html");
+  expect(await html.text()).toContain('href="/fi-FI"');
+  expect(create).not.toHaveBeenCalled();
+  const customForm = await formCustom(new Request("http://localhost/fi-FI/new-game", { method: "POST" }), context);
+  expect(customForm.status).toBe(429);
+  expect(await customForm.text()).toContain("Pelien luontia on rajoitettu");
+  const response = await custom(new Request("http://localhost/api/games", { method: "POST", body: "{}" }));
+  expect(response.status).toBe(429);
+});
+it("validates before admission and enforces typed rules mode", async () => {
+  expect((await custom(new Request("http://localhost/api/games", { method: "POST", body: '{"seatCount":9}' }))).status).toBe(400);
+  expect((await quick(new Request("http://localhost/fi-FI/quick-game?botMode=other", { method: "POST" }), context)).status).toBe(404);
+  expect(admit).not.toHaveBeenCalled();
+  const response = await quick(new Request("http://localhost/fi-FI/quick-game?botMode=rules", { method: "POST", headers: { cookie: "ai-holdem-player-id=host" } }), context);
+  expect(response.status).toBe(303);
+  expect(create).toHaveBeenCalledWith({}, { hostToken: "host", botMode: "rules" });
+  expect(admit).toHaveBeenCalledOnce();
+});
+it("fails closed on unavailable storage", async () => {
+  admit.mockRejectedValue(new UsageUnavailableError());
+  expect((await quick(new Request("http://localhost/fi-FI/quick-game", { method: "POST" }), context)).status).toBe(503);
+  expect(create).not.toHaveBeenCalled();
+});

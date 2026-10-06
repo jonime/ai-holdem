@@ -1,6 +1,7 @@
 "use client";
 
-import { api } from "@/lib/http/api";
+import { botErrorMessage } from "./bot-error";
+import { HttpError, api } from "@/lib/http/api";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -35,6 +36,13 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const { locale, t } = useI18n();
   const replayPending = useRef(false);
   const [replaying, setReplaying] = useState(false);
+  const [creationNotice, setCreationNotice] = useState<{ until: number; message: string } | null>(null);
+  const [creationWait, setCreationWait] = useState(0);
+  useEffect(() => {
+    if (!creationNotice) return;
+    const timer = setInterval(() => setCreationWait(Math.max(0, creationNotice.until - Date.now())), 250);
+    return () => clearInterval(timer);
+  }, [creationNotice]);
   const [replayError, setReplayError] = useState(false);
   const [playerName, setPlayerName] = useState(() =>
     typeof window === "undefined"
@@ -98,6 +106,8 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     beginNextHand,
     revealCards,
     retryBotTurn,
+    usageLimited,
+    usageRetryAfterMs,
     selectHistoryHand,
     refreshDirectoryState,
   } = useGameSession(gameId, process.env.NODE_ENV === "development" && historyOpen);
@@ -109,18 +119,23 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   );
 
   const canStartNextHand = game ? tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost).canStartNextHand : false;
-  const newQuickPlay = async () => {
-    if (loading || replayPending.current) return;
+  const newQuickPlay = async (botMode?: "rules") => {
+    if (loading || replayPending.current || (creationNotice?.until ?? 0) > Date.now()) return;
     replayPending.current = true;
     setReplaying(true);
     setReplayError(false);
+    setCreationNotice(null);
+    setCreationWait(0);
     try {
-      const body = await api.creation.quickPlay({ lang: locale });
+      const body = await api.creation.quickPlay({ lang: locale, botMode });
       // Full navigation installs the new table with the refreshed identity cookies.
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination
       window.location.assign(`/${locale}/game/${body.gameId}`);
-    } catch {
-      setReplayError(true);
+    } catch (requestError) {
+      if (requestError instanceof HttpError && requestError.code === "GAME_CREATION_LIMIT" && requestError.retryAfterMs) {
+        setCreationNotice({ until: Date.now() + requestError.retryAfterMs, message: botErrorMessage(requestError, t) });
+        setCreationWait(requestError.retryAfterMs);
+      } else setReplayError(true);
       replayPending.current = false;
       setReplaying(false);
     }
@@ -291,9 +306,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
 
   return (
     <main className={styles.pokerApp}>
+      {creationNotice ? <p className={styles.errorBanner} role="alert">{creationNotice.message} {t("errors.retryAvailable", { seconds: Math.ceil(creationWait / 1000) })}</p> : null}
       {error ? (
         <p className={styles.errorBanner} role="alert">
           {error}
+          {usageLimited ? <> <span>{t("errors.retryAvailable", { seconds: Math.ceil(usageRetryAfterMs / 1000) })}</span> <Button size="small" disabled={loading || replaying || creationWait > 0} onClick={() => void newQuickPlay("rules")}>{t("errors.rulesOnlyGame")}</Button></> : null}
           {game && canAdvanceBots(game, viewerToken) && game.poker.players.some(
             (player) =>
               player.id === game.poker.currentActorId &&
@@ -301,7 +318,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           ) ? (
             <Button
               size="small"
-              disabled={loading || replaying}
+              disabled={loading || replaying || usageRetryAfterMs > 0}
               onClick={() => { if (!replayPending.current) void retryBotTurn(); }}
             >
               {t("errors.retryBot")}
@@ -358,7 +375,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               isHumanTurn={isHumanTurn}
               sizedAction={sizedAction}
               amount={amount}
-              loading={loading || replaying}
+              loading={loading || replaying || creationWait > 0}
               setAmount={setAmount}
               onClaimFirstOpenSeat={() => {
                 setJoinDialogOpen(true);

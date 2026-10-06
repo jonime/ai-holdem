@@ -211,6 +211,14 @@ const dictionary = {
     of: "{rank} {suit}",
   },
   errors: {
+    ownerAILimit: "Pöydän omistajan tekoälykiintiö on yhteinen kaikille hänen pöydilleen. Odota ennen uutta yritystä.",
+    gameAIRateLimit: "Tämän pöydän ulkoiset botit pelaavat liian nopeasti. Odota ennen uutta yritystä.",
+    gameCreationLimit: "Pelien luontia on rajoitettu tilapäisesti. Odota ennen uutta yritystä.",
+    retryAvailable: "Voit yrittää uudelleen {seconds} sekunnin kuluttua.",
+    rulesOnlyGame: "Aloita peli vain sääntöboteilla",
+    home: "Etusivu",
+    usageUnavailable: "Pyyntö ei ole tilapäisesti käytettävissä. Yritä myöhemmin uudelleen.",
+
     llmCredits: "{bot} saavutti krediittirajansa, kippasi ja poistuu ennen seuraavaa kättä.",
     createGame: "Pelin luominen epäonnistui",
     refreshGame: "Uusimman pelitilan päivitys epäonnistui.",

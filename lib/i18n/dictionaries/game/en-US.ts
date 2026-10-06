@@ -211,6 +211,14 @@ const dictionary = {
     of: "{rank} of {suit}",
   },
   errors: {
+    ownerAILimit: "The table owner’s AI allowance is shared across their tables. Please wait before retrying.",
+    gameAIRateLimit: "This table is advancing external bots too quickly. Please wait before retrying.",
+    gameCreationLimit: "Game creation is temporarily limited. Please wait before trying again.",
+    retryAvailable: "Retry available in {seconds} seconds.",
+    rulesOnlyGame: "Start a rules-only game",
+    home: "Home",
+    usageUnavailable: "This request is temporarily unavailable. Please try again later.",
+
     llmCredits: "{bot} reached its credit limit, folded, and will leave before the next hand.",
     createGame: "Unable to create game",
     refreshGame: "Unable to refresh the latest game state.",

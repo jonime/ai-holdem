@@ -22,6 +22,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
       SUPABASE_SECRET_KEY: ci-placeholder
+      USAGE_LIMIT_HASH_SECRET: ci-placeholder-hashing-secret-at-least-32-bytes
       TYPESAFE_API_KEY: ci-placeholder
       LLM_API_ENDPOINT: https://example.com/v1/chat/completions
       LLM_API_KEY: ci-placeholder
@@ -142,6 +143,10 @@ jobs:
       - name: Verify SQL bot claims
         timeout-minutes: 3
         run: npm run test:sql:bot-claims
+
+      - name: Verify SQL usage admission
+        timeout-minutes: 3
+        run: npm run test:sql:usage
 
       - name: Build and test the production application
         timeout-minutes: 18

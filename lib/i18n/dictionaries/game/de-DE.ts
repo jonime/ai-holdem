@@ -211,6 +211,14 @@ const dictionary = {
     of: "{rank} von {suit}",
   },
   errors: {
+    ownerAILimit: "Das KI-Kontingent des Tischbesitzers gilt gemeinsam für alle seine Tische. Bitte warte vor einem neuen Versuch.",
+    gameAIRateLimit: "Dieser Tisch lässt externe Bots zu schnell spielen. Bitte warte vor einem neuen Versuch.",
+    gameCreationLimit: "Die Spielerstellung ist vorübergehend begrenzt. Bitte warte vor einem neuen Versuch.",
+    retryAvailable: "Erneuter Versuch in {seconds} Sekunden möglich.",
+    rulesOnlyGame: "Spiel nur mit Regel-Bots starten",
+    home: "Startseite",
+    usageUnavailable: "Diese Anfrage ist vorübergehend nicht verfügbar. Bitte versuche es später erneut.",
+
     llmCredits: "{bot} hat das Kreditlimit erreicht, gepasst und verlässt den Tisch vor der nächsten Hand.",
     createGame: "Spiel konnte nicht erstellt werden",
     refreshGame: "Der aktuelle Spielstand konnte nicht aktualisiert werden.",

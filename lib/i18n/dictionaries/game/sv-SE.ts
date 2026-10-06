@@ -211,6 +211,14 @@ const dictionary = {
     of: "{rank} i {suit}",
   },
   errors: {
+    ownerAILimit: "Bordsägarens AI-kvot delas mellan alla deras bord. Vänta innan du försöker igen.",
+    gameAIRateLimit: "Det här bordets externa botar spelar för snabbt. Vänta innan du försöker igen.",
+    gameCreationLimit: "Spelskapande är tillfälligt begränsat. Vänta innan du försöker igen.",
+    retryAvailable: "Du kan försöka igen om {seconds} sekunder.",
+    rulesOnlyGame: "Starta ett spel med enbart regelbotar",
+    home: "Hem",
+    usageUnavailable: "Den här begäran är tillfälligt otillgänglig. Försök igen senare.",
+
     llmCredits: "{bot} nådde sin kreditgräns, lade sig och lämnar före nästa hand.",
     createGame: "Det gick inte att skapa spelet",
     refreshGame: "Det gick inte att uppdatera det senaste spelläget.",

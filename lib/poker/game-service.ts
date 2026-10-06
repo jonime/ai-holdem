@@ -50,6 +50,7 @@ export interface CreateDemoGameOptions {
 }
 
 export interface CreateQuickPlayGameOptions {
+  readonly botMode?: "rules";
   readonly hostToken: string;
   readonly hostName?: string;
 }
@@ -72,10 +73,10 @@ function shuffled<T>(values: readonly T[]): T[] {
   return shuffledValues;
 }
 
-function quickPlayBotSelections(): readonly BotDescriptor[] {
+function quickPlayBotSelections(botMode?: "rules"): readonly BotDescriptor[] {
   const catalog = getBotCatalog();
   const availableCatalog =
-    process.env.EXTERNAL_INFERENCE_ENABLED === "false"
+    botMode === "rules" || process.env.EXTERNAL_INFERENCE_ENABLED === "false"
       ? catalog.filter((bot) => bot.provider === "rules")
       : catalog;
   if (availableCatalog.length === 0) {
@@ -314,7 +315,7 @@ export async function createQuickPlayGame(
   options: CreateQuickPlayGameOptions,
 ): Promise<CreatedGame> {
   const startingStack = 10_000;
-  const bots = quickPlayBotSelections();
+  const bots = quickPlayBotSelections(options.botMode);
   const config: GameConfig = {
     smallBlind: 50,
     bigBlind: 100,
@@ -1217,6 +1218,7 @@ async function stepResolvedBotAction(
   gameId: string,
   expectedVersion: number,
   viewerToken: string | null = null,
+  beforeInference: () => Promise<void> = async () => {},
   commit: AIActionWriter["persistAIAction"] = input => repository.persistAIAction(input),
 ): Promise<BotStepResult> {
   const game = await repository.getGame(gameId);
@@ -1257,6 +1259,7 @@ async function stepResolvedBotAction(
   });
   const context = { ...aiState, sizingOptions: botDescriptor.provider === "rules"
     ? createLegacySizingOptions(aiState) : createSizingOptions(aiState) };
+  if (botDescriptor.provider !== "rules") await beforeInference();
   let decision: BotDecision;
   let creditFailure: unknown;
   try {
@@ -1395,6 +1398,7 @@ export async function stepBotAction(
       gameId,
       expectedVersion,
       viewerToken,
+      () => repository.admitExternalBotCall({ gameId, expectedVersion, claimToken }),
       input => repository.persistClaimedAIAction({ ...input, claimToken }),
     );
   } finally {

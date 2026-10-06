@@ -9,6 +9,7 @@ export function withBotClaims<T extends {
 }>(repository: T) {
   let claim: { claimToken: string; expectedVersion: number; actorEngineId: string; expires: number } | null = null;
   const claims = {
+    admitExternalBotCall: vi.fn(async () => {}),
     acquireBotStepClaim: vi.fn<BotStepClaimRepository["acquireBotStepClaim"]>(async input => {
       const game = await repository.getGame(input.gameId);
       if (game?.version !== input.expectedVersion) throw new GameConflictError(input.gameId, input.expectedVersion);

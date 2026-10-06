@@ -54,7 +54,7 @@ async function send<S extends z.ZodType>(url: string, schema: S, init: RequestIn
   init.signal?.throwIfAborted();
   if (!response.ok) {
     const failure = errorEnvelopeSchema.safeParse(body);
-    if (!failure.success && typeof body === "object" && body !== null && "code" in body && body.code === "BOT_STEP_IN_PROGRESS") throw new Error("Invalid error response payload");
+    if (!failure.success && typeof body === "object" && body !== null && "code" in body && typeof body.code === "string" && ["BOT_STEP_IN_PROGRESS", "OWNER_AI_LIMIT", "GAME_AI_RATE_LIMIT", "GAME_CREATION_LIMIT"].includes(body.code)) throw new Error("Invalid error response payload");
     throw new HttpError(
       failure.success ? failure.data.error ?? "Request failed" : "Request failed",
       response.status,
@@ -128,7 +128,8 @@ export const api = {
       return send("/api/games", createGameResponseSchema, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(createGameRequestSchema.parse(body)), signal: options.signal });
     },
     quickPlay(params: QuickPlayParams, options: Options = {}) {
-      return send(`/${quickPlayParamsSchema.parse(params).lang}/quick-game`, quickPlayResponseSchema, { method: "POST", headers: { Accept: "application/json" }, signal: options.signal });
+      const parsed = quickPlayParamsSchema.parse(params);
+      return send(`/${parsed.lang}/quick-game${queryString({ botMode: parsed.botMode })}`, quickPlayResponseSchema, { method: "POST", headers: { Accept: "application/json" }, signal: options.signal });
     },
   },
   seats: {

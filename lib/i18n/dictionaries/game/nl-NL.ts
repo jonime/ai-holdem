@@ -211,6 +211,14 @@ const dictionary = {
     of: "{rank} van {suit}",
   },
   errors: {
+    ownerAILimit: "Het AI-tegoed van de tafeleigenaar wordt gedeeld tussen diens tafels. Wacht voordat je opnieuw probeert.",
+    gameAIRateLimit: "Deze tafel laat externe bots te snel spelen. Wacht voordat je opnieuw probeert.",
+    gameCreationLimit: "Het maken van spellen is tijdelijk beperkt. Wacht voordat je opnieuw probeert.",
+    retryAvailable: "Opnieuw proberen kan over {seconds} seconden.",
+    rulesOnlyGame: "Start een spel met alleen regelbots",
+    home: "Home",
+    usageUnavailable: "Dit verzoek is tijdelijk niet beschikbaar. Probeer het later opnieuw.",
+
     llmCredits: "{bot} heeft de kredietlimiet bereikt, gefold en verlaat de tafel vóór de volgende hand.",
     createGame: "Spel kon niet worden gemaakt",
     refreshGame: "De nieuwste spelstatus kon niet worden vernieuwd.",

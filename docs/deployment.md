@@ -104,6 +104,19 @@ the existing next-hand reconciliation removes the seat. No backfill is required.
 this RPC. See [provider failure behavior](architecture.md) for credit detection
 and Vercel log search terms, including Jev HTTP failures.
 
+## Fair-use rollout
+
+Before deploying fair-use application code, apply
+`20261016000000_add_usage_admission.sql` after the claim migration and configure
+`USAGE_LIMIT_HASH_SECRET` in Production and Preview. Use at least 32 random bytes,
+keep it server-only and stable across instances, and never log or commit it.
+Vercel creation admission uses only its platform-controlled
+`x-vercel-forwarded-for`; a different proxy requires separate verification.
+Missing platform IPs or admission storage fail closed with temporary
+unavailability. Existing deterministic rules turns remain available.
+See [fair-use admission](fair-use.md) for thresholds, limitations, tests, and
+rules-only Quick Play behavior. OpenRouter's spending cap remains required.
+
 ## Automatic production migrations
 
 Migrations deploy via Supabase's native GitHub integration rather than a

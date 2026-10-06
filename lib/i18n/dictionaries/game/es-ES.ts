@@ -211,6 +211,14 @@ const dictionary = {
     of: "{rank} de {suit}",
   },
   errors: {
+    ownerAILimit: "La cuota de IA del propietario se comparte entre sus mesas. Espera antes de reintentar.",
+    gameAIRateLimit: "Esta mesa avanza los bots externos demasiado rápido. Espera antes de reintentar.",
+    gameCreationLimit: "La creación de partidas está limitada temporalmente. Espera antes de reintentar.",
+    retryAvailable: "Podrás reintentar en {seconds} segundos.",
+    rulesOnlyGame: "Iniciar una partida solo con bots de reglas",
+    home: "Inicio",
+    usageUnavailable: "Esta solicitud no está disponible temporalmente. Inténtalo más tarde.",
+
     llmCredits: "{bot} alcanzó su límite de créditos, se retiró y dejará la mesa antes de la siguiente mano.",
     createGame: "No se pudo crear la partida",
     refreshGame: "No se pudo actualizar el estado más reciente de la partida.",

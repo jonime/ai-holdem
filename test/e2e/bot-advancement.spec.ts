@@ -499,3 +499,97 @@ test("lost claim with an advanced version resumes even when the actor is unchang
   await expect.poll(() => steps).toBe(2);
   await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
 });
+
+for (const code of ["OWNER_AI_LIMIT", "GAME_AI_RATE_LIMIT"]) {
+  test(`fair-use ${code} countdown preserves table and requires explicit retry`, { tag: "@smoke" }, async ({ page }) => {
+    const f = await fixture(page);
+    let steps = 0;
+    await page.clock.install();
+    await page.route(`**/api/games/${f.gameId}/step`, async route => {
+      steps++;
+      if (steps === 1) await route.fulfill({ status: 429, headers: { "Retry-After": "60" }, json: { code, retryAfterMs: 60_000 } });
+      else { f.set(humanTurn(f.current())); await route.fulfill({ json: { game: f.current(), aiDecision: gameplayDecision } }); }
+    });
+    await open(page, f.gameId);
+    const retry = page.getByRole("button", { name: "Retry bot", exact: true });
+    await expect(retry).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Start a rules-only game", exact: true })).toBeVisible();
+    await expect(page.locator("main").getByRole("alert")).toContainText("Retry available in");
+    if (code === "OWNER_AI_LIMIT") await expect(page.locator("main").getByRole("alert")).toContainText("shared across their tables");
+    await page.clock.fastForward(30_000);
+    await triggerRefresh(page);
+    await expect(retry).toBeDisabled();
+    expect(steps).toBe(1);
+    expect(page.url()).toContain(f.gameId);
+    await page.clock.fastForward(31_000);
+    await expect(retry).toBeEnabled();
+    expect(steps).toBe(1);
+    await retry.click();
+    await expect.poll(() => steps).toBe(2);
+    await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+  });
+}
+
+test("fair-use rules-only replay creates a distinct private game and cleans navigation state", { tag: "@smoke" }, async ({ page }) => {
+  const f = await fixture(page);
+  const original = f.current();
+  let steps = 0;
+  await page.route(`**/api/games/${f.gameId}/step`, route => {
+    steps++;
+    return route.fulfill({ status: 429, json: { code: "OWNER_AI_LIMIT", retryAfterMs: 3600_000 } });
+  });
+  await open(page, f.gameId);
+  const button = page.getByRole("button", { name: "Start a rules-only game", exact: true });
+  await expect(button).toBeVisible();
+  const creation = page.waitForRequest(r => r.url().includes("/quick-game?botMode=rules"));
+  await button.click();
+  await creation;
+  await expect(page).not.toHaveURL(new RegExp(f.gameId));
+  const newId = page.url().split("/").at(-1)!;
+  const next: Game = (await (await page.request.get(`/api/games/${newId}`)).json()).game;
+  expect(next.poker.players.filter(p => p.controller === "bot")).toHaveLength(5);
+  expect(next.poker.players.filter(p => p.controller === "bot").every(p => p.bot?.provider === "rules")).toBe(true);
+  expect(next.publication?.isPublic ?? false).toBe(false);
+  expect(next.poker.players[0].playerToken).toBe(original.poker.players[0].playerToken);
+  expect(steps).toBe(1);
+  await expect(page.getByText("The table owner’s AI allowance")).toHaveCount(0);
+});
+
+test("fair-use notice clears on authoritative advancement before countdown expiry", async ({ page }) => {
+  const f = await fixture(page);
+  let steps = 0;
+  await page.clock.install();
+  await page.route(`**/api/games/${f.gameId}/step`, async route => {
+    steps++;
+    if (steps === 1) await route.fulfill({ status: 429, json: { code: "OWNER_AI_LIMIT", retryAfterMs: 3600_000 } });
+    else { f.set(humanTurn(f.current())); await route.fulfill({ json: { game: f.current(), aiDecision: gameplayDecision } }); }
+  });
+  await open(page, f.gameId);
+  await expect(page.getByRole("button", { name: "Retry bot", exact: true })).toBeDisabled();
+  f.set({ ...f.current(), version: f.current().version + 1 });
+  await triggerRefresh(page);
+  await expect.poll(() => steps).toBe(2);
+  await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
+});
+
+test("fair-use rules replay creation denial keeps countdown and original table", async ({ page }) => {
+  const f = await fixture(page);
+  await page.clock.install();
+  await page.route(`**/api/games/${f.gameId}/step`, route => route.fulfill({ status: 429, json: { code: "OWNER_AI_LIMIT", retryAfterMs: 3600_000 } }));
+  let creations = 0;
+  await page.route("**/en-US/quick-game?botMode=rules", route => {
+    creations++;
+    return route.fulfill({ status: 429, json: { code: "GAME_CREATION_LIMIT", retryAfterMs: 60_000 } });
+  });
+  await open(page, f.gameId);
+  const button = page.getByRole("button", { name: "Start a rules-only game", exact: true });
+  await button.click();
+  await expect(page.getByText("Game creation is temporarily limited.", { exact: false })).toBeVisible();
+  await expect(button).toBeDisabled();
+  await page.clock.fastForward(61_000);
+  await expect(button).toBeEnabled();
+  expect(creations).toBe(1);
+  expect(page.url()).toContain(f.gameId);
+  await button.click();
+  await expect.poll(() => creations).toBe(2);
+});

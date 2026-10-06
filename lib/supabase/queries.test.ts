@@ -773,3 +773,19 @@ it("parses claim outcomes defensively and releases only the supplied token", asy
   await repository.releaseBotStepClaim("game", "secret");
   expect(rpc).toHaveBeenLastCalledWith("release_bot_step_claim", { p_game_id: "game", p_claim_token: "secret" });
 });
+
+it("external admission charges the persisted host, regardless of the seated driver", async () => {
+  vi.stubEnv("USAGE_LIMIT_HASH_SECRET", "test-only-32-byte-secret-for-usage-tests");
+  try {
+    const { hashUsageIdentity } = await import("@/lib/usage/identity");
+    const { client, rpc } = createClient({ loadResult: { host_token: "durable-host" }, updateResult: { outcome: "admitted" } });
+    const repository = new SupabaseGameRepository(client);
+    await repository.admitExternalBotCall({ gameId: "game", expectedVersion: 1, claimToken: "claim" });
+    expect(rpc).toHaveBeenCalledWith("admit_external_bot_call", expect.objectContaining({ p_owner_hash: hashUsageIdentity("owner", "durable-host"), p_game_id: "game", p_claim_token: "claim" }));
+    expect(JSON.stringify(rpc.mock.calls)).not.toContain("durable-host");
+    vi.spyOn(repository, "getHostToken").mockResolvedValueOnce(null);
+    rpc.mockClear();
+    await expect(repository.admitExternalBotCall({ gameId: "game", expectedVersion: 1, claimToken: "claim" })).rejects.toThrow("Usage admission temporarily unavailable");
+    expect(rpc).not.toHaveBeenCalled();
+  } finally { vi.unstubAllEnvs(); }
+});

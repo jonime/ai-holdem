@@ -3,6 +3,10 @@ import { botFailureCodes } from "@/lib/http/gameplay-contracts";
 import type { GameDictionary } from "@/lib/i18n/types";
 
 const translations = {
+  OWNER_AI_LIMIT: "ownerAILimit",
+  GAME_AI_RATE_LIMIT: "gameAIRateLimit",
+  GAME_CREATION_LIMIT: "gameCreationLimit",
+  USAGE_UNAVAILABLE: "usageUnavailable",
   [botFailureCodes.timeout]: "botTimeout",
   [botFailureCodes.network]: "botNetwork",
   [botFailureCodes.rate_limit]: "botRateLimited",

@@ -1,3 +1,5 @@
+import { admitGameCreation } from "@/lib/usage/creation";
+import { usageCreationResponse } from "@/lib/usage/response";
 import { NextResponse } from "next/server";
 
 import {
@@ -19,6 +21,7 @@ export async function POST(
 
   try {
     const hostToken = getOrCreatePlayerToken(request);
+    await admitGameCreation(request, hostToken);
     const game = await createDemoGame(createSupabaseGameRepository(), {
       hostToken,
     });
@@ -34,6 +37,8 @@ export async function POST(
     });
     return response;
   } catch (error) {
+    const limited = await usageCreationResponse(error, request.headers.get("accept")?.includes("application/json") ?? false, lang);
+    if (limited) return limited;
     console.error("Unable to create game", error);
     return new NextResponse("Unable to create game", { status: 500 });
   }

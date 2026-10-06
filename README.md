@@ -164,3 +164,17 @@ the application includes its SDK with private table URLs redacted.
 - [Agent guide](AGENTS.md): repository rules and code map.
 - [Design plans](plans/): design history; prefer current code and tests where
   plans describe an earlier implementation.
+
+## Anonymous fair-use admission
+
+See [docs/fair-use.md](docs/fair-use.md) for provisional server-owned allowances,
+privacy, proxy assumptions, and rollout. Deploy
+`20261016000000_add_usage_admission.sql` and the server-only
+`USAGE_LIMIT_HASH_SECRET` (at least 32 random bytes) before application code.
+All creation endpoints share owner/IP counters; external TypeSafe/LLM attempts
+charge the durable table host and game only after context validation and claim
+verification. Rules turns bypass inference allowances. Denials preserve tables
+and require explicit retry; rules-only Quick Play creates a separate private game.
+Run `npm run test:sql:usage` against migrated local Supabase; CI includes it before
+production browser smoke. The smoke suite also covers fair-use countdowns,
+explicit retry, rules replay, and localized HTML/typed JSON creation denials.

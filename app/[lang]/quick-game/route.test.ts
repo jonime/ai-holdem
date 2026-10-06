@@ -1,3 +1,4 @@
+vi.mock("@/lib/usage/creation", () => ({ admitGameCreation: vi.fn(async () => {}) }));
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const createQuickPlayGame = vi.hoisted(() => vi.fn());

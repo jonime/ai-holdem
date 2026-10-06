@@ -1,3 +1,5 @@
+import { UsageUnavailableError } from "@/lib/usage/errors";
+import { admitInference } from "@/lib/usage/admission";
 import { BotStepClaimLostError } from "@/lib/poker/bot-step-claims";
 import { z } from "zod";
 import type { BotHandContext } from "@/lib/poker/bot-history";
@@ -1253,6 +1255,13 @@ export class SupabaseGameRepository {
     ]).parse(data);
     if (result.outcome === "conflict") throw new GameConflictError(input.gameId, input.expectedVersion);
     return result;
+  }
+
+  async admitExternalBotCall(input: { gameId: string; expectedVersion: number; claimToken: string }): Promise<void> {
+    let hostToken: string | null;
+    try { hostToken = await this.getHostToken(input.gameId); }
+    catch { throw new UsageUnavailableError(); }
+    await admitInference(this.client, { ...input, hostToken });
   }
 
   async releaseBotStepClaim(gameId: string, claimToken: string): Promise<void> {

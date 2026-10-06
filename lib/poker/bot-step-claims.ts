@@ -10,6 +10,7 @@ export interface BotStepClaimRepository {
   acquireBotStepClaim(input: { gameId: string; expectedVersion: number; actorEngineId: string; claimToken: string }): Promise<
     { outcome: "acquired" } | { outcome: "busy"; retryAfterMs: number; expiresAt: string }
   >;
+  admitExternalBotCall(input: { gameId: string; expectedVersion: number; claimToken: string }): Promise<void>;
   releaseBotStepClaim(gameId: string, claimToken: string): Promise<void>;
   persistClaimedAIAction(input: PersistAIActionInput & { claimToken: string }): Promise<PersistedGame>;
 }

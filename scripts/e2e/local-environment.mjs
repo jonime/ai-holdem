@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { execFileSync } from "node:child_process";
 
 export function localEnvironment() {
@@ -24,6 +25,7 @@ export function localEnvironment() {
     }
   }
   return {
+    USAGE_LIMIT_HASH_SECRET: randomBytes(32).toString("hex"), USAGE_LIMIT_TEST_IP: "127.0.0.1", VERCEL: "",
     PORT: "3002", NEXT_DIST_DIR: ".next-e2e",
     NEXT_PUBLIC_APP_URL: "http://localhost:3002",
     NEXT_PUBLIC_SUPABASE_URL: url.origin,

@@ -58,6 +58,15 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   );
   const { feed, refreshFeed } = useGameFeed(gameId);
   const [loading, setLoading] = useState(false);
+  const [usageNotice, setUsageNotice] = useState<{ gameId: string; version: number; until: number } | null>(null);
+  const [usageRetryAfterMs, setUsageRetryAfterMs] = useState(0);
+  const usageNoticeRef = useRef(usageNotice);
+  useEffect(() => {
+    if (!usageNotice || usageNotice.gameId !== gameId) return;
+    const tick = () => setUsageRetryAfterMs(Math.max(0, usageNotice.until - Date.now()));
+    const timer = setInterval(tick, 250);
+    return () => clearInterval(timer);
+  }, [usageNotice, gameId]);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
@@ -91,6 +100,7 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     activeGameId.current = gameId;
     automaticallyAdvancedVersions.current.clear();
     pausedBotTurn.current = null;
+    usageNoticeRef.current = null;
     clearBotWait();
     return () => {
       clearBotWait();
@@ -113,6 +123,15 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       );
       lastAppliedResponse.current = reconciled.applied;
       latestGame.current = reconciled.game;
+      const notice = usageNoticeRef.current;
+      if (notice && (notice.gameId !== reconciled.game.id || notice.version !== reconciled.game.version ||
+          !hasBotTurn(reconciled.game))) {
+        usageNoticeRef.current = null;
+        pausedBotTurn.current = null;
+        setUsageNotice(null);
+        setUsageRetryAfterMs(0);
+        setError(null);
+      }
       if (botWait.current && (reconciled.game.version !== botWait.current.version ||
           reconciled.game.id !== botWait.current.gameId || !hasBotTurn(reconciled.game) ||
           !canAdvanceBots(reconciled.game, getClientPlayerToken()))) {
@@ -478,7 +497,16 @@ export function useGameSession(gameId?: string, historyOpen = false) {
       } catch (requestError) {
         if (isActive()) {
           pausedBotTurn.current = botTurnKey(attemptedGame);
-          if (requestError instanceof HttpError && requestError.code === "BOT_STEP_IN_PROGRESS" &&
+          if (requestError instanceof HttpError &&
+              (requestError.code === "OWNER_AI_LIMIT" || requestError.code === "GAME_AI_RATE_LIMIT") &&
+              requestError.retryAfterMs !== undefined) {
+            if (latestGame.current?.version !== attemptedGame.version) { pausedBotTurn.current = null; return; }
+            const notice = { gameId: attemptedGame.id, version: attemptedGame.version, until: Date.now() + requestError.retryAfterMs };
+            usageNoticeRef.current = notice;
+            setUsageNotice(notice);
+            setUsageRetryAfterMs(requestError.retryAfterMs);
+            setError(botErrorMessage(requestError, t));
+          } else if (requestError instanceof HttpError && requestError.code === "BOT_STEP_IN_PROGRESS" &&
               requestError.retryAfterMs !== undefined) {
             const current = latestGame.current;
             if (current?.version !== attemptedGame.version) { pausedBotTurn.current = null; return; }
@@ -528,8 +556,12 @@ export function useGameSession(gameId?: string, historyOpen = false) {
 
   const retryBotTurn = useCallback(async () => {
     const current = latestGame.current;
+    if ((usageNoticeRef.current?.until ?? 0) > Date.now()) return;
     if (!current || retryPending.current || botLoop.current ||
         !canAdvanceBots(current, getClientPlayerToken())) return;
+    usageNoticeRef.current = null;
+    setUsageNotice(null);
+    setUsageRetryAfterMs(0);
     retryPending.current = true;
     clearBotWait();
     const eligibilityEpoch = botEligibilityEpoch.current;
@@ -676,6 +708,8 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     liveDecisions,
     loading,
     error,
+    usageLimited: usageNotice?.gameId === gameId,
+    usageRetryAfterMs: usageNotice?.gameId === gameId ? usageRetryAfterMs : 0,
     connectionStatus: liveConnectionStatus,
     refreshing,
     refreshGame,

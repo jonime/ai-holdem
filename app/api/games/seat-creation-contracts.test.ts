@@ -1,3 +1,4 @@
+vi.mock("@/lib/usage/creation", () => ({ admitGameCreation: vi.fn(async () => {}) }));
 import { beforeEach, expect, it, vi } from "vitest";
 import { POST as claim } from "./[gameId]/seats/[seat]/claim/route";
 import { POST as release } from "./[gameId]/seats/[seat]/release/route";

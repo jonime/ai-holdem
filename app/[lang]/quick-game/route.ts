@@ -1,3 +1,5 @@
+import { admitGameCreation } from "@/lib/usage/creation";
+import { usageCreationResponse } from "@/lib/usage/response";
 import { quickPlayParamsSchema, type CreateGameResponse } from "@/lib/http/creation-contracts";
 import { NextResponse } from "next/server";
 
@@ -19,14 +21,17 @@ export async function POST(
     ? NextResponse.json({ error: message }, { status })
     : new NextResponse(message, { status });
   const { lang } = await params;
-  if (!quickPlayParamsSchema.safeParse({ lang }).success) {
+  const parsed = quickPlayParamsSchema.safeParse({ lang, botMode: new URL(request.url).searchParams.get("botMode") ?? undefined });
+  if (!parsed.success) {
     return failure("Not found", 404);
   }
 
   try {
     const hostToken = getOrCreatePlayerToken(request);
+    await admitGameCreation(request, hostToken);
     const game = await createQuickPlayGame(createSupabaseGameRepository(), {
       hostToken,
+      ...(parsed.data.botMode ? { botMode: parsed.data.botMode } : {}),
     });
     const response = wantsJson
       ? NextResponse.json({ gameId: game.gameId } satisfies CreateGameResponse, { status: 201 })
@@ -42,6 +47,8 @@ export async function POST(
     });
     return response;
   } catch (error) {
+    const limited = await usageCreationResponse(error, wantsJson, parsed.data.lang);
+    if (limited) return limited;
     console.error("Unable to create quick game", error);
     return failure("Unable to create quick game", 500);
   }

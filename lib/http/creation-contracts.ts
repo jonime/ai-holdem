@@ -10,7 +10,7 @@ export const createGameRouteRequestSchema = z.preprocess(value => {
   return { ...input, hostName: "hostName" in input && typeof input.hostName === "string" ? input.hostName : undefined };
 }, createGameRequestSchema);
 export const createGameResponseSchema = z.object({ gameId: z.string().min(1) });
-export const quickPlayParamsSchema = z.object({ lang: z.enum(SUPPORTED_LOCALES) });
+export const quickPlayParamsSchema = z.object({ lang: z.enum(SUPPORTED_LOCALES), botMode: z.literal("rules").optional() });
 export const quickPlayResponseSchema = z.object({ gameId: z.string().regex(/^[a-zA-Z0-9-]+$/) });
 export const botCatalogResponseSchema = z.object({ bots: z.array(botDescriptorSchema) });
 export type CreateGameRequest = z.infer<typeof createGameRequestSchema>;

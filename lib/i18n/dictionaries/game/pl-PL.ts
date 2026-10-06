@@ -212,6 +212,14 @@ const dictionary = {
     of: "{rank} {suit}",
   },
   errors: {
+    ownerAILimit: "Limit AI właściciela jest wspólny dla wszystkich jego stołów. Poczekaj przed ponowną próbą.",
+    gameAIRateLimit: "Przy tym stole boty zewnętrzne grają zbyt szybko. Poczekaj przed ponowną próbą.",
+    gameCreationLimit: "Tworzenie gier jest tymczasowo ograniczone. Poczekaj przed ponowną próbą.",
+    retryAvailable: "Ponowna próba za {seconds} sekund.",
+    rulesOnlyGame: "Rozpocznij grę tylko z botami regułowymi",
+    home: "Strona główna",
+    usageUnavailable: "To żądanie jest tymczasowo niedostępne. Spróbuj ponownie później.",
+
     llmCredits: "{bot} osiągnął limit kredytów, spasował i odejdzie przed następnym rozdaniem.",
     createGame: "Nie udało się utworzyć gry",
     refreshGame: "Nie udało się odświeżyć stanu gry.",

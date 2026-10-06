@@ -1,3 +1,6 @@
+import { admitGameCreation } from "@/lib/usage/creation";
+import { usageCreationResponse } from "@/lib/usage/response";
+import { negotiateLocale } from "@/lib/i18n/negotiation";
 import { createGameRouteRequestSchema, type CreateGameResponse } from "@/lib/http/creation-contracts";
 import { NextResponse } from "next/server";
 
@@ -16,6 +19,7 @@ export async function POST(request: Request) {
     const { seatCount, hostName } = parsed.data;
     const hostToken = getOrCreatePlayerToken(request);
 
+    await admitGameCreation(request, hostToken);
     const game = await createDemoGame(createSupabaseGameRepository(), {
       seatCount,
       hostToken,
@@ -33,6 +37,8 @@ export async function POST(request: Request) {
     });
     return response;
   } catch (error) {
+    const limited = await usageCreationResponse(error, !request.headers.get("content-type")?.includes("application/x-www-form-urlencoded"), negotiateLocale(request.headers.get("accept-language")));
+    if (limited) return limited;
     console.error("Unable to create game", error);
     return NextResponse.json(
       { error: "Unable to create game" },

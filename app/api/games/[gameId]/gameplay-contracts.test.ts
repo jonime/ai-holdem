@@ -173,3 +173,13 @@ it.each([
   expect(await response.json()).toEqual(body);
   expect(schedule).not.toHaveBeenCalled();
 });
+
+it.each(["OWNER_AI_LIMIT", "GAME_AI_RATE_LIMIT"] as const)("returns %s without scheduling success events", async code => {
+  const { UsageLimitError } = await import("@/lib/usage/errors");
+  advance.mockRejectedValueOnce(new UsageLimitError(code, 3_600_000));
+  const response = await step(request({ expectedVersion: 1 }), context);
+  expect(response.status).toBe(429);
+  expect(response.headers.get("retry-after")).toBe("3600");
+  expect(await response.json()).toMatchObject({ code, retryAfterMs: 3_600_000 });
+  expect(schedule).not.toHaveBeenCalled();
+});

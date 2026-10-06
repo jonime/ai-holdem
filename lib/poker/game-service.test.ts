@@ -207,12 +207,12 @@ describe("createQuickPlayGame", () => {
 });
 
 describe("Quick Play with external inference disabled", () => {
-  it("selects five medium rules bots even with a configured LLM catalog", async () => {
-    vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", "false");
+  it.each(["false", "true"])("selects five medium rules bots with external inference %s", async enabled => {
+    vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", enabled);
     vi.stubEnv("LLM_BOT_MODELS", JSON.stringify([{ id: "configured-llm", label: "LLM", modelId: "test/model" }]));
     const createGameSession = vi.fn().mockResolvedValue({ id: "rules-game", version: 0 });
     try {
-      await createQuickPlayGame({ createGameSession }, { hostToken: "host" });
+      await createQuickPlayGame({ createGameSession }, { hostToken: "host", ...(enabled === "true" ? { botMode: "rules" as const } : {}) });
       const input = createGameSession.mock.calls[0][0];
       expect(input.players).toHaveLength(6);
       for (const bot of input.players.slice(1)) {

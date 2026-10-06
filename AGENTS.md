@@ -70,7 +70,7 @@ Docker save/load; never cache containers, volumes, or database state. Cache
 failures fall back to ordinary startup; migrations always run. It starts a
 healthy full local stack (including Realtime), applies every migration to its
 disposable database, then runs `test:sql:game-reads`, `test:sql:bot-context`, `test:sql:seats`,
-`test:sql:bot-claims`, and `test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore
+`test:sql:bot-claims`, `test:sql:usage`, and `test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore
 health checks. Preserve workflow cancellation for superseded commits.
 
 Local production smoke requires an already-running migrated local Supabase and
@@ -80,7 +80,7 @@ starts `next start` with identical local build/server environment values. Never
 reuse a server or read hosted credentials. Validate loopback status origins,
 mask credentials, disable external inference, and clear provider credentials.
 Reject `E2E_BASE_URL` in CI; keep development and explicit preview modes outside
-CI. The five reused `@smoke` tests cover Quick Play, unseated host seat authority,
+CI. The lifecycle `@smoke` tests cover Quick Play, unseated host seat authority,
 Equity Rules completion/history/next hand, real two-browser Realtime game/seat
 events, and intentionally blocked WebSocket polling recovery. Use Chromium with
 one worker and no retries. Ordinary local smoke/SQL commands never reset the DB.
@@ -302,3 +302,17 @@ Run `npm run benchmark:poker-context` offline and `npm run test:sql:bot-context`
 against migrated local Supabase. Live evaluations require explicit inference
 opt-ins and a supplied shared `BOT_DECISION_CALL_CAP`. Separate deterministic
 correctness from playing strength. See `benchmarks/poker-context.md`.
+
+## Anonymous fair-use admission
+
+See [docs/fair-use.md](docs/fair-use.md) for provisional server-owned allowances,
+privacy, proxy assumptions, and rollout. Deploy
+`20261016000000_add_usage_admission.sql` and the server-only
+`USAGE_LIMIT_HASH_SECRET` (at least 32 random bytes) before application code.
+All creation endpoints share owner/IP counters; external TypeSafe/LLM attempts
+charge the durable table host and game only after context validation and claim
+verification. Rules turns bypass inference allowances. Denials preserve tables
+and require explicit retry; rules-only Quick Play creates a separate private game.
+Run `npm run test:sql:usage` against migrated local Supabase; CI includes it before
+production browser smoke. The smoke suite also covers fair-use countdowns,
+explicit retry, rules replay, and localized HTML/typed JSON creation denials.

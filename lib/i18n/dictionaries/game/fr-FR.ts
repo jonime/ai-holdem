@@ -211,6 +211,14 @@ const dictionary = {
     of: "{rank} de {suit}",
   },
   errors: {
+    ownerAILimit: "Le quota IA du propriétaire est partagé entre ses tables. Patientez avant de réessayer.",
+    gameAIRateLimit: "Cette table fait jouer les bots externes trop vite. Patientez avant de réessayer.",
+    gameCreationLimit: "La création de parties est temporairement limitée. Patientez avant de réessayer.",
+    retryAvailable: "Nouvel essai possible dans {seconds} secondes.",
+    rulesOnlyGame: "Lancer une partie avec des bots à règles uniquement",
+    home: "Accueil",
+    usageUnavailable: "Cette demande est temporairement indisponible. Réessayez plus tard.",
+
     llmCredits: "{bot} a atteint sa limite de crédits, s’est couché et quittera la table avant la prochaine main.",
     createGame: "Impossible de créer la partie",
     refreshGame: "Impossible d’actualiser l’état de la partie.",

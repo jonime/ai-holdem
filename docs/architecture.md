@@ -38,6 +38,14 @@ obsolete claim, or returns busy with a database-time expiry and bounded wait.
 The 90-second lease exceeds the provider's 60-second deadline, is never renewed,
 and holds no database transaction open during inference.
 
+After preparing and validating context, external providers require atomic
+[usage admission](fair-use.md). Database time and ordered allowance-key locks
+reserve both durable host and game windows only while the claim remains valid.
+A claim admission marker prevents duplicate charging; admitted failures are not
+refunded. Rules turns consume no external allowance. All creation endpoints
+share owner/IP admission before persistence. Denials preserve versions and bots,
+release claims, and publish no success events.
+
 `commit_bot_action_with_claim` and `commit_bot_departure_with_claim` lock the game,
 verify the version, actor, token and unexpired ownership, call the existing
 mutation, and consume the claim in the same transaction. Existing history,
