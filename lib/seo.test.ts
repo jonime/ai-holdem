@@ -59,7 +59,7 @@ describe("public SEO metadata", () => {
       }
     }
     expect(entries.at(-1)?.alternates).toBeUndefined();
-    expect(entries.some((entry) => /\/game\/|\/join-game/.test(entry.url))).toBe(false);
+    expect(entries.some((entry) => /\/game\/|\/join-game|\/play/.test(entry.url))).toBe(false);
     expect(robots()).toMatchObject({ sitemap: "https://poker.example/sitemap.xml", rules: { allow: "/", disallow: "/api/" } });
   });
 });

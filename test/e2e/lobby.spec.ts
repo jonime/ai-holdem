@@ -39,10 +39,8 @@ test("runs a two-player hand in a six-seat lobby", async ({
 }) => {
   test.setTimeout(60_000);
   await page.goto("/en-US");
-  await page
-    .getByRole("region", { name: "Choose how to play" })
-    .getByRole("button", { name: "Create custom table" })
-    .click();
+  await page.goto("/en-US/play");
+  await page.getByRole("button", { name: "Create table" }).click();
   await expect(page).toHaveURL(/\/en-US\/game\/[0-9a-f-]+$/);
   const gameUrl = page.url();
 
@@ -104,10 +102,8 @@ test("persists a per-bot difficulty selected in the lobby", async ({
   page,
 }) => {
   await page.goto("/en-US");
-  await page
-    .getByRole("region", { name: "Choose how to play" })
-    .getByRole("button", { name: "Create custom table" })
-    .click();
+  await page.goto("/en-US/play");
+  await page.getByRole("button", { name: "Create table" }).click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
   await page.getByLabel("Bot difficulty for seat 2").selectOption("hard");
@@ -127,10 +123,8 @@ test("persists a per-bot difficulty selected in the lobby", async ({
 
 test("shows the localized LLM bot playstyles", async ({ page }) => {
   await page.goto("/en-US");
-  await page
-    .getByRole("region", { name: "Choose how to play" })
-    .getByRole("button", { name: "Create custom table" })
-    .click();
+  await page.goto("/en-US/play");
+  await page.getByRole("button", { name: "Create table" }).click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
   await page.getByLabel("Bot for seat 2").selectOption("llm-test-model");
@@ -153,10 +147,8 @@ test("recovers through polling and after coming back online", async ({
 }) => {
   test.setTimeout(30_000);
   await page.goto("/en-US");
-  await page
-    .getByRole("region", { name: "Choose how to play" })
-    .getByRole("button", { name: "Create custom table" })
-    .click();
+  await page.goto("/en-US/play");
+  await page.getByRole("button", { name: "Create table" }).click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
   const spectatorContext = await browser.newContext();
@@ -198,10 +190,8 @@ test("runs the deterministic bot through completion, history, and another hand",
 }) => {
   test.setTimeout(60_000);
   await page.goto("/en-US");
-  await page
-    .getByRole("region", { name: "Choose how to play" })
-    .getByRole("button", { name: "Create custom table" })
-    .click();
+  await page.goto("/en-US/play");
+  await page.getByRole("button", { name: "Create table" }).click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
   await page.getByLabel("Bot for seat 2").selectOption("equity-rules-v2");
@@ -237,10 +227,8 @@ test("runs the deterministic bot through completion, history, and another hand",
 
 test("persists host table settings when starting a hand", async ({ browser, page }) => {
   await page.goto("/en-US");
-  await page
-    .getByRole("region", { name: "Choose how to play" })
-    .getByRole("button", { name: "Create custom table" })
-    .click();
+  await page.goto("/en-US/play");
+  await page.getByRole("button", { name: "Create table" }).click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
   const guestContext = await browser.newContext();
@@ -272,10 +260,8 @@ test("copies a clean invite URL and exposes a manual fallback", async ({
 }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/en-US");
-  await page
-    .getByRole("region", { name: "Choose how to play" })
-    .getByRole("button", { name: "Create custom table" })
-    .click();
+  await page.goto("/en-US/play");
+  await page.getByRole("button", { name: "Create table" }).click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
 
   const cleanUrl = page.url();
@@ -321,7 +307,8 @@ test("copies a clean invite URL and exposes a manual fallback", async ({
 
 test("claims, moves, assigns bots, and releases seats while retaining unseated host authority", { tag: "@smoke" }, async ({ page, browser }) => {
   await page.goto("/en-US");
-  await page.getByRole("button", { name: "Create custom table" }).click();
+  await page.goto("/en-US/play");
+  await page.getByRole("button", { name: "Create table" }).click();
   await expect(page.getByText("WAITING ROOM")).toBeVisible();
   const guestContext = await browser.newContext();
   try {

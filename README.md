@@ -28,10 +28,10 @@ authentication.
 - **Quick Play vs AI** immediately starts a private six-seat game with five
   server-selected bots, 50/100 blinds, and 10,000-chip stacks. With external
   inference disabled, all five bots use Equity Rules.
-- **Create custom table** opens a private six-seat lobby. The host can configure
+- **Play → Create table** opens a private six-seat lobby. The host can configure
   a 2–6-seat table, invite players, add bots, and start with two occupied seats.
   Hosts can also stand up to watch a bot-only table.
-- **Join public table** lists published waiting tables with open seats. Private
+- **Play** shows up to five recently active tables owned by this browser and lists published waiting tables with open seats. Private
   tables remain accessible through invite links.
 
 Bots advance while an eligible host or seated human keeps the table open.

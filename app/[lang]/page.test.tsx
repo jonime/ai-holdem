@@ -45,8 +45,8 @@ describe("localized landing content", () => {
     expect(markup).toContain(`<a href="/${locale}/about">${escapedText(landing.content.bots.aboutLink)}</a>`);
     expect(markup.indexOf('id="play-heading"')).toBeGreaterThan(markup.indexOf('</nav>'));
     expect(markup).toContain(`action="/${locale}/quick-game"`);
-    expect(markup).toContain(`action="/${locale}/new-game"`);
-    expect(markup).toContain(`href="/${locale}/join-game"`);
+    expect(markup).not.toContain(`action="/${locale}/new-game"`);
+    expect(markup).toContain(`href="/${locale}/play"`);
     const items = Object.values(landing.content.faq.items);
     for (const { question, answer } of items) {
       expect(question.trim()).not.toBe("");
@@ -96,14 +96,8 @@ describe("homepage", () => {
       "Jump into a private six-seat game against five bots, or customize your own table.",
     );
     expect(html).toContain('<form action="/en-US/quick-game" method="post">');
-    expect(html).toContain('<form action="/en-US/new-game" method="post">');
-    expect(html.indexOf("Quick Play vs AI")).toBeLessThan(
-      html.indexOf("Create custom table"),
-    );
-    expect(html.indexOf("Create custom table")).toBeLessThan(
-      html.indexOf("Join public table"),
-    );
-    expect(html).toContain('href="/en-US/join-game"');
+    expect(html).not.toContain('<form action="/en-US/new-game" method="post">');
+    expect(html).toContain('href="/en-US/play"');
     expect(html).toContain('type="submit"');
     expect(html).not.toContain("<input");
   });
@@ -116,7 +110,7 @@ describe("homepage", () => {
     expect(html).toContain('href="/fi-FI"');
     expect(html).toContain('aria-current="page"');
     expect(html).toContain('action="/fi-FI/quick-game"');
-    expect(html).toContain('action="/fi-FI/new-game"');
+    expect(html).not.toContain('action="/fi-FI/new-game"');
     expect(html).toContain(
       "Pelaa Texas Hold’emia tekoälybotteja vastaan, kutsu ystäviä tai katso bottien peliä.",
     );
@@ -124,7 +118,7 @@ describe("homepage", () => {
       "Hyppää heti yksityiseen kuuden paikan peliin viittä bottia vastaan tai mukauta oma pöytäsi.",
     );
     expect(html).toContain("Pikapeli tekoälyä vastaan");
-    expect(html).toContain("Luo mukautettu pöytä");
-    expect(html).toContain("Liity julkiseen pöytään");
+    expect(html).toContain('href="/fi-FI/play">Pelaa</a>');
+    expect(html).not.toContain("Liity julkiseen pöytään");
   });
 });

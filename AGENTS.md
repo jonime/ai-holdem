@@ -69,7 +69,7 @@ images are pulled normally during startup; do not cache Docker image archives,
 containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
-disposable database, then runs `test:sql:game-reads`, `test:sql:bot-context`, `test:sql:seats`,
+disposable database, then runs `test:sql:game-reads`, `test:sql:my-games`, `test:sql:bot-context`, `test:sql:seats`,
 `test:sql:bot-claims`, `test:sql:usage`, and `test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore
 health checks. Preserve workflow cancellation for superseded commits.
 
@@ -321,3 +321,15 @@ and require explicit retry; rules-only Quick Play creates a separate private gam
 Run `npm run test:sql:usage` against migrated local Supabase; CI includes it before
 production browser smoke. The smoke suite also covers fair-use countdowns,
 explicit retry, rules replay, and localized HTML/typed JSON creation denials.
+
+## Play discovery
+
+`/[lang]/play` streams personal summaries and public directory data through independent
+request-time Suspense boundaries. Keep cookies out of the cached landing page.
+`list_my_games` is service-role-only and discovers durable hosts or claimed human
+seats in SQL, deduplicating before activity ordering and the five-item limit.
+Personal API responses, including errors, are private/no-store; never log lists or
+repository errors or put personal summaries in shared caches or Realtime. No polling
+or subscriptions run on Play. Localized `/join-game` permanently redirects to Play.
+Apply `20261017000000_add_my_games.sql` before application deployment and run
+`npm run test:sql:my-games`; CI includes rollback-only SQL and production Play smoke.

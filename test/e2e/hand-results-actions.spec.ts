@@ -5,7 +5,8 @@ test.use({ screenshot: "only-on-failure" });
 
 async function twoPlayers(browser: Browser, page: Page) {
   await page.goto("/en-US");
-  await page.getByRole("button", { name: "Create custom table" }).click();
+  await page.goto("/en-US/play");
+  await page.getByRole("button", { name: "Create table" }).click();
   await page.getByRole("textbox", { name: "Your name" }).fill("Alex");
   const renamed = page.waitForResponse(r => r.url().endsWith("/name") && r.request().method() === "PATCH");
   await page.getByRole("button", { name: "Save name" }).click();

@@ -96,7 +96,7 @@ visible or online again.
 Hosts may publish a waiting lobby with an optional 60-character title. A visible
 host lobby renews its two-minute database lease every 30 seconds; hidden or
 disconnected lobbies expire from discovery without deleting the game and return
-when the host comes back. The directory refreshes every 15 seconds, supports
+when the host comes back. The Play directory refreshes on explicit interaction, supports
 cursor pagination, and only shows unstarted public tables with an open seat.
 Directory joins and competing lobby mutations use the game row lock and an
 expected-version check. The page keeps its stable heading and navigation in the
@@ -240,3 +240,25 @@ that outcome. Other bot failures use
 `bot_decision_failed`. Logs never include raw provider messages, inputs,
 responses, headers, keys or cards. LLM passive actions require null
 sizing; their schema advertises only null when no aggressive action remains.
+
+## Play and personal table discovery
+
+`/[lang]/play` streams personal tables and the public directory through independent
+Suspense request-time boundaries. Cookies are read only inside those boundaries.
+The cached landing page links to Play and retains its anonymous Quick Play form.
+Localized `/join-game` permanently redirects to `/play`; unprefixed browser URLs
+still negotiate language with a private temporary redirect. Play is `noindex, follow`
+and excluded from the sitemap. No polling or Realtime runs on Play.
+
+The service-role-only `list_my_games(text)` RPC unions durable host ownership and
+claimed human seat ownership before sorting by `games.updated_at DESC, id DESC`
+and limiting to five. It returns only ID, public listing title, status, timestamp,
+and counts from actual seat assignments. Completed and error games remain visible;
+the game route still decides permissions and next-hand eligibility. No visitor history,
+last-visited cookie, local storage, snapshots or provider records authorize discovery.
+
+`GET /api/games/mine` reads only the identity cookie, creates no identity when absent,
+and sends `private, no-store` on success and failure. Its summaries are defensively
+validated against browser-safe contracts and never logged or shared-cached. Deploy
+`20261017000000_add_my_games.sql` before application code; it adds the RPC and
+host-token/claimed-human-seat indexes without changing existing rows.

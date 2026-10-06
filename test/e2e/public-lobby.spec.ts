@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-test("publishes, refreshes, reports unavailable, preserves a name, and joins", async ({ browser, page }) => {
+test("@smoke publishes, refreshes, reports unavailable, preserves a name, and joins", async ({ browser, page }) => {
   test.setTimeout(60_000);
   await page.goto("/en-US");
-  await page.getByRole("button", { name: "Create custom table" }).click();
+  await page.goto("/en-US/play");
+  await page.getByRole("button", { name: "Create table" }).click();
   const hostGameId = new URL(page.url()).pathname.split("/").at(-1);
   expect(hostGameId).toBeTruthy();
   const tableTitle = `Public E2E ${hostGameId!.slice(0, 8)}`;
@@ -18,7 +19,7 @@ test("publishes, refreshes, reports unavailable, preserves a name, and joins", a
 
   const guestContext = await browser.newContext();
   const guest = await guestContext.newPage();
-  await guest.goto("/en-US/join-game");
+  await guest.goto("/en-US/play");
   await expect(guest.getByText(tableTitle, { exact: true })).toBeVisible();
   await guest.getByLabel("Your name (optional)").fill("Directory Guest");
   await guest.reload();
@@ -32,7 +33,8 @@ test("publishes, refreshes, reports unavailable, preserves a name, and joins", a
 
   await page.getByRole("button", { name: "Make public" }).click();
   await expect(page.getByText("Public listing", { exact: true })).toBeVisible();
-  await expect(guest.getByText(tableTitle, { exact: true })).toBeVisible({ timeout: 18_000 });
+  await guest.getByRole("button", { name: "Refresh all tables" }).click();
+  await expect(guest.getByText(tableTitle, { exact: true })).toBeVisible();
   await guest.getByRole("listitem").filter({ hasText: tableTitle }).getByRole("button", { name: "Join" }).click();
   await expect(guest).toHaveURL(/\/en-US\/game\/[0-9a-f-]+$/);
   await expect(guest.getByText("Directory Guest", { exact: true })).toBeVisible();
@@ -42,7 +44,8 @@ test("publishes, refreshes, reports unavailable, preserves a name, and joins", a
 
 test("serializes simultaneous directory joins and makes duplicates idempotent", async ({ browser, page }) => {
   await page.goto("/en-US");
-  await page.getByRole("button", { name: "Create custom table" }).click();
+  await page.goto("/en-US/play");
+  await page.getByRole("button", { name: "Create table" }).click();
   await expect(page.getByText("Private (unlisted)", { exact: true })).toBeVisible();
   await page.getByLabel("Table title (optional)").fill("Concurrent Table");
   await page.getByRole("button", { name: "Make public" }).click();

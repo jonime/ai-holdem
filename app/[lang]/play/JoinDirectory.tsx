@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { Locale } from "@/lib/i18n";
 import type { JoinGameDictionary } from "@/lib/i18n/types";
 import type { PublicGameDirectoryEntry } from "@/lib/http/discovery-contracts";
 import { api, HttpError } from "@/lib/http/api";
+import { usePlayRefresh } from "./PlayRefresh";
 import styles from "./page.module.css";
 
 const nameKey = "ai-holdem-player-name";
@@ -47,23 +48,7 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
     }
   }, [dictionary.initialError, dictionary.warning, games.length]);
 
-  useEffect(() => {
-    let timer: ReturnType<typeof setInterval> | null = null;
-    const schedule = () => {
-      if (timer) clearInterval(timer);
-      timer = document.visibilityState === "visible" ? setInterval(() => void refresh(), 15_000) : null;
-    };
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") void refresh();
-      schedule();
-    };
-    schedule();
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => {
-      if (timer) clearInterval(timer);
-      document.removeEventListener("visibilitychange", onVisibility);
-    };
-  }, [refresh]);
+  usePlayRefresh("public", refresh);
 
   const loadMore = async () => {
     if (!cursor) return;
@@ -101,14 +86,15 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
         <input maxLength={30} value={name} placeholder={dictionary.namePlaceholder} onChange={(event) => { setName(event.target.value); window.localStorage.setItem(nameKey, event.target.value); }} />
       </label>
       <div className={styles.toolbar}>
-        <button type="button" onClick={() => void refresh()} disabled={refreshing}>{refreshing ? dictionary.refreshing : dictionary.refresh}</button>
+        <button type="button" onClick={() => void refresh()} disabled={refreshing}>{refreshing ? dictionary.refreshing : warning ? dictionary.retry : dictionary.refresh}</button>
       </div>
+      {(refreshing || loadingMore) && <p role="status">{dictionary.refreshing}</p>}
       {message && <p className={warning ? styles.warning : styles.notice} role="status">{message}</p>}
       {games.length === 0 ? (
-        <div className={styles.empty}><p>{initialError ? dictionary.initialError : dictionary.empty}</p></div>
+        !warning && <div className={styles.empty}><p>{dictionary.empty}</p></div>
       ) : (
         <ul className={styles.list}>{games.map((game) => <li key={game.gameId} className={styles.card}>
-          <div><h2>{game.title ?? text(dictionary, "fallbackTitle", { id: game.gameId.slice(0, 8) })}</h2>
+          <div><h3>{game.title ?? text(dictionary, "fallbackTitle", { id: game.gameId.slice(0, 8) })}</h3>
             <div className={styles.facts}>
               <span>{text(dictionary, "seats", { occupied: game.occupiedSeats, total: game.totalSeats })}</span>
               <span>{text(dictionary, "people", { humans: game.humanCount, bots: game.botCount })}</span>

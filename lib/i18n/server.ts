@@ -135,3 +135,17 @@ export async function getGameDictionary(
 export async function getJoinGameDictionary(locale: Locale): Promise<JoinGameDictionary> {
   return joinGameDictionaries[locale]();
 }
+
+const playDictionaries: Record<Locale, () => Promise<import("./types").PlayDictionary>> = {
+  "en-US": () => import("./dictionaries/play/en-US").then(m => m.default),
+  "fi-FI": () => import("./dictionaries/play/fi-FI").then(m => m.default),
+  "es-ES": () => import("./dictionaries/play/es-ES").then(m => m.default),
+  "de-DE": () => import("./dictionaries/play/de-DE").then(m => m.default),
+  "sv-SE": () => import("./dictionaries/play/sv-SE").then(m => m.default),
+  "fr-FR": () => import("./dictionaries/play/fr-FR").then(m => m.default),
+  "pt-BR": () => import("./dictionaries/play/pt-BR").then(m => m.default),
+  "it-IT": () => import("./dictionaries/play/it-IT").then(m => m.default),
+  "nl-NL": () => import("./dictionaries/play/nl-NL").then(m => m.default),
+  "pl-PL": () => import("./dictionaries/play/pl-PL").then(m => m.default),
+};
+export async function getPlayDictionary(locale: Locale) { return playDictionaries[locale](); }

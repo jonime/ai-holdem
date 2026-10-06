@@ -75,15 +75,8 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
               {landing.quickPlay}
             </Button>
           </form>
-          <form method="post" action={`/${lang}/new-game`}>
-            <Button variant="secondary" size="medium" type="submit">
-              {landing.customTable}
-            </Button>
-          </form>
+          <Link className={styles.joinGame} href={`/${lang}/play`}>{landing.play}</Link>
         </div>
-        <Link className={styles.joinGame} href={`/${lang}/join-game`}>
-          {landing.joinPublicTable}
-        </Link>
       </section>
       <nav
         className={styles.attribution}

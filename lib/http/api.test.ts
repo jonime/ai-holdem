@@ -211,3 +211,12 @@ it("validates the bounded contention wait and preserves claim-lost errors", asyn
   mockResponse({ code: "BOT_STEP_CLAIM_LOST" }, 409);
   await expect(api.games.stepBot({ gameId: "game", expectedVersion: 1 })).rejects.toMatchObject({ code: "BOT_STEP_CLAIM_LOST", status: 409 });
 });
+
+it("reads personal summaries with same-origin cookies, no query identity and no cache", async () => {
+  const fetch = mockResponse({ games: [] });
+  const signal = new AbortController().signal;
+  expect(await api.discovery.mine({ signal })).toEqual({ games: [] });
+  expect(fetch).toHaveBeenCalledWith("/api/games/mine", { cache: "no-store", credentials: "same-origin", signal });
+  mockResponse({ games: [], playerToken: "secret" });
+  await expect(api.discovery.mine()).rejects.toThrow("Invalid response payload");
+});

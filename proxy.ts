@@ -40,8 +40,8 @@ function isKnownApplicationPath(pathname: string): boolean {
       Boolean(segments[2])) ||
     (segments.length === 2 &&
       hasLocale(segments[0]) &&
-      segments[1] === "about") ||
-    (segments.length === 1 && segments[0] === "about")
+      ["about", "play", "join-game"].includes(segments[1])) ||
+    (segments.length === 1 && ["about", "play", "join-game"].includes(segments[0]))
   );
 }
 

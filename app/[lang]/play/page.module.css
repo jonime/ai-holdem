@@ -14,10 +14,14 @@
 .notice { border-color: #507a6d; background: #e4eee5; }
 .list { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
 .card { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px; border: 1px solid #b3c5bd; background: #fffef9; }
-.card h2 { margin: 0 0 10px; font-size: 20px; }
+.card h3 { margin: 0 0 10px; font-size: 20px; }
 .facts { display: flex; flex-wrap: wrap; gap: 6px 16px; color: #526560; font-size: 14px; }
 .empty { padding: 42px 18px; text-align: center; color: #526560; }
 .loadMore { display: block; margin: 18px auto 0; }
 button:disabled { cursor: wait; opacity: .6; }
 @keyframes directory-loading { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 @media (max-width: 600px) { .page { padding: 10px 8px; } .headingRow, .card { align-items: stretch; flex-direction: column; } .card button { width: 100%; } }
+
+.section { margin-top: 28px; }
+.create { margin-top: 20px; }
+.card a { color: var(--felt-dark); font-weight: 700; padding: 10px 0; }

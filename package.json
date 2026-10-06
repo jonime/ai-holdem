@@ -32,6 +32,7 @@
     "test:sql:bot-context": "node scripts/local-bot-context.mjs",
     "benchmark:poker-context": "BOT_SCENARIO_LIVE=false vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/poker-context.benchmark.ts",
     "benchmark:poker-context:live": "BOT_SCENARIO_LIVE=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/poker-context.benchmark.ts -t \"capped live\"",
+    "test:sql:my-games": "node scripts/local-my-games.mjs",
     "test:sql:usage": "node scripts/local-usage-limits.mjs"
   },
   "dependencies": {
