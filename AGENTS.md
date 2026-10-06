@@ -65,9 +65,9 @@ Pull requests and pushes to `main` retain the fast check/build job with non-secr
 placeholder values; unit tests must not depend on live Supabase or TypeSafe.
 An independent 30-minute integration job uses Docker, pinned Supabase CLI 2.119.0,
 and the installed Playwright Chromium with system dependencies. Supabase registry
-images are cached by runner OS/architecture, CLI version, and config hash using
-Docker save/load; never cache containers, volumes, or database state. Cache
-failures fall back to ordinary startup; migrations always run. It starts a
+images are pulled normally during startup; do not cache Docker image archives,
+containers, volumes, or database state. Archive restore/load overhead exceeded
+the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
 disposable database, then runs `test:sql:game-reads`, `test:sql:bot-context`, `test:sql:seats`,
 `test:sql:bot-claims`, `test:sql:usage`, and `test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore
