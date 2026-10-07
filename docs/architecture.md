@@ -18,6 +18,44 @@ Each request applies at most one player action. Supabase RPCs atomically store
 the resulting engine state and action record while enforcing the expected
 game version. Bot decision inspection data is not stored.
 
+## Human departure
+
+Deploy `20261019000000_add_human_departures.sql` before application code.
+Header Leave table and Stand up share `releaseSeat`, preserving the seat-response
+contract and existing owner/host permissions. The server prepares any current-turn
+fold through the adapter; `depart_game_seat_if_version` locks the game row, checks
+version and ownership, registers leaving and commits at most one fold atomically.
+Waiting/completed human seats release immediately. Bots retain their credit-departure
+and next-hand reconciliation behavior. Durable hosts and usage attribution persist.
+
+`POST /api/games/:gameId/advance-departure` accepts only `expectedVersion`. Host or
+claimed human driver eligibility matches bot advancement, including folded and
+eliminated seats. The server chooses the actor; the RPC rechecks driver eligibility,
+version, actor identity and human leaving state under the game lock. It commits
+one engine-validated fold without providers, allowances or claims. Ordinary human
+actions consult current departure state and persist the actual fold, with an SQL
+fence preventing non-fold commits for departing humans. Departure cannot be cancelled
+by seat movement or returning during the hand.
+
+The migration also reconciles previously completed human departures under game
+locks with a version increment. An action-transaction trigger clears departing human assignments when games become
+complete, including bot-completed hands. Engine participants, initial configuration,
+awards and history remain intact. Completed public projections retain the participant's
+identity and ownership-aware cards separately from live seat availability. The
+optional public `poker.seats` summary carries current ownership/status/stacks for
+navigation and next-hand controls; only the viewer’s own token is present. It
+comes from the same authoritative snapshot, and legacy Broadcast schemas require
+all seat tokens to be null. A new occupant cannot inherit completed-hand cards. New human claims get a fresh
+engine identity and starting stack; moves of an already-owned seat retain identity. Voluntary
+reveals authorize against immutable initial-hand ownership, not reassigned seats.
+Only successful commits schedule compact wake-up signals through `after()`;
+completion invalidates directory candidates. Realtime and polling retain fallback
+behavior; no worker or disconnect timeout is introduced.
+
+Run `npm run test:sql:departures` for rollback, identity, role and independent-connection
+races, plus the production `departure.spec.ts` browser scenarios. Verify the two-browser
+flow on an authorized Vercel preview before release.
+
 ## Debug history removal
 
 Apply `20261018000000_remove_debug_history.sql` before deploying the debug-history
@@ -36,8 +74,9 @@ table without requesting bot actions or offering bot retry. The server rejects
 unauthorized `/step` requests with HTTP 403 before resolving a provider or
 requesting inference. Bots pause when no eligible browser remains open.
 
-Each browser runs at most one advancement loop, stopping at a human turn or hand
-completion. Starting another hand still requires explicit interaction. Every
+Each browser runs at most one advancement loop, stopping at an ordinary human turn or hand
+completion. Departing-human turns share this loop and use `/advance-departure`;
+only bot turns acquire claims or resolve providers. Starting another hand still requires explicit interaction. Every
 production step, including Equity Rules, requires an atomic Postgres claim after
 caller authorization, expected-version and bot-turn checks, before provider
 resolution, context preparation or inference. The service-role-only

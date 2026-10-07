@@ -1,3 +1,4 @@
+import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { usageJsonResponse } from "@/lib/usage/response";
 import { BotStepInProgressError, BotStepClaimLostError } from "@/lib/poker/bot-step-claims";
 import { gameParamsSchema } from "@/lib/http/common-contracts";
@@ -45,6 +46,7 @@ export async function POST(request: Request, context: StepRouteContext) {
       expectedVersion,
       getPlayerTokenFromRequest(request),
     );
+    if (result.game.status === "complete") invalidatePublicDirectory();
     scheduleGameEvent(
       gameId,
       result.game.poker.street === "complete"

@@ -32,7 +32,7 @@ export async function POST(request: Request, context: ReleaseSeatRouteContext) {
     );
     invalidatePublicDirectory();
     scheduleSeatEvent(gameId, "seat_released");
-    return NextResponse.json({ seat: assignment } satisfies SeatResponse, { status: 200 });
+    return NextResponse.json({ seat: { ...assignment, playerToken: assignment.playerToken === playerToken ? playerToken : null } } satisfies SeatResponse, { status: 200 });
   } catch (error) {
     if (error instanceof Error && error.name === "GameConflictError") {
       return NextResponse.json({ error: "Game changed", code: "GAME_CONFLICT" }, { status: 409 });
@@ -47,7 +47,7 @@ export async function POST(request: Request, context: ReleaseSeatRouteContext) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
-    console.error("Unable to release seat", error);
+    console.error("Unable to release seat", { gameId, seat });
     return NextResponse.json(
       { error: "Unable to release seat" },
       { status: 500 },

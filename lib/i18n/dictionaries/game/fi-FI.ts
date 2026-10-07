@@ -4,8 +4,13 @@ import type { GameDictionary } from "../../types";
 
 const dictionary = {
   gameHeader: {
-    exit: "Poistu",
-    confirmExit: "Poistutaanko pöydästä ja palataanko aloitusnäkymään?",
+    retryDeparture: "Yritä poistumista uudelleen",
+    lobby: "Aula",
+    leaveTable: "Poistu pöydästä",
+    confirmDeparture: "Poistutko pöydästä? Kätesi kipataan, kun mahdollista, ja paikkasi vapautetaan tämän jaon jälkeen.",
+    confirmWaiting: "Poistutko pöydästä? Paikkasi vapautetaan heti.",
+    confirmComplete: "Poistutko pöydästä? Paikkasi vapautetaan heti; jaon tulokset säilyvät.",
+    departureChanged: "Pöytä muuttui. Tarkista tilanne ja yritä poistua uudelleen.",
   },
   connection: {
     live: "Yhteys toimii",

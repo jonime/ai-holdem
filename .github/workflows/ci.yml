@@ -100,6 +100,10 @@ jobs:
         timeout-minutes: 3
         run: npm run test:sql:seats
 
+      - name: Verify SQL human departures
+        timeout-minutes: 3
+        run: npm run test:sql:departures
+
       - name: Verify SQL bot claims
         timeout-minutes: 3
         run: npm run test:sql:bot-claims

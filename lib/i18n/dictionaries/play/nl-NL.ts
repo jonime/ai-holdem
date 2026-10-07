@@ -3,6 +3,7 @@ import directory from "../join-game/nl-NL";
 const dictionary = {
   "title": "Spelen",
   "intro": "Keer terug naar je tafels of zoek een open openbare tafel.",
+  "quickPlay": "Snel spelen tegen AI",
   "createTable": "Tafel maken",
   "yourTables": "Jouw tafels",
   "returnToTable": "Terug naar tafel",

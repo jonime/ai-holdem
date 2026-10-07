@@ -3,6 +3,7 @@ import directory from "../join-game/sv-SE";
 const dictionary = {
   "title": "Spela",
   "intro": "Återvänd till dina bord eller hitta ett öppet offentligt bord.",
+  "quickPlay": "Snabbspel mot AI",
   "createTable": "Skapa bord",
   "yourTables": "Dina bord",
   "returnToTable": "Tillbaka till bordet",

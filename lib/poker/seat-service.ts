@@ -1,3 +1,4 @@
+import { prepareSeatDeparture, type GameReader } from "./game-service";
 import type { AIDifficulty, BotDescriptor, BotPlaystyleId } from "./types";
 import type { AtomicSeatAssignmentRepository, SeatAssignmentRepository } from "./seat-contracts";
 import { isCallerHost, type GameHostReader } from "./host-authorization";
@@ -47,6 +48,15 @@ export async function assignBotToSeat(
   });
 }
 
-export function releaseSeat(repository: Pick<AtomicSeatAssignmentRepository, "releaseSeatIfVersion">, input: ReleaseSeatInput) {
-  return repository.releaseSeatIfVersion(input);
+export async function releaseSeat(
+  repository: Pick<AtomicSeatAssignmentRepository, "releaseSeatIfVersion"> & Partial<GameReader & SeatAssignmentRepository & GameHostReader>,
+  input: ReleaseSeatInput,
+) {
+  const fold = repository.getGame && repository.getSeatAssignments && repository.getHostToken
+    ? await prepareSeatDeparture({
+      getGame: repository.getGame.bind(repository),
+      getSeatAssignments: repository.getSeatAssignments.bind(repository),
+      getHostToken: repository.getHostToken.bind(repository),
+    }, input) : undefined;
+  return repository.releaseSeatIfVersion({ ...input, ...(fold ? { fold } : {}) });
 }

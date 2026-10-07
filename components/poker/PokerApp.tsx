@@ -1,5 +1,7 @@
 "use client";
 
+import { hasAutomaticTurn } from "./bot-advancement";
+import { GameHeader } from "./GameHeader";
 import { addLocalePrefix } from "@/lib/i18n";
 import { botErrorMessage } from "./bot-error";
 import { HttpError, api } from "@/lib/http/api";
@@ -90,6 +92,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     feed,
     feedLoading,
     loading,
+    navigationLoading,
     error,
     claimSeatAt,
     updatePlayerName,
@@ -111,7 +114,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     viewerToken,
   );
 
-  const canStartNextHand = game ? tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost).canStartNextHand : false;
+  const canStartNextHand = game ? tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost, game.poker.seats).canStartNextHand : false;
   const newQuickPlay = async (botMode?: "rules") => {
     if (loading || replayPending.current || (creationNotice?.until ?? 0) > Date.now()) return;
     replayPending.current = true;
@@ -159,8 +162,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const isHumanTurn =
     viewerPlayer !== null &&
     viewerPlayer.controller === "human" &&
+    viewerPlayer.status === "claimed" && !viewerPlayer.leaving &&
     game?.poker.currentActorId === viewerPlayer.id;
-  const isSpectator = viewerPlayer === null && Boolean(game);
+  const ownedSeat = (game?.poker.seats ?? game?.poker.players ?? []).find(seat =>
+    seat.controller === "human" && seat.status === "claimed" && viewerToken !== null && seat.playerToken === viewerToken);
+  const isSpectator = viewerPlayer === null && !ownedSeat && Boolean(game);
   const canRevealCards =
     game?.poker.street === "complete" &&
     game.poker.completionReason === "fold" &&
@@ -287,23 +293,22 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   ]);
 
   return (
+    <>
+    <GameHeader game={game} loading={navigationLoading || replaying} onLeave={releaseSeat} />
     <main className={styles.pokerApp}>
       {creationNotice ? <p className={styles.errorBanner} role="alert">{creationNotice.message} {t("errors.retryAvailable", { seconds: Math.ceil(creationWait / 1000) })}</p> : null}
       {error ? (
         <p className={styles.errorBanner} role="alert">
           {error}
           {usageLimited ? <> <span>{t("errors.retryAvailable", { seconds: Math.ceil(usageRetryAfterMs / 1000) })}</span> <Button size="small" disabled={loading || replaying || creationWait > 0} onClick={() => void newQuickPlay("rules")}>{t("errors.rulesOnlyGame")}</Button></> : null}
-          {game && canAdvanceBots(game, viewerToken) && game.poker.players.some(
-            (player) =>
-              player.id === game.poker.currentActorId &&
-              player.controller === "bot",
-          ) ? (
+          {game && canAdvanceBots(game, viewerToken) && hasAutomaticTurn(game) ? (
             <Button
               size="small"
               disabled={loading || replaying || usageRetryAfterMs > 0}
               onClick={() => { if (!replayPending.current) void retryBotTurn(); }}
             >
-              {t("errors.retryBot")}
+              {t(game?.poker.players.find(player => player.id === game.poker.currentActorId)?.controller === "human"
+                ? "gameHeader.retryDeparture" : "errors.retryBot")}
             </Button>
           ) : null}
         </p>
@@ -363,7 +368,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                 setJoinDialogOpen(true);
               }}
               onStandUp={() => {
-                if (human && !replayPending.current) void releaseSeat(human.seat);
+                if (ownedSeat && !replayPending.current) void releaseSeat(ownedSeat.seat);
               }}
               onSubmitAction={(action, amountOverride = selectedAmount) => {
                 if (replayPending.current) return;
@@ -409,7 +414,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                 className={styles.joinDialog}
                 onSubmit={(event) => {
                   event.preventDefault();
-                  const openSeat = game.poker.players.find(
+                  const openSeat = (game.poker.seats ?? game.poker.players).find(
                     (player) => player.status === "open",
                   );
                   if (!openSeat) {
@@ -459,5 +464,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
         </div>
       )}
     </main>
+    </>
   );
 }

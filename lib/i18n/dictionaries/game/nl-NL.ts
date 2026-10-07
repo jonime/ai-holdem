@@ -4,8 +4,13 @@ import type { GameDictionary } from "../../types";
 
 const dictionary = {
   gameHeader: {
-    exit: "Verlaten",
-    confirmExit: "Deze tafel verlaten en teruggaan naar het startscherm?",
+    retryDeparture: "Vertrek opnieuw proberen",
+    lobby: "Lobby",
+    leaveTable: "Tafel verlaten",
+    confirmDeparture: "Deze tafel verlaten? Je hand wordt gefold zodra dat kan en je plaats komt vrij na deze hand.",
+    confirmWaiting: "Deze tafel verlaten? Je plaats komt nu vrij.",
+    confirmComplete: "Deze tafel verlaten? Je plaats komt nu vrij; de resultaten blijven beschikbaar.",
+    departureChanged: "De tafel is veranderd. Bekijk hem en probeer opnieuw te vertrekken.",
   },
   connection: {
     live: "Live",

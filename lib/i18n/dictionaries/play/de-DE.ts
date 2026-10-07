@@ -3,6 +3,7 @@ import directory from "../join-game/de-DE";
 const dictionary = {
   "title": "Spielen",
   "intro": "Kehre zu deinen Tischen zurück oder finde einen offenen öffentlichen Tisch.",
+  "quickPlay": "Schnellspiel gegen KI",
   "createTable": "Tisch erstellen",
   "yourTables": "Deine Tische",
   "returnToTable": "Zum Tisch zurück",

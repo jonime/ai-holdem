@@ -71,7 +71,9 @@ export function PokerTable({
   readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
 }) {
   const { locale, t } = useI18n();
-  const flow = tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost);
+  const flow = tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost, game.poker.seats);
+  const ownedSeat = (game.poker.seats ?? game.poker.players).find(seat =>
+    seat.controller === "human" && seat.status === "claimed" && viewerToken !== null && seat.playerToken === viewerToken);
   const gameWinnerId = flow.winnerId;
   const winner = game.poker.players.find(p => p.id === gameWinnerId);
   const endActions = gameWinnerId !== null || flow.eliminated;
@@ -87,7 +89,7 @@ export function PokerTable({
   const legalAction = (type: LegalAction["type"]) =>
     game.poker.legalActions.find((action) => action.type === type);
   const checkCallAction = legalAction("check") ?? legalAction("call");
-  const botOnlyGame = game.poker.players
+  const botOnlyGame = (game.poker.seats ?? game.poker.players)
     .filter((player) => player.status === "claimed" || player.status === "bot")
     .every((player) => player.controller === "bot");
   const selectedAmount = validatedTarget(amount, sizedAction);
@@ -118,15 +120,15 @@ export function PokerTable({
             : t("table.waiting")}
         </span>
         <div className={styles.tableMetaActions}>
-          {human?.playerToken === viewerToken ? (
+          {ownedSeat ? (
             <Button
               variant="ghost"
               size="small"
               className={styles.standUpToggle}
-              disabled={loading || human.leaving}
+              disabled={loading || ownedSeat.leaving}
               onClick={onStandUp}
             >
-              {human.leaving ? t("table.leaving") : t("table.standUp")}
+              {ownedSeat.leaving ? t("table.leaving") : t("table.standUp")}
             </Button>
           ) : null}
           <Button
@@ -247,7 +249,7 @@ export function PokerTable({
                 {t("table.nextHand")}
               </Button>
             ) : !botOnlyGame &&
-              game.poker.players.some((player) => player.status === "open") ? (
+              (game.poker.seats ?? game.poker.players).some((player) => player.status === "open") ? (
               <Button
                 variant="primary"
                 disabled={loading}

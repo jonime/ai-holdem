@@ -1162,7 +1162,7 @@ describe("stepTypesafeAction", () => {
 });
 
 describe("startNextHand", () => {
-  it("resets a departing player's seat name when the next hand starts", async () => {
+  it("uses atomically released human assignments without independent cleanup when the next hand starts", async () => {
     let completedState = pokerEngineAdapter.startHand(
       pokerEngineAdapter.createGame({
         smallBlind: 50,
@@ -1219,13 +1219,13 @@ describe("startNextHand", () => {
           .mockResolvedValueOnce([
             {
               seat: 0,
-              name: "Joni",
-              status: "claimed",
+              name: "Seat 1",
+              status: "open",
               controller: "human",
-              playerToken: "player-token",
+              playerToken: null,
               isHost: false,
-              leaving: true,
-              enginePlayerId: "departing-player",
+              leaving: false,
+              enginePlayerId: null,
             },
             {
               seat: 1,
@@ -1295,15 +1295,7 @@ describe("startNextHand", () => {
       "player-2-token",
     );
 
-    expect(updateSeatAssignment).toHaveBeenCalledWith(
-      expect.objectContaining({
-        seat: 0,
-        name: "Seat 1",
-        status: "open",
-        playerToken: null,
-        leaving: false,
-      }),
-    );
+    expect(updateSeatAssignment).not.toHaveBeenCalled();
     expect(
       game.poker.players.find((player) => player.seat === 0),
     ).toMatchObject({ name: "Seat 1", status: "open", leaving: false });

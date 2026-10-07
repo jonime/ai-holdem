@@ -3,13 +3,13 @@
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { HttpError } from "@/lib/http/api";
 import { LLM_CREDIT_EXIT_RULE } from "@/lib/bots/types";
-import { advanceBotTurns, hasBotTurn } from "./bot-advancement";
+import { advanceBotTurns, hasAutomaticTurn } from "./bot-advancement";
 import { canAdvanceBots } from "./view-model";
 import { botBusy, botCanRetry, botCanStart, botRetryAfterMs, botTurn, initialBotLifecycle,
   sameBotTurn, transitionBotLifecycle, type BotLifecycleEvent, type BotLifecycleState } from "./bot-lifecycle";
 import type { AIDecision, Game } from "./types";
 
-type StepResult = { game: Game; aiDecision: AIDecision };
+type StepResult = { game: Game; aiDecision?: AIDecision };
 export type BotLifecycleDriver = {
   readonly readGame: () => Game | null;
   readonly viewerToken: () => string | null;
@@ -69,7 +69,7 @@ export class BotLifecycle {
   }
   clearNotice = () => this.dispatch({ type: "notice", notice: null });
   private eligible(game: Game | null): game is Game {
-    return !!game && game.id === this.gameId && hasBotTurn(game) && canAdvanceBots(game, this.driver.viewerToken());
+    return !!game && game.id === this.gameId && hasAutomaticTurn(game) && canAdvanceBots(game, this.driver.viewerToken());
   }
   /** Called inside session reconciliation, before React updates or promise continuations. */
   reconcile = (game: Game) => {
@@ -82,7 +82,7 @@ export class BotLifecycle {
       this.work = null;
       this.dispatch({ type: "finish" });
     }
-    this.dispatch({ type: "reconcile", turn: botTurn(game), eligible, hasBotTurn: hasBotTurn(game) });
+    this.dispatch({ type: "reconcile", turn: botTurn(game), eligible, hasBotTurn: hasAutomaticTurn(game) });
     if ((state.kind === "waitingForClaim" || state.kind === "usageLimited" ||
         (state.kind === "paused" && (state.reason === "claimLost" || state.reason === "claimExpired"))) &&
         this.state.kind === "idle") this.driver.clearError();
@@ -124,7 +124,7 @@ export class BotLifecycle {
           try { accepted = this.driver.apply(result.game, sequence); }
           finally { this.applying = false; }
           if (accepted) {
-            if (result.aiDecision.matchedRule === LLM_CREDIT_EXIT_RULE) {
+            if (result.aiDecision?.matchedRule === LLM_CREDIT_EXIT_RULE) {
               this.dispatch({ type: "notice", notice: this.driver.creditMessage(result.aiDecision) });
             }
           } else {

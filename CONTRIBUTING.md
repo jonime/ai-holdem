@@ -90,6 +90,7 @@ migrations, then run these commands in order:
 npm run test:sql:game-reads
 npm run test:sql:bot-context
 npm run test:sql:seats
+npm run test:sql:departures
 npm run test:sql:bot-claims
 npm run test:sql:usage
 npm run test:e2e:smoke
@@ -151,6 +152,7 @@ With Docker and Supabase CLI available and all local migrations applied, run:
 
 ```sh
 npm run test:sql:seats
+npm run test:sql:departures
 npm run test:e2e -- test/e2e/lobby.spec.ts
 ```
 
@@ -414,6 +416,7 @@ The endpoint-to-contract/client checklist is complete:
 | --- | --- | --- | --- |
 | `GET /api/games/:gameId` | `gameParamsSchema` | `getGameResponseSchema` | `games.get` |
 | `POST /api/games/:gameId/action` | game params / `submitActionRequestSchema` | `submitActionResponseSchema` | `games.submitAction` |
+| `POST /api/games/:gameId/advance-departure` | game params / strict `advanceDepartureRequestSchema` | `advanceDepartureResponseSchema` | `games.advanceDeparture` |
 | `POST /api/games/:gameId/step` | game params / `stepBotRequestSchema` | `stepBotResponseSchema` | `games.stepBot` |
 | `POST /api/games/:gameId/start` | game params / `startRequestSchema` | `lifecycleResponseSchema` | `games.start` |
 | `POST /api/games/:gameId/next-hand` | game params / `nextHandRequestSchema` | `lifecycleResponseSchema` | `games.nextHand` |
@@ -529,7 +532,10 @@ explicit retry, rules replay, and localized HTML/typed JSON creation denials.
 `components/poker/bot-lifecycle.ts` owns pure transitions. `useBotLifecycle.ts`
 executes them through the testable `BotLifecycle` driver, owns timers and request
 generations, and calls the existing twelve-step `advanceBotTurns` helper. All
-advancement entry points share its guard. `useGameSession.ts` retains authoritative
+advancement entry points share its guard. Its automatic-turn predicate includes
+claimed leaving humans. Those turns use `games.advanceDeparture` with a game envelope
+and no AI decision; bot turns retain `games.stepBot` and all provider/claim/usage
+pause rules. A different departing-human actor clears the prior bot-turn pause. `useGameSession.ts` retains authoritative
 state, response sequences/reconciliation, polling, Realtime, feed, and
 non-bot mutations. Reconciliation notifies the lifecycle synchronously; lifecycle
 refreshes carry a generation predicate before session reconciliation. Inference
@@ -538,6 +544,8 @@ already running on the server is never cancelled.
 | State / event | Result |
 | --- | --- |
 | Idle, eligible new automatic version or explicit continuation | Running; one loop |
+| Departing-human turn | One engine fold; no provider, usage admission or claim |
+| Ordinary human turn or completed hand | Stop advancement |
 | Running, successful step | Reconcile and report accepted decision; continue up to twelve steps |
 | Running, version conflict | Refresh silently and end stale loop; refresh failures remain visible |
 | Running, provider failure | Paused by game/hand/actor, including version-only refreshes |
@@ -580,3 +588,20 @@ to Realtime. Personal tables load on page entry and offer Retry after failure; t
 public section has an accessible refresh icon. The optional joining name appears at
 the top. Compact personal rows are links and public rows are native buttons, retaining
 keyboard activation and pending join protection. Both creation forms use their existing localized POST routes.
+
+
+## Departure verification and rollout
+
+Apply `20261019000000_add_human_departures.sql` before the application. Header
+Leave table and Stand up use one atomic release service; only Leave table navigates
+on acknowledgement. Lobby preserves seats and goes to localized Play. New labels
+and confirmations belong in every server-owned game dictionary; Play Quick Play
+uses the existing localized HTML creation and fair-use flow.
+
+`test:sql:departures` preserves existing games, runs rollback fixtures, and creates
+and deletes its own cross-connection race fixtures. CI runs it after seat checks.
+The production browser departure suite covers cancellation, stale retry, mobile
+controls, acknowledgement gating, Stand up watching, localized Lobby, Play Quick
+Play, and remaining-browser continuation after the departing browser closes.
+Run it locally with `npm run test:e2e:smoke -- test/e2e/departure.spec.ts`, then
+verify departure and notification delivery on an authorized Vercel deployment.

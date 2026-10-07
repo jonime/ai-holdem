@@ -95,16 +95,18 @@ try {
   assert.equal(selfCleared.seat.player_token, null);
   assert.equal(selfCleared.seat.engine_player_id, null);
   expectOutcome(claim(5, 1, owner), "ok");
-  const retainedIdentity = rows()[1].engine_player_id;
   for (const gameStatus of ["playing", "complete", "error"]) {
+    sql(`update public.games set status='waiting' where id='${id}'; update public.game_players set leaving=false where game_id='${id}' and seat=1;`);
+    if (rows()[1].status === "open") expectOutcome(claim(readVersion(), 1, owner), "ok");
+    const retainedIdentity = rows()[1].engine_player_id;
     sql(`update public.games set status='${gameStatus}' where id='${id}';`);
     const version = readVersion();
-    const leaving = expectOutcome(release(version, 1, owner), "ok");
-    assert.equal(leaving.seat.status, "claimed");
-    assert.equal(leaving.seat.player_token, owner);
-    assert.equal(leaving.seat.leaving, true);
-    assert.equal(leaving.seat.engine_player_id, retainedIdentity);
-    assert.equal(leaving.version, version + 1);
+    const released = expectOutcome(release(version, 1, owner), "ok");
+    assert.equal(released.seat.status, gameStatus === "complete" ? "open" : "claimed");
+    assert.equal(released.seat.player_token, gameStatus === "complete" ? null : owner);
+    assert.equal(released.seat.leaving, gameStatus !== "complete");
+    assert.equal(released.seat.engine_player_id, gameStatus === "complete" ? null : retainedIdentity);
+    assert.equal(released.version, version + 1);
     expectOutcome(release(version, 1, "host"), "conflict");
   }
   sql(`delete from public.game_hosts where game_id='${id}'; update public.game_players set is_host=true where game_id='${id}' and seat=1;`);

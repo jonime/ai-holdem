@@ -198,6 +198,7 @@ export interface GameDatabaseClient {
   };
   rpc(
     functionName:
+      | "advance_departure_if_version"
       | "apply_human_action_if_version"
       | "acquire_bot_step_claim"
       | "release_bot_step_claim"
@@ -224,7 +225,7 @@ export interface GameDatabaseClient {
       | "join_public_game_if_version"
       | "claim_game_seat_if_version"
       | "assign_bot_to_seat_if_version"
-      | "release_game_seat_if_version",
+      | "release_game_seat_if_version" | "depart_game_seat_if_version",
     arguments_: Record<string, unknown>,
   ): PromiseLike<DatabaseResult>;
 }
@@ -632,7 +633,7 @@ export class SupabaseGameRepository {
   }
 
   private async atomicSeatResult(
-    functionName: "claim_game_seat_if_version" | "assign_bot_to_seat_if_version" | "release_game_seat_if_version",
+    functionName: "claim_game_seat_if_version" | "assign_bot_to_seat_if_version" | "release_game_seat_if_version" | "depart_game_seat_if_version",
     arguments_: Record<string, unknown>,
     gameId: string,
     expectedVersion: number,
@@ -669,9 +670,9 @@ export class SupabaseGameRepository {
   }
 
   async releaseSeatIfVersion(input: Parameters<AtomicSeatAssignmentRepository["releaseSeatIfVersion"]>[0]) {
-    return this.atomicSeatResult("release_game_seat_if_version", {
+    return this.atomicSeatResult("depart_game_seat_if_version", {
       p_game_id: input.gameId, p_expected_version: input.expectedVersion,
-      p_seat: input.seat, p_player_token: input.playerToken,
+      p_seat: input.seat, p_player_token: input.playerToken, p_fold: input.fold ?? null,
     }, input.gameId, input.expectedVersion, input.seat);
   }
 
@@ -1092,6 +1093,16 @@ export class SupabaseGameRepository {
       throw new GameConflictError(input.gameId, input.expectedVersion);
     }
 
+    return toPersistedGame(data[0]);
+  }
+
+  async advanceDepartureIfVersion(input: PersistHumanActionInput & { readonly driverToken: string }): Promise<PersistedGame> {
+    const { data, error } = await this.client.rpc("advance_departure_if_version", {
+      p_game_id: input.gameId, p_expected_version: input.expectedVersion,
+      p_driver_token: input.driverToken, p_fold: input,
+    });
+    if (error) throw new Error("Unable to advance departure");
+    if (!Array.isArray(data) || data.length === 0) throw new GameConflictError(input.gameId, input.expectedVersion);
     return toPersistedGame(data[0]);
   }
 

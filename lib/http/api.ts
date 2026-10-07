@@ -2,11 +2,11 @@ import { addLocalePrefix } from "@/lib/i18n";
 import { z } from "zod";
 import { errorEnvelopeSchema, type GameParams, type VersionRequest } from "./common-contracts";
 import {
-  gameParamsSchema, getGameResponseSchema, submitActionRequestSchema,
+  advanceDepartureRequestSchema, advanceDepartureResponseSchema, gameParamsSchema, getGameResponseSchema, submitActionRequestSchema,
   submitActionResponseSchema, stepBotRequestSchema, stepBotResponseSchema,
   startRequestSchema, nextHandRequestSchema, revealRequestSchema,
   settingsRequestSchema, seatCountRequestSchema, lifecycleResponseSchema,
-  type SubmitActionRequest, type StepBotRequest, type RevealRequest,
+  type AdvanceDepartureRequest, type SubmitActionRequest, type StepBotRequest, type RevealRequest,
   type SettingsRequest, type SeatCountRequest,
 } from "./gameplay-contracts";
 import {
@@ -174,6 +174,9 @@ export const api = {
     },
     submitAction({ gameId, ...body }: GameParams & SubmitActionRequest, options: Options = {}) {
       return mutation({ gameId }, "action", body, submitActionRequestSchema, submitActionResponseSchema, options);
+    },
+    advanceDeparture({ gameId, ...body }: GameParams & AdvanceDepartureRequest, options: Options = {}) {
+      return mutation({ gameId }, "advance-departure", body, advanceDepartureRequestSchema, advanceDepartureResponseSchema, options);
     },
     stepBot({ gameId, ...body }: GameParams & StepBotRequest, options: Options = {}) {
       return mutation({ gameId }, "step", body, stepBotRequestSchema, stepBotResponseSchema, options);

@@ -1,3 +1,4 @@
+import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { gameParamsSchema } from "@/lib/http/common-contracts";
 import { NextResponse } from "next/server";
 
@@ -34,6 +35,7 @@ export async function POST(request: Request, context: ActionRouteContext) {
         action,
       },
     );
+    if (game.status === "complete") invalidatePublicDirectory();
     scheduleGameEvent(
       gameId,
       game.poker.street === "complete" ? "hand_completed" : "player_action",

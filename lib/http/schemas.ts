@@ -59,6 +59,11 @@ export const publicPlayerSchema = z.object({
   holeCards: z.array(z.string()).nullable(),
 });
 
+/** Live ownership is separate from immutable completed-hand participants. */
+export const publicLiveSeatSchema = publicPlayerSchema.pick({
+  id: true, seat: true, status: true, controller: true, playerToken: true, leaving: true, stack: true,
+});
+
 export const publicGameSchema = z.object({
   handNumber: z.number().int().nonnegative(),
   seatCount: z.number().int().min(2).max(6),
@@ -78,6 +83,7 @@ export const publicGameSchema = z.object({
   botsShowUncontestedWins: z.boolean().default(false),
   legalActions: z.array(legalActionSchema),
   players: z.array(publicPlayerSchema),
+  seats: z.array(publicLiveSeatSchema).optional(),
 });
 
 export const gameSchema = z.object({
@@ -130,6 +136,7 @@ export const broadcastGameSchema = gameSchema
       .extend({
         legalActions: z.array(legalActionSchema).length(0),
         players: z.array(broadcastPlayerSchema),
+        seats: z.array(publicLiveSeatSchema.extend({ playerToken: z.null() }).strict()).optional(),
       })
       .strict(),
   })

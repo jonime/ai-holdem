@@ -102,7 +102,7 @@ describe("game layout", () => {
       const html = renderToStaticMarkup(boundary);
 
       expect(html).toContain(
-        `<div data-testid="game-i18n"><header>game-header</header><main>${dictionary.connection.live}</main></div>`,
+        `<div data-testid="game-i18n"><main>${dictionary.connection.live}</main></div>`,
       );
       expect(providerCaptures).toEqual([{ locale, dictionary }]);
       expect(Object.keys(providerCaptures[0].dictionary).sort()).toEqual(

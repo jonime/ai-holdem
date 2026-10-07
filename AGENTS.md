@@ -70,7 +70,7 @@ containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
 disposable database, then runs `test:sql:game-reads`, `test:sql:my-games`, `test:sql:bot-context`, `test:sql:seats`,
-`test:sql:bot-claims`, `test:sql:usage`, and `test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore
+`test:sql:departures`, `test:sql:bot-claims`, `test:sql:usage`, and `test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore
 health checks. Preserve workflow cancellation for superseded commits.
 
 Local production smoke requires an already-running migrated local Supabase and
@@ -131,6 +131,23 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
   rate limits remain paused, as do undocumented Jev credit failures. Preserve
   safe structured LLM/Jev HTTP logs and the localized credit-departure notice;
   never log raw provider messages, inputs, responses, headers, keys or cards.
+- Header Lobby preserves seats and navigates to localized Play. Leave table is
+  available for owned claimed humans with another non-leaving claimed human,
+  including folded/eliminated humans. It confirms and navigates only after an
+  acknowledged departure; Stand up shares the departure service and stays watching.
+  Deploy `20261019000000_add_human_departures.sql` before application code. Active
+  human departures are irreversible and fold only on their legal turn; all-ins
+  keep pot eligibility. Atomic departure/advance RPCs lock the game row and recheck
+  version, identity, ownership/driver eligibility and leaving state. Ordinary human
+  actions cannot bypass departure and history records the actual fold. Completion
+  clears departing human assignments in the action transaction, preserving immutable
+  participants, awards, identities and ownership-aware cards/reveals. Public
+  `poker.seats` separates live assignments from immutable completed participants;
+  mask other tokens and every legacy Broadcast seat token. Durable hosts
+  and usage attribution persist. One client loop advances bots or departing humans;
+  only bots use claims/providers/allowances. No background worker or disconnect
+  timeout exists. Run `test:sql:departures` and production departure browser smoke;
+  CI includes departure SQL coverage. Verify notifications on authorized Vercel.
 - Each mutation applies at most one action and uses the expected game version.
 	Preserve optimistic-concurrency conflict handling in service and API layers.
 - Game refreshes use one uncached, service-role-only `get_game_read_snapshot`

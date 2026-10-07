@@ -1,3 +1,4 @@
+import type { DepartureFold } from "./departure-contracts";
 import { randomUUID } from "node:crypto";
 import { BotStepInProgressError, type BotStepClaimRepository } from "./bot-step-claims";
 import { BotHistoryConflictError, projectBotHistory, legacyDecisionHistory, type BotHandContext } from "./bot-history";
@@ -7,7 +8,7 @@ export type { SeatAssignment, SeatAssignmentRepository } from "./seat-contracts"
 import { pokerEngineAdapter } from "./adapter";
 import { createPokerAIState } from "./ai-state";
 import { createSizingOptions, createLegacySizingOptions } from "@/lib/typesafe/questions";
-import { applyHumanAction, type HumanActionSubmission } from "./human-actions";
+import { HumanActionError, applyHumanAction, type HumanActionSubmission } from "./human-actions";
 import type {
   BotDescriptor,
   BotPlaystyleId,
@@ -431,7 +432,7 @@ async function withOpenSeatPlaceholders(
   repository: SeatAssignmentRepository,
   gameId: string,
   state: PokerGameState,
-): Promise<PokerGameState> {
+): Promise<PokerGameState & { readonly seatAssignments: readonly SeatAssignment[] }> {
   const assignments = await repository.getSeatAssignments(gameId);
   return reconcilePublicSeats(gameId, state, assignments);
 }
@@ -440,7 +441,7 @@ export function reconcilePublicSeats(
   gameId: string,
   state: PokerGameState,
   assignments: readonly SeatAssignment[],
-): PokerGameState {
+): PokerGameState & { readonly seatAssignments: readonly SeatAssignment[] } {
   const startingStack =
     state.config.startingStack ?? state.config.players[0]?.stack ?? 10_000;
   const assignmentsById = new Map(
@@ -454,9 +455,18 @@ export function reconcilePublicSeats(
   const configuredPlayerIds = new Set(
     state.config.players.map((player) => player.id),
   );
+  const completed = pokerEngineAdapter.snapshot(state).street === "complete";
   const players = state.config.players.map((player) => {
     const assignment =
       assignmentsById.get(player.id) ?? assignmentsBySeat.get(player.seat);
+    // Completed participants retain their immutable identity and private ownership.
+    // Seat availability is separate from their engine participation and awards.
+    if (completed) {
+      const retained = assignment?.enginePlayerId === player.id;
+      return { ...player, status: retained ? assignment.status : "open" as const,
+        leaving: retained ? (assignment.leaving ?? false) : true,
+        isHost: retained ? assignment.isHost : false };
+    }
     return assignment
       ? {
           ...player,
@@ -492,6 +502,7 @@ export function reconcilePublicSeats(
   }
   return {
     ...state,
+    seatAssignments: assignments,
     config: {
       ...state.config,
       players,
@@ -506,7 +517,9 @@ async function reconcileState(
 ): Promise<PokerGameState> {
   const assignments = await Promise.all(
     (await repository.getSeatAssignments(gameId)).map(async (assignment) => {
-      if (!assignment.leaving) return assignment;
+      // Human assignments are cleared by the completing action transaction.
+      // Only the existing bot-credit departure keeps next-hand reconciliation.
+      if (!assignment.leaving || assignment.controller === "human") return assignment;
 
       const openAssignment: SeatAssignment = {
         ...assignment,
@@ -613,8 +626,19 @@ async function reconcileState(
   };
 }
 
+function publicLiveSeats(state: PokerGameState, assignments: readonly SeatAssignment[], viewerToken: string | null) {
+  const players = pokerEngineAdapter.publicProjection(state, null).players;
+  return assignments.map(seat => ({
+    id: enginePlayerIdForAssignment(seat.gameId, seat), seat: seat.seat,
+    status: seat.status, controller: seat.controller, leaving: seat.leaving ?? false,
+    playerToken: viewerToken && seat.playerToken === viewerToken ? viewerToken : null,
+    stack: seat.status === "open" ? 0 : players.find(player => player.id === seat.enginePlayerId)?.stack
+      ?? state.config.startingStack ?? state.config.players[0]?.stack ?? 10_000,
+  }));
+}
+
 function publicProjectionForViewer(
-  state: PokerGameState,
+  state: PokerGameState & { readonly seatAssignments?: readonly SeatAssignment[] },
   viewerToken: string | null,
   revealedPlayerIds: readonly string[] = [],
   botsShowUncontestedWins = false,
@@ -632,6 +656,7 @@ function publicProjectionForViewer(
       revealedPlayerIds,
     ),
     botsShowUncontestedWins,
+    ...(state.seatAssignments ? { seats: publicLiveSeats(state, state.seatAssignments, viewerToken) } : {}),
   };
 }
 
@@ -963,6 +988,7 @@ export async function getPublicGame(
         snapshot.revealedPlayerIds,
       ),
       botsShowUncontestedWins: game.botsShowUncontestedWins ?? false,
+      seats: publicLiveSeats(state, snapshot.assignments, viewerPlayerToken ?? null),
     },
   };
 }
@@ -1116,8 +1142,18 @@ export async function submitHumanAction(
         player.id === submission.playerId ||
         player.playerToken === submission.playerId,
     )?.id ?? submission.playerId;
+  let leaving = stateBefore.config.players.find(player => player.id === resolvedPlayerId)?.leaving ?? false;
+  if (repository.getSeatAssignments) {
+    const seat = (await repository.getSeatAssignments(gameId)).find(player => player.enginePlayerId === resolvedPlayerId);
+    if (!seat || seat.status !== "claimed" || seat.playerToken !== submission.playerId) {
+      throw new HumanActionError("Seat does not belong to this player");
+    }
+    leaving = seat.leaving ?? false;
+  }
+  const action = leaving
+    ? { type: "fold" as const } : submission.action;
   const stateAfter = applyHumanAction(stateBefore, {
-    ...submission,
+    ...submission, action,
     playerId: resolvedPlayerId,
     currentVersion: game.version,
   });
@@ -1131,9 +1167,9 @@ export async function submitHumanAction(
     handNumber: snapshotAfter.handNumber,
     status: snapshotAfter.street === "complete" ? "complete" : "playing",
     street: snapshotBefore.street,
-    action: submission.action.type,
+    action: action.type,
     amount:
-      "amount" in submission.action ? (submission.action.amount ?? null) : null,
+      "amount" in action ? (action.amount ?? null) : null,
     stateBefore,
     handComplete: snapshotAfter.street === "complete",
     ...(() => {
@@ -1543,4 +1579,66 @@ export async function revealHumanCards(
       persistedGame.botsShowUncontestedWins ?? false,
     ),
   };
+}
+
+/** Prepare exactly one engine action; the departure RPC rechecks identity under lock. */
+export function departureFold(game: PersistedGame, actorId: string): DepartureFold {
+  const before = restorePersistedState(game.currentState);
+  const snapshot = pokerEngineAdapter.snapshot(before);
+  if (!snapshot.street || snapshot.street === "complete" || snapshot.currentActorId !== actorId) {
+    throw new GameConflictError(game.id, game.version);
+  }
+  const after = pokerEngineAdapter.applyAction(before, actorId, { type: "fold" });
+  const next = pokerEngineAdapter.snapshot(after);
+  const reveal = autoRevealForCompletedState(after, game.botsShowUncontestedWins ?? false);
+  return { gameId: game.id, expectedVersion: game.version, playerEngineId: actorId,
+    currentState: after, stateSchemaVersion: after.stateSchemaVersion, handNumber: next.handNumber,
+    status: next.street === "complete" ? "complete" : "playing", street: snapshot.street,
+    action: "fold", amount: null, stateBefore: before, handComplete: next.street === "complete",
+    ...(reveal ? { autoRevealPlayerEngineId: reveal.playerId, autoRevealReason: reveal.reason } : {}) };
+}
+
+export interface DepartureWriter {
+  advanceDepartureIfVersion(input: DepartureFold & { readonly driverToken: string }): Promise<PersistedGame>;
+}
+export async function advanceDeparture(
+  repository: GameReader & GameHostReader & SeatAssignmentRepository & DepartureWriter & Partial<HandRevealReader>,
+  gameId: string, expectedVersion: number, viewerToken: string | null,
+): Promise<PublicGame> {
+  const game = await repository.getGame(gameId);
+  if (!game) throw new GameNotFoundError(gameId);
+  const state = restorePersistedState(game.currentState);
+  await requireBotDriver(repository, gameId, state, viewerToken);
+  if (game.version !== expectedVersion) throw new GameConflictError(gameId, expectedVersion);
+  const actor = pokerEngineAdapter.snapshot(state).currentActorId;
+  const seat = (await repository.getSeatAssignments(gameId)).find(player => player.enginePlayerId === actor);
+  if (!actor || !seat || seat.controller !== "human" || seat.status !== "claimed" || !seat.leaving) {
+    throw new GameConflictError(gameId, expectedVersion);
+  }
+  if (!viewerToken) throw new BotStepForbiddenError();
+  const fold = departureFold(game, actor);
+  const committed = await repository.advanceDepartureIfVersion({ ...fold, driverToken: viewerToken });
+  const projected = await withOpenSeatPlaceholders(repository, gameId, restorePersistedState(fold.currentState));
+  return { id: committed.id, status: committed.status, version: committed.version,
+    viewerIsHost: await isCallerHost(repository, gameId, viewerToken),
+    poker: publicProjectionForViewer(projected, viewerToken,
+      await currentRevealIds(repository, gameId, fold.handNumber), committed.botsShowUncontestedWins ?? false) };
+}
+
+export async function prepareSeatDeparture(
+  repository: GameReader & Pick<SeatAssignmentRepository, "getSeatAssignments"> & GameHostReader,
+  input: { gameId: string; seat: number; playerToken: string; expectedVersion: number },
+): Promise<DepartureFold | undefined> {
+  const game = await repository.getGame(input.gameId);
+  if (!game) throw new Error("Seat does not exist");
+  if (game.version !== input.expectedVersion) throw new GameConflictError(input.gameId, input.expectedVersion);
+  const seat = (await repository.getSeatAssignments(input.gameId)).find(player => player.seat === input.seat);
+  if (!seat) throw new Error("Seat does not exist");
+  if (seat.playerToken !== input.playerToken && !(await isCallerHost(repository, input.gameId, input.playerToken))) {
+    throw new Error("Seat does not belong to this player");
+  }
+  if (game.status !== "playing" || seat.controller !== "human" || seat.leaving) return;
+  const state = restorePersistedState(game.currentState);
+  const actor = pokerEngineAdapter.snapshot(state).currentActorId;
+  if (actor && actor === seat.enginePlayerId) return departureFold(game, actor);
 }

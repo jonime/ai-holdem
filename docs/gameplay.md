@@ -19,6 +19,30 @@ when the host comes back. Anyone with a table URL can view it.
 Bots advance while an eligible host or seated human has the table open. Other
 spectators watch passively. Starting another hand requires explicit interaction.
 
+## Lobby navigation and departure
+
+The game header offers **Leave table** when you own a human seat and another
+claimed, non-leaving human occupies the table. Folded and eliminated humans
+still count. Against bots, as a spectator or unseated host, or after registering
+departure, it offers **Lobby**. Lobby returns to the localized **Play** page without
+changing seats. The application title links home.
+
+Leave table confirms before submitting. Cancellation changes nothing. Navigation
+happens only after server acknowledgement; a stale version refreshes the table
+and requires another click. Waiting or completed hands release the seat immediately.
+During an active hand, departure is irreversible: the engine folds you now if
+it is your actionable turn, or on your next legal turn. Already-folded players
+need no extra action; all-ins retain their pots and showdown eligibility.
+Completing the hand releases departing human assignments atomically while keeping
+results, Actions, your private cards and voluntary reveals available for that hand.
+**Stand up** uses the same service but stays at the game as a watcher.
+
+The durable host retains the table and its usage attribution; there is no host
+transfer. Released non-hosts disappear from Your tables. Remaining eligible browsers
+can continue without the departing browser. If every eligible browser closes,
+the table stays persisted and resumes when one returns. Closing a tab without
+Leave table or Stand up does not register departure; there are no disconnect timeouts.
+
 ## Betting controls
 
 Each new decision (game ID, authoritative version, or viewer change) starts at
@@ -81,7 +105,7 @@ retain their existing legal fold and departure behavior.
 ## Returning and finding tables
 
 Choose **Play** from the landing page to return to this browser’s tables, find open
-public tables, or **Create table**. **Your tables** shows up to five recently active
+public tables, **Quick Play vs AI**, or **Create table**. **Your tables** shows up to five recently active
 tables where this browser owns a claimed human seat or is the durable host, including
 unseated hosts and completed hands. Spectator visits do not add tables. Activity is
 game activity, not visit history; returning does not promise another hand can start.

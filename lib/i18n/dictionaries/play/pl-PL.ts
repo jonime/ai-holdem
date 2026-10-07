@@ -3,6 +3,7 @@ import directory from "../join-game/pl-PL";
 const dictionary = {
   "title": "Graj",
   "intro": "Wróć do swoich stołów lub znajdź otwarty publiczny stół.",
+  "quickPlay": "Szybka gra z AI",
   "createTable": "Utwórz stół",
   "yourTables": "Twoje stoły",
   "returnToTable": "Wróć do stołu",

@@ -160,3 +160,21 @@ in Google Search Console after deploying.
 Open Graph and Twitter cards use the supplied 1731 × 909 `public/social-preview.png`.
 The image is committed and needs no runtime service. When replacing it, update
 its dimensions and alt text in `lib/seo.ts` to match the new asset.
+
+
+## Human-departure rollout
+
+Apply `20261019000000_add_human_departures.sql` before deploying application code.
+It adds atomic departure and advancement RPCs, fences human non-fold actions,
+cleans up human assignments in the completing action transaction, assigns fresh
+engine identities to new human occupants, and retains
+voluntary reveals through immutable hand ownership. Existing hosts and bot-credit
+behavior persist. Completed human departures from older instances are reconciled
+under game locks with a version increment for polling clients. Old application instances can register departure through the
+retained release signature; current clients advance departing-human turns.
+
+Run `npm run check`, `npm run build`, `npm run test:sql:departures`, the seat,
+bot-claim, game-read, bot-context and personal-table SQL suites, and production
+browser smoke. Before release, verify the two-browser departure/notification
+flow on a Vercel preview containing this code or an explicitly authorized live
+site. Local success alone does not verify the deployed `after()` lifecycle.

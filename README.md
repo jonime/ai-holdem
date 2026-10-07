@@ -26,7 +26,7 @@ authentication.
 
 ## Play
 
-- **Quick Play vs AI** immediately starts a private six-seat game with five
+- **Quick Play vs AI**, on the home and Play pages, immediately starts a private six-seat game with five
   server-selected bots, 50/100 blinds, and 10,000-chip stacks. With external
   inference disabled, all five bots use Equity Rules.
 - **Play → Create table** opens a private six-seat lobby. The host can configure
@@ -35,7 +35,12 @@ authentication.
 - **Play** shows up to five recently active tables owned by this browser and lists published waiting tables with open seats. Private
   tables remain accessible through invite links.
 
-Bots advance while an eligible host or seated human keeps the table open.
+**Lobby** returns to Play while preserving your seat. At multiplayer tables,
+**Leave table** confirms departure, folds on your next legal turn, and releases
+your seat after the hand. **Stand up** uses the same departure rules and keeps
+you watching. Closing a tab alone does not register departure.
+
+Bots and departing humans advance while an eligible host or seated human keeps the table open.
 Other spectators watch passively; new hands require explicit interaction.
 See the [gameplay guide](docs/gameplay.md) for betting controls, invitations,
 watching, results, and the Actions timeline.

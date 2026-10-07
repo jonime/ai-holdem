@@ -63,7 +63,8 @@ test("@smoke Play directory pagination, join conflict, redirects, mobile and key
   await expect(page.getByText("That table changed. Review the refreshed list and try again.")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const create = page.getByRole("button", { name: "Create table", exact: true });
-  await page.getByLabel("Your name (optional)").focus(); await page.keyboard.press("Tab"); await expect(create).toBeFocused();
+  await page.getByLabel("Your name (optional)").focus(); await page.keyboard.press("Tab"); await expect(page.getByRole("button", { name: "Quick Play vs AI", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab"); await expect(create).toBeFocused();
   await page.keyboard.press("Tab"); await expect(page.getByRole("button", { name: "Refresh", exact: true })).toBeFocused();
   await expect(page.locator("h1")).toHaveText("Play");
   await expect(page.getByText("Choose a public table with an active host.")).toHaveCount(0);

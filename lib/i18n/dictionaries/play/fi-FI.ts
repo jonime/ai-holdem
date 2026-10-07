@@ -3,6 +3,7 @@ import directory from "../join-game/fi-FI";
 const dictionary = {
   "title": "Pelaa",
   "intro": "Palaa pöytiisi tai etsi avoin julkinen pöytä.",
+  "quickPlay": "Pikapeli tekoälyä vastaan",
   "createTable": "Luo pöytä",
   "yourTables": "Omat pöytäsi",
   "returnToTable": "Palaa pöytään",

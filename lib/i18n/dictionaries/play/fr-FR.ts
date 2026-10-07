@@ -3,6 +3,7 @@ import directory from "../join-game/fr-FR";
 const dictionary = {
   "title": "Jouer",
   "intro": "Retrouvez vos tables ou trouvez une table publique ouverte.",
+  "quickPlay": "Partie rapide contre l’IA",
   "createTable": "Créer une table",
   "yourTables": "Vos tables",
   "returnToTable": "Revenir à la table",

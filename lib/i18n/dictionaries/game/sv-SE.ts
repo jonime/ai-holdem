@@ -4,8 +4,13 @@ import type { GameDictionary } from "../../types";
 
 const dictionary = {
   gameHeader: {
-    exit: "Avsluta",
-    confirmExit: "Lämna bordet och återgå till startsidan?",
+    retryDeparture: "Försök lämna igen",
+    lobby: "Lobby",
+    leaveTable: "Lämna bordet",
+    confirmDeparture: "Lämna bordet? Din hand läggs när det är möjligt och din plats frigörs efter denna giv.",
+    confirmWaiting: "Lämna bordet? Din plats frigörs nu.",
+    confirmComplete: "Lämna bordet? Din plats frigörs nu; givens resultat finns kvar.",
+    departureChanged: "Bordet har ändrats. Kontrollera läget och försök lämna igen.",
   },
   connection: {
     live: "Live",

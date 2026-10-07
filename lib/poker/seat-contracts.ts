@@ -54,7 +54,9 @@ export interface AtomicAssignBotInput {
   readonly botProfileId: BotPlaystyleId | null;
 }
 
-export type AtomicReleaseSeatInput = Omit<AtomicClaimSeatInput, "name">;
+export type AtomicReleaseSeatInput = Omit<AtomicClaimSeatInput, "name"> & {
+  readonly fold?: import("./departure-contracts").DepartureFold;
+};
 
 export interface AtomicSeatAssignmentRepository {
   claimSeatIfVersion(input: AtomicClaimSeatInput): Promise<SeatAssignment>;

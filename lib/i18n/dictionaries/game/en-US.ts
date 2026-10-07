@@ -2,8 +2,13 @@ import "server-only";
 
 const dictionary = {
   gameHeader: {
-    exit: "Exit",
-    confirmExit: "Leave this table and return to the home screen?",
+    retryDeparture: "Retry departure",
+    lobby: "Lobby",
+    leaveTable: "Leave table",
+    confirmDeparture: "Leave this table? Your hand will fold when possible, and your seat will be released after this hand.",
+    confirmWaiting: "Leave this table? Your seat will be released now.",
+    confirmComplete: "Leave this table? Your seat will be released now; your hand results will remain available.",
+    departureChanged: "The table changed. Review it and try leaving again.",
   },
   connection: {
     live: "Live",

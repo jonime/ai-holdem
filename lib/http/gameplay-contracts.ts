@@ -16,6 +16,8 @@ export const submitActionRequestSchema = z.object({
   action: humanActionSchema,
 });
 export const stepBotRequestSchema = submitActionRequestSchema.pick({ expectedVersion: true });
+export const advanceDepartureRequestSchema = stepBotRequestSchema.strict();
+export const advanceDepartureResponseSchema = gameEnvelopeSchema;
 export const getGameResponseSchema = gameEnvelopeSchema;
 export const submitActionResponseSchema = gameEnvelopeSchema;
 export const stepBotResponseSchema = gameEnvelopeSchema.extend({ aiDecision: publicAIDecisionSchema });
@@ -27,6 +29,8 @@ export type GameplayGame = Immutable<z.input<typeof gameSchema>>;
 export type GameplayAIDecision = Immutable<z.infer<typeof publicAIDecisionSchema>>;
 export type HumanAction = z.infer<typeof humanActionSchema>;
 export type SubmitActionRequest = z.infer<typeof submitActionRequestSchema>;
+export type AdvanceDepartureRequest = z.infer<typeof advanceDepartureRequestSchema>;
+export type AdvanceDepartureResponse = GetGameResponse;
 export type StepBotRequest = z.infer<typeof stepBotRequestSchema>;
 export type GetGameResponse = Immutable<z.infer<typeof getGameResponseSchema>>;
 export type SubmitActionResponse = GetGameResponse;

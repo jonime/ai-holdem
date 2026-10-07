@@ -15,7 +15,7 @@ import { botErrorMessage } from "./bot-error";
 import { useBotLifecycle, type BotLifecycle } from "./useBotLifecycle";
 import { tableFlow } from "@/components/poker/view-model";
 import { getClientPlayerToken } from "@/lib/identity/player-token-client";
-import { api } from "@/lib/http/api";
+import { HttpError, api } from "@/lib/http/api";
 import type { HumanAction } from "@/lib/http/gameplay-contracts";
 import { useGameChannel } from "@/lib/realtime/useGameChannel";
 import {
@@ -117,7 +117,10 @@ export function useGameSession(gameId?: string) {
     viewerToken: getClientPlayerToken,
     step: async current => {
       const sequence = ++nextResponseSequence.current;
-      const result = await api.games.stepBot({ gameId: current.id, expectedVersion: current.version });
+      const actor = current.poker.players.find(player => player.id === current.poker.currentActorId);
+      const result = actor?.controller === "human" && actor.leaving
+        ? await api.games.advanceDeparture({ gameId: current.id, expectedVersion: current.version })
+        : await api.games.stepBot({ gameId: current.id, expectedVersion: current.version });
       return { result, sequence };
     },
     apply: applyGame,
@@ -311,12 +314,37 @@ export function useGameSession(gameId?: string) {
     [game, postSeatAction],
   );
 
+  const departurePending = useRef(false);
   const releaseSeat = useCallback(
-    async (seat: number) => {
-      if (!game) return;
-      await postSeatAction(() => api.seats.release({ gameId: game.id, seat, expectedVersion: game.version }));
+    async (seat: number, navigate = false) => {
+      // Use the version presented with the control, so a seat change requires
+      // explicit review/retry rather than acting on a newly occupied seat.
+      const current = game;
+      if (!current || departurePending.current || activeGameId.current !== current.id) return false;
+      departurePending.current = true;
+      setLoading(true);
+      setError(null);
+      try {
+        await api.seats.release({ gameId: current.id, seat, expectedVersion: current.version });
+        if (activeGameId.current !== current.id) return false;
+        if (navigate) {
+          botLifecycle.current?.reset();
+          router.push(addLocalePrefix("/play", locale));
+        } else await loadGame(current.id);
+        return true;
+      } catch (requestError) {
+        if (activeGameId.current !== current.id) return false;
+        if (requestError instanceof HttpError && requestError.status === 409) {
+          try { await loadGame(current.id); } catch { setRefreshFailed(true); }
+          setError(t("gameHeader.departureChanged"));
+        } else setError(requestError instanceof Error ? requestError.message : t("errors.seatUpdate"));
+        return false;
+      } finally {
+        departurePending.current = false;
+        if (activeGameId.current === current.id) setLoading(false);
+      }
     },
-    [game, postSeatAction],
+    [game, loadGame, locale, router, t],
   );
 
   const assignBot = useCallback(
@@ -432,7 +460,7 @@ export function useGameSession(gameId?: string) {
   const nextHandPending = useRef(false);
   const beginNextHand = useCallback(async () => {
     if (!game || loading || bots.loading || nextHandPending.current ||
-      !tableFlow(game.poker.players, game.poker.street, getClientPlayerToken(), game.viewerIsHost).canStartNextHand) return;
+      !tableFlow(game.poker.players, game.poker.street, getClientPlayerToken(), game.viewerIsHost, game.poker.seats).canStartNextHand) return;
     nextHandPending.current = true;
     setLoading(true);
     setError(null);
@@ -490,6 +518,7 @@ export function useGameSession(gameId?: string) {
     feed,
     feedLoading: Boolean(gameId_) && feed === null,
     loading: loading || bots.loading,
+    navigationLoading: loading,
     error: error ?? bots.notice,
     usageLimited: bots.usageLimited,
     usageRetryAfterMs: bots.usageRetryAfterMs,

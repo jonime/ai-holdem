@@ -265,3 +265,16 @@ describe("bot lifecycle execution (characterized advancement and pause policies)
     f.lifecycle.reset();
   });
 });
+
+it("a bot provider pause does not block a different departing-human turn", async () => {
+  const f = fixture();
+  f.driver.step.mockRejectedValueOnce(new HttpError("provider", 502, "BOT_TIMEOUT"));
+  await f.lifecycle.advance(f.game(), true);
+  const departing = { ...humanTurn(f.game()), poker: { ...humanTurn(f.game()).poker,
+    players: f.game().poker.players.map(player => player.id === "human" ? { ...player, leaving: true } : player) } };
+  f.reconcile(departing);
+  expect(f.lifecycle.getSnapshot().kind).toBe("idle");
+  f.driver.step.mockResolvedValueOnce({ result: { game: { ...departing, status: "complete", version: departing.version + 1 }, aiDecision: decision }, sequence: 2 });
+  await f.lifecycle.advance(departing, true);
+  expect(f.driver.step).toHaveBeenCalledTimes(2);
+});

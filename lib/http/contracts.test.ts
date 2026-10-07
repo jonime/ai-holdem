@@ -27,3 +27,16 @@ it("retains publication version and trimmed-title validation before service norm
   expect(listingTitleSchema.safeParse(`  ${"x".repeat(60)}  `).success).toBe(true);
   expect(listingTitleSchema.safeParse("x".repeat(61)).success).toBe(false);
 });
+
+it("legacy broadcasts cannot carry private live-seat ownership tokens", async () => {
+  const { broadcastGameSchema } = await import("./schemas");
+  const { gameplayGame } = await import("@/test/fixtures/gameplay");
+  const publicGame = { ...gameplayGame, publication: null, poker: { ...gameplayGame.poker, legalActions: [],
+    players: gameplayGame.poker.players.map(player => ({ ...player, playerToken: null, holeCards: null })),
+    seats: [{ id: "human", seat: 0, status: "claimed", controller: "human", stack: 1000, leaving: false, playerToken: "private-owner" }],
+  } };
+  expect(broadcastGameSchema.safeParse(publicGame).success).toBe(false);
+  expect(broadcastGameSchema.safeParse({ ...publicGame, poker: { ...publicGame.poker,
+    seats: publicGame.poker.seats.map(seat => ({ ...seat, playerToken: null })),
+  } }).success).toBe(true);
+});

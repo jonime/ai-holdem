@@ -187,11 +187,11 @@ export function resolveViewer(
 
 /** Seat ownership survives folding and elimination; hosts may be unseated. */
 export function canAdvanceBots(
-  game: { readonly viewerIsHost: boolean; readonly poker: { readonly players: readonly PublicPokerPlayer[] } },
+  game: { readonly viewerIsHost: boolean; readonly poker: { readonly players: readonly PublicPokerPlayer[]; readonly seats?: readonly Pick<PublicPokerPlayer, "controller" | "status" | "playerToken">[] } },
   viewerToken: string | null,
 ): boolean {
   return Boolean(viewerToken) && (game.viewerIsHost ||
-    game.poker.players.some(player => player.controller === "human" &&
+    (game.poker.seats ?? game.poker.players).some(player => player.controller === "human" &&
       player.status === "claimed" && player.playerToken === viewerToken));
 }
 
@@ -396,18 +396,21 @@ export function tableFlow(
   street: PokerStreet | null,
   viewerToken: string | null,
   viewerIsHost: boolean,
+  seats: readonly Pick<PublicPokerPlayer, "id" | "stack" | "status" | "controller" | "playerToken" | "leaving">[] = players,
 ) {
   const { human } = resolveViewer(players, viewerToken);
-  const winnerId = findGameWinnerId(players, street);
+  const liveWinner = findGameWinnerId(seats, street);
+  const winnerId = players.some(player => player.id === liveWinner) ? liveWinner : null;
   const eliminated = human !== null && (
     (human.stack === 0 && (street === "complete" || !human.inHand)) ||
     (human.status !== "claimed" && !human.inHand)
   );
-  const participants = players.filter(p => p.status === "claimed" || p.status === "bot");
+  const participants = seats.filter(p => p.status === "claimed" || p.status === "bot");
   const botOnly = participants.length > 0 && participants.every(p => p.controller === "bot");
   const canStartNextHand = street === "complete" && winnerId === null &&
     participants.filter(p => p.stack > 0 && !p.leaving).length >= 2 &&
-    (human !== null || (botOnly && viewerIsHost));
+    (seats.some(seat => seat.controller === "human" && seat.status === "claimed" && !seat.leaving &&
+      viewerToken !== null && seat.playerToken === viewerToken) || (botOnly && viewerIsHost));
   return { winnerId, eliminated, canStartNextHand,
-    watching: street !== "complete" && (human === null || eliminated || !human.inHand) };
+    watching: street !== "complete" && (human === null || human.leaving || eliminated || !human.inHand) };
 }

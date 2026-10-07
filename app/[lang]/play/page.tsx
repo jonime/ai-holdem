@@ -49,6 +49,7 @@ export default async function PlayPage({ params }: PageProps<"/[lang]/play">) {
     <div className={styles.headingRow}><div><h1>{d.title}</h1><p>{d.intro}</p></div><Link href={addLocalePrefix("/", lang)}>{directory.back}</Link></div>
     <div className={styles.controls}>
       <PlayerName dictionary={directory} />
+      <form method="post" action={addLocalePrefix("/quick-game", lang)}><Button type="submit">{d.quickPlay}</Button></form>
       <form method="post" action={addLocalePrefix("/new-game", lang)}><Button type="submit">{d.createTable}</Button></form>
     </div>
       <Suspense fallback={<p role="status">{d.loadingPersonal}</p>}><PersonalContent lang={lang} dictionary={d} /></Suspense>
