@@ -197,6 +197,7 @@ const dictionary = {
     of: "{rank} von {suit}",
   },
   errors: {
+    tableUnavailable: "Dieser Tisch ist nicht mehr verfügbar.",
     ownerAILimit: "Das KI-Kontingent des Tischbesitzers gilt gemeinsam für alle seine Tische. Bitte warte vor einem neuen Versuch.",
     gameAIRateLimit: "Dieser Tisch lässt externe Bots zu schnell spielen. Bitte warte vor einem neuen Versuch.",
     gameCreationLimit: "Die Spielerstellung ist vorübergehend begrenzt. Bitte warte vor einem neuen Versuch.",

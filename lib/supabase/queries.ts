@@ -217,6 +217,7 @@ export interface GameDatabaseClient {
       | "update_seat_count_if_version"
       | "update_table_settings_if_version"
       | "reveal_human_cards_if_version"
+      | "remove_game_if_version"
       | "list_my_games"
       | "list_public_games"
       | "list_public_game_exclusions"
@@ -801,12 +802,22 @@ export class SupabaseGameRepository {
     return toGameListing(data);
   }
 
+  async removeGameIfVersion(input: import("@/lib/poker/table-removal").RemovalInput & { fold?: import("@/lib/poker/departure-contracts").DepartureFold }): Promise<unknown> {
+    const { data, error } = await this.client.rpc("remove_game_if_version", {
+      p_game_id: input.gameId, p_expected_version: input.expectedVersion,
+      p_player_token: input.playerToken, p_operation: input.operation, p_fold: input.fold ?? null,
+    });
+    if (error) throw new Error("Unable to remove table");
+    return data;
+  }
+
   async listMyGames(playerToken: string): Promise<readonly MyGameSummary[]> {
     const { data, error } = await this.client.rpc("list_my_games", { p_player_token: playerToken });
     if (error || !Array.isArray(data)) throw new Error("Unable to load personal tables");
     const games = data.map(row => {
       if (!isRecord(row)) throw new Error("Invalid personal table summary");
       return { gameId: row.game_id, title: row.title, status: row.status,
+        version: row.version, removal: row.removal,
         updatedAt: row.updated_at, occupiedSeats: row.occupied_seats, totalSeats: row.total_seats };
     });
     return myGamesResponseSchema.parse({ games }).games;

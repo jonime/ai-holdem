@@ -745,10 +745,10 @@ it("external admission charges the persisted host, regardless of the seated driv
 });
 
 it("parses only summary fields from the personal RPC", async () => {
-  const { client, rpc } = createClient({ updateResult: [{ game_id: "11111111-1111-4111-8111-111111111111", title: null, status: "complete", updated_at: "2026-10-06T12:00:00+00:00", occupied_seats: 1, total_seats: 6, current_state: { cards: ["As"] } }] });
+  const { client, rpc } = createClient({ updateResult: [{ game_id: "11111111-1111-4111-8111-111111111111", title: null, status: "complete", updated_at: "2026-10-06T12:00:00+00:00", occupied_seats: 1, total_seats: 6, version: 0, removal: "delete", current_state: { cards: ["As"] } }] });
   const result = await new SupabaseGameRepository(client).listMyGames("owner");
   expect(rpc).toHaveBeenCalledWith("list_my_games", { p_player_token: "owner" });
-  expect(result[0]).toEqual({ gameId: "11111111-1111-4111-8111-111111111111", title: null, status: "complete", updatedAt: "2026-10-06T12:00:00+00:00", occupiedSeats: 1, totalSeats: 6 });
+  expect(result[0]).toEqual({ gameId: "11111111-1111-4111-8111-111111111111", title: null, status: "complete", updatedAt: "2026-10-06T12:00:00+00:00", occupiedSeats: 1, totalSeats: 6, version: 0, removal: "delete" });
 });
 it.each([null, {}, [null], [{ game_id: "invalid" }]])("rejects invalid personal RPC data %j", async data => {
   const { client, rpc } = createClient({}); rpc.mockResolvedValue({ data, error: null });
@@ -757,4 +757,10 @@ it.each([null, {}, [null], [{ game_id: "invalid" }]])("rejects invalid personal 
 it("rejects personal RPC failures", async () => {
   const { client, rpc } = createClient({}); rpc.mockResolvedValue({ data: [], error: { message: "private" } });
   await expect(new SupabaseGameRepository(client).listMyGames("owner")).rejects.toThrow("Unable to load personal tables");
+});
+
+it("uses the removal transaction with a private server-prepared fold and no follow-up reads", async () => {
+  const { client, rpc } = createClient({ updateResult: { outcome: "ok", version: 5 } });
+  expect(await new SupabaseGameRepository(client).removeGameIfVersion({ gameId: "game", expectedVersion: 4, operation: "delete", playerToken: "owner" })).toEqual({ outcome: "ok", version: 5 });
+  expect(rpc).toHaveBeenCalledWith("remove_game_if_version", { p_game_id: "game", p_expected_version: 4, p_operation: "delete", p_player_token: "owner", p_fold: null });
 });

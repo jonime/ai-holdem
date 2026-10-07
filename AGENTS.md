@@ -69,7 +69,7 @@ images are pulled normally during startup; do not cache Docker image archives,
 containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
-disposable database, then runs `test:sql:game-reads`, `test:sql:my-games`, `test:sql:bot-context`, `test:sql:seats`,
+disposable database, then runs `test:sql:game-reads`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
 `test:sql:departures`, `test:sql:bot-claims`, `test:sql:usage`, and `test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore
 health checks. Preserve workflow cancellation for superseded commits.
 
@@ -132,7 +132,7 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
   safe structured LLM/Jev HTTP logs and the localized credit-departure notice;
   never log raw provider messages, inputs, responses, headers, keys or cards.
 - Header Lobby preserves seats and navigates to localized Play. Leave table is
-  available for owned claimed humans with another non-leaving claimed human,
+  available for any owned claimed non-departing human, including the last human,
   including folded/eliminated humans. It confirms and navigates only after an
   acknowledged departure; Stand up shares the departure service and stays watching.
   Deploy `20261019000000_add_human_departures.sql` before application code. Active
@@ -361,3 +361,17 @@ repository errors or put personal summaries in shared caches or Realtime. No pol
 or subscriptions run on Play. Localized `/join-game` permanently redirects to Play.
 Apply `20261017000000_add_my_games.sql` before application deployment and run
 `npm run test:sql:my-games`; CI includes rollback-only SQL and production Play smoke.
+
+## Personal table removal
+
+Deploy `20261020000000_add_table_removal.sql` before application code. Personal
+summaries include version and caller-specific removal capability, never ownership
+tokens. Host deletion locks the game row and blocks on every other claimed human
+assignment, including folded, eliminated or departing humans. History is deleted
+before restrictive seat references; usage allowances survive. Joined removal
+prepares folds through the adapter, then atomically registers departure and a
+private listing exclusion. Exclusions precede ordering/limits and clear only on
+successful non-departing seat claims, including directory joins. Keep compact
+seat refresh signals in `after()`, polling recovery and terminal localized 404
+handling that stops advancement. Run `test:sql:removal` and production removal
+browser smoke, then verify two-browser notifications on authorized Vercel.

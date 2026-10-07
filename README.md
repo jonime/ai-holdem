@@ -35,8 +35,8 @@ authentication.
 - **Play** shows up to five recently active tables owned by this browser and lists published waiting tables with open seats. Private
   tables remain accessible through invite links.
 
-**Lobby** returns to Play while preserving your seat. At multiplayer tables,
-**Leave table** confirms departure, folds on your next legal turn, and releases
+**Lobby** returns to Play while preserving seats. If you own a human seat, including
+the last human, **Leave table** confirms departure, folds on your next legal turn, and releases
 your seat after the hand. **Stand up** uses the same departure rules and keeps
 you watching. Closing a tab alone does not register departure.
 
@@ -193,3 +193,12 @@ and require explicit retry; rules-only Quick Play creates a separate private gam
 Run `npm run test:sql:usage` against migrated local Supabase; CI includes it before
 production browser smoke. The smoke suite also covers fair-use countdowns,
 explicit retry, rules replay, and localized HTML/typed JSON creation denials.
+
+### Remove tables
+
+On Play, hosts can delete tables once all other human assignments are released.
+Deletion permanently removes history and the shared URL; fair-use counters remain.
+Joined players can leave and hide a table from their personal list. Active-hand
+departures are irreversible; all-ins retain pot eligibility. A new successful seat
+claim restores a hidden table. Apply `20261020000000_add_table_removal.sql` before
+deploying this feature. See [gameplay](docs/gameplay.md#removing-tables-from-play).

@@ -41,6 +41,9 @@ import type {
 } from "@/components/poker/types";
 
 export function useGameSession(gameId?: string) {
+  const [unavailableId, setUnavailableId] = useState<string | null>(null);
+  const unavailable = unavailableId === gameId;
+  const unavailableGameId = useRef<string | null>(null);
   const [game, setGame] = useState<Game | null>(null);
   const { feed, refreshFeed } = useGameFeed(gameId);
   const [loading, setLoading] = useState(false);
@@ -74,7 +77,7 @@ export function useGameSession(gameId?: string) {
 
   const applyGame = useCallback(
     (incoming: Game, sequence: number, targetGameId = incoming.id) => {
-      if (activeGameId.current !== targetGameId || incoming.id !== targetGameId) {
+      if (unavailableGameId.current === targetGameId || activeGameId.current !== targetGameId || incoming.id !== targetGameId) {
         return false;
       }
       const reconciled = reconcileGame(
@@ -104,12 +107,22 @@ export function useGameSession(gameId?: string) {
         const body = await api.games.get({ gameId: targetGameId }, { signal: controller.signal });
         if (isCurrent()) applyGame(body.game, sequence, targetGameId);
         return body.game;
+      } catch (failure) {
+        if (failure instanceof HttpError && failure.status === 404 && isCurrent() && activeGameId.current === targetGameId) {
+          unavailableGameId.current = targetGameId;
+          latestGame.current = null;
+          botLifecycle.current?.reset();
+          setGame(null);
+          setUnavailableId(targetGameId);
+          setError(t("errors.tableUnavailable"));
+        }
+        throw failure;
       } finally {
         cancel();
         refreshAbortControllers.current.delete(controller);
       }
     },
-    [applyGame],
+    [applyGame, t],
   );
 
   const bots = useBotLifecycle(gameId, game, loading, {
@@ -139,7 +152,7 @@ export function useGameSession(gameId?: string) {
   const retryBotTurn = bots.retry;
 
   const performRefresh = useCallback(async () => {
-    if (!gameId || !navigator.onLine) return;
+    if (!gameId || unavailableGameId.current === gameId || !navigator.onLine) return;
     setRefreshing(true);
     try {
       await loadGame(gameId);
@@ -174,7 +187,7 @@ export function useGameSession(gameId?: string) {
   }, []);
 
   const realtimeStatus = useGameChannel(
-    gameId,
+    unavailable ? undefined : gameId,
     game?.version ?? null,
     scheduleRealtimeRefresh,
   );
@@ -232,9 +245,9 @@ export function useGameSession(gameId?: string) {
 
     let cancelled = false;
 
-    void loadGame(gameId).catch(() => {
+    void Promise.resolve().then(() => loadGame(gameId, () => !cancelled)).catch(() => {
       if (!cancelled) {
-        setError(t("errors.loadGame"));
+        setError(t(unavailableGameId.current === gameId ? "errors.tableUnavailable" : "errors.loadGame"));
       }
     });
 
@@ -514,12 +527,13 @@ export function useGameSession(gameId?: string) {
 
   return {
     botCatalog,
+    unavailable,
     game,
     feed,
     feedLoading: Boolean(gameId_) && feed === null,
     loading: loading || bots.loading,
     navigationLoading: loading,
-    error: error ?? bots.notice,
+    error: unavailable ? t("errors.tableUnavailable") : error ?? bots.notice,
     usageLimited: bots.usageLimited,
     usageRetryAfterMs: bots.usageRetryAfterMs,
     connectionStatus: liveConnectionStatus,

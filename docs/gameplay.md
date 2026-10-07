@@ -21,11 +21,10 @@ spectators watch passively. Starting another hand requires explicit interaction.
 
 ## Lobby navigation and departure
 
-The game header offers **Leave table** when you own a human seat and another
-claimed, non-leaving human occupies the table. Folded and eliminated humans
-still count. Against bots, as a spectator or unseated host, or after registering
-departure, it offers **Lobby**. Lobby returns to the localized **Play** page without
-changing seats. The application title links home.
+The game header offers **Leave table** whenever you own a non-departing human
+seat, including the last human, folded players and eliminated players. Spectators,
+unseated hosts and already-departing players see **Lobby**, which returns to the
+localized **Play** page without changing seats. The application title links home.
 
 Leave table confirms before submitting. Cancellation changes nothing. Navigation
 happens only after server acknowledgement; a stale version refreshes the table
@@ -117,3 +116,17 @@ Quick Play still starts a separate private six-seat game in one click.
 The optional name field sits at the top of Play and is remembered for public joins.
 Select a personal row to return, or a public row to join. Rows support keyboard
 activation; the refresh icon has a localized accessible label.
+
+## Removing tables from Play
+
+Your tables has separate return links and removal buttons. Hosts can confirm
+**Delete table** only after every other human assignment has been released;
+folded, eliminated and departing humans still block deletion. Bots do not.
+Deletion permanently removes the shared URL and all game history, without
+refunding fair-use allowances.
+
+Joined players can confirm **Leave and remove**. It registers the same irreversible
+departure as Leave table and privately hides the row only after acknowledgement.
+Older tables refill the five-row list. Visiting the URL does not restore a hidden
+row; successfully claiming a new seat does. Conflicts refresh the list and require
+explicit retry. No background worker advances pending departures.

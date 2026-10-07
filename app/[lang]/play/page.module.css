@@ -23,9 +23,8 @@
 .facts { grid-column: 1; display: flex; flex-wrap: wrap; gap: 4px 14px; color: #526560; font-size: 13px; font-weight: 400; }
 .rowArrow { grid-column: 2; grid-row: 1 / 3; width: 18px; height: 18px; color: #507a6d; }
 span.rowArrow { width: auto; height: auto; font-size: 13px; }
-.personalRow { grid-template-columns: minmax(0, 1fr) auto auto; min-height: 54px; }
+.personalRow { grid-template-columns: minmax(0, 1fr) auto; min-height: 54px; }
 .personalRow .facts { grid-column: 2; grid-row: 1; }
-.personalRow .rowArrow { grid-column: 3; grid-row: 1; }
 .tableRow:hover, .iconButton:hover, .loadMore:hover { background: #eaf0e9; border-color: #507a6d; }
 .tableRow:focus-visible, .iconButton:focus-visible, .loadMore:focus-visible { outline: 2px solid #285f52; outline-offset: 3px; }
 .empty { padding: 26px 14px; text-align: center; color: #526560; font-size: 14px; }
@@ -40,7 +39,16 @@ button:disabled { cursor: wait; opacity: .6; }
   .controls { flex-wrap: wrap; gap: 14px; margin: 22px 0; padding-bottom: 22px; }
   .nameField { width: 100%; }
   .controls form { margin-left: 0; }
-  .personalRow { grid-template-columns: minmax(0, 1fr) auto; }
+  .personalRow { grid-template-columns: minmax(0, 1fr); }
   .personalRow .facts { grid-column: 1; grid-row: 2; }
-  .personalRow .rowArrow { grid-column: 2; grid-row: 1 / 3; }
 }
+
+.personalItem { display: grid; grid-template-columns: minmax(0, 1fr) 44px; align-items: center; padding-right: 6px; border: 1px solid #b3c5bd; border-radius: 4px; background: #fffef9; }
+.personalItem .personalRow { border: 0; background: transparent; }
+.personalItem .personalRow:hover { background: #eaf0e9; }
+.removalButton { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #6a7f77; cursor: pointer; }
+.removalButton svg { width: 18px; height: 18px; }
+.removalButton:hover:not(:disabled) { color: #173a34; background: #eaf0e9; }
+.removalButton:focus-visible { outline: 2px solid #285f52; outline-offset: -2px; }
+.removalButton:disabled { cursor: not-allowed; }
+.removalBlocked { grid-column: 1 / -1; margin: 0; padding: 0 14px 12px; color: #526560; font-size: 13px; line-height: 1.5; }

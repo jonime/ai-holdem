@@ -197,6 +197,7 @@ const dictionary = {
     of: "{rank} of {suit}",
   },
   errors: {
+    tableUnavailable: "This table is no longer available.",
     ownerAILimit: "The table owner’s AI allowance is shared across their tables. Please wait before retrying.",
     gameAIRateLimit: "This table is advancing external bots too quickly. Please wait before retrying.",
     gameCreationLimit: "Game creation is temporarily limited. Please wait before trying again.",

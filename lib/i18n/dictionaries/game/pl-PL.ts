@@ -198,6 +198,7 @@ const dictionary = {
     of: "{rank} {suit}",
   },
   errors: {
+    tableUnavailable: "Ten stół nie jest już dostępny.",
     ownerAILimit: "Limit AI właściciela jest wspólny dla wszystkich jego stołów. Poczekaj przed ponowną próbą.",
     gameAIRateLimit: "Przy tym stole boty zewnętrzne grają zbyt szybko. Poczekaj przed ponowną próbą.",
     gameCreationLimit: "Tworzenie gier jest tymczasowo ograniczone. Poczekaj przed ponowną próbą.",

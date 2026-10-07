@@ -197,6 +197,7 @@ const dictionary = {
     of: "{rank} van {suit}",
   },
   errors: {
+    tableUnavailable: "Deze tafel is niet meer beschikbaar.",
     ownerAILimit: "Het AI-tegoed van de tafeleigenaar wordt gedeeld tussen diens tafels. Wacht voordat je opnieuw probeert.",
     gameAIRateLimit: "Deze tafel laat externe bots te snel spelen. Wacht voordat je opnieuw probeert.",
     gameCreationLimit: "Het maken van spellen is tijdelijk beperkt. Wacht voordat je opnieuw probeert.",

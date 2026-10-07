@@ -197,6 +197,7 @@ const dictionary = {
     of: "{rank} di {suit}",
   },
   errors: {
+    tableUnavailable: "Questo tavolo non è più disponibile.",
     ownerAILimit: "La quota IA del proprietario è condivisa tra i suoi tavoli. Attendi prima di riprovare.",
     gameAIRateLimit: "Questo tavolo fa giocare i bot esterni troppo rapidamente. Attendi prima di riprovare.",
     gameCreationLimit: "La creazione di partite è temporaneamente limitata. Attendi prima di riprovare.",

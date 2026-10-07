@@ -197,6 +197,7 @@ const dictionary = {
     of: "{rank} i {suit}",
   },
   errors: {
+    tableUnavailable: "Det här bordet är inte längre tillgängligt.",
     ownerAILimit: "Bordsägarens AI-kvot delas mellan alla deras bord. Vänta innan du försöker igen.",
     gameAIRateLimit: "Det här bordets externa botar spelar för snabbt. Vänta innan du försöker igen.",
     gameCreationLimit: "Spelskapande är tillfälligt begränsat. Vänta innan du försöker igen.",

@@ -2,7 +2,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { GET } from "./route";
 const { mine, create } = vi.hoisted(() => ({ mine: vi.fn(), create: vi.fn() }));
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseGameRepository: create }));
-const game = { gameId: "11111111-1111-4111-8111-111111111111", title: null, status: "complete", updatedAt: "2026-10-06T12:00:00Z", occupiedSeats: 2, totalSeats: 6 };
+const game = { gameId: "11111111-1111-4111-8111-111111111111", title: null, status: "complete", updatedAt: "2026-10-06T12:00:00Z", occupiedSeats: 2, totalSeats: 6, version: 0, removal: "delete" };
 beforeEach(() => { vi.clearAllMocks(); create.mockReturnValue({ listMyGames: mine }); mine.mockResolvedValue([game]); });
 const request = (cookie?: string) => new Request("http://localhost/api/games/mine?playerToken=other", { headers: cookie ? { cookie } : {} });
 it("returns empty without identity, creating neither a repository nor cookie", async () => {

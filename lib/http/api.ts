@@ -24,6 +24,7 @@ import {
   type FeedQuery,
 } from "./feed-contracts";
 import {
+  removeGameRequestSchema, removeGameResponseSchema, type RemoveGameRequest,
   myGamesResponseSchema, directoryQuerySchema, directoryResponseSchema, joinRequestSchema,
   publicationRequestSchema, joinResponseSchema, publicationResponseSchema,
   heartbeatResponseSchema, type DirectoryQuery, type JoinRequest, type PublicationRequest,
@@ -111,6 +112,9 @@ export const api = {
     },
   },
   discovery: {
+    remove({ gameId, ...body }: GameParams & RemoveGameRequest, options: Options = {}) {
+      return mutation({ gameId }, "remove", body, removeGameRequestSchema, removeGameResponseSchema, options);
+    },
     mine(options: Options = {}) {
       return send("/api/games/mine", myGamesResponseSchema, { cache: "no-store", signal: options.signal });
     },

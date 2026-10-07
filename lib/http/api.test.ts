@@ -225,3 +225,14 @@ it("reads personal summaries with same-origin cookies, no query identity and no 
   mockResponse({ games: [], playerToken: "secret" });
   await expect(api.discovery.mine()).rejects.toThrow("Invalid response payload");
 });
+
+it("validates removal requests and responses at the shared transport boundary", async () => {
+  const fetch = mockResponse({ version: 8 });
+  expect(await api.discovery.remove({ gameId: "game", expectedVersion: 7, operation: "delete" })).toEqual({ version: 8 });
+  expect(fetch).toHaveBeenCalledWith("/api/games/game/remove", expect.objectContaining({ method: "POST", credentials: "same-origin", body: JSON.stringify({ expectedVersion: 7, operation: "delete" }) }));
+  fetch.mockClear();
+  expect(() => api.discovery.remove({ gameId: "game", expectedVersion: -1, operation: "delete" })).toThrow();
+  expect(fetch).not.toHaveBeenCalled();
+  mockResponse({ version: 8, playerToken: "secret" });
+  await expect(api.discovery.remove({ gameId: "game", expectedVersion: 7, operation: "leave_and_remove" })).rejects.toThrow("Invalid response payload");
+});

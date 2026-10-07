@@ -92,6 +92,10 @@ jobs:
         timeout-minutes: 3
         run: npm run test:sql:my-games
 
+      - name: Verify SQL table removal
+        timeout-minutes: 3
+        run: npm run test:sql:removal
+
       - name: Verify SQL bot context
         timeout-minutes: 3
         run: npm run test:sql:bot-context

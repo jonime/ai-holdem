@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { hasAutomaticTurn } from "./bot-advancement";
 import { GameHeader } from "./GameHeader";
@@ -88,6 +89,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
 
   const {
     game,
+    unavailable,
     botCatalog,
     feed,
     feedLoading,
@@ -313,7 +315,9 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           ) : null}
         </p>
       ) : null}
-      {!game ? (
+      {unavailable ? (
+        <Link href={addLocalePrefix("/play", locale)}>{t("gameHeader.lobby")}</Link>
+      ) : !game ? (
         <div className="route-loading" aria-label={t("table.waiting")} />
       ) : game.status === "waiting" ? (
         <LobbyPanel

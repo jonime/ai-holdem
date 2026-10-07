@@ -197,6 +197,7 @@ const dictionary = {
     of: "{rank} {suit}",
   },
   errors: {
+    tableUnavailable: "Tämä pöytä ei ole enää saatavilla.",
     ownerAILimit: "Pöydän omistajan tekoälykiintiö on yhteinen kaikille hänen pöydilleen. Odota ennen uutta yritystä.",
     gameAIRateLimit: "Tämän pöydän ulkoiset botit pelaavat liian nopeasti. Odota ennen uutta yritystä.",
     gameCreationLimit: "Pelien luontia on rajoitettu tilapäisesti. Odota ennen uutta yritystä.",

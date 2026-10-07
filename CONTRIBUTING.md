@@ -586,7 +586,7 @@ tokens or repository errors. Preserve shared candidate caching only for the publ
 directory, with request-specific host/seated exclusions. Play never polls or subscribes
 to Realtime. Personal tables load on page entry and offer Retry after failure; the
 public section has an accessible refresh icon. The optional joining name appears at
-the top. Compact personal rows are links and public rows are native buttons, retaining
+the top. Compact personal rows have separate links and removal buttons; public rows are native buttons, retaining
 keyboard activation and pending join protection. Both creation forms use their existing localized POST routes.
 
 
@@ -605,3 +605,23 @@ controls, acknowledgement gating, Stand up watching, localized Lobby, Play Quick
 Play, and remaining-browser continuation after the departing browser closes.
 Run it locally with `npm run test:e2e:smoke -- test/e2e/departure.spec.ts`, then
 verify departure and notification delivery on an authorized Vercel deployment.
+
+## Table removal verification and rollout
+
+Apply `20261020000000_add_table_removal.sql` before deploying the application.
+`POST /api/games/[gameId]/remove` accepts only `expectedVersion` and the explicit
+`delete` or `leave_and_remove` operation through discovery contracts and `api.discovery.remove`.
+Cookie identity and service-role RPCs own authorization; no ownership tokens enter
+summaries or responses. All other claimed human assignments block host deletion,
+including folded, eliminated and departing players. The transaction deletes history
+before seats and preserves fair-use counters. Joined removal reuses engine-validated
+departure and atomically records a private exclusion before list ordering/limits.
+New claims restore excluded rows; visits and pending-departure claim retries do not.
+
+Run `npm run test:sql:removal`, `test:sql:my-games`, `test:sql:departures` and
+`test:sql:seats` on migrated local Supabase, then `npm run check`, `npm run build`
+and `npm run test:e2e:smoke`. Removal SQL is included in CI after personal lists.
+The removal browser suite covers cancellation, blockers, list refill, explicit
+conflict retry, duplicate prevention, keyboard/mobile controls and deletion recovery.
+Verify two-browser Realtime delivery on an authorized Vercel deployment containing
+this change; polling must still detect deletion if Broadcast fails.

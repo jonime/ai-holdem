@@ -1,0 +1,26 @@
+import "server-only";
+import { removalRpcResultSchema, type RemoveGameRequest } from "@/lib/http/discovery-contracts";
+import { prepareSeatDeparture, type GameReader } from "./game-service";
+import type { GameHostReader } from "./host-authorization";
+import type { SeatAssignmentRepository } from "./seat-contracts";
+import type { DepartureFold } from "./departure-contracts";
+
+export type RemovalInput = RemoveGameRequest & { gameId: string; playerToken: string };
+export class TableRemovalError extends Error {
+  constructor(readonly outcome: "missing" | "conflict" | "forbidden" | "blocked") { super(outcome); }
+}
+export interface RemovalRepository extends GameReader, GameHostReader, Pick<SeatAssignmentRepository, "getSeatAssignments"> {
+  removeGameIfVersion(input: RemovalInput & { fold?: DepartureFold }): Promise<unknown>;
+}
+export async function removeTable(repository: RemovalRepository, input: RemovalInput) {
+  let fold: DepartureFold | undefined;
+  if (input.operation === "leave_and_remove") {
+    if (await repository.getHostToken(input.gameId) === input.playerToken) throw new TableRemovalError("forbidden");
+    const seat = (await repository.getSeatAssignments(input.gameId)).find(s => s.controller === "human" && s.status === "claimed" && s.playerToken === input.playerToken);
+    if (!seat) throw new TableRemovalError("forbidden");
+    fold = await prepareSeatDeparture(repository, { ...input, seat: seat.seat });
+  }
+  const result = removalRpcResultSchema.parse(await repository.removeGameIfVersion({ ...input, ...(fold ? { fold } : {}) }));
+  if (result.outcome !== "ok") throw new TableRemovalError(result.outcome);
+  return { version: result.version };
+}

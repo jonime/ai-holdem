@@ -24,6 +24,8 @@ export type HeartbeatResponse = z.infer<typeof heartbeatResponseSchema>;
 
 export const myGameSummarySchema = z.object({
   gameId: z.uuid(),
+  version: versionSchema,
+  removal: z.enum(["delete", "deletion_blocked", "leave_and_remove"]),
   title: z.string().min(1).max(60).nullable(),
   status: z.enum(["waiting", "playing", "complete", "error"]),
   updatedAt: z.iso.datetime({ offset: true }),
@@ -33,3 +35,11 @@ export const myGameSummarySchema = z.object({
 export const myGamesResponseSchema = z.object({ games: z.array(myGameSummarySchema).max(5) }).strict();
 export type MyGameSummary = Immutable<z.infer<typeof myGameSummarySchema>>;
 export type MyGamesResponse = Immutable<z.infer<typeof myGamesResponseSchema>>;
+
+export const removeGameRequestSchema = versionRequestSchema.extend({ operation: z.enum(["delete", "leave_and_remove"]) }).strict();
+export const removeGameResponseSchema = z.object({ version: versionSchema }).strict();
+export const removalRpcResultSchema = z.discriminatedUnion("outcome", [
+  z.object({ outcome: z.literal("ok"), version: versionSchema }).strict(),
+  z.object({ outcome: z.enum(["missing", "conflict", "forbidden", "blocked"]) }).strict(),
+]);
+export type RemoveGameRequest = z.infer<typeof removeGameRequestSchema>;

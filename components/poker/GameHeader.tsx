@@ -32,7 +32,7 @@ export function GameHeader({ game, loading, onLeave }: {
     <header className={styles.gameHeader}>
       <div className={styles.gameHeaderInner}>
         <Link href={addLocalePrefix("/", locale)} className={styles.gameHeaderTitle}>{APP_NAME}</Link>
-        <Button variant="primary" size="small" disabled={loading || !game} onClick={handleExit}>
+        <Button variant="primary" size="small" disabled={loading} onClick={handleExit}>
           {t(departing ? "gameHeader.leaveTable" : "gameHeader.lobby")}
         </Button>
       </div>

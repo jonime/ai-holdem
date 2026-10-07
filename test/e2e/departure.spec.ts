@@ -27,11 +27,14 @@ async function start(page: Page, gameId: string) {
   await page.reload();
 }
 
-test("@smoke Lobby preserves a seat, the title links home, and Play starts Quick Play", async ({ page }) => {
+test("@smoke Last-human Leave supports cancellation, the title links home, and Play starts Quick Play", async ({ page }) => {
   const gameId = await create(page);
   let mutations = 0; page.on("request", request => { if (request.url().endsWith("/release")) mutations++; });
   await expect(page.locator("header a")).toHaveAttribute("href", "/");
-  await page.getByRole("button", { name: "Lobby", exact: true }).click();
+  page.once("dialog", dialog => dialog.dismiss());
+  await page.getByRole("button", { name: "Leave table", exact: true }).click();
+  expect(mutations).toBe(0);
+  await page.goto("/play");
   await expect(page).toHaveURL(/\/play$/);
   expect(mutations).toBe(0);
   expect((await read(page, gameId)).poker.players[0].status).toBe("claimed");
