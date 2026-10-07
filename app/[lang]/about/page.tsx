@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 
 import { LanguageMenu } from "@/components/LanguageMenu";
 import { getAboutDocument } from "@/lib/about/server";
-import { hasLocale } from "@/lib/i18n";
+import { addLocalePrefix, hasLocale } from "@/lib/i18n";
 
 import { getPageMetadata } from "@/lib/seo";
 
@@ -39,7 +39,7 @@ export default async function AboutPage({ params }: AboutPageProps) {
     <main className={styles.page}>
       <article className={styles.card}>
         <nav className={styles.pageNav} aria-label="About page navigation">
-          <Link className={styles.homeLink} href={`/${lang}`}>
+          <Link className={styles.homeLink} href={addLocalePrefix("/", lang)}>
             <span aria-hidden="true">←</span> AI Hold&apos;em
           </Link>
           <LanguageMenu locale={lang} pathname="/about" />

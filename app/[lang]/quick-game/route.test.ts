@@ -40,7 +40,7 @@ describe("localized quick-play creation", () => {
 
   it("creates and returns a new anonymous host token", async () => {
     const response = await POST(
-      new Request("https://example.test/en-US/quick-game", { method: "POST" }),
+      new Request("https://example.test/quick-game", { method: "POST" }),
       { params: Promise.resolve({ lang: "en-US" }) },
     );
 
@@ -49,6 +49,15 @@ describe("localized quick-play creation", () => {
     expect(response.headers.get("set-cookie")).toContain(
       `ai-holdem-player-id=${hostToken}`,
     );
+  });
+
+  it("redirects English creation to an unprefixed table", async () => {
+    const response = await POST(
+      new Request("https://example.test/quick-game", { method: "POST" }),
+      { params: Promise.resolve({ lang: "en-US" }) },
+    );
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("https://example.test/game/quick-game-123");
   });
 
   it("rejects an unsupported locale without creating a game", async () => {
@@ -66,7 +75,7 @@ describe("localized quick-play creation", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const response = await POST(
-      new Request("https://example.test/en-US/quick-game", { method: "POST" }),
+      new Request("https://example.test/quick-game", { method: "POST" }),
       { params: Promise.resolve({ lang: "en-US" }) },
     );
 
@@ -80,7 +89,7 @@ describe("localized quick-play creation", () => {
 describe("JSON Quick Play", () => {
   it("returns only the game ID and both cookies, using the existing identity", async () => {
     createQuickPlayGame.mockResolvedValueOnce({ gameId: "fresh-game", holeCards: ["Ac"], token: "secret" });
-    const response = await POST(new Request("https://example.test/en-US/quick-game", {
+    const response = await POST(new Request("https://example.test/quick-game", {
       method: "POST", headers: { Accept: "application/json", cookie: "ai-holdem-player-id=owner" },
     }), { params: Promise.resolve({ lang: "en-US" }) });
     expect(response.status).toBe(201);
@@ -101,7 +110,7 @@ describe("JSON Quick Play", () => {
   it("sanitizes JSON failures and does not set cookies", async () => {
     createQuickPlayGame.mockRejectedValueOnce(new Error("provider-secret database-detail"));
     const log = vi.spyOn(console, "error").mockImplementation(() => {});
-    const response = await POST(new Request("https://example.test/en-US/quick-game", {
+    const response = await POST(new Request("https://example.test/quick-game", {
       method: "POST", headers: { Accept: "application/json" },
     }), { params: Promise.resolve({ lang: "en-US" }) });
     expect(response.status).toBe(500);

@@ -38,6 +38,15 @@ describe("localized anonymous game creation", () => {
     expect(cookies).toContain("last-visited-game-id=game-123");
   });
 
+  it("redirects English creation to an unprefixed table", async () => {
+    const response = await POST(
+      new Request("https://example.test/new-game", { method: "POST" }),
+      { params: Promise.resolve({ lang: "en-US" }) },
+    );
+    expect(response.status).toBe(303);
+    expect(response.headers.get("location")).toBe("https://example.test/game/game-123");
+  });
+
   it("rejects an unsupported locale without creating a game", async () => {
     const response = await POST(
       new Request("https://example.test/xx-XX/new-game", { method: "POST" }),
@@ -53,7 +62,7 @@ describe("localized anonymous game creation", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const response = await POST(
-      new Request("https://example.test/en-US/new-game", { method: "POST" }),
+      new Request("https://example.test/new-game", { method: "POST" }),
       { params: Promise.resolve({ lang: "en-US" }) },
     );
 

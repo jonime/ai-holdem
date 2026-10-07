@@ -4,7 +4,7 @@ import type { Game } from "../../components/poker/types";
 // Public-state fixtures exercise rare settled outcomes without controlling the engine.
 // Replay itself uses the real local Quick Play endpoint and persistence.
 async function tableFixture(page: Page) {
-  const response = await page.request.post("/en-US/quick-game", { headers: { Accept: "application/json" } });
+  const response = await page.request.post("/quick-game", { headers: { Accept: "application/json" } });
   expect(response.status()).toBe(201);
   const { gameId } = await response.json();
   const original: Game = (await (await page.request.get(`/api/games/${gameId}`)).json()).game;
@@ -19,7 +19,7 @@ async function tableFixture(page: Page) {
     },
   };
   await page.route(`**/api/games/${gameId}`, route => route.fulfill({ json: { game } }));
-  await page.goto(`/en-US/game/${gameId}`);
+  await page.goto(`/game/${gameId}`);
   return { gameId, original, current: () => game, set: (next: Game) => { game = next; } };
 }
 
@@ -64,7 +64,7 @@ test("settled elimination persists, watches manually with expected version, and 
   let requests = 0;
   let release!: () => void;
   const held = new Promise<void>(resolve => { release = resolve; });
-  await page.route("**/en-US/quick-game", async route => {
+  await page.route("**/quick-game", async route => {
     requests++;
     await held;
     await route.fulfill({ status: 500, json: { error: "private-provider-detail" } });
@@ -87,10 +87,10 @@ test("settled elimination persists, watches manually with expected version, and 
   await expect(page.getByRole("button", { name: "New Quick Play", exact: true })).toBeEnabled();
   expect(page.url()).toContain(fixture.gameId);
   await expect(page.getByText("private-provider-detail")).toHaveCount(0);
-  await page.unroute("**/en-US/quick-game");
+  await page.unroute("**/quick-game");
   await page.getByRole("button", { name: "New Quick Play", exact: true }).click();
   await expect(page).not.toHaveURL(new RegExp(fixture.gameId));
-  await expect(page).toHaveURL(/\/en-US\/game\/[a-f0-9-]+$/);
+  await expect(page).toHaveURL(/\/game\/[a-f0-9-]+$/);
   const newId = page.url().split("/").at(-1)!;
   const fresh: Game = (await (await page.request.get(`/api/games/${newId}`)).json()).game;
   expect(fresh.status).toBe("playing");

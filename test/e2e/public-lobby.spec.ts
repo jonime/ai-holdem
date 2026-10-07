@@ -2,8 +2,8 @@ import { expect, test } from "@playwright/test";
 
 test("@smoke publishes, refreshes, reports unavailable, preserves a name, and joins", async ({ browser, page }) => {
   test.setTimeout(60_000);
-  await page.goto("/en-US");
-  await page.goto("/en-US/play");
+  await page.goto("/");
+  await page.goto("/play");
   await page.getByRole("button", { name: "Create table" }).click();
   const hostGameId = new URL(page.url()).pathname.split("/").at(-1);
   expect(hostGameId).toBeTruthy();
@@ -19,7 +19,7 @@ test("@smoke publishes, refreshes, reports unavailable, preserves a name, and jo
 
   const guestContext = await browser.newContext();
   const guest = await guestContext.newPage();
-  await guest.goto("/en-US/play");
+  await guest.goto("/play");
   await expect(guest.getByText(tableTitle, { exact: true })).toBeVisible();
   await guest.getByLabel("Your name (optional)").fill("Directory Guest");
   await guest.reload();
@@ -36,15 +36,15 @@ test("@smoke publishes, refreshes, reports unavailable, preserves a name, and jo
   await guest.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(guest.getByText(tableTitle, { exact: true })).toBeVisible();
   await guest.getByRole("listitem").filter({ hasText: tableTitle }).getByRole("button", { name: /^Join:/ }).click();
-  await expect(guest).toHaveURL(/\/en-US\/game\/[0-9a-f-]+$/);
+  await expect(guest).toHaveURL(/\/game\/[0-9a-f-]+$/);
   await expect(guest.getByText("Directory Guest", { exact: true })).toBeVisible();
 
   await guestContext.close();
 });
 
 test("serializes simultaneous directory joins and makes duplicates idempotent", async ({ browser, page }) => {
-  await page.goto("/en-US");
-  await page.goto("/en-US/play");
+  await page.goto("/");
+  await page.goto("/play");
   await page.getByRole("button", { name: "Create table" }).click();
   await expect(page.getByText("Private (unlisted)", { exact: true })).toBeVisible();
   await page.getByLabel("Table title (optional)").fill("Concurrent Table");

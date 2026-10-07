@@ -1,3 +1,4 @@
+import { addLocalePrefix } from "@/lib/i18n";
 import { beforeEach, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PersonalContent, DirectoryContent, generateMetadata } from "./page";
@@ -33,7 +34,7 @@ it.each(SUPPORTED_LOCALES)("provides localized Play strings and noindex metadata
   expect(Object.values(d).filter(value => typeof value === "string").every(value => value.trim())).toBe(true);
   expect(Object.keys(d.statuses)).toEqual(["waiting", "playing", "complete", "error"]);
   const metadata = await generateMetadata({ params: Promise.resolve({ lang }), searchParams: Promise.resolve({}) });
-  expect(metadata.robots).toEqual({ index: false, follow: true }); expect(metadata.alternates?.canonical).toContain(`/${lang}/play`);
+  expect(metadata.robots).toEqual({ index: false, follow: true }); expect(metadata.alternates?.canonical).toContain(addLocalePrefix("/play", lang));
 });
 
 it("keeps every locale's Play keys and placeholders aligned", async () => {

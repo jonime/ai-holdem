@@ -19,14 +19,14 @@ describe("machine-readable discovery", () => {
     const entries = sitemap();
 
     expect(entries).toContainEqual(
-      expect.objectContaining({ url: "https://example.test/en-US" }),
+      expect.objectContaining({ url: "https://example.test/" }),
     );
     expect(entries).toContainEqual(
       expect.objectContaining({ url: "https://example.test/fi-FI/about" }),
     );
     expect(entries).toContainEqual(
       expect.objectContaining({
-        url: "https://example.test/en-US/developers",
+        url: "https://example.test/developers",
       }),
     );
   });
@@ -47,7 +47,7 @@ describe("machine-readable discovery", () => {
 
     expect(contents.startsWith("# AI Hold'em\n\n> ")).toBe(true);
     expect(contents).toContain(
-      "[About AI Hold'em](https://www.aiholdem.gg/en-US/about)",
+      "[About AI Hold'em](https://www.aiholdem.gg/about)",
     );
     expect(contents).toMatch(/\n## Developer|\n## Product/);
     for (const section of contents.split(/\n## /).slice(1)) {

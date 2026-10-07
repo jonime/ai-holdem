@@ -4,8 +4,8 @@ import type { Game, GameFeedEvent } from "../../components/poker/types";
 test.use({ screenshot: "only-on-failure" });
 
 async function twoPlayers(browser: Browser, page: Page) {
-  await page.goto("/en-US");
-  await page.goto("/en-US/play");
+  await page.goto("/");
+  await page.goto("/play");
   await page.getByRole("button", { name: "Create table" }).click();
   await page.getByRole("textbox", { name: "Your name" }).fill("Alex");
   const renamed = page.waitForResponse(r => r.url().endsWith("/name") && r.request().method() === "PATCH");

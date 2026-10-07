@@ -6,7 +6,7 @@ import {
   getOrCreatePlayerToken,
   setPlayerTokenCookie,
 } from "@/lib/identity/player-token";
-import { hasLocale } from "@/lib/i18n";
+import { addLocalePrefix, hasLocale } from "@/lib/i18n";
 import { createDemoGame } from "@/lib/poker/game-service";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
@@ -26,7 +26,7 @@ export async function POST(
       hostToken,
     });
     const response = NextResponse.redirect(
-      new URL(`/${lang}/game/${game.gameId}`, request.url),
+      new URL(addLocalePrefix(`/game/${game.gameId}`, lang), request.url),
       303,
     );
     setPlayerTokenCookie(response, hostToken);

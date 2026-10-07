@@ -1,3 +1,4 @@
+import { addLocalePrefix } from "@/lib/i18n";
 import { z } from "zod";
 import { errorEnvelopeSchema, type GameParams, type VersionRequest } from "./common-contracts";
 import {
@@ -132,7 +133,7 @@ export const api = {
     },
     quickPlay(params: QuickPlayParams, options: Options = {}) {
       const parsed = quickPlayParamsSchema.parse(params);
-      return send(`/${parsed.lang}/quick-game${queryString({ botMode: parsed.botMode })}`, quickPlayResponseSchema, { method: "POST", headers: { Accept: "application/json" }, signal: options.signal });
+      return send(addLocalePrefix(`/quick-game${queryString({ botMode: parsed.botMode })}`, parsed.lang), quickPlayResponseSchema, { method: "POST", headers: { Accept: "application/json" }, signal: options.signal });
     },
   },
   seats: {

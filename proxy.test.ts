@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { proxy } from "./proxy";
 
-function request(pathname: string, accept: string, language?: string) {
+function request(pathname: string, accept: string, language?: string, method = "GET") {
   const url = new URL(pathname, "https://www.aiholdem.gg");
   const headers = new Headers({ Accept: accept });
   if (language !== undefined) headers.set("Accept-Language", language);
-  const value = new Request(url, { headers }) as Request & {
+  const value = new Request(url, { headers, method }) as Request & {
     readonly nextUrl: URL;
   };
   Object.defineProperty(value, "nextUrl", { value: url });
@@ -25,48 +25,51 @@ describe("agent content proxy", () => {
     expect(await response.text()).toContain("# AI Hold'em");
   });
 
-  it("continues routing localized HTML requests to the application", () => {
-    const response = proxy(request("/en-US", "text/html"));
-
+  it("continues routing non-English HTML requests to the application", () => {
+    const response = proxy(request("/fi-FI", "text/html", "de"));
     expect(response.headers.get("x-middleware-next")).toBe("1");
+    expect(response.headers.has("location")).toBe(false);
   });
 
-  it("prevents caching the temporary root HTML redirect", () => {
-    const response = proxy(request("/", "text/html"));
-
-    expect(response.status).toBe(307);
-    expect(response.headers.get("location")).toBe(
-      "https://www.aiholdem.gg/en-US",
-    );
-    expect(response.headers.get("vary")).toBe("Accept, Accept-Language");
-    expect(response.headers.get("cache-control")).toBe("private, no-store");
-    expect(response.headers.get("cdn-cache-control")).toBe("no-store");
-    expect(response.headers.get("vercel-cdn-cache-control")).toBe("no-store");
-  });
-
-  it("selects a language independently for each visitor", () => {
-    for (const [language, locale] of [
-      ["fi", "fi-FI"],
-      ["de", "de-DE"],
-    ]) {
+  it.each([undefined, "fi", "de", "en-US"])(
+    "serves English at the root independently of browser language %s", (language) => {
       const response = proxy(request("/", "text/html", language));
-      expect(response.status).toBe(307);
-      expect(response.headers.get("location")).toBe(
-        `https://www.aiholdem.gg/${locale}`,
-      );
-      expect(response.headers.get("cache-control")).toBe("private, no-store");
-    }
-  });
+      expect(response.status).toBe(200);
+      expect(response.headers.get("x-middleware-next")).toBe("1");
+      expect(response.headers.has("location")).toBe(false);
+      expect(response.headers.get("vary")).toBe("Accept");
+      expect(response.headers.has("cache-control")).toBe(false);
+    },
+  );
 
-  it("preserves the unprefixed path and query string", () => {
-    const response = proxy(request("/about?source=home", "text/html", "fi"));
-    expect(response.headers.get("location")).toBe(
-      "https://www.aiholdem.gg/fi-FI/about?source=home",
-    );
+  it.each(["/about", "/play", "/game/table-1", "/new-game", "/quick-game"])(
+    "passes English path %s directly to the application", (path) => {
+      const response = proxy(request(`${path}?source=home`, "text/html", "fi"));
+      expect(response.headers.get("x-middleware-next")).toBe("1");
+      expect(response.headers.has("location")).toBe(false);
+    },
+  );
+
+  it.each(["", "/about", "/game/table-1", "/quick-game"])(
+    "permanently redirects old English path %s with its query", (path) => {
+      const response = proxy(request(`/en-US${path}?source=home`, "text/html", "fi"));
+      expect(response.status).toBe(308);
+      expect(response.headers.get("location")).toBe(`https://www.aiholdem.gg${path || "/"}?source=home`);
+      expect(response.headers.has("x-middleware-rewrite")).toBe(false);
+    },
+  );
+
+  it("routes English POST forms without changing their method", () => {
+    const current = proxy(request("/quick-game?botMode=rules", "application/json", "fi", "POST"));
+    expect(current.headers.has("location")).toBe(false);
+    expect(current.headers.get("x-middleware-next")).toBe("1");
+    const legacy = proxy(request("/en-US/quick-game?botMode=rules", "application/json", "fi", "POST"));
+    expect(legacy.status).toBe(308);
+    expect(legacy.headers.get("location")).toBe("https://www.aiholdem.gg/quick-game?botMode=rules");
   });
 
   it("keeps explicit locale URLs independent of browser language", () => {
-    const response = proxy(request("/en-US/about", "text/html", "fi"));
+    const response = proxy(request("/fi-FI/about", "text/html", "de"));
     expect(response.headers.get("x-middleware-next")).toBe("1");
     expect(response.headers.has("location")).toBe(false);
     expect(response.headers.has("cache-control")).toBe(false);
@@ -124,9 +127,10 @@ describe("agent content proxy", () => {
   });
 });
 
-it.each(["/play", "/join-game", "/en-US/play", "/en-US/join-game"])("recognizes the Play and compatibility route %s", async path => {
+it.each(["/play", "/join-game", "/game/table-1", "/fi-FI/play", "/fi-FI/join-game"])("recognizes HTML-only route %s", async path => {
   expect(proxy(request(path, "text/markdown")).status).toBe(406);
   const html = proxy(request(path, "text/html", "fi"));
-  if (path.startsWith("/en-US")) expect(html.headers.get("x-middleware-next")).toBe("1");
-  else { expect(html.status).toBe(307); expect(html.headers.get("location")).toContain(`/fi-FI${path}`); expect(html.headers.get("cache-control")).toBe("private, no-store"); }
+  expect(html.headers.has("location")).toBe(false);
+  if (path.startsWith("/fi-FI")) expect(html.headers.get("x-middleware-next")).toBe("1");
+  else expect(html.headers.get("x-middleware-next")).toBe("1");
 });

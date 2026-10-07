@@ -8,7 +8,7 @@ const gameplayDecision: AIDecision = {
 };
 
 async function fixture(page: Page) {
-  const response = await page.request.post("/en-US/quick-game", { headers: { Accept: "application/json" } });
+  const response = await page.request.post("/quick-game", { headers: { Accept: "application/json" } });
   expect(response.status()).toBe(201);
   const { gameId } = await response.json();
   const original: Game = (await (await page.request.get(`/api/games/${gameId}`)).json()).game;
@@ -20,7 +20,7 @@ async function fixture(page: Page) {
 }
 
 async function open(page: Page, gameId: string) {
-  await page.goto(`/en-US/game/${gameId}`);
+  await page.goto(`/game/${gameId}`);
   await expect(page.getByRole("complementary", { name: "Actions", exact: true })).toBeVisible();
 }
 
@@ -577,7 +577,7 @@ test("fair-use rules replay creation denial keeps countdown and original table",
   await page.clock.install();
   await page.route(`**/api/games/${f.gameId}/step`, route => route.fulfill({ status: 429, json: { code: "OWNER_AI_LIMIT", retryAfterMs: 3600_000 } }));
   let creations = 0;
-  await page.route("**/en-US/quick-game?botMode=rules", route => {
+  await page.route("**/quick-game?botMode=rules", route => {
     creations++;
     return route.fulfill({ status: 429, json: { code: "GAME_CREATION_LIMIT", retryAfterMs: 60_000 } });
   });

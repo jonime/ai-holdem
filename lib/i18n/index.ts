@@ -19,10 +19,9 @@ export function hasLocale(value: string): value is Locale {
 }
 
 export function addLocalePrefix(pathname: string, locale: Locale): string {
-  if (pathname === "/") return `/${locale}`;
-  return pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
-    ? pathname
-    : `/${locale}${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
+  const path = removeLocalePrefix(pathname.startsWith("/") ? pathname : `/${pathname}`);
+  if (locale === DEFAULT_LOCALE) return path;
+  return path === "/" ? `/${locale}` : `/${locale}${path}`;
 }
 
 export function removeLocalePrefix(pathname: string): string {

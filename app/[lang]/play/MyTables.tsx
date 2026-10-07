@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { api } from "@/lib/http/api";
 import type { MyGameSummary } from "@/lib/http/discovery-contracts";
 import type { PlayDictionary } from "@/lib/i18n/types";
-import type { Locale } from "@/lib/i18n";
+import { addLocalePrefix, type Locale } from "@/lib/i18n";
 import { FiChevronRight } from "react-icons/fi";
 import styles from "./page.module.css";
 export function MyTables({ locale, dictionary: d, initialGames, initialError }: {
@@ -28,7 +28,7 @@ export function MyTables({ locale, dictionary: d, initialGames, initialError }: 
     <ul className={styles.list}>{games.map(game => {
       const title = game.title ?? d.fallbackTitle.replace("{id}", game.gameId.slice(0, 8));
       return <li key={game.gameId}>
-        <Link className={`${styles.tableRow} ${styles.personalRow}`} href={`/${locale}/game/${game.gameId}`} aria-label={`${d.returnToTable}: ${title}`}>
+        <Link className={`${styles.tableRow} ${styles.personalRow}`} href={addLocalePrefix(`/game/${game.gameId}`, locale)} aria-label={`${d.returnToTable}: ${title}`}>
           <h3 className={styles.rowTitle}>{title}</h3>
           <div className={styles.facts}><span>{d.statuses[game.status]}</span>
             <span>{d.seats.replace("{occupied}", String(game.occupiedSeats)).replace("{total}", String(game.totalSeats))}</span></div>

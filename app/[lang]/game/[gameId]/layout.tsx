@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 interface GameI18nBoundaryProps {
   readonly children: ReactNode;
-  readonly params: Promise<{ lang: string; gameId: string }>;
+  readonly params: Promise<{ lang: string }>;
 }
 
 export async function GameI18nBoundary({ children, params }: GameI18nBoundaryProps) {

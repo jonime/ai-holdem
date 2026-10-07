@@ -1,5 +1,6 @@
 "use client";
 
+import { addLocalePrefix } from "@/lib/i18n";
 import { botErrorMessage } from "./bot-error";
 import { HttpError, api } from "@/lib/http/api";
 
@@ -121,8 +122,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     try {
       const body = await api.creation.quickPlay({ lang: locale, botMode });
       // Full navigation installs the new table with the refreshed identity cookies.
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      window.location.assign(`/${locale}/game/${body.gameId}`);
+      window.location.assign(addLocalePrefix(`/game/${body.gameId}`, locale));
     } catch (requestError) {
       if (requestError instanceof HttpError && requestError.code === "GAME_CREATION_LIMIT" && requestError.retryAfterMs) {
         setCreationNotice({ until: Date.now() + requestError.retryAfterMs, message: botErrorMessage(requestError, t) });

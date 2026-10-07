@@ -26,6 +26,14 @@ describe("performance event privacy", () => {
     });
   });
 
+  it("redacts English table URLs at the root", () => {
+    expect(redactPerformanceEvent({ type: "vital", url: "https://www.aiholdem.gg/game/private-table?token=secret#cards", route: "/game/private-table" })).toEqual({ type: "vital", url: "https://www.aiholdem.gg/game/[gameId]", route: "/game/[gameId]" });
+  });
+
+  it.each(["/", "/about", "/developers", "/play"])("retains English page %s without query data", path => {
+    expect(redactPerformanceEvent({ type: "vital", url: `https://www.aiholdem.gg${path}?name=private` })).toEqual({ type: "vital", url: `https://www.aiholdem.gg${path}`, route: path });
+  });
+
   it.each(["invalid", "https://www.aiholdem.gg/private-value", "https://www.aiholdem.gg/api/games/private-table", "https://www.aiholdem.gg/en-US/unknown/private", "file:///en-US"])("drops unsupported URL %s", (url) => {
     expect(redactPerformanceEvent({ type: "vital", url })).toBeNull();
   });

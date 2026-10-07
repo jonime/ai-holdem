@@ -16,8 +16,8 @@ async function submit(page: Page, type: string, amount?: number, keyboard = fals
 
 test("synchronizes targets, validates edits, resets decisions, and fits mobile", async ({ browser, page }) => {
   test.setTimeout(90_000);
-  await page.goto("/en-US");
-  await page.goto("/en-US/play");
+  await page.goto("/");
+  await page.goto("/play");
   await page.getByRole("button", { name: "Create table" }).click();
   await expect(page).toHaveURL(/\/game\//);
   await page.getByRole("combobox", { name: "Seats" }).selectOption("2");

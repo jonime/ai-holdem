@@ -1,3 +1,4 @@
+import { addLocalePrefix } from "@/lib/i18n";
 import { admitGameCreation } from "@/lib/usage/creation";
 import { usageCreationResponse } from "@/lib/usage/response";
 import { quickPlayParamsSchema, type CreateGameResponse } from "@/lib/http/creation-contracts";
@@ -36,7 +37,7 @@ export async function POST(
     const response = wantsJson
       ? NextResponse.json({ gameId: game.gameId } satisfies CreateGameResponse, { status: 201 })
       : NextResponse.redirect(
-          new URL(`/${lang}/game/${game.gameId}`, request.url),
+          new URL(addLocalePrefix(`/game/${game.gameId}`, parsed.data.lang), request.url),
           303,
         );
     setPlayerTokenCookie(response, hostToken);

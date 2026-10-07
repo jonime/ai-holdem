@@ -230,16 +230,19 @@ structure and links aligned across all ten documents when changing About copy.
 
 There are ten locales (`en-US`, `fi-FI`, `es-ES`, `de-DE`, `sv-SE`, `fr-FR`, `pt-BR`, `it-IT`, `nl-NL`, `pl-PL`). The English module exports `as const`; every other locale uses `satisfies` with the corresponding type from `lib/i18n/types.ts`. Every dictionary module imports `server-only`.
 
-`proxy.ts` redirects unprefixed HTML URLs with a temporary 307, matching
-`Accept-Language` in descending quality order through `lib/i18n/negotiation.ts`.
-Exact supported locales win within each preference, then the same language's
-supported regional variant; missing, malformed, wildcard-only, or unsupported
-preferences fall back to `en-US`. Zero-quality entries are skipped. Explicit
-locale URLs retain their language. No locale cookie is stored. Redirects preserve
-the path and query and send `Vary: Accept, Accept-Language`,
-`Cache-Control: private, no-store`, and CDN/Vercel CDN `no-store` headers so browser
-and shared caches cannot reuse another visitor's locale decision. Localized pages
-keep their existing caching, and Markdown negotiation still runs first.
+`app/(english)` serves English at unprefixed URLs (`/`, `/about`, `/play`,
+and `/game/<id>`) through wrappers that reuse the shared `app/[lang]` pages,
+layouts and POST handlers with `en-US` params. Other languages retain their full locale prefixes. No browser
+language redirect or locale cookie is used. Old `/en-US` URLs return permanent
+308 redirects to their unprefixed equivalents, preserving paths, queries and
+POST methods. Use `addLocalePrefix` from `lib/i18n` for links, form actions,
+client navigation and canonical URLs; it omits the English prefix. Language-menu
+links, metadata alternates and the sitemap use the same public URL convention,
+with English as `x-default`. Page caching and Markdown content negotiation
+(`Vary: Accept`) remain independent of browser language.
+
+`lib/i18n/negotiation.ts` remains available for localized HTML error responses
+from the unlocalized game-creation API; it does not control page routing.
 
 - To add a key, add it to the English dictionary and to every other locale in the same directory; `lib/i18n/dictionaries/dictionaries.test.ts` compares leaf-key paths and placeholders against English.
 - To add a locale, add `<locale>.ts` to each dictionary directory, register it in `SUPPORTED_LOCALES` in `lib/i18n/index.ts`, and add its dynamic import entry to the matching map in `lib/i18n/server.ts`.

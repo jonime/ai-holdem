@@ -6,9 +6,9 @@ The application supports two to six seats, private table links, configurable bli
 
 ## Product
 
-- [AI Hold'em](https://www.aiholdem.gg/en-US): Play against AI bots, invite friends to a table, or watch bots play.
-- [About AI Hold'em](https://www.aiholdem.gg/en-US/about): Learn how the available bots, their settings, the poker engine, and privacy boundaries work.
-- [Developer resources](https://www.aiholdem.gg/en-US/developers): Architecture, integration status, source documentation, and discovery resources.
+- [AI Hold'em](https://www.aiholdem.gg/): Play against AI bots, invite friends to a table, or watch bots play.
+- [About AI Hold'em](https://www.aiholdem.gg/about): Learn how the available bots, their settings, the poker engine, and privacy boundaries work.
+- [Developer resources](https://www.aiholdem.gg/developers): Architecture, integration status, source documentation, and discovery resources.
 
 ## Documentation
 

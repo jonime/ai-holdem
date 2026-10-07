@@ -1,7 +1,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { SUPPORTED_LOCALES } from "@/lib/i18n";
+import { addLocalePrefix, SUPPORTED_LOCALES } from "@/lib/i18n";
 import * as dictionaries from "@/lib/i18n/server";
 import Home from "./page";
 
@@ -42,11 +42,11 @@ describe("localized landing content", () => {
     expect(markup).toContain(`<p>${escapedText(landing.content.play.intro)}</p>`);
     expect(markup).toContain(`<p>${escapedText(landing.content.play.tables)}</p>`);
     expect(markup).toContain(`<p>${escapedText(landing.content.bots.description)}</p>`);
-    expect(markup).toContain(`<a href="/${locale}/about">${escapedText(landing.content.bots.aboutLink)}</a>`);
+    expect(markup).toContain(`<a href="${addLocalePrefix("/about", locale)}">${escapedText(landing.content.bots.aboutLink)}</a>`);
     expect(markup.indexOf('id="play-heading"')).toBeGreaterThan(markup.indexOf('</nav>'));
-    expect(markup).toContain(`action="/${locale}/quick-game"`);
-    expect(markup).not.toContain(`action="/${locale}/new-game"`);
-    expect(markup).toContain(`href="/${locale}/play"`);
+    expect(markup).toContain(`action="${addLocalePrefix("/quick-game", locale)}"`);
+    expect(markup).not.toContain(`action="${addLocalePrefix("/new-game", locale)}"`);
+    expect(markup).toContain(`href="${addLocalePrefix("/play", locale)}"`);
     const items = Object.values(landing.content.faq.items);
     for (const { question, answer } of items) {
       expect(question.trim()).not.toBe("");
@@ -84,8 +84,8 @@ describe("homepage", () => {
     expect(html.match(/<h1/g)).toHaveLength(1);
     expect(html.match(/<h2/g)).toHaveLength(3);
     expect(html.match(/<h3/g)).toHaveLength(4);
-    expect(html).toContain('href="/en-US/about"');
-    expect(html).toContain('href="/en-US/developers"');
+    expect(html).toContain('href="/about"');
+    expect(html).toContain('href="/developers"');
     expect(html).toContain("https://github.com/jonime/ai-holdem");
     expect(html).not.toContain("https://typesafe.ai/");
     expect(html).not.toContain("@hivetech/poker-engine");
@@ -95,9 +95,9 @@ describe("homepage", () => {
     expect(html).toContain(
       "Jump into a private six-seat game against five bots, or customize your own table.",
     );
-    expect(html).toContain('<form action="/en-US/quick-game" method="post">');
-    expect(html).not.toContain('<form action="/en-US/new-game" method="post">');
-    expect(html).toContain('href="/en-US/play"');
+    expect(html).toContain('<form action="/quick-game" method="post">');
+    expect(html).not.toContain('<form action="/new-game" method="post">');
+    expect(html).toContain('href="/play"');
     expect(html).toContain('type="submit"');
     expect(html).not.toContain("<input");
   });
@@ -106,7 +106,7 @@ describe("homepage", () => {
     const html = await renderHome("fi-FI");
 
     expect(html).toContain("Kieli: Suomi");
-    expect(html).toContain('href="/en-US"');
+    expect(html).toContain('href="/"');
     expect(html).toContain('href="/fi-FI"');
     expect(html).toContain('aria-current="page"');
     expect(html).toContain('action="/fi-FI/quick-game"');

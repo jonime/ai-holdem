@@ -1,5 +1,6 @@
 "use client";
 
+import { addLocalePrefix } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 import {
   useCallback,
@@ -248,7 +249,7 @@ export function useGameSession(gameId?: string) {
     try {
       const body = await api.creation.custom();
       window.localStorage.setItem("ai-holdem-game-id", body.gameId);
-      router.push(`/${locale}/game/${body.gameId}`);
+      router.push(addLocalePrefix(`/game/${body.gameId}`, locale));
     } catch (requestError) {
       setError(
         requestError instanceof Error

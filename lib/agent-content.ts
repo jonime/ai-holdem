@@ -4,8 +4,8 @@ Create a table, then invite someone to take an open seat.
 
 ## Learn more
 
-- [About AI Hold'em](/en-US/about)
-- [Developer resources](/en-US/developers)
+- [About AI Hold'em](/about)
+- [Developer resources](/developers)
 - [Agent and site map](/llms.txt)
 - [XML sitemap](/sitemap.xml)
 - [Source code](https://github.com/jonime/ai-holdem)

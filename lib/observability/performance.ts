@@ -1,4 +1,4 @@
-import { hasLocale } from "@/lib/i18n";
+import { hasLocale, removeLocalePrefix } from "@/lib/i18n";
 
 type PerformanceEvent = {
   type: "vital";
@@ -12,16 +12,18 @@ export function redactPerformanceEvent(event: PerformanceEvent): PerformanceEven
   try {
     const url = new URL(event.url);
     if (url.protocol !== "https:" && url.protocol !== "http:") return null;
-    const match = /^\/([^/]+)(?:\/(about|developers|play|join-game)|\/game\/[^/]+)?\/?$/.exec(url.pathname);
+    const firstSegment = url.pathname.split("/")[1];
+    const localized = hasLocale(firstSegment);
+    const pathname = localized ? removeLocalePrefix(url.pathname) : url.pathname;
+    const match = /^\/(?:about|developers|play|join-game|game\/[^/]+)?\/?$/.exec(pathname);
     if (!match) return null;
 
-    const [, locale, page] = match;
-    if (!hasLocale(locale)) return null;
-    const suffix = url.pathname.includes("/game/") ? "/game/[gameId]" : page ? `/${page}` : "";
+    const suffix = pathname.startsWith("/game/") ? "/game/[gameId]" : pathname.replace(/\/$/, "");
+    const prefix = localized ? `/${firstSegment}` : "";
     return {
       type: event.type,
-      url: `${url.origin}/${locale}${suffix}`,
-      route: `/[lang]${suffix}`,
+      url: `${url.origin}${prefix}${suffix || (localized ? "" : "/")}`,
+      route: localized ? `/[lang]${suffix}` : suffix || "/",
     };
   } catch {
     return null;

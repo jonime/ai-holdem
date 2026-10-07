@@ -1,3 +1,4 @@
+import { addLocalePrefix } from "@/lib/i18n";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
@@ -47,8 +48,8 @@ describe("About page", () => {
     expect(html).toContain(`<h1>${title}</h1>`);
     expect(html).toContain("<h2>");
     expect(html).toContain(link);
-    expect(html).toContain(`href="/${locale}"`);
-    expect(html).toContain('href="/en-US/about"');
+    expect(html).toContain(`href="${addLocalePrefix("/", locale)}"`);
+    expect(html).toContain('href="/about"');
     expect(html).toContain('href="/fi-FI/about"');
     expect(html).toContain(
       `aria-label="${locale === "fi-FI" ? "Kieli: Suomi" : "Language: English"}"`,
@@ -66,7 +67,7 @@ describe("About page", () => {
       expect.objectContaining({
         canonical: `${getSiteOrigin()}/fi-FI/about`,
         languages: expect.objectContaining({
-          "en-US": `${getSiteOrigin()}/en-US/about`,
+          "en-US": `${getSiteOrigin()}/about`,
           "fi-FI": `${getSiteOrigin()}/fi-FI/about`,
         }),
       }),

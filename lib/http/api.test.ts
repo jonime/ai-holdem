@@ -10,6 +10,12 @@ function mockResponse(body: unknown, status = 200) {
   return fetch;
 }
 
+it("posts English rules Quick Play directly to the unprefixed endpoint", async () => {
+  const fetch = mockResponse({ gameId: "new-game" }, 201);
+  await api.creation.quickPlay({ lang: "en-US", botMode: "rules" });
+  expect(fetch).toHaveBeenCalledWith("/quick-game?botMode=rules", expect.objectContaining({ method: "POST", headers: { Accept: "application/json" }, credentials: "same-origin" }));
+});
+
 describe("gameplay client", () => {
   it("encodes game IDs, forwards abort and cookies, and disables read caching", async () => {
     const fetch = mockResponse({ game });

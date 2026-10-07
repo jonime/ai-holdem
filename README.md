@@ -15,8 +15,9 @@ authoritative for cards, turns, legal actions, betting, pots, and winners.
 - Persist games, hands, and actions in Supabase.
 - Validate every human and bot action server-side before committing it with a
   game-version check.
-- Use localized pages in ten languages. Unprefixed URLs select a supported
-  browser language, falling back to English; explicit locale URLs take priority.
+- Use localized pages in ten languages. English uses unprefixed URLs; other
+  languages retain locale prefixes such as `/fi-FI`. Choose a language through
+  the language menu; browser language never redirects pages.
 
 Active hole cards are visible only to the browser that owns the seat. Tables are
 unlisted by default, but anyone who knows a table URL can view it. Anonymous

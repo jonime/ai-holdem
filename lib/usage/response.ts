@@ -1,6 +1,6 @@
 import "server-only";
 import { NextResponse } from "next/server";
-import type { Locale } from "@/lib/i18n";
+import { addLocalePrefix, type Locale } from "@/lib/i18n";
 import { getGameDictionary } from "@/lib/i18n/server";
 import { UsageLimitError, UsageUnavailableError } from "./errors";
 export function usageJsonResponse(error: unknown): NextResponse | null {
@@ -17,5 +17,5 @@ export async function usageCreationResponse(error: unknown, wantsJson: boolean, 
   const { errors } = await getGameDictionary(locale);
   const message = error instanceof UsageLimitError ? errors.gameCreationLimit : errors.usageUnavailable;
   const wait = error instanceof UsageLimitError ? errors.retryAvailable.replace("{seconds}", String(Math.ceil(error.retryAfterMs / 1000))) : "";
-  return new NextResponse(`<!doctype html><html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${escape(message)}</title></head><body><main><h1>${escape(message)}</h1><p>${escape(wait)}</p><a href="/${locale}">${escape(errors.home)}</a></main></body></html>`, { status: response.status, headers: { ...Object.fromEntries(response.headers), "Content-Type": "text/html; charset=utf-8" } });
+  return new NextResponse(`<!doctype html><html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${escape(message)}</title></head><body><main><h1>${escape(message)}</h1><p>${escape(wait)}</p><a href="${addLocalePrefix("/", locale)}">${escape(errors.home)}</a></main></body></html>`, { status: response.status, headers: { ...Object.fromEntries(response.headers), "Content-Type": "text/html; charset=utf-8" } });
 }

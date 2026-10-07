@@ -1,5 +1,6 @@
 "use client";
 
+import { addLocalePrefix } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/Button";
@@ -13,7 +14,7 @@ export function GameHeader() {
 
   function handleExit() {
     if (window.confirm(t("gameHeader.confirmExit"))) {
-      router.push(`/${locale}`);
+      router.push(addLocalePrefix("/", locale));
     }
   }
 

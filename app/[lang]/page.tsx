@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { LanguageMenu } from "@/components/LanguageMenu";
 import { Button } from "@/components/Button";
 import { APP_NAME } from "@/lib/constants";
-import { hasLocale } from "@/lib/i18n";
+import { addLocalePrefix, hasLocale } from "@/lib/i18n";
 import {
   getLandingServerDictionary,
   getMetadataDictionary,
@@ -26,7 +26,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
     "@type": "WebApplication",
     name: APP_NAME,
     description: metadata.description,
-    url: `${getSiteOrigin()}/${lang}`,
+    url: `${getSiteOrigin()}${addLocalePrefix("/", lang)}`,
     applicationCategory: "GameApplication",
     operatingSystem: "Any web browser",
     isAccessibleForFree: true,
@@ -70,21 +70,21 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
         <p className={styles.intro}>{landing.intro}</p>
         <p className={styles.supportingCopy}>{landing.supportingCopy}</p>
         <div className={styles.actions}>
-          <form method="post" action={`/${lang}/quick-game`}>
+          <form method="post" action={addLocalePrefix("/quick-game", lang)}>
             <Button variant="primary" size="large" type="submit">
               {landing.quickPlay}
             </Button>
           </form>
-          <Link className={styles.joinGame} href={`/${lang}/play`}>{landing.play}</Link>
+          <Link className={styles.joinGame} href={addLocalePrefix("/play", lang)}>{landing.play}</Link>
         </div>
       </section>
       <nav
         className={styles.attribution}
         aria-label={landing.resources}
       >
-        <Link href={`/${lang}/about`}>{landing.about}</Link>
+        <Link href={addLocalePrefix("/about", lang)}>{landing.about}</Link>
         <span aria-hidden="true">·</span>
-        <Link href={`/${lang}/developers`}>
+        <Link href={addLocalePrefix("/developers", lang)}>
           {landing.developerResources}
         </Link>
         <span aria-hidden="true">·</span>
@@ -106,7 +106,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
           <h2 id="bots-heading">{landing.content.bots.title}</h2>
           <p>{landing.content.bots.description}</p>
           <p>
-            <Link href={`/${lang}/about`}>
+            <Link href={addLocalePrefix("/about", lang)}>
               {landing.content.bots.aboutLink}
             </Link>
           </p>

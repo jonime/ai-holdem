@@ -255,8 +255,11 @@ sizing; their schema advertises only null when no aggressive action remains.
 `/[lang]/play` streams personal tables and the public directory through independent
 Suspense request-time boundaries. Cookies are read only inside those boundaries.
 The cached landing page links to Play and retains its anonymous Quick Play form.
-Localized `/join-game` permanently redirects to `/play`; unprefixed browser URLs
-still negotiate language with a private temporary redirect. Play is `noindex, follow`
+Localized `/join-game` permanently redirects to `/play` in the same language;
+English uses unprefixed URLs through `app/(english)` wrappers that reuse
+the shared locale pages, layouts and POST handlers with `en-US` params. Old `/en-US` URLs permanently redirect to unprefixed equivalents.
+Other locales retain their prefixes; browser language never redirects pages.
+Play is `noindex, follow`
 and excluded from the sitemap. No polling or Realtime runs on Play.
 
 The service-role-only `list_my_games(text)` RPC unions durable host ownership and

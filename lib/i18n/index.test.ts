@@ -26,9 +26,13 @@ describe("i18n routing helpers", () => {
     expect(hasLocale("pl-PL")).toBe(true);
     expect(hasLocale("ja-JP")).toBe(false);
     expect(addLocalePrefix("/game/example", DEFAULT_LOCALE)).toBe(
-      "/en-US/game/example",
+      "/game/example",
     );
-    expect(addLocalePrefix("/en-US", DEFAULT_LOCALE)).toBe("/en-US");
+    expect(addLocalePrefix("/en-US", DEFAULT_LOCALE)).toBe("/");
+    expect(addLocalePrefix("/", DEFAULT_LOCALE)).toBe("/");
+    expect(addLocalePrefix("/about", "fi-FI")).toBe("/fi-FI/about");
+    expect(addLocalePrefix("/fi-FI/about", "fi-FI")).toBe("/fi-FI/about");
+    expect(addLocalePrefix("/fi-FI/about", DEFAULT_LOCALE)).toBe("/about");
     expect(removeLocalePrefix("/en-US/game/example")).toBe("/game/example");
     expect(removeLocalePrefix("/en-US")).toBe("/");
   });

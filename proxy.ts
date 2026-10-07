@@ -6,8 +6,7 @@ import {
   NOT_FOUND_MARKDOWN,
 } from "@/lib/agent-content";
 import { negotiatePageRepresentation } from "@/lib/http/content-negotiation";
-import { hasLocale } from "@/lib/i18n";
-import { negotiateLocale } from "@/lib/i18n/negotiation";
+import { DEFAULT_LOCALE, hasLocale, removeLocalePrefix } from "@/lib/i18n";
 
 const markdownHeaders = {
   "Content-Type": "text/markdown; charset=utf-8",
@@ -34,6 +33,7 @@ function contentPage(pathname: string): "home" | "developers" | undefined {
 function isKnownApplicationPath(pathname: string): boolean {
   const segments = pathname.split("/").filter(Boolean);
   return (
+    (segments.length === 2 && segments[0] === "game" && Boolean(segments[1])) ||
     (segments.length === 3 &&
       hasLocale(segments[0]) &&
       segments[1] === "game" &&
@@ -62,6 +62,13 @@ export function proxy(request: Request & { readonly nextUrl: URL }) {
     pathname.includes(".")
   ) {
     return NextResponse.next();
+  }
+
+  // Preserve old English links and POST methods while consolidating public URLs.
+  if (firstSegment === DEFAULT_LOCALE) {
+    const url = new URL(request.url);
+    url.pathname = removeLocalePrefix(pathname);
+    return withVaryAccept(NextResponse.redirect(url, 308));
   }
 
   const page = contentPage(pathname);
@@ -95,24 +102,7 @@ export function proxy(request: Request & { readonly nextUrl: URL }) {
       headers: { "Content-Type": "text/plain; charset=utf-8", Vary: "Accept" },
     });
   }
-  if (
-    hasLocale(firstSegment) ||
-    /^[a-z]{2}(?:-[A-Z]{2})?$/.test(firstSegment)
-  ) {
-    return withVaryAccept(NextResponse.next());
-  }
-
-  const url = new URL(request.url);
-  const locale = negotiateLocale(request.headers.get("Accept-Language"));
-  url.pathname =
-    pathname === "/" ? `/${locale}` : `/${locale}${pathname}`;
-  const response = withVaryAccept(NextResponse.redirect(url, 307));
-  response.headers.append("Vary", "Accept-Language");
-  // Locale selection belongs to this request, never a shared or browser cache.
-  response.headers.set("Cache-Control", "private, no-store");
-  response.headers.set("CDN-Cache-Control", "no-store");
-  response.headers.set("Vercel-CDN-Cache-Control", "no-store");
-  return response;
+  return withVaryAccept(NextResponse.next());
 }
 
 export const config = {

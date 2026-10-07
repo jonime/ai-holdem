@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { hasLocale } from "@/lib/i18n";
+import { addLocalePrefix, hasLocale } from "@/lib/i18n";
 
 import { getPageMetadata } from "@/lib/seo";
 
@@ -75,7 +75,7 @@ export default async function DeveloperResources({ params }: DeveloperPageProps)
           </li>
         </ul>
 
-        <Link className={styles.back} href={`/${lang}`}>
+        <Link className={styles.back} href={addLocalePrefix("/", lang)}>
           Return to AI Hold&apos;em
         </Link>
       </article>

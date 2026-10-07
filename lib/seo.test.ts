@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import robots from "@/app/robots";
 import sitemap from "@/app/sitemap";
-import { SUPPORTED_LOCALES } from "@/lib/i18n";
+import { addLocalePrefix, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { getLanguageAlternates, getPageMetadata } from "@/lib/seo";
 import { getSiteOrigin, PRODUCTION_ORIGIN } from "@/lib/site";
 
@@ -21,7 +21,7 @@ describe("site origin", () => {
       vi.stubEnv("VERCEL_PROJECT_PRODUCTION_URL", "ai-holdem.vercel.app");
       expect(getSiteOrigin()).toBe("https://www.aiholdem.gg");
       expect(robots()).toMatchObject({ sitemap: "https://www.aiholdem.gg/sitemap.xml" });
-      expect(sitemap()[0]?.url).toBe("https://www.aiholdem.gg/en-US");
+      expect(sitemap()[0]?.url).toBe("https://www.aiholdem.gg/");
     },
   );
 
@@ -43,6 +43,14 @@ describe("public SEO metadata", () => {
     expect(metadata.twitter).toMatchObject({ card: "summary_large_image", description: "Kuvaus" });
   });
 
+  it("uses unprefixed English canonicals and fallback alternates", () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://poker.example");
+    expect(getPageMetadata({ locale: "en-US", title: "Home", description: "English" }).alternates?.canonical).toBe("https://poker.example/");
+    expect(getPageMetadata({ locale: "en-US", title: "About", description: "English", pathname: "/about" }).alternates?.canonical).toBe("https://poker.example/about");
+    expect(getLanguageAlternates("/about")).toMatchObject({ "en-US": "https://poker.example/about", "x-default": "https://poker.example/about", "fi-FI": "https://poker.example/fi-FI/about" });
+    expect(sitemap().some(entry => entry.url.includes("/en-US"))).toBe(false);
+  });
+
   it("does not advertise English developer content as translated", () => {
     const metadata = getPageMetadata({ locale: "en-US", title: "Developer resources", description: "Developer docs", pathname: "/developers", translated: false });
     expect(metadata.alternates?.languages).toEqual({});
@@ -55,7 +63,7 @@ describe("public SEO metadata", () => {
     expect(entries).toHaveLength(SUPPORTED_LOCALES.length * 2 + 1);
     for (const locale of SUPPORTED_LOCALES) {
       for (const pathname of ["", "/about"]) {
-        expect(entries.find((entry) => entry.url === `https://poker.example/${locale}${pathname}`)?.alternates?.languages).toEqual(getLanguageAlternates(pathname));
+        expect(entries.find((entry) => entry.url === `https://poker.example${addLocalePrefix(pathname, locale)}`)?.alternates?.languages).toEqual(getLanguageAlternates(pathname));
       }
     }
     expect(entries.at(-1)?.alternates).toBeUndefined();

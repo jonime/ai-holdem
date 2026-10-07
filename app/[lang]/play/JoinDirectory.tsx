@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import type { Locale } from "@/lib/i18n";
+import { addLocalePrefix, type Locale } from "@/lib/i18n";
 import type { JoinGameDictionary } from "@/lib/i18n/types";
 import type { PublicGameDirectoryEntry } from "@/lib/http/discovery-contracts";
 import { api, HttpError } from "@/lib/http/api";
@@ -69,7 +69,7 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
     setMessage(null);
     try {
       await api.discovery.join({ gameId: game.gameId, expectedVersion: game.version, ...(name.trim() ? { name } : {}) });
-      router.push(`/${locale}/game/${game.gameId}`);
+      router.push(addLocalePrefix(`/game/${game.gameId}`, locale));
     } catch (error) {
       await refresh();
       setMessage(error instanceof HttpError && error.code === "GAME_CONFLICT" ? dictionary.conflict : dictionary.unavailable);

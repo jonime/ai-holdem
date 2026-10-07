@@ -139,6 +139,10 @@ use the Supabase connection values configured in Vercel for Preview.
 
 ## Search and social previews
 
+English pages use unprefixed URLs; other languages retain locale prefixes such
+as `/fi-FI`. Old `/en-US` URLs permanently redirect to their new equivalents.
+Browser language does not redirect pages.
+
 Public landing and About pages have localized titles, descriptions, canonical URLs,
 and language alternates. `/robots.txt` points to `/sitemap.xml`, which lists the
 localized landing and About pages and the canonical English developer page.

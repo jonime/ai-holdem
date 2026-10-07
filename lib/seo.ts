@@ -2,14 +2,14 @@ import "server-only";
 
 import type { Metadata } from "next";
 
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n";
+import { addLocalePrefix, DEFAULT_LOCALE, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n";
 import { getSiteOrigin } from "@/lib/site";
 
 export function getLanguageAlternates(pathname = ""): Record<string, string> {
   const origin = getSiteOrigin();
   return Object.fromEntries([
-    ...SUPPORTED_LOCALES.map((locale) => [locale, `${origin}/${locale}${pathname}`]),
-    ["x-default", `${origin}/${DEFAULT_LOCALE}${pathname}`],
+    ...SUPPORTED_LOCALES.map((locale) => [locale, `${origin}${addLocalePrefix(pathname, locale)}`]),
+    ["x-default", `${origin}${addLocalePrefix(pathname, DEFAULT_LOCALE)}`],
   ]);
 }
 
@@ -26,7 +26,7 @@ export function getPageMetadata({
   pathname?: string;
   translated?: boolean;
 }): Metadata {
-  const url = `${getSiteOrigin()}/${locale}${pathname}`;
+  const url = `${getSiteOrigin()}${addLocalePrefix(pathname, locale)}`;
   const socialTitle = title.startsWith("AI Hold'em")
     ? title
     : `${title} | AI Hold'em`;

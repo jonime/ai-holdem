@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { Locale } from "@/lib/i18n";
+import { addLocalePrefix, type Locale } from "@/lib/i18n";
 import {
   LANGUAGE_LABELS,
   LANGUAGE_NAMES,
@@ -38,7 +38,7 @@ export function LanguageMenu({
           {SORTED_LOCALES.map((supportedLocale) => (
             <li key={supportedLocale}>
               <a
-                href={`/${supportedLocale}${pathname}`}
+                href={addLocalePrefix(`${pathname}`, supportedLocale)}
                 hrefLang={supportedLocale}
                 lang={supportedLocale}
                 aria-label={LANGUAGE_NAMES[supportedLocale]}
