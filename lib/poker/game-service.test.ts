@@ -1110,28 +1110,6 @@ describe("stepTypesafeAction", () => {
         expect.objectContaining({
           action: "check",
           choice: "check",
-          aiState: expect.objectContaining({
-            hero: expect.objectContaining({
-              seat: 1,
-              controller: "bot",
-              handStrength: expect.any(Object),
-            }),
-            actionHistory: [
-              expect.objectContaining({
-                action: "call",
-                actorSeat: 0,
-                actor: "opponent",
-              }),
-            ],
-          }),
-          promptVersion: "typesafe-poker-v3.0",
-          rawResponse: expect.objectContaining({
-            policyVersion: "typesafe-poker-v3.0",
-            decision: expect.objectContaining({
-              selectedCandidate: "check",
-              candidateProbabilities: expect.any(Object),
-            }),
-          }),
         }),
       );
     },
@@ -1730,7 +1708,7 @@ describe("deterministic persisted hand harness", () => {
     expect(new Set(persistedActions.map((action) => action.street))).toEqual(
       new Set(["preflop", "flop", "turn", "river"]),
     );
-    expect(persistedActions.some((action) => "aiState" in action)).toBe(true);
+    expect(persistedActions.every((action) => !("aiState" in action) && !("rawResponse" in action))).toBe(true);
   });
 });
 

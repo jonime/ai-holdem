@@ -29,8 +29,7 @@
 .tableMetaActions button {
   height: 36px;
 }
-.standUpToggle,
-.historyToggle {
+.standUpToggle {
   font: inherit;
 }
 .standUpToggle {
@@ -40,14 +39,6 @@
 .standUpToggle:hover:not(:disabled) {
   border-color: #9fb8ae;
   color: #eaf5ef;
-}
-.historyToggle {
-  margin-left: auto;
-  color: #d7e8df;
-}
-.historyToggle:hover {
-  border-color: var(--sun);
-  color: var(--sun);
 }
 .feedToggle {
   font: inherit;

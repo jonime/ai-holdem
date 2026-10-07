@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { createGameRouteRequestSchema } from "./creation-contracts";
 import { claimSeatRouteRequestSchema, seatPathParamsSchema } from "./seat-contracts";
-import { historyRouteQuerySchema, feedRouteQuerySchema } from "./history-contracts";
+import { feedRouteQuerySchema } from "./feed-contracts";
 import { publicationRequestSchema, listingTitleSchema } from "./discovery-contracts";
 
 it("retains creation and claim defaults and ignored optional non-string names", () => {
@@ -15,8 +15,7 @@ it.each([["0", 0], ["0x1", 1], ["1e1", 10], [" 2 ", 2], ["", 0], ["1e20", 1e20]]
 it.each(["-1", "0.1", "NaN", "Infinity"])("rejects invalid seat path %s", seat => {
   expect(seatPathParamsSchema.safeParse({ gameId: "game", seat }).success).toBe(false);
 });
-it("keeps history Number parsing separate from decimal-only feed parsing", () => {
-  expect(historyRouteQuerySchema.parse({ hand: "1e2" }).hand).toBe(100);
+it("validates decimal-only feed parsing", () => {
   expect(feedRouteQuerySchema.safeParse({ sinceHand: ["1e2"] }).success).toBe(false);
   expect(feedRouteQuerySchema.parse({ sinceHand: ["0002"] }).sinceHand).toBe(2);
   expect(feedRouteQuerySchema.parse({ sinceHand: [] }).sinceHand).toBeUndefined();

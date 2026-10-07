@@ -31,26 +31,16 @@ import {
 import { useI18n } from "@/components/poker/I18nProvider";
 
 import type {
-  AIDecision,
   AIDifficulty,
   BotDescriptor,
   BotPlaystyleId,
   Game,
-  HandHistory,
   LegalAction,
   TableSettings,
 } from "@/components/poker/types";
 
-export function useGameSession(gameId?: string, historyOpen = false) {
+export function useGameSession(gameId?: string) {
   const [game, setGame] = useState<Game | null>(null);
-  const [liveDecisions, setLiveDecisions] = useState<readonly AIDecision[]>([]);
-  const [history, setHistory] = useState<{
-    readonly handNumber: number;
-    readonly value: HandHistory;
-  } | null>(null);
-  const [selectedHistoryHand, setSelectedHistoryHand] = useState<number | null>(
-    null,
-  );
   const { feed, refreshFeed } = useGameFeed(gameId);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -131,7 +121,6 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     },
     apply: applyGame,
     refresh: loadGame,
-    reportDecision: decision => setLiveDecisions(previous => [...previous, decision]),
     refreshFailed: setRefreshFailed,
     clearError: () => setError(null),
     errorMessage: requestError => botErrorMessage(requestError, t),
@@ -250,35 +239,12 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     };
   }, [gameId, loadGame, t]);
 
-  useEffect(() => {
-    if (!game || !historyOpen) {
-      return;
-    }
-    let cancelled = false;
-    const handNumber = selectedHistoryHand ?? game.poker.handNumber;
-    void api.games.history({ gameId: game.id, hand: handNumber })
-      .then((body) => {
-        if (!cancelled)
-          setHistory({
-            handNumber,
-            value: body.history,
-          });
-      })
-      .catch(() => undefined);
-
-    return () => {
-      cancelled = true;
-    };
-  }, [game, historyOpen, selectedHistoryHand]);
-
   const gameId_ = game?.id;
 
   const createGame = useCallback(async () => {
     setLoading(true);
     setError(null);
     botLifecycle.current?.clearNotice();
-    setLiveDecisions([]);
-    setSelectedHistoryHand(null);
     try {
       const body = await api.creation.custom();
       window.localStorage.setItem("ai-holdem-game-id", body.gameId);
@@ -470,8 +436,6 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     setLoading(true);
     setError(null);
     botLifecycle.current?.clearNotice();
-    setLiveDecisions([]);
-    setSelectedHistoryHand(null);
     try {
       const sequence = ++nextResponseSequence.current;
       const body = await api.games.nextHand({ gameId: game.id, expectedVersion: game.version });
@@ -509,17 +473,6 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     }
   }, [applyGame, game, t]);
 
-  const selectHistoryHand = useCallback((handNumber: number) => {
-    setSelectedHistoryHand(handNumber);
-  }, []);
-
-  const requestedHistoryHand = game
-    ? (selectedHistoryHand ?? game.poker.handNumber)
-    : null;
-  const historyLoading =
-    historyOpen &&
-    requestedHistoryHand !== null &&
-    history?.handNumber !== requestedHistoryHand;
   const liveConnectionStatus: RefreshConnectionStatus = connectionStatus({
     subscribed: realtimeStatus === "subscribed",
     online,
@@ -533,12 +486,8 @@ export function useGameSession(gameId?: string, historyOpen = false) {
   return {
     botCatalog,
     game,
-    history,
-    historyLoading,
     feed,
     feedLoading: Boolean(gameId_) && feed === null,
-    selectedHistoryHand,
-    liveDecisions,
     loading: loading || bots.loading,
     error: error ?? bots.notice,
     usageLimited: bots.usageLimited,
@@ -546,7 +495,6 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     connectionStatus: liveConnectionStatus,
     refreshing,
     refreshGame,
-    setSelectedHistoryHand,
     createGame,
     loadGame,
     claimSeatAt,
@@ -559,7 +507,6 @@ export function useGameSession(gameId?: string, historyOpen = false) {
     beginNextHand,
     revealCards,
     retryBotTurn,
-    selectHistoryHand,
     refreshDirectoryState: performRefresh,
   };
 }

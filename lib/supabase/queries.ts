@@ -76,20 +76,9 @@ export interface PersistHumanActionInput extends CompareAndSwapGameInput {
 
 export interface PersistAIActionInput extends PersistHumanActionInput {
   readonly leaveSeat?: boolean;
-  readonly aiState: unknown;
-  readonly legalActions: unknown;
   readonly choice: string;
   readonly bot?: BotDescriptor;
-  readonly probabilities: Readonly<Record<string, number>> | null;
-  readonly confidence: number | null;
-  readonly raiseSizeChoice: string | null;
-  readonly raiseSizeProbabilities: Readonly<Record<string, number>> | null;
-  readonly rawResponse: unknown;
   readonly matchedRule?: string | null;
-  readonly promptVersion?: string | null;
-  readonly durationMs?: number | null;
-  readonly usage?: unknown | null;
-  readonly cost?: number | null;
 }
 
 export interface GamePlayerSeatAssignment extends SeatAssignment {
@@ -143,47 +132,7 @@ export interface CreateGameSessionInput extends CreateGameInput {
   }[];
 }
 
-export interface HandActionHistoryItem {
-  readonly sequence: number;
-  readonly street: "preflop" | "flop" | "turn" | "river";
-  readonly action: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
-  readonly amount: number | null;
-  readonly player: string;
-  readonly controller: "human" | "bot";
-  readonly bot: BotDescriptor | null;
-  readonly botProfileId: BotPlaystyleId | null;
-}
-
-export interface CompletedAIDecisionInspection {
-  readonly actionSequence: number;
-  readonly state: unknown;
-  readonly legalActions: unknown;
-  readonly choice: string;
-  readonly probabilities: unknown;
-  readonly bot: BotDescriptor;
-  readonly botProfileId: BotPlaystyleId | null;
-  readonly confidence: number | null;
-  readonly raiseSizeChoice: string | null;
-  readonly raiseSizeProbabilities: unknown;
-  readonly rawResponse: unknown;
-  readonly matchedRule: string | null;
-  readonly promptVersion: string | null;
-  readonly durationMs: number | null;
-  readonly usage: unknown | null;
-  readonly cost: number | null;
-}
-
-export interface HandHistory {
-  readonly status: "playing" | "complete" | "error";
-  readonly actions: readonly HandActionHistoryItem[];
-  readonly aiDecisions: readonly CompletedAIDecisionInspection[];
-}
-
-/**
- * Slim, player-facing counterpart to `HandActionHistoryItem`: no bot
- * inspection detail, used to render the always-visible action feed panel
- * rather than the debug history modal.
- */
+/** Public action feed, without private bot decision details. */
 export interface GameFeedActionItem {
   readonly seat: number | null;
   readonly sequence: number;
@@ -258,7 +207,6 @@ export interface GameDatabaseClient {
       | "apply_ai_action_and_leave_if_version"
       | "create_game_session"
       | "get_game_read_snapshot"
-      | "get_hand_history"
       | "get_bot_hand_context"
       | "get_game_feed"
       | "get_game_feed_since"
@@ -414,103 +362,9 @@ function toDirectoryEntry(value: unknown): PublicGameDirectoryEntry {
 function requiredInteger(record: Record<string, unknown>, key: string): number {
   const value = record[key];
   if (typeof value !== "number" || !Number.isSafeInteger(value)) {
-    throw new Error(`Supabase returned an invalid hand history ${key}`);
+    throw new Error(`Supabase returned an invalid hand data ${key}`);
   }
   return value;
-}
-
-function toHandHistory(value: unknown): HandHistory | null {
-  if (value === null) return null;
-  if (!isRecord(value))
-    throw new Error("Supabase returned an invalid hand history");
-  const status = requiredString(value, "status");
-  if (status !== "playing" && status !== "complete" && status !== "error") {
-    throw new Error("Supabase returned an invalid hand status");
-  }
-  if (!Array.isArray(value.actions)) {
-    throw new Error("Supabase returned invalid hand actions");
-  }
-  const actions = value.actions.map((item) => {
-    if (!isRecord(item))
-      throw new Error("Supabase returned an invalid hand action");
-    const street = requiredString(item, "street");
-    const action = requiredString(item, "action");
-    const controller = requiredString(item, "controller");
-    if (
-      !["preflop", "flop", "turn", "river"].includes(street) ||
-      !["fold", "check", "call", "bet", "raise", "all_in"].includes(action) ||
-      (controller !== "human" &&
-        controller !== "bot" &&
-        controller !== "typesafe_ai")
-    ) {
-      throw new Error("Supabase returned an invalid hand action domain value");
-    }
-    const amount = item.amount;
-    if (
-      amount !== null &&
-      (typeof amount !== "number" ||
-        !Number.isSafeInteger(amount) ||
-        amount < 0)
-    ) {
-      throw new Error("Supabase returned an invalid hand action amount");
-    }
-    return {
-      sequence: requiredInteger(item, "sequence"),
-      street,
-      action,
-      amount,
-      player: requiredString(item, "player"),
-      controller: controller === "human" ? "human" : "bot",
-      bot:
-        controller === "human"
-          ? null
-          : (botDescriptorFrom(item, "camel") ?? legacyJevBot),
-      botProfileId: optionalBotProfileId(item.botProfileId),
-    } as HandActionHistoryItem;
-  });
-
-  if (status !== "complete") {
-    return { status, actions, aiDecisions: [] };
-  }
-  if (!Array.isArray(value.aiDecisions)) {
-    throw new Error("Supabase returned invalid AI decision history");
-  }
-  const aiDecisions = value.aiDecisions.map((item) => {
-    if (!isRecord(item))
-      throw new Error("Supabase returned an invalid AI decision");
-    const raiseSizeChoice = item.raiseSizeChoice;
-    if (raiseSizeChoice !== null && typeof raiseSizeChoice !== "string") {
-      throw new Error("Supabase returned an invalid AI sizing choice");
-    }
-    const confidence = item.confidence;
-    if (
-      confidence !== null &&
-      (typeof confidence !== "number" || confidence < 0 || confidence > 1)
-    ) {
-      throw new Error("Supabase returned an invalid AI confidence");
-    }
-    return {
-      actionSequence: requiredInteger(item, "actionSequence"),
-      state: item.state,
-      legalActions: item.legalActions,
-      choice: requiredString(item, "choice"),
-      probabilities: item.probabilities,
-      bot: botDescriptorFrom(item, "camel") ?? legacyJevBot,
-      botProfileId: optionalBotProfileId(item.botProfileId),
-      confidence,
-      raiseSizeChoice,
-      raiseSizeProbabilities: item.raiseSizeProbabilities,
-      rawResponse: item.rawResponse,
-      matchedRule:
-        typeof item.matchedRule === "string" ? item.matchedRule : null,
-      promptVersion:
-        typeof item.promptVersion === "string" ? item.promptVersion : null,
-      durationMs: typeof item.durationMs === "number" ? item.durationMs : null,
-      usage: item.usage ?? null,
-      cost: typeof item.cost === "number" ? item.cost : null,
-    };
-  });
-  return { status, actions, aiDecisions };
 }
 
 function toGameFeed(value: unknown): GameFeed {
@@ -1072,20 +926,6 @@ export class SupabaseGameRepository {
     return parsed;
   }
 
-  async getHandHistory(
-    gameId: string,
-    handNumber: number,
-  ): Promise<HandHistory | null> {
-    const { data, error } = await this.client.rpc("get_hand_history", {
-      p_game_id: gameId,
-      p_hand_number: handNumber,
-    });
-    if (error) {
-      throw new Error(`Unable to load hand history: ${error.message}`);
-    }
-    return toHandHistory(data);
-  }
-
   async getGameFeed(
     gameId: string,
     handLimit: number = GAME_FEED_HAND_LIMIT,
@@ -1317,23 +1157,24 @@ export class SupabaseGameRepository {
         p_state_before: input.stateBefore,
         p_state_after: input.currentState,
         p_hand_complete: input.handComplete,
-        p_ai_state: input.aiState,
-        p_legal_actions: input.legalActions,
+        // Ignored legacy RPC parameters preserve compatibility during rollout.
+        p_ai_state: null,
+        p_legal_actions: null,
         p_choice: input.choice,
         p_bot_id: (input.bot ?? legacyJevBot).id,
         p_bot_label: (input.bot ?? legacyJevBot).label,
         p_bot_provider: (input.bot ?? legacyJevBot).provider,
         p_bot_model_id: (input.bot ?? legacyJevBot).modelId,
-        p_probabilities: input.probabilities,
-        p_confidence: input.confidence,
-        p_raise_size_choice: input.raiseSizeChoice,
-        p_raise_size_probabilities: input.raiseSizeProbabilities,
-        p_raw_response: input.rawResponse,
+        p_probabilities: null,
+        p_confidence: null,
+        p_raise_size_choice: null,
+        p_raise_size_probabilities: null,
+        p_raw_response: null,
         p_matched_rule: input.matchedRule ?? null,
-        p_prompt_version: input.promptVersion ?? null,
-        p_duration_ms: input.durationMs ?? null,
-        p_usage: input.usage ?? null,
-        p_cost: input.cost ?? null,
+        p_prompt_version: null,
+        p_duration_ms: null,
+        p_usage: null,
+        p_cost: null,
         p_auto_reveal_player_engine_id: input.autoRevealPlayerEngineId ?? null,
         p_auto_reveal_reason: input.autoRevealReason ?? null,
       },

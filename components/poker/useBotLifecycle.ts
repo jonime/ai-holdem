@@ -16,7 +16,6 @@ export type BotLifecycleDriver = {
   readonly step: (game: Game) => Promise<{ result: StepResult; sequence: number }>;
   readonly apply: (game: Game, sequence: number) => boolean;
   readonly refresh: (gameId: string, isCurrent: () => boolean) => Promise<unknown>;
-  readonly reportDecision: (decision: AIDecision) => void;
   readonly refreshFailed: (failed: boolean) => void;
   readonly clearError: () => void;
   readonly errorMessage: (error: unknown) => string;
@@ -125,7 +124,6 @@ export class BotLifecycle {
           try { accepted = this.driver.apply(result.game, sequence); }
           finally { this.applying = false; }
           if (accepted) {
-            this.driver.reportDecision(result.aiDecision);
             if (result.aiDecision.matchedRule === LLM_CREDIT_EXIT_RULE) {
               this.dispatch({ type: "notice", notice: this.driver.creditMessage(result.aiDecision) });
             }

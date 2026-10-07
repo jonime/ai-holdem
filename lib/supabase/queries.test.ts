@@ -78,10 +78,9 @@ describe("SupabaseGameRepository", () => {
       gameId: "game-1", expectedVersion: 3, playerEngineId: "bot",
       currentState: {}, stateSchemaVersion: 1, handNumber: 1, status: "complete",
       street: "preflop", action: "fold", amount: null, stateBefore: {}, handComplete: true,
-      aiState: {}, legalActions: [{ type: "fold" }], choice: "fold",
+      choice: "fold",
       bot: { id: "llm", label: "LLM", provider: "llm", modelId: "mock" },
-      probabilities: null, confidence: null, raiseSizeChoice: null, raiseSizeProbabilities: null,
-      rawResponse: null, matchedRule: "llm_credit_limit_exit", leaveSeat,
+      matchedRule: "llm_credit_limit_exit", leaveSeat,
     } satisfies PersistAIActionInput;
     const repository = new SupabaseGameRepository(client);
     await repository.persistAIAction(input);
@@ -237,45 +236,6 @@ describe("SupabaseGameRepository", () => {
     await expect(repository.getSeatAssignments("game-1")).resolves.toEqual([
       expect.objectContaining({ aiDifficulty: "hard" }),
     ]);
-  });
-
-  it("withholds AI inspection data for an active hand", async () => {
-    const activeHistory = {
-      status: "playing",
-      actions: [
-        {
-          sequence: 1,
-          street: "preflop",
-          action: "call",
-          amount: 50,
-          player: "You",
-          controller: "human",
-        },
-      ],
-      aiDecisions: [
-        {
-          actionSequence: 2,
-          state: { private: true },
-          legalActions: [],
-          choice: "check",
-          probabilities: {},
-          confidence: 1,
-          raiseSizeChoice: null,
-          raiseSizeProbabilities: null,
-          rawResponse: { private: true },
-        },
-      ],
-    };
-    const { client } = createClient({ updateResult: activeHistory });
-    const repository = new SupabaseGameRepository(client);
-
-    const history = await repository.getHandHistory("game-1", 1);
-
-    expect(history).toMatchObject({
-      status: "playing",
-      actions: [expect.objectContaining({ action: "call" })],
-    });
-    expect(history?.aiDecisions).toEqual([]);
   });
 
   it.each([undefined, 0, 12])("selects the feed RPC for cursor %s", async sinceHand => {
@@ -535,7 +495,7 @@ describe("SupabaseGameRepository", () => {
     });
   });
 
-  it("persists an AI action and auditable decision through one RPC", async () => {
+  it("persists an AI action without debug inspection payloads through one RPC", async () => {
     const { client, rpc } = createClient({
       updateResult: [{ ...persistedGame, version: 5 }],
     });
@@ -554,14 +514,7 @@ describe("SupabaseGameRepository", () => {
       amount: null,
       stateBefore: { before: true },
       handComplete: false,
-      aiState: { hero: { holeCards: ["As", "Kd"] } },
-      legalActions: [{ type: "check" }],
       choice: "check",
-      probabilities: { check: 1 },
-      confidence: 1,
-      raiseSizeChoice: null,
-      raiseSizeProbabilities: null,
-      rawResponse: { answers: {} },
     });
 
     expect(rpc).toHaveBeenCalledWith(
@@ -569,8 +522,9 @@ describe("SupabaseGameRepository", () => {
       expect.objectContaining({
         p_player_engine_id: "typesafe-ai",
         p_choice: "check",
-        p_confidence: 1,
-        p_ai_state: { hero: { holeCards: ["As", "Kd"] } },
+        p_confidence: null,
+        p_ai_state: null,
+        p_raw_response: null,
       }),
     );
   });

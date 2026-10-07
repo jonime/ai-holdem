@@ -15,8 +15,17 @@ browser -> Next.js API routes -> poker engine + bot providers -> Supabase
 ```
 
 Each request applies at most one player action. Supabase RPCs atomically store
-the resulting engine state, action record, and (for AI turns) the decision
-audit while enforcing the expected game version.
+the resulting engine state and action record while enforcing the expected
+game version. Bot decision inspection data is not stored.
+
+## Debug history removal
+
+Apply `20261018000000_remove_debug_history.sql` before deploying the debug-history
+removal. It drops the inspection RPC, `ai_decisions` table (including existing
+debug records), and its trigger function. Hands, actions, inference context,
+claims, credit departures and reveals remain available. Legacy bot action RPC
+inspection parameters are retained and ignored for rolling deployment
+compatibility; the application sends null for inspection payloads.
 
 ## Bot advancement and Realtime
 
@@ -179,8 +188,8 @@ projects only visible action facts. Version/replay conflicts stop before
 inference; legacy gaps are explicitly unknown and DB errors remain visible.
 
 LLMs receive selected original advisory guidance in their system instructions.
-Facts, advice and policy have independent versions; the supplied context and
-advice identifiers are kept in existing private audit storage. Candidate
+Facts, advice and policy have independent versions. Provider context, raw
+responses and decision diagnostics are not persisted. Candidate
 safeguards, authorization, one request per decision, and version-checked
 persistence are retained. See [context and evaluation methodology](../benchmarks/poker-context.md)
 for position, sizing, pressure and research assumptions.

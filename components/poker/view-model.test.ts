@@ -10,7 +10,6 @@ import {
   cardLabel,
   copyInviteUrl,
   describeBotConfiguration,
-  describeHandResult,
   describeSeatStatus,
   feedEventLabel,
   filledSeatCount,
@@ -297,14 +296,6 @@ describe("view-model", () => {
   });
 
   it("describes split-pot results and permissions", () => {
-    expect(describeHandResult(["Alice", "Bob"], enUsGame.history)).toBe(
-      "Split pot: Alice & Bob",
-    );
-    expect(describeHandResult(["Alice", "Bob"], fiFiGame.history)).toBe(
-      "Jaettu potti: Alice & Bob",
-    );
-    expect(describeHandResult(null, enUsGame.history)).toBe("Hand complete");
-
     expect(canManageTable([], "viewer")).toBe(true);
     expect(
       canManageTable([{ isHost: true, playerToken: "viewer" }], "viewer"),

@@ -19,9 +19,9 @@ import {
   type SeatParams, type ClaimSeatRequest, type RenameSeatRequest, type AssignBotRequest,
 } from "./seat-contracts";
 import {
-  historyQuerySchema, feedQuerySchema, historyResponseSchema, feedResponseSchema,
-  type HistoryQuery, type FeedQuery,
-} from "./history-contracts";
+  feedQuerySchema, feedResponseSchema,
+  type FeedQuery,
+} from "./feed-contracts";
 import {
   myGamesResponseSchema, directoryQuerySchema, directoryResponseSchema, joinRequestSchema,
   publicationRequestSchema, joinResponseSchema, publicationResponseSchema,
@@ -150,9 +150,6 @@ export const api = {
     },
   },
   games: {
-    history({ gameId, ...query }: GameParams & HistoryQuery, options: Options = {}) {
-      return send(`${gameUrl({ gameId })}/history${queryString(historyQuerySchema.parse(query))}`, historyResponseSchema, { cache: "no-store", signal: options.signal });
-    },
     feed({ gameId, ...query }: GameParams & FeedQuery, options: Options = {}) {
       return send(`${gameUrl({ gameId })}/feed${queryString(feedQuerySchema.parse(query))}`, feedResponseSchema, { cache: "no-store", signal: options.signal });
     },

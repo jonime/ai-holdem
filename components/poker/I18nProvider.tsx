@@ -10,7 +10,7 @@ type TranslationKey = string;
 
 /**
  * Route-scoped provider for the game route (`/[lang]/game/[gameId]`), which
- * serves the combined lobby/table/history/feed/cards/errors dictionary to
+ * serves the combined lobby/table/feed/cards/errors dictionary to
  * its client components. The landing page deliberately has no provider and
  * receives narrow string props instead.
  */

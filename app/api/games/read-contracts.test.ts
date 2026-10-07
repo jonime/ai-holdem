@@ -1,37 +1,21 @@
 import { beforeEach, expect, it, vi } from "vitest";
-import { GET as history } from "./[gameId]/history/route";
 import { GET as feed } from "./[gameId]/feed/route";
 import { GET as directory } from "./public/route";
 import { GET as bots } from "@/app/api/bots/route";
-import { historyResponseSchema, feedResponseSchema } from "@/lib/http/history-contracts";
+import { feedResponseSchema } from "@/lib/http/feed-contracts";
 import { directoryResponseSchema } from "@/lib/http/discovery-contracts";
 import { botCatalogResponseSchema } from "@/lib/http/creation-contracts";
-const { readHistory, readFeed, page } = vi.hoisted(() => ({ readHistory: vi.fn(), readFeed: vi.fn(), page: vi.fn() }));
+const { readFeed, page } = vi.hoisted(() => ({ readFeed: vi.fn(), page: vi.fn() }));
 vi.mock("next/server", async original => ({ ...await original<typeof import("next/server")>(), connection: vi.fn() }));
-vi.mock("@/lib/supabase/server", () => ({ createSupabaseGameRepository: () => ({ getHandHistory: readHistory }) }));
+vi.mock("@/lib/supabase/server", () => ({ createSupabaseGameRepository: () => ({}) }));
 vi.mock("@/lib/poker/game-service", () => ({ getGameFeed: readFeed }));
 vi.mock("@/lib/poker/public-directory-cache", async original => ({ ...await original<typeof import("@/lib/poker/public-directory-cache")>(), getPublicDirectoryPage: page }));
 vi.mock("@/lib/bots/registry", () => ({ getBotCatalog: () => [{ id: "rules", label: "Rules", provider: "rules", modelId: null }] }));
 const context = { params: Promise.resolve({ gameId: "game-1" }) };
 const request = (query = "") => new Request(`http://localhost/api/games/game-1${query}`, { headers: { cookie: "ai-holdem-player-id=owner" } });
 beforeEach(() => {
-  readHistory.mockReset(); readHistory.mockResolvedValue({ status: "complete", actions: [], aiDecisions: [] });
   readFeed.mockReset(); readFeed.mockResolvedValue({ events: [] });
   page.mockReset(); page.mockResolvedValue({ games: [], nextCursor: "next" });
-});
-it("validates actual history and first-value query semantics", async () => {
-  const response = await history(request("?hand=2&hand=3"), context);
-  expect(response.status).toBe(200);
-  historyResponseSchema.parse(await response.json());
-  expect(readHistory).toHaveBeenCalledWith("game-1", 2);
-});
-it.each(["", "?hand=0", "?hand=NaN", "?hand=9007199254740992"])("rejects history query %s", async query => {
-  expect((await history(request(query), context)).status).toBe(400);
-  expect(readHistory).not.toHaveBeenCalled();
-});
-it("retains missing-history 404", async () => {
-  readHistory.mockResolvedValue(null);
-  expect((await history(request("?hand=1"), context)).status).toBe(404);
 });
 it("validates actual feed output", async () => { feedResponseSchema.parse(await (await feed(request("?sinceHand=001"), context)).json()); expect(readFeed).toHaveBeenCalledWith(expect.anything(), "game-1", 1); });
 it("validates actual catalog", async () => { botCatalogResponseSchema.parse(await (await bots()).json()); });

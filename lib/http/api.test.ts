@@ -105,7 +105,6 @@ const methods = [
   { name: "custom", run: (signal?: AbortSignal) => api.creation.custom({ seatCount: 4, hostName: "Ada" }, { signal }), path: "/api/games", method: "POST", body: { seatCount: 4, hostName: "Ada" }, response: { gameId: "new-game" } },
   { name: "quickPlay", run: (signal?: AbortSignal) => api.creation.quickPlay({ lang: "fi-FI" }, { signal }), path: "/fi-FI/quick-game", method: "POST", response: { gameId: "new-game" } },
   { name: "catalog", run: (signal?: AbortSignal) => api.bots.catalog({ signal }), path: "/api/bots", response: { bots: [] } },
-  { name: "history", run: (signal?: AbortSignal) => api.games.history({ gameId: "game-1", hand: 3 }, { signal }), path: "/api/games/game-1/history?hand=3", response: { history: { status: "complete", actions: [], aiDecisions: [] } } },
   { name: "feed", run: (signal?: AbortSignal) => api.games.feed({ gameId: "game-1", sinceHand: 2 }, { signal }), path: "/api/games/game-1/feed?sinceHand=2", response: { feed: { events: [] } } },
   { name: "list", run: (signal?: AbortSignal) => api.discovery.list({ cursor: "a/b +?=" }, { signal }), path: "/api/games/public?cursor=a%2Fb+%2B%3F%3D", response: { games: [], nextCursor: null } },
   { name: "join", run: (signal?: AbortSignal) => api.discovery.join({ gameId: "game-1", expectedVersion: 2, name: "Ada" }, { signal }), path: "/api/games/game-1/join", method: "POST", body: { expectedVersion: 2, name: "Ada" }, response: { gameId: "game-1", seat: 1, version: 3 } },
@@ -181,7 +180,7 @@ function extendedCompileTimeContracts() {
   // @ts-expect-error heartbeat does not accept a version
   api.discovery.heartbeat({ gameId: "game", expectedVersion: 1 });
   // @ts-expect-error no caller-supplied response generic
-  api.games.history<{ private: true }>({ gameId: "game", hand: 1 });
+  api.games.feed<{ private: true }>({ gameId: "game" });
   // @ts-expect-error unknown query
   api.games.feed({ gameId: "game", hand: 1 });
   expectTypeOf(api.games.start).returns.resolves.toExtend<SubmitActionResponse>();

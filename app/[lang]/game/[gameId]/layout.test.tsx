@@ -67,7 +67,6 @@ const gameTopLevelKeys = [
   "errors",
   "feed",
   "gameHeader",
-  "history",
   "lobby",
   "result",
   "seat",

@@ -47,7 +47,7 @@ begin
   exception when others then
     if sqlerrm <> 'Invalid bot credit departure' then raise; end if;
   end;
-  -- A failure after the action RPC must roll back both the fold and its audit.
+  -- A failure after the action RPC must roll back the fold and hand completion.
   begin
     perform pg_temp.credit_fold(fixture,0);
     raise exception 'Departure failure was not propagated';
@@ -58,7 +58,6 @@ begin
   assert (select status from public.hands where game_id=fixture) = 'playing';
   assert not (select leaving from public.game_players where game_id=fixture);
   assert (select count(*) from public.actions where game_id=fixture) = 0;
-  assert (select count(*) from public.ai_decisions where game_id=fixture) = 0;
 end;
 $$;
 reset role;
@@ -77,7 +76,6 @@ begin
   assert result.version = 1 and result.status = 'complete';
   assert (select leaving from public.game_players where game_id=fixture);
   assert (select count(*) from public.actions where game_id=fixture and action='fold') = 1;
-  assert (select count(*) from public.ai_decisions where game_id=fixture and matched_rule='llm_credit_limit_exit') = 1;
   assert (select status from public.hands where game_id=fixture) = 'complete';
   assert (select count(*) from pg_temp.credit_fold(fixture,0)) = 0, 'Stale fold cannot commit';
   assert (select version from public.games where id=fixture) = 1;

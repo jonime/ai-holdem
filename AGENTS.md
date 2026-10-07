@@ -81,7 +81,7 @@ reuse a server or read hosted credentials. Validate loopback status origins,
 mask credentials, disable external inference, and clear provider credentials.
 Reject `E2E_BASE_URL` in CI; keep development and explicit preview modes outside
 CI. The lifecycle `@smoke` tests cover Quick Play, unseated host seat authority,
-Equity Rules completion/history/next hand, real two-browser Realtime game/seat
+Equity Rules completion/Actions feed/next hand, real two-browser Realtime game/seat
 events, and intentionally blocked WebSocket polling recovery. Use Chromium with
 one worker and no retries. Ordinary local smoke/SQL commands never reset the DB.
 
@@ -207,11 +207,20 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
 - Anonymous player tokens support this game's seat ownership; they are not
 	production authentication. Knowing a game URL intentionally permits viewing.
 
+## Debug history removal
+
+Apply `20261018000000_remove_debug_history.sql` before deploying the debug-history
+removal. It drops the inspection RPC, `ai_decisions` table (including existing
+debug records), and its trigger function. Hands, actions, inference context,
+claims, credit departures and reveals remain available. Legacy bot action RPC
+inspection parameters are retained and ignored for rolling deployment
+compatibility; the application sends null for inspection payloads.
+
 ## Code Map
 
 - `docs/`: gameplay, architecture, and deployment reference guides linked from
   the README. `benchmarks/README.md` indexes evaluations and policy benchmarks.
-- `app/api/games/`: HTTP boundary for game creation, actions, seats, history,
+- `app/api/games/`: HTTP boundary for game creation, actions, seats, feed,
 	AI stepping, and hand transitions.
 - `lib/poker/`: domain types, engine adapter, public projections, and game
 	orchestration. `seat-service.ts` owns atomic claim, bot assignment, and release;
@@ -232,7 +241,7 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
   `bot-lifecycle.ts` owns pure bot state transitions; `useBotLifecycle.ts` owns
   advancement, waits, provider pauses, usage countdowns, retries and generation
   guards. `useGameSession.ts` retains authoritative state/reconciliation, response
-  sequences, polling/Realtime, feed/history and non-bot mutations. See the compact
+  sequences, polling/Realtime, feed and non-bot mutations. See the compact
   transition table in `CONTRIBUTING.md`.
 - `supabase/migrations/`: ordered schema and atomic RPC changes.
 
@@ -293,7 +302,7 @@ credentials. Live bot evaluations still require their explicit opt-in flags.
 
 ## Shared Jev/LLM context and evaluations
 
-Use `get_bot_hand_context` for inference history, never the inspection history RPC.
+Use `get_bot_hand_context` for inference history.
 Apply `20261013000000_add_bot_hand_context.sql` before app deployment. Resolve
 actors by authoritative pre-action engine turns and immutable hand configuration.
 Validate the version and replay before inference; incomplete legacy history is

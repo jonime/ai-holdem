@@ -34,7 +34,6 @@ export function PokerTable({
   onSubmitAction,
   onBeginNextHand,
   onRevealCards,
-  onOpenHistory,
   feedCollapsed,
   onToggleFeed,
   latestActions,
@@ -67,7 +66,6 @@ export function PokerTable({
   ) => void;
   readonly onBeginNextHand: () => void;
   readonly onRevealCards: () => void;
-  readonly onOpenHistory: () => void;
   readonly feedCollapsed: boolean;
   readonly onToggleFeed: () => void;
   readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
@@ -129,16 +127,6 @@ export function PokerTable({
               onClick={onStandUp}
             >
               {human.leaving ? t("table.leaving") : t("table.standUp")}
-            </Button>
-          ) : null}
-          {process.env.NODE_ENV === "development" ? (
-            <Button
-              variant="ghost"
-              size="small"
-              className={styles.historyToggle}
-              onClick={onOpenHistory}
-            >
-              {t("table.history")}
             </Button>
           ) : null}
           <Button

@@ -1,5 +1,5 @@
 import { gameParamsSchema } from "@/lib/http/common-contracts";
-import { feedRouteQuerySchema, type FeedResponse } from "@/lib/http/history-contracts";
+import { feedRouteQuerySchema, type FeedResponse } from "@/lib/http/feed-contracts";
 import { NextResponse } from "next/server";
 
 import { getGameFeed } from "@/lib/poker/game-service";

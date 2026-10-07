@@ -31,7 +31,7 @@ function fixture() {
     step: vi.fn(async () => ({ result: { game: humanTurn(game), aiDecision: decision }, sequence: ++sequence })),
     apply: vi.fn((incoming: Game) => { game = incoming; lifecycle.reconcile(game); return true; }),
     refresh: vi.fn(async (_gameId: string, isCurrent: () => boolean) => { if (isCurrent()) lifecycle.reconcile(game); }),
-    reportDecision: vi.fn(), refreshFailed: vi.fn(), clearError: vi.fn(),
+    refreshFailed: vi.fn(), clearError: vi.fn(),
     errorMessage: (error: unknown) => error instanceof Error ? error.message : "failure",
     unfinishedMessage: () => "retry required", creditMessage: () => "credits",
   };
@@ -55,7 +55,6 @@ describe("bot lifecycle execution (characterized advancement and pause policies)
     expect(f.driver.refresh).not.toHaveBeenCalled();
     held.resolve({ result: { game: humanTurn(f.game()), aiDecision: decision }, sequence: 1 });
     await loop;
-    expect(f.driver.reportDecision).toHaveBeenCalledWith(decision);
     expect(f.lifecycle.getSnapshot().kind).toBe("idle");
   });
   it("provider failures stay paused across repeated and version-only polling", async () => {
@@ -132,7 +131,6 @@ describe("bot lifecycle execution (characterized advancement and pause policies)
     await f.lifecycle.advance(f.game());
     expect(f.driver.refresh).toHaveBeenCalledOnce();
     expect(f.driver.step).toHaveBeenCalledOnce();
-    expect(f.driver.reportDecision).not.toHaveBeenCalled();
     expect(f.lifecycle.getSnapshot().notice).toBe(fails ? "refresh failed" : null);
     if (fails) expect(f.driver.refreshFailed).toHaveBeenCalledWith(true);
   });
@@ -164,7 +162,6 @@ describe("bot lifecycle execution (characterized advancement and pause policies)
     held.resolve({ result: { game: humanTurn(initial), aiDecision: decision }, sequence: 1 });
     await loop;
     expect(f.driver.apply).not.toHaveBeenCalled();
-    expect(f.driver.reportDecision).not.toHaveBeenCalled();
   });
   it("a pending provider failure remains paused after a same-turn version refresh", async () => {
     const f = fixture();
@@ -187,7 +184,6 @@ describe("bot lifecycle execution (characterized advancement and pause policies)
     f.driver.apply.mockReturnValue(false);
     held.resolve({ result: { game: { ...initial, version: 2 }, aiDecision: decision }, sequence: 1 });
     await loop;
-    expect(f.driver.reportDecision).not.toHaveBeenCalled();
     expect(f.driver.step).toHaveBeenCalledOnce();
     expect(f.game().version).toBe(4);
   });
@@ -214,7 +210,6 @@ describe("bot lifecycle execution (characterized advancement and pause policies)
     const rejected = fixture();
     rejected.driver.apply.mockReturnValue(false);
     await rejected.lifecycle.advance(rejected.game());
-    expect(rejected.driver.reportDecision).not.toHaveBeenCalled();
     expect(rejected.driver.step).toHaveBeenCalledOnce();
   });
   it("tracks automatic attempts per version and retains the twelve-step bound", async () => {

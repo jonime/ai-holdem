@@ -282,19 +282,6 @@ export async function copyInviteUrl(
   }
 }
 
-export function describeHandResult(
-  winnerNames: readonly string[] | null | undefined,
-  labels: GameDictionary["history"],
-): string | null {
-  if (!winnerNames || winnerNames.length === 0) {
-    return labels.handComplete;
-  }
-  if (winnerNames.length > 1) {
-    return labels.splitPot.replace("{winners}", winnerNames.join(" & "));
-  }
-  return labels.winner.replace("{winner}", winnerNames[0]);
-}
-
 export function findGameWinnerId(
   players: readonly Pick<PublicPokerPlayer, "id" | "stack" | "status">[],
   street: PokerStreet | null,
@@ -392,10 +379,6 @@ export function formatActionLabel(
   return action.amount === null
     ? label
     : `${label} ${formatChips(action.amount, locale)}`;
-}
-
-export function availableHistoryHands(handNumber: number): number[] {
-  return Array.from({ length: handNumber }, (_, index) => index + 1);
 }
 
 export function getSizedAction(

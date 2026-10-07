@@ -52,7 +52,7 @@ describe("bot credit departure", () => {
     expect(decide).toHaveBeenCalledOnce();
     expect(repository.persistAIAction).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({
       expectedVersion: 1, action: "fold", choice: "fold", leaveSeat: true,
-      matchedRule: LLM_CREDIT_EXIT_RULE, rawResponse: null,
+      matchedRule: LLM_CREDIT_EXIT_RULE,
     }));
     expect(result.game).toMatchObject({ version: 2, status: "complete" });
     expect(result.game.poker.players.find(player => player.id === "bot")).toMatchObject({ folded: true, leaving: true });

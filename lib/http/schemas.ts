@@ -279,50 +279,6 @@ export const realtimeGameEventSchema = z.union([
 
 export type RealtimeGameEvent = z.infer<typeof realtimeGameEventSchema>;
 
-export const handActionHistoryItemSchema = z.object({
-  sequence: z.number().int().nonnegative(),
-  street: z.string(),
-  action: z.string(),
-  amount: z.number().nullable(),
-  player: z.string(),
-  controller: z.enum(["human", "bot"]),
-  bot: z
-    .object({
-      id: z.string(),
-      label: z.string(),
-      provider: z.enum(["typesafe", "llm", "rules"]),
-      modelId: z.string().nullable(),
-    })
-    .nullable(),
-  botProfileId: z.enum(["balanced", "tight", "aggressive"]).nullable(),
-});
-
-export const completedAIDecisionInspectionSchema = z.object({
-  actionSequence: z.number().int().nonnegative(),
-  state: z.unknown(),
-  legalActions: z.unknown(),
-  choice: z.string(),
-  probabilities: z.unknown(),
-  confidence: z.number().finite().nullable(),
-  bot: z.object({
-    id: z.string(),
-    label: z.string(),
-    provider: z.enum(["typesafe", "llm", "rules"]),
-    modelId: z.string().nullable(),
-  }),
-  botProfileId: z.enum(["balanced", "tight", "aggressive"]).nullable(),
-  matchedRule: z.string().nullable(),
-  rawResponse: z.unknown(),
-});
-
-export const handHistorySchema = z.object({
-  status: z.enum(["playing", "complete", "error"]),
-  actions: z.array(handActionHistoryItemSchema),
-  aiDecisions: z.array(completedAIDecisionInspectionSchema),
-});
-
-export const historyEnvelopeSchema = z.object({ history: handHistorySchema });
-
 const gameFeedEventSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("handStarted"),

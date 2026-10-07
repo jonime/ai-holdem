@@ -184,13 +184,6 @@ export interface BotHandContextReader {
   getBotHandContext(gameId: string, handNumber: number): Promise<BotHandContext | null>;
 }
 
-export interface HandHistoryReader {
-  getHandHistory(
-    gameId: string,
-    handNumber: number,
-  ): Promise<import("@/lib/supabase/queries").HandHistory | null>;
-}
-
 export interface GameFeedReader {
   getGameFeed(
     gameId: string,
@@ -199,8 +192,8 @@ export interface GameFeedReader {
   ): Promise<GameFeed>;
 }
 
-export type { GameFeedEvent as PublicFeedEvent, GameFeed as PublicGameFeed } from "@/lib/http/history-contracts";
-import type { GameFeedEvent as PublicFeedEvent, GameFeed as PublicGameFeed } from "@/lib/http/history-contracts";
+export type { GameFeedEvent as PublicFeedEvent, GameFeed as PublicGameFeed } from "@/lib/http/feed-contracts";
+import type { GameFeedEvent as PublicFeedEvent, GameFeed as PublicGameFeed } from "@/lib/http/feed-contracts";
 
 const bettingStreets = ["preflop", "flop", "turn", "river"] as const;
 
@@ -976,9 +969,8 @@ export async function getPublicGame(
 
 /**
  * Simplified action feed for recent hands (optionally from an inclusive hand), for the
- * always-visible player-facing panel. Unlike `getHandHistory`, it carries no
- * bot inspection detail and never needs a viewer token, since it never
- * exposes hole cards.
+ * always-visible player-facing panel. It never exposes hole cards and
+ * does not require a viewer token.
  */
 export async function getGameFeed(
   repository: GameFeedReader,
@@ -1210,7 +1202,6 @@ async function stepResolvedBotAction(
     Partial<
       SeatAssignmentRepository &
         BotHandContextReader &
-        HandHistoryReader &
         HandRevealReader
     >,
   bot: PokerBot,
@@ -1295,20 +1286,9 @@ async function stepResolvedBotAction(
       "amount" in decision.action ? (decision.action.amount ?? null) : null,
     stateBefore,
     handComplete: snapshotAfter.street === "complete",
-    aiState: decision.suppliedContext ?? context,
-    legalActions: aiState.legalActions,
     choice: decision.action.type,
     bot: botDescriptor,
-    probabilities: decision.diagnostics.probabilities,
-    confidence: decision.diagnostics.confidence,
-    raiseSizeChoice: decision.diagnostics.sizing?.choice ?? null,
-    raiseSizeProbabilities: decision.diagnostics.sizing?.probabilities ?? null,
     matchedRule: decision.diagnostics.matchedRule,
-    promptVersion: decision.diagnostics.promptVersion,
-    durationMs: decision.diagnostics.durationMs,
-    usage: decision.diagnostics.usage,
-    cost: decision.diagnostics.cost,
-    rawResponse: decision.rawResponse,
     ...(() => {
       const autoReveal = autoRevealForCompletedState(
         stateAfter,

@@ -185,7 +185,7 @@ test("recovers through polling and after coming back online", async ({
   await spectatorContext.close();
 });
 
-test("runs the deterministic bot through completion, history, and another hand", { tag: "@smoke" }, async ({
+test("runs the deterministic bot through completion, Actions feed, and another hand", { tag: "@smoke" }, async ({
   page,
 }) => {
   test.setTimeout(60_000);
@@ -219,7 +219,8 @@ test("runs the deterministic bot through completion, history, and another hand",
   await expect(actions.getByRole("listitem").filter({ hasText: "Equity Rules" }).first()).toBeVisible();
   const gameId = new URL(page.url()).pathname.split("/").at(-1);
   const history = await page.request.get(`/api/games/${gameId}/history?hand=1`);
-  expect(history.ok()).toBe(true);
+  expect(history.status()).toBe(404);
+  await expect(page.getByRole("button", { name: "History", exact: true })).toHaveCount(0);
 
   await page.getByRole("button", { name: "Next Hand" }).click();
   await expect(page.getByText("Hand 2")).toBeVisible({ timeout: 15_000 });

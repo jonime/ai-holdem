@@ -10,7 +10,6 @@ import {
   ActionFeedPanel,
 } from "@/components/poker/ActionFeedPanel";
 import { Button } from "@/components/Button";
-import { HistoryModal } from "@/components/poker/HistoryModal";
 import { useI18n } from "@/components/poker/I18nProvider";
 import { LobbyPanel } from "@/components/poker/LobbyPanel";
 import { PokerTable } from "@/components/poker/PokerTable";
@@ -20,7 +19,6 @@ import { getClientPlayerToken } from "@/lib/identity/player-token-client";
 import {
   arrangeSeats,
   arrangeSeatsLinear,
-  availableHistoryHands,
   resolveViewer,
   latestActionsForStreet,
   tableFlow,
@@ -51,7 +49,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   );
   const [playerNameEdited, setPlayerNameEdited] = useState(false);
   const [amountDraft, setAmountDraft] = useState({ scope: "", value: "" });
-  const [historyOpen, setHistoryOpen] = useState(false);
   const [joinDialogOpen, setJoinDialogOpen] = useState(false);
   const [feedCollapsed, setFeedCollapsed] = useState(() =>
     typeof window === "undefined"
@@ -89,12 +86,8 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const {
     game,
     botCatalog,
-    history,
-    historyLoading,
     feed,
     feedLoading,
-    selectedHistoryHand,
-    liveDecisions,
     loading,
     error,
     claimSeatAt,
@@ -108,9 +101,8 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     retryBotTurn,
     usageLimited,
     usageRetryAfterMs,
-    selectHistoryHand,
     refreshDirectoryState,
-  } = useGameSession(gameId, process.env.NODE_ENV === "development" && historyOpen);
+  } = useGameSession(gameId);
 
   const viewerToken = getClientPlayerToken();
   const { viewerPlayer, human } = resolveViewer(
@@ -183,14 +175,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     game?.poker.players ?? [],
     viewerPlayer?.id ?? null,
   );
-  const displayedHistoryHand = selectedHistoryHand ?? game?.poker.handNumber;
-  const currentHistory =
-    history && history.handNumber === displayedHistoryHand
-      ? history.value
-      : null;
-  const availableHands = game
-    ? availableHistoryHands(game.poker.handNumber)
-    : [];
   const latestActions = latestActionsForStreet(
     feed?.events ?? [],
     game?.poker.players ?? [],
@@ -206,7 +190,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
         !game ||
         (!isHumanTurn && !canStartNextHand && !(completedHand && canRevealCards)) ||
         loading || replaying || replayPending.current ||
-        historyOpen ||
         event.defaultPrevented ||
         event.repeat ||
         event.metaKey ||
@@ -295,7 +278,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     canRevealCards,
     canStartNextHand,
     replaying,
-    historyOpen,
     isHumanTurn,
     loading,
     sizedAction,
@@ -390,7 +372,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               }}
               onBeginNextHand={() => { if (!replayPending.current) void beginNextHand(); }}
               onRevealCards={() => { if (!replayPending.current) void revealCards(); }}
-              onOpenHistory={() => setHistoryOpen(true)}
               feedCollapsed={feedCollapsed}
               onToggleFeed={toggleFeed}
               latestActions={latestActions}
@@ -409,21 +390,6 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               feed={feed}
               loading={feedLoading}
               onClose={closeFeedModal}
-            />
-          ) : null}
-          {process.env.NODE_ENV === "development" && historyOpen && displayedHistoryHand ? (
-            <HistoryModal
-              onClose={() => setHistoryOpen(false)}
-              handNumber={displayedHistoryHand}
-              history={currentHistory}
-              loading={historyLoading}
-              availableHands={availableHands}
-              onSelectHand={(hand) => selectHistoryHand(hand)}
-              liveDecisions={
-                displayedHistoryHand === game?.poker.handNumber
-                  ? liveDecisions
-                  : []
-              }
             />
           ) : null}
           {joinDialogOpen && isSpectator ? (

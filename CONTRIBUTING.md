@@ -106,7 +106,7 @@ and by all Playwright modes in CI. No hosted credentials are needed.
 
 The `@smoke` suites cover Play navigation, browser identity isolation, personal/public failures, retries, pagination, redirects, mobile and keyboard behavior, public joining, plus four fair-use tests (both countdown codes, rules-only replay/navigation, and shared HTML/JSON creation denials) and these five lifecycle tests: six-seat Quick Play to a human turn;
 seat claims/moves/bot assignments/releases with an unseated host; an Equity Rules
-hand through history and another hand; actual two-browser Realtime for versioned
+hand through the Actions feed and another hand; actual two-browser Realtime for versioned
 game and same-version seat changes; and polling recovery with intentionally
 blocked WebSockets. Selection uses `--grep @smoke`, Chromium, one worker, and no
 retries. To inspect selection without building, use
@@ -221,7 +221,7 @@ Translations are physically split by route and usage under `lib/i18n/dictionarie
 | `landing-server/<locale>.ts` | landing page Server Component prose |
 | `play/<locale>.ts` | Play headings, statuses, personal table strings passed into client islands |
 | `join-game/<locale>.ts` | reusable public-directory strings passed into the Play client island |
-| `game/<locale>.ts` | combined lobby/table/history/feed/cards/errors dictionary |
+| `game/<locale>.ts` | combined lobby/table/feed/cards/errors dictionary |
 
 The About route is the exception to the TypeScript dictionary layout: its long-form
 content lives in `content/about/<locale>.mdx`, including a localized `metadata`
@@ -424,7 +424,6 @@ The endpoint-to-contract/client checklist is complete:
 | `POST /api/games` | `createGameRouteRequestSchema` | `createGameResponseSchema` | `creation.custom` |
 | `POST /:lang/quick-game` (JSON) | `quickPlayParamsSchema` | `quickPlayResponseSchema` | `creation.quickPlay` |
 | `GET /api/bots` | no parameters | `botCatalogResponseSchema` | `bots.catalog` |
-| `GET /api/games/:gameId/history?hand=N` | game params / `historyRouteQuerySchema` | `historyResponseSchema` | `games.history` |
 | `GET /api/games/:gameId/feed?sinceHand=N` | game params / `feedRouteQuerySchema` | `feedResponseSchema` | `games.feed` |
 | `GET /api/games/mine` | cookie identity only | `myGamesResponseSchema` | `discovery.mine` |
 | `GET /api/games/public?cursor=...` | `directoryRouteQuerySchema`, `directoryCursorSchema` | `directoryResponseSchema` | `discovery.list` |
@@ -433,8 +432,8 @@ The endpoint-to-contract/client checklist is complete:
 | `POST /api/games/:gameId/heartbeat` | game params (no body/version) | `heartbeatResponseSchema` | `discovery.heartbeat` |
 
 Gameplay and lifecycle contracts live in `gameplay-contracts.ts`; seats,
-creation/catalog, history/feed, and discovery/publication have separate feature
-files. Wire query schemas preserve first-value history/cursor parsing and reject
+creation/catalog, feed, and discovery/publication have separate feature
+files. Wire query schemas preserve first-value directory cursor parsing and reject
 repeated `sinceHand`, nondecimal feed cursors, and values above PostgreSQL's
 2,147,483,647 integer limit. Client query schemas accept typed numbers. Creation
 and claim wire schemas retain historical optional-name normalization. Unknown
@@ -470,7 +469,7 @@ and seeded heads-up/six-seat wrapper comparisons, and `npm run test:sql:bot-cont
 with migrated local Supabase running for private RPC roles and game/hand
 isolation. Fixtures roll back; no backfill or reset is needed. CI runs this SQL
 suite alongside game reads and seats. Keep server-only facts, projected full
-history, independent policy/advice versions, audit privacy and conflict handling
+history, independent policy/advice versions, provider privacy and conflict handling
 intact. See [methodology and capped live commands](benchmarks/poker-context.md).
 All live bot evaluation commands require explicit inference enablement and a
 positive `BOT_DECISION_CALL_CAP`, shared across the selected run.
@@ -528,7 +527,7 @@ explicit retry, rules replay, and localized HTML/typed JSON creation denials.
 executes them through the testable `BotLifecycle` driver, owns timers and request
 generations, and calls the existing twelve-step `advanceBotTurns` helper. All
 advancement entry points share its guard. `useGameSession.ts` retains authoritative
-state, response sequences/reconciliation, polling, Realtime, feed/history, and
+state, response sequences/reconciliation, polling, Realtime, feed, and
 non-bot mutations. Reconciliation notifies the lifecycle synchronously; lifecycle
 refreshes carry a generation predicate before session reconciliation. Inference
 already running on the server is never cancelled.

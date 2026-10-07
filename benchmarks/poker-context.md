@@ -53,8 +53,8 @@ through the relevant street. Six-seat preflop remains six-seat even after folds.
 Multiway advice accounts for multiple continuing ranges and limited fold equity.
 Unknown situations get general advice. Advice never removes candidates and
 cannot override the existing exact river safeguards or playstyle boundaries.
-The supplied context and advice IDs/text are persisted in existing private audit
-storage; existing inspection/public DTO restrictions still apply.
+The supplied context and advice IDs/text are used only during inference; debug
+inspection storage has been removed. Public DTO privacy restrictions still apply.
 
 ## Offline evidence
 

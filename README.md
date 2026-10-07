@@ -12,7 +12,7 @@ authoritative for cards, turns, legal actions, betting, pots, and winners.
 - Play privately, invite friends, or watch bots play.
 - Customize seats, bots, stakes, and LLM playstyles.
 - Follow legal actions, completed-hand results, and an Actions timeline.
-- Persist games, hands, actions, and AI decision audits in Supabase.
+- Persist games, hands, and actions in Supabase.
 - Validate every human and bot action server-side before committing it with a
   game-version check.
 - Use localized pages in ten languages. Unprefixed URLs select a supported
