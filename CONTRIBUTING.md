@@ -609,6 +609,9 @@ verify departure and notification delivery on an authorized Vercel deployment.
 ## Table removal verification and rollout
 
 Apply `20261020000000_add_table_removal.sql` before deploying the application.
+Also apply `20261021000000_grant_table_removal_reveal_delete.sql`; removal requires
+an explicit service-role DELETE grant on card reveals. Broader local default
+privileges can mask a missing hosted grant.
 `POST /api/games/[gameId]/remove` accepts only `expectedVersion` and the explicit
 `delete` or `leave_and_remove` operation through discovery contracts and `api.discovery.remove`.
 Cookie identity and service-role RPCs own authorization; no ownership tokens enter

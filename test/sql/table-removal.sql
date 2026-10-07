@@ -27,6 +27,9 @@ begin
   end loop;
   assert not has_table_privilege('anon','public.personal_game_exclusions','select');
   assert not has_table_privilege('authenticated','public.personal_game_exclusions','select');
+  assert has_table_privilege('service_role','public.hand_card_reveals','delete');
+  assert not has_table_privilege('anon','public.hand_card_reveals','delete');
+  assert not has_table_privilege('authenticated','public.hand_card_reveals','delete');
   f:=pg_temp.removal_fixture();
   assert public.remove_game_if_version(f,0,'intruder','delete')->>'outcome'='forbidden';
   assert public.remove_game_if_version(f,0,'removal-host','leave_and_remove')->>'outcome'='forbidden';

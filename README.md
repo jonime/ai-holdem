@@ -201,4 +201,7 @@ Deletion permanently removes history and the shared URL; fair-use counters remai
 Joined players can leave and hide a table from their personal list. Active-hand
 departures are irreversible; all-ins retain pot eligibility. A new successful seat
 claim restores a hidden table. Apply `20261020000000_add_table_removal.sql` before
-deploying this feature. See [gameplay](docs/gameplay.md#removing-tables-from-play).
+deploying this feature, followed by
+`20261021000000_grant_table_removal_reveal_delete.sql` to explicitly grant the
+server role permission to delete card reveals on hosted Supabase.
+See [gameplay](docs/gameplay.md#removing-tables-from-play).

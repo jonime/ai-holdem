@@ -364,7 +364,10 @@ Apply `20261017000000_add_my_games.sql` before application deployment and run
 
 ## Personal table removal
 
-Deploy `20261020000000_add_table_removal.sql` before application code. Personal
+Deploy `20261020000000_add_table_removal.sql` and
+`20261021000000_grant_table_removal_reveal_delete.sql` before application code.
+The latter explicitly grants service-role DELETE on card reveals; local default
+privileges may mask a missing hosted grant. Personal
 summaries include version and caller-specific removal capability, never ownership
 tokens. Host deletion locks the game row and blocks on every other claimed human
 assignment, including folded, eliminated or departing humans. History is deleted
