@@ -108,6 +108,10 @@ jobs:
         timeout-minutes: 3
         run: npm run test:sql:departures
 
+      - name: Verify SQL human turn timers
+        timeout-minutes: 2
+        run: npm run test:sql:turn-timers
+
       - name: Verify SQL bot claims
         timeout-minutes: 3
         run: npm run test:sql:bot-claims

@@ -1,4 +1,5 @@
 "use client";
+import { turnRemainingMs } from "./turn-clock";
 import Link from "next/link";
 
 import { hasAutomaticTurn } from "./bot-advancement";
@@ -196,6 +197,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
 
       if (
         !game ||
+        (!completedHand && (turnRemainingMs(game) ?? 1) <= 0) ||
         (!isHumanTurn && !canStartNextHand && !(completedHand && canRevealCards)) ||
         loading || replaying || replayPending.current ||
         event.defaultPrevented ||
@@ -310,7 +312,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               onClick={() => { if (!replayPending.current) void retryBotTurn(); }}
             >
               {t(game?.poker.players.find(player => player.id === game.poker.currentActorId)?.controller === "human"
-                ? "gameHeader.retryDeparture" : "errors.retryBot")}
+                ? game.poker.players.find(player => player.id === game.poker.currentActorId)?.leaving ? "gameHeader.retryDeparture" : "timer.retry" : "errors.retryBot")}
             </Button>
           ) : null}
         </p>

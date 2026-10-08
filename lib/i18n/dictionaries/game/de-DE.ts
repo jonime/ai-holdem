@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  timer: {"retry": "Zeitüberschreitung erneut verarbeiten", "setting": "Zeitlimit für menschliche Züge", "off": "Aus", "duration": "{seconds} Sekunden", "multiplayer": "Gilt für Hände, die mit mindestens zwei Menschen beginnen.", "countdown": "Verbleibend: {seconds}s", "warning": "Noch zehn Sekunden.", "expired": "Zeit abgelaufen — Tisch wird aktualisiert"},
   gameHeader: {
     retryDeparture: "Erneut verlassen",
     lobby: "Lobby",
@@ -197,6 +198,10 @@ const dictionary = {
     of: "{rank} von {suit}",
   },
   errors: {
+    turnForbidden: "Nur der Gastgeber oder ein sitzender Mensch kann diesen Zug fortsetzen.",
+    turnAdvanceFailed: "Der abgelaufene Zug konnte nicht aktualisiert werden. Erneut versuchen.",
+    turnExpired: "Zeit abgelaufen — Tisch wird aktualisiert",
+    turnNotExpired: "Die Zugzeit ist noch nicht abgelaufen.",
     tableUnavailable: "Dieser Tisch ist nicht mehr verfügbar.",
     ownerAILimit: "Das KI-Kontingent des Tischbesitzers gilt gemeinsam für alle seine Tische. Bitte warte vor einem neuen Versuch.",
     gameAIRateLimit: "Dieser Tisch lässt externe Bots zu schnell spielen. Bitte warte vor einem neuen Versuch.",

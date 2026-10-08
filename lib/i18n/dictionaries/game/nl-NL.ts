@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  timer: {"retry": "Beurttijd opnieuw verwerken", "setting": "Beurttijd voor mensen", "off": "Uit", "duration": "{seconds} seconden", "multiplayer": "Voor handen die met minstens twee mensen beginnen.", "countdown": "Resterend: {seconds}s", "warning": "Nog tien seconden.", "expired": "Tijd verstreken — tafel wordt bijgewerkt"},
   gameHeader: {
     retryDeparture: "Vertrek opnieuw proberen",
     lobby: "Lobby",
@@ -197,6 +198,10 @@ const dictionary = {
     of: "{rank} van {suit}",
   },
   errors: {
+    turnForbidden: "Alleen de host of een zittende mens kan deze beurt voortzetten.",
+    turnAdvanceFailed: "De verlopen beurt kon niet worden bijgewerkt. Probeer opnieuw.",
+    turnExpired: "Tijd verstreken — tafel wordt bijgewerkt",
+    turnNotExpired: "De beurttijd is nog niet verstreken.",
     tableUnavailable: "Deze tafel is niet meer beschikbaar.",
     ownerAILimit: "Het AI-tegoed van de tafeleigenaar wordt gedeeld tussen diens tafels. Wacht voordat je opnieuw probeert.",
     gameAIRateLimit: "Deze tafel laat externe bots te snel spelen. Wacht voordat je opnieuw probeert.",

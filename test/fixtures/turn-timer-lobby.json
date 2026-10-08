@@ -1,0 +1,51 @@
+{
+  "stateSchemaVersion": 1,
+  "config": {
+    "humanTurnSeconds": 60,
+    "smallBlind": 50,
+    "bigBlind": 100,
+    "startingStack": 10000,
+    "seatCount": 6,
+    "players": [
+      {
+        "id": "human",
+        "seat": 0,
+        "name": "Player 1",
+        "controller": "human",
+        "stack": 10000,
+        "status": "claimed",
+        "playerToken": "timer-fixture",
+        "isHost": true
+      }
+    ]
+  },
+  "engineState": {
+    "schemaVersion": 1,
+    "config": {
+      "smallBlind": 50,
+      "bigBlind": 100,
+      "ante": {
+        "mode": "none",
+        "amount": 0
+      },
+      "maxSeats": 6,
+      "minBuyIn": 1,
+      "maxBuyIn": null
+    },
+    "seats": [
+      {
+        "playerId": "human",
+        "stack": 10000,
+        "status": "active"
+      },
+      null,
+      null,
+      null,
+      null,
+      null
+    ],
+    "buttonSeat": null,
+    "handNumber": 0,
+    "hand": null
+  }
+}

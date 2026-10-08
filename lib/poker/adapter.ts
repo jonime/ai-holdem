@@ -329,6 +329,7 @@ export const pokerEngineAdapter = {
     return player.holeCards.map(cardToString);
   },
   createGame(config: GameConfig): PokerGameState {
+    if (config.humanTurnSeconds !== undefined && ![null, 30, 60, 90].includes(config.humanTurnSeconds)) throw new PokerRuleError("Invalid human turn timer");
     if (config.players.length < 1) {
       throw new PokerRuleError("A poker table requires at least one player");
     }
@@ -423,6 +424,20 @@ export const pokerEngineAdapter = {
       ...withEngineState(state.config, result.state),
       blindPostings,
     };
+  },
+
+  /** Only this adapter inspects engine participation and actionable turns. */
+  timerTransition(state: PokerGameState) {
+    const table = engineStateFrom(state);
+    const hand = table.hand;
+    const actor = hand?.players.find(player => player.seat === hand.currentActorSeat);
+    const humans = hand?.players.filter(player =>
+      state.config.players.some(config => config.id === player.playerId && config.controller === "human")) ?? [];
+    const humanActor = actor && !actor.folded && !actor.allIn &&
+      state.config.players.some(player => player.id === actor.playerId && player.controller === "human");
+    return { handNumber: this.snapshot(state).handNumber,
+      multiplayer: humans.length >= 2,
+      actorEngineId: humanActor && this.getLegalActions(state).length > 0 ? actor.playerId : null };
   },
 
   getLegalActions(state: PokerGameState): readonly LegalAction[] {
@@ -601,6 +616,7 @@ export const pokerEngineAdapter = {
     return {
       ...snapshot,
       seatCount,
+      humanTurnSeconds: state.config.humanTurnSeconds ?? null,
       smallBlind: state.config.smallBlind,
       bigBlind: state.config.bigBlind,
       startingStack:
@@ -677,6 +693,7 @@ export const pokerEngineAdapter = {
   },
 
   restore(state: PokerGameState): PokerGameState {
+    if (state.config.humanTurnSeconds !== undefined && ![null, 30, 60, 90].includes(state.config.humanTurnSeconds)) throw new PokerRuleError("Invalid human turn timer");
     engineStateFrom(state);
     return state;
   },

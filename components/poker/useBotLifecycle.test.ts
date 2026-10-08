@@ -28,7 +28,7 @@ function fixture() {
   let sequence = 0;
   const driver = {
     readGame: () => game, viewerToken: () => "owner",
-    step: vi.fn(async () => ({ result: { game: humanTurn(game), aiDecision: decision }, sequence: ++sequence })),
+    step: vi.fn(async (current: Game) => ({ result: { game: humanTurn(current), aiDecision: decision }, sequence: ++sequence })),
     apply: vi.fn((incoming: Game) => { game = incoming; lifecycle.reconcile(game); return true; }),
     refresh: vi.fn(async (_gameId: string, isCurrent: () => boolean) => { if (isCurrent()) lifecycle.reconcile(game); }),
     refreshFailed: vi.fn(), clearError: vi.fn(),
@@ -277,4 +277,57 @@ it("a bot provider pause does not block a different departing-human turn", async
   f.driver.step.mockResolvedValueOnce({ result: { game: { ...departing, status: "complete", version: departing.version + 1 }, aiDecision: decision }, sequence: 2 });
   await f.lifecycle.advance(departing, true);
   expect(f.driver.step).toHaveBeenCalledTimes(2);
+});
+
+describe("human timeout scheduling in the shared lifecycle", () => {
+  it("schedules expiry once, preserves the decision across unrelated versions and cancels navigation", async () => {
+    vi.useFakeTimers({toFake:["setTimeout","clearTimeout","performance"]});
+    const { observeTurnClock } = await import("./turn-clock");
+    const f = fixture();
+    const game = { ...humanTurn(initial), serverTime:"2026-01-01T00:00:00Z", turnTimer:{
+      decisionId:"00000000-0000-4000-8000-000000000001", actorEngineId:"human", handNumber:1, deadline:"2026-01-01T00:00:02Z" } };
+    observeTurnClock(game);
+    f.reconcile(game);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(f.driver.step).not.toHaveBeenCalled();
+    const refreshed = { ...game, version:game.version+1, serverTime:"2026-01-01T00:00:01Z" };
+    observeTurnClock(refreshed); f.reconcile(refreshed);
+    f.driver.step.mockResolvedValue({result:{game:{...refreshed,version:refreshed.version+1,turnTimer:null},aiDecision:decision},sequence:1});
+    await vi.advanceTimersByTimeAsync(1100);
+    expect(f.driver.step).toHaveBeenCalledOnce();
+    expect(f.driver.step.mock.calls[0][0].version).toBe(refreshed.version);
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(f.driver.step).toHaveBeenCalledOnce();
+    observeTurnClock(game); f.reconcile(game); f.lifecycle.reset();
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(f.driver.step).toHaveBeenCalledOnce();
+  });
+  it("persistent timeout failures pause across polling without repeatedly issuing requests",async () => {
+    vi.useFakeTimers({toFake:["setTimeout","clearTimeout","performance"]});
+    const { observeTurnClock } = await import("./turn-clock");
+    const f=fixture();
+    const game={...humanTurn(initial),serverTime:"2026-01-01T00:00:03Z",turnTimer:{
+      decisionId:"00000000-0000-4000-8000-000000000001",actorEngineId:"human",handNumber:1,deadline:"2026-01-01T00:00:02Z"}};
+    observeTurnClock(game);f.reconcile(game);
+    f.driver.step.mockRejectedValue(new Error("database unavailable"));
+    await vi.advanceTimersByTimeAsync(100);
+    expect(f.lifecycle.getSnapshot()).toMatchObject({kind:"paused",notice:"database unavailable"});
+    for(let version=5;version<10;version++){const refreshed={...game,version};observeTurnClock(refreshed);f.reconcile(refreshed);await vi.advanceTimersByTimeAsync(1000);}
+    expect(f.driver.step).toHaveBeenCalledOnce();
+    await f.lifecycle.retry();expect(f.driver.step).toHaveBeenCalledTimes(2);
+    f.lifecycle.reset();
+  });
+});
+
+it("waits for the server's remaining interval after an early timeout request",async()=>{
+  vi.useFakeTimers({toFake:["setTimeout","clearTimeout","performance"]});
+  const {observeTurnClock}=await import("./turn-clock");const f=fixture();
+  const game={...humanTurn(initial),serverTime:"2026-01-01T00:00:03Z",turnTimer:{decisionId:"00000000-0000-4000-8000-000000000001",actorEngineId:"human",handNumber:1,deadline:"2026-01-01T00:00:02Z"}};
+  observeTurnClock(game);f.reconcile(game);
+  f.driver.step.mockRejectedValueOnce(new HttpError("early",409,"TURN_NOT_EXPIRED",500));
+  f.driver.step.mockResolvedValue({result:{game:{...game,turnTimer:null},aiDecision:decision},sequence:1});
+  await vi.advanceTimersByTimeAsync(100);expect(f.driver.step).toHaveBeenCalledOnce();
+  await vi.advanceTimersByTimeAsync(400);expect(f.driver.step).toHaveBeenCalledOnce();
+  await vi.advanceTimersByTimeAsync(100);expect(f.driver.step).toHaveBeenCalledTimes(2);
+  expect(f.lifecycle.getSnapshot().notice).toBeNull();f.lifecycle.reset();
 });

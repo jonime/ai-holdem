@@ -1,3 +1,4 @@
+import { turnRemainingMs } from "./turn-clock";
 import { HttpError } from "@/lib/http/api";
 import { GAME_VERSION_CONFLICT } from "@/lib/http/gameplay-contracts";
 import { canAdvanceBots } from "./view-model";
@@ -6,7 +7,8 @@ import type { AIDecision, Game } from "./types";
 export function hasAutomaticTurn(game: Game): boolean {
   return game.status === "playing" && game.poker.street !== "complete" &&
     game.poker.players.some(player => player.id === game.poker.currentActorId &&
-      (player.controller === "bot" || (player.controller === "human" && player.status === "claimed" && player.leaving)));
+      (player.controller === "bot" || (player.controller === "human" && player.status === "claimed" &&
+        (player.leaving || (game.turnTimer?.actorEngineId === player.id && (turnRemainingMs(game) ?? 1) <= 0)))));
 }
 
 /** All entry points stop their stale loop and refresh on a competing commit. */

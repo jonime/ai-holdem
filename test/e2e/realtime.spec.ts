@@ -41,7 +41,8 @@ test("actual Realtime delivers committed game and same-version seat changes befo
     await expect.poll(received.subscribed).toBe(true);
     // Freeze browser timers so polling cannot make the delivery assertions pass.
     await second.clock.install();
-    await second.clock.pauseAt(new Date());
+    // The clock keeps advancing between install and pause; use a future target.
+    await second.clock.pauseAt(new Date(Date.now() + 1000));
     const read = async () => {
       const response = await page.request.get(`/api/games/${gameId}`);
       expect(response.ok()).toBe(true);

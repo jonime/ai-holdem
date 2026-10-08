@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import { seatCountSchema } from "./gameplay-contracts";
-import { botDescriptorSchema } from "./schemas";
+import { humanTurnSecondsSchema, botDescriptorSchema } from "./schemas";
 export { botDescriptorSchema } from "./schemas";
-export const createGameRequestSchema = z.object({ seatCount: seatCountSchema.optional(), hostName: z.string().optional() });
+export const createGameRequestSchema = z.object({ humanTurnSeconds: humanTurnSecondsSchema.optional(), seatCount: seatCountSchema.optional(), hostName: z.string().optional() });
 // Creation historically ignores non-string names and accepts an absent/malformed body.
 export const createGameRouteRequestSchema = z.preprocess(value => {
   const input = value && typeof value === "object" ? value : {};

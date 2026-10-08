@@ -165,6 +165,9 @@
   gap: 12px;
   align-items: end;
 }
+.timerField {
+  grid-column: 1 / -1;
+}
 .blindFields {
   display: grid;
   grid-template-columns: 1fr auto 1fr;

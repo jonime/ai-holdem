@@ -1,5 +1,8 @@
 import "server-only";
 const dictionary = {
+  turnTimer: "Human turn timer: {duration}",
+  timerOff: "Off",
+  timerDuration: "{seconds} seconds",
   title: "Join a game", intro: "Choose a public table with an active host.", back: "Back",
   playerName: "Your name (optional)", namePlaceholder: "Player name", refresh: "Refresh",
   refreshing: "Refreshing…", empty: "No public tables are available right now.", retry: "Try again",

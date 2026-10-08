@@ -13,6 +13,7 @@ import styles from "@/components/poker/Seat.module.css";
 
 export function Seat({
   player,
+  countdown,
   active,
   winner,
   winnerAmount,
@@ -22,6 +23,7 @@ export function Seat({
   bigBlindSeat,
   gameWinner,
 }: {
+  readonly countdown?: import("react").ReactNode;
   readonly player: PublicPokerPlayer;
   readonly active: boolean;
   readonly winner: boolean;
@@ -108,6 +110,7 @@ export function Seat({
           +{formatChips(winnerAmount, locale)}
         </span>
       ) : null}
+      {countdown}
       <strong>{formatChips(player.stack, locale)}</strong>
       {latestAction?.action === "bet" || latestAction?.action === "raise" ? (
         <span className={styles.actionBadge}>

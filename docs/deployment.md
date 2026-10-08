@@ -178,3 +178,20 @@ bot-claim, game-read, bot-context and personal-table SQL suites, and production
 browser smoke. Before release, verify the two-browser departure/notification
 flow on a Vercel preview containing this code or an explicitly authorized live
 site. Local success alone does not verify the deployed `after()` lifecycle.
+
+## Human turn timer rollout
+
+Apply `20261022000000_add_human_turn_timers.sql`,
+`20261023000000_fix_turn_timer_commit_binding.sql`, and
+`20261024000000_expand_timer_action_return_rows.sql` in order before deploying the
+application. The final migration expands historical action RPC return projections
+to the new games row shape. Existing games retain Off; there is no timer backfill.
+Old instances cannot advance configured timed hands without timer transitions;
+drain old instances before enabling multiplayer timed hands.
+
+Run `npm run check`, `npm run build`, `npm run test:sql:turn-timers`, and
+`npm run test:e2e:smoke -- turn-timers.spec.ts`. Local browser tests shorten only
+newly-created fixture deadlines directly in the local database; no application
+production-duration override exists. Verify two-browser timeout notifications on
+an authorized Vercel preview containing the change before release. Local tests
+cannot prove Vercel's post-response notification lifecycle.

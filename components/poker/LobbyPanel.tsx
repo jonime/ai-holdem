@@ -75,6 +75,7 @@ export function LobbyPanel({
     "idle" | "copied" | "failed"
   >("idle");
   const [settingsDraft, setSettingsDraft] = useState({
+    humanTurnSeconds: game.poker.humanTurnSeconds == null ? "off" : String(game.poker.humanTurnSeconds),
     seatCount: String(game.poker.seatCount),
     smallBlind: String(game.poker.smallBlind),
     bigBlind: String(game.poker.bigBlind),
@@ -82,6 +83,7 @@ export function LobbyPanel({
     botsShowUncontestedWins: game.poker.botsShowUncontestedWins ?? false,
   });
   const parsedSettings: TableSettings = {
+    humanTurnSeconds: settingsDraft.humanTurnSeconds === "off" ? null : settingsDraft.humanTurnSeconds === "30" ? 30 : settingsDraft.humanTurnSeconds === "90" ? 90 : 60,
     seatCount: Number(settingsDraft.seatCount),
     smallBlind: Number(settingsDraft.smallBlind),
     bigBlind: Number(settingsDraft.bigBlind),
@@ -190,6 +192,15 @@ export function LobbyPanel({
         </form>
         {canManage ? (
           <div className={styles.tableSettingsForm}>
+            <label className={`${styles.lobbyField} ${styles.timerField}`}>
+              <span>{t("timer.setting")}</span>
+              <select value={settingsDraft.humanTurnSeconds} disabled={loading}
+                onChange={event => updateDraft("humanTurnSeconds", event.target.value)}>
+                <option value="off">{t("timer.off")}</option>
+                {[30,60,90].map(seconds => <option key={seconds} value={seconds}>{t("timer.duration", { seconds })}</option>)}
+              </select>
+              <small>{t("timer.multiplayer")}</small>
+            </label>
             <label className={styles.lobbyField}>
               <span>{t("lobby.seats")}</span>
               <select
@@ -272,6 +283,7 @@ export function LobbyPanel({
               />
               <span>{t("lobby.botsShowUncontestedWins")}</span>
             </label>
+
           </div>
         ) : (
           <div
@@ -287,6 +299,10 @@ export function LobbyPanel({
               <strong>
                 {game.poker.smallBlind} / {game.poker.bigBlind}
               </strong>
+            </div>
+            <div>
+              <span>{t("timer.setting")}</span>
+              <strong>{game.poker.humanTurnSeconds == null ? t("timer.off") : t("timer.duration", { seconds: game.poker.humanTurnSeconds })}</strong>
             </div>
             <div>
               <span>{t("lobby.startingStack")}</span>

@@ -35,7 +35,8 @@
     "benchmark:poker-context:live": "BOT_SCENARIO_LIVE=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/poker-context.benchmark.ts -t \"capped live\"",
     "test:sql:removal": "node scripts/local-table-removal.mjs",
     "test:sql:my-games": "node scripts/local-my-games.mjs",
-    "test:sql:usage": "node scripts/local-usage-limits.mjs"
+    "test:sql:usage": "node scripts/local-usage-limits.mjs",
+    "test:sql:turn-timers": "node scripts/local-turn-timers.mjs"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",

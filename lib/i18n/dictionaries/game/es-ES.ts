@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  timer: {"retry": "Reintentar fin de turno", "setting": "Tiempo de turno humano", "off": "Desactivado", "duration": "{seconds} segundos", "multiplayer": "Se aplica a manos que comienzan con al menos dos humanos.", "countdown": "Tiempo restante: {seconds}s", "warning": "Quedan diez segundos.", "expired": "Tiempo agotado — actualizando la mesa"},
   gameHeader: {
     retryDeparture: "Reintentar salida",
     lobby: "Lobby",
@@ -197,6 +198,10 @@ const dictionary = {
     of: "{rank} de {suit}",
   },
   errors: {
+    turnForbidden: "Solo el anfitrión o un humano sentado puede avanzar este turno.",
+    turnAdvanceFailed: "No se pudo actualizar el turno vencido. Reintenta.",
+    turnExpired: "Tiempo agotado — actualizando la mesa",
+    turnNotExpired: "El turno aún no ha vencido.",
     tableUnavailable: "Esta mesa ya no está disponible.",
     ownerAILimit: "La cuota de IA del propietario se comparte entre sus mesas. Espera antes de reintentar.",
     gameAIRateLimit: "Esta mesa avanza los bots externos demasiado rápido. Espera antes de reintentar.",

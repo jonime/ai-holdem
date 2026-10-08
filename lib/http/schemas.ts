@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+export const humanTurnSecondsSchema = z.union([z.literal(30), z.literal(60), z.literal(90)]).nullable();
+export const turnTimerSchema = z.object({
+  decisionId: z.string().uuid(), actorEngineId: z.string().min(1),
+  handNumber: z.number().int().positive(), deadline: z.iso.datetime({ offset: true }),
+});
+
 export const botDescriptorSchema = z.object({
   id: z.string(), label: z.string(), provider: z.enum(["typesafe", "llm", "rules"]), modelId: z.string().nullable(),
   configuration: z.object({ difficulty: z.boolean(), playstyle: z.boolean() }).optional(),
@@ -65,6 +71,7 @@ export const publicLiveSeatSchema = publicPlayerSchema.pick({
 });
 
 export const publicGameSchema = z.object({
+  humanTurnSeconds: humanTurnSecondsSchema.default(null),
   handNumber: z.number().int().nonnegative(),
   seatCount: z.number().int().min(2).max(6),
   smallBlind: z.number().int().positive(),
@@ -91,6 +98,8 @@ export const gameSchema = z.object({
   status: z.enum(["waiting", "playing", "complete", "error"]),
   version: z.number().int().nonnegative(),
   viewerIsHost: z.boolean(),
+  turnTimer: turnTimerSchema.nullable().default(null),
+  serverTime: z.iso.datetime({ offset: true }).nullable().default(null),
   publication: z
     .object({
       isPublic: z.boolean(),
@@ -115,6 +124,7 @@ export const publicDirectoryEntrySchema = z.object({
   smallBlind: z.number().int().positive(),
   bigBlind: z.number().int().positive(),
   startingStack: z.number().int().positive(),
+  humanTurnSeconds: humanTurnSecondsSchema.default(null),
   publishedAt: z.string(),
 });
 

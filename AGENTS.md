@@ -70,7 +70,7 @@ containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
 disposable database, then runs `test:sql:game-reads`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
-`test:sql:departures`, `test:sql:bot-claims`, `test:sql:usage`, and `test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore
+`test:sql:departures`, `test:sql:turn-timers`, `test:sql:bot-claims`, `test:sql:usage`, and `test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore
 health checks. Preserve workflow cancellation for superseded commits.
 
 Local production smoke requires an already-running migrated local Supabase and
@@ -378,3 +378,19 @@ successful non-departing seat claims, including directory joins. Keep compact
 seat refresh signals in `after()`, polling recovery and terminal localized 404
 handling that stops advancement. Run `test:sql:removal` and production removal
 browser smoke, then verify two-browser notifications on authorized Vercel.
+
+## Human turn timers
+
+New custom tables explicitly configure `humanTurnSeconds: 60`; Quick Play uses null.
+Only null/30/60/90 are accepted. Existing games remain Off. Timer eligibility freezes
+at hand start for at least two dealt humans. Only adapter facts determine the next
+actionable human. Keep timer writes in the action/start transaction using database
+time and fresh decision IDs; unrelated versions and reads must preserve deadlines.
+Ordinary actions cannot commit at/after expiry. Hosts and owned seated humans may
+advance one timeout check/fold under lock; departures retain fold precedence.
+Timeouts use no providers, claims or allowances and never remove seats or start hands.
+Preserve the snapshot read and shared client lifecycle; use server samples plus
+monotonic elapsed time, text warnings, explicit retry and navigation guards.
+Apply all three 20261022–20261024 timer migrations before application code, run
+`test:sql:turn-timers` and production timer browser smoke, and verify two-browser
+notifications on an authorized Vercel preview before release.

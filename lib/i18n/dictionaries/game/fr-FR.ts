@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  timer: {"retry": "Réessayer la fin du tour", "setting": "Temps de réflexion humain", "off": "Désactivé", "duration": "{seconds} secondes", "multiplayer": "Pour les mains commençant avec au moins deux humains.", "countdown": "Temps restant : {seconds}s", "warning": "Il reste dix secondes.", "expired": "Temps écoulé — mise à jour de la table"},
   gameHeader: {
     retryDeparture: "Réessayer le départ",
     lobby: "Lobby",
@@ -197,6 +198,10 @@ const dictionary = {
     of: "{rank} de {suit}",
   },
   errors: {
+    turnForbidden: "Seul l’hôte ou un humain assis peut faire avancer ce tour.",
+    turnAdvanceFailed: "Impossible de mettre à jour le tour expiré. Réessayez.",
+    turnExpired: "Temps écoulé — mise à jour de la table",
+    turnNotExpired: "Le délai du tour n’est pas encore écoulé.",
     tableUnavailable: "Cette table n’est plus disponible.",
     ownerAILimit: "Le quota IA du propriétaire est partagé entre ses tables. Patientez avant de réessayer.",
     gameAIRateLimit: "Cette table fait jouer les bots externes trop vite. Patientez avant de réessayer.",

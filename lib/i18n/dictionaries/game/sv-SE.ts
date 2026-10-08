@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  timer: {"retry": "Försök avsluta turen igen", "setting": "Tidsgräns för mänskliga turer", "off": "Av", "duration": "{seconds} sekunder", "multiplayer": "För händer som börjar med minst två människor.", "countdown": "Tid kvar: {seconds}s", "warning": "Tio sekunder kvar.", "expired": "Tiden är slut — bordet uppdateras"},
   gameHeader: {
     retryDeparture: "Försök lämna igen",
     lobby: "Lobby",
@@ -197,6 +198,10 @@ const dictionary = {
     of: "{rank} i {suit}",
   },
   errors: {
+    turnForbidden: "Bara värden eller en sittande människa kan fortsätta turen.",
+    turnAdvanceFailed: "Den avslutade turen kunde inte uppdateras. Försök igen.",
+    turnExpired: "Tiden är slut — bordet uppdateras",
+    turnNotExpired: "Tiden för turen har inte gått ut än.",
     tableUnavailable: "Det här bordet är inte längre tillgängligt.",
     ownerAILimit: "Bordsägarens AI-kvot delas mellan alla deras bord. Vänta innan du försöker igen.",
     gameAIRateLimit: "Det här bordets externa botar spelar för snabbt. Vänta innan du försöker igen.",

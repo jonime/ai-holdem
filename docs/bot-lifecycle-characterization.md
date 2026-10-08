@@ -22,4 +22,4 @@ same game and losing then regaining eligibility. These are the explicit extracti
 acceptance requirements; they do not cancel server inference. Provider failure
 identity remains game/hand/actor; version-only polling during a pending provider
 request must still preserve a subsequent failure pause. Claim and usage notices
-retain version fences. Timer expiry only changes presentation/retry availability.
+retain version fences. Claim and usage timer expiry only changes presentation/retry availability.

@@ -12,6 +12,8 @@ async function fixture(page: Page) {
   expect(response.status()).toBe(201);
   const { gameId } = await response.json();
   const original: Game = (await (await page.request.get(`/api/games/${gameId}`)).json()).game;
+  expect(original.poker.humanTurnSeconds).toBeNull();
+  expect(original.turnTimer).toBeNull();
   const bot = original.poker.players.find(p => p.controller === "bot")!;
   let game: Game = { ...original, version: original.version + 100,
     poker: { ...original.poker, currentActorId: bot.id, street: "flop" } };

@@ -1,3 +1,4 @@
+import { TurnTimerError } from "@/lib/poker/turn-timer";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { gameParamsSchema } from "@/lib/http/common-contracts";
 import { NextResponse } from "next/server";
@@ -43,6 +44,7 @@ export async function POST(request: Request, context: ActionRouteContext) {
     );
     return NextResponse.json({ game } satisfies GameResponseEnvelope);
   } catch (error) {
+    if (error instanceof TurnTimerError) return NextResponse.json({ error: error.code, code: error.code }, { status: 409 });
     if (error instanceof GameNotFoundError) {
       return NextResponse.json({ error: "Game not found" }, { status: 404 });
     }

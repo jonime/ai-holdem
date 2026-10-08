@@ -16,11 +16,12 @@ export async function POST(request: Request) {
     const body: unknown = await request.json().catch(() => null);
     const parsed = createGameRouteRequestSchema.safeParse(body);
     if (!parsed.success) return NextResponse.json({ error: "seatCount must be an integer from 2 through 6" }, { status: 400 });
-    const { seatCount, hostName } = parsed.data;
+    const { humanTurnSeconds, seatCount, hostName } = parsed.data;
     const hostToken = getOrCreatePlayerToken(request);
 
     await admitGameCreation(request, hostToken);
     const game = await createDemoGame(createSupabaseGameRepository(), {
+      humanTurnSeconds,
       seatCount,
       hostToken,
       hostName,

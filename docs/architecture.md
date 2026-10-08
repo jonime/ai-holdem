@@ -313,3 +313,32 @@ and sends `private, no-store` on success and failure. Its summaries are defensiv
 validated against browser-safe contracts and never logged or shared-cached. Deploy
 `20261017000000_add_my_games.sql` before application code; it adds the RPC and
 host-token/claimed-human-seat indexes without changing existing rows.
+
+## Human turn timer transactions
+
+`humanTurnSeconds` is nullable (Off) or 30/60/90. Configuration is stored in the
+engine-independent config and `games.human_turn_seconds`. Adapter `timerTransition`
+reads dealt participants and the next actionable actor. `commit_with_turn_timer`
+locks the game row and invokes an allowlisted existing mutation, preserving its
+history, awards, reveals and departure cleanup. A games trigger writes a fresh UUID
+decision ID, actor ID, hand number and deadline from database time within that same
+transaction. Hand eligibility freezes when the hand starts, including solo
+suppression. Version-only changes retain the deadline and decision ID. Legacy
+engine writers without transition facts fail closed on configured timed games.
+
+`POST /api/games/:gameId/advance-timeout` accepts `{ expectedVersion, decisionId }`
+and returns the standard game envelope. Hosts and owned seated humans can drive it;
+spectators cannot. The service prepares one adapter-validated check or fold. Under
+the same lock SQL rechecks driver authorization, decision, actor, hand, version and
+deadline. Early requests return `TURN_NOT_EXPIRED` (409) plus `retryAfterMs`; normal
+human submissions at/after expiry return `TURN_EXPIRED` (409). Conflicts refresh
+silently. Departing actors retain fold precedence. No claims, providers or inference
+allowances are used for timeouts.
+
+Game responses include nullable `turnTimer` and `serverTime`. The single-snapshot
+read includes statement-time from PostgreSQL; reads never initialize deadlines.
+The existing lifecycle schedules one timeout attempt and shares mutation, generation,
+navigation and response-order guards with bot/departure advancement. Display timing
+uses accepted server samples plus `performance.now()` elapsed time. Failures pause
+until explicit retry; early requests wait for the server-supplied interval. No worker
+or next-hand automation exists.

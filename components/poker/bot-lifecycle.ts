@@ -1,6 +1,7 @@
 import type { Game } from "./types";
 
 export type BotTurn = {
+  readonly decisionId?: string | null;
   readonly gameId: string;
   readonly handNumber: number;
   readonly actorId: string | null;
@@ -17,11 +18,11 @@ export type BotLifecycleState =
 
 export const initialBotLifecycle: BotLifecycleState = { kind: "idle", notice: null };
 export function botTurn(game: Game): BotTurn {
-  return { gameId: game.id, handNumber: game.poker.handNumber,
+  return { decisionId: game.turnTimer?.decisionId, gameId: game.id, handNumber: game.poker.handNumber,
     actorId: game.poker.currentActorId, version: game.version };
 }
 export function sameBotTurn(a: BotTurn, b: BotTurn): boolean {
-  return a.gameId === b.gameId && a.handNumber === b.handNumber && a.actorId === b.actorId;
+  return a.gameId === b.gameId && a.handNumber === b.handNumber && a.actorId === b.actorId && a.decisionId === b.decisionId;
 }
 export function botBusy(state: BotLifecycleState): boolean {
   return state.kind === "running" || state.kind === "refreshingForRetry";

@@ -416,6 +416,7 @@ The endpoint-to-contract/client checklist is complete:
 | --- | --- | --- | --- |
 | `GET /api/games/:gameId` | `gameParamsSchema` | `getGameResponseSchema` | `games.get` |
 | `POST /api/games/:gameId/action` | game params / `submitActionRequestSchema` | `submitActionResponseSchema` | `games.submitAction` |
+| `POST /api/games/:gameId/advance-timeout` | game params / strict `advanceTimeoutRequestSchema` | `advanceTimeoutResponseSchema` | `games.advanceTimeout` |
 | `POST /api/games/:gameId/advance-departure` | game params / strict `advanceDepartureRequestSchema` | `advanceDepartureResponseSchema` | `games.advanceDeparture` |
 | `POST /api/games/:gameId/step` | game params / `stepBotRequestSchema` | `stepBotResponseSchema` | `games.stepBot` |
 | `POST /api/games/:gameId/start` | game params / `startRequestSchema` | `lifecycleResponseSchema` | `games.start` |
@@ -533,7 +534,10 @@ explicit retry, rules replay, and localized HTML/typed JSON creation denials.
 executes them through the testable `BotLifecycle` driver, owns timers and request
 generations, and calls the existing twelve-step `advanceBotTurns` helper. All
 advancement entry points share its guard. Its automatic-turn predicate includes
-claimed leaving humans. Those turns use `games.advanceDeparture` with a game envelope
+claimed leaving humans and humans with an overdue authoritative decision.
+Timed decisions schedule one shared-loop attempt using server time plus monotonic
+elapsed time; navigation and mutation guards cancel or defer it. Timeout turns use
+`games.advanceTimeout`, while leaving humans retain departure precedence. Those departure turns use `games.advanceDeparture` with a game envelope
 and no AI decision; bot turns retain `games.stepBot` and all provider/claim/usage
 pause rules. A different departing-human actor clears the prior bot-turn pause. `useGameSession.ts` retains authoritative
 state, response sequences/reconciliation, polling, Realtime, feed, and
@@ -545,7 +549,10 @@ already running on the server is never cancelled.
 | --- | --- |
 | Idle, eligible new automatic version or explicit continuation | Running; one loop |
 | Departing-human turn | One engine fold; no provider, usage admission or claim |
-| Ordinary human turn or completed hand | Stop advancement |
+| Ordinary human turn before deadline, or completed hand | Stop advancement |
+| Overdue human decision | One legal check or fold through `games.advanceTimeout`; no seat removal, provider, allowance or claim |
+| Early timeout response | Wait the server-provided interval before another attempt |
+| Timeout failure | Pause the decision across version-only refreshes until explicit retry |
 | Running, successful step | Reconcile and report accepted decision; continue up to twelve steps |
 | Running, version conflict | Refresh silently and end stale loop; refresh failures remain visible |
 | Running, provider failure | Paused by game/hand/actor, including version-only refreshes |
@@ -628,3 +635,18 @@ The removal browser suite covers cancellation, blockers, list refill, explicit
 conflict retry, duplicate prevention, keyboard/mobile controls and deletion recovery.
 Verify two-browser Realtime delivery on an authorized Vercel deployment containing
 this change; polling must still detect deletion if Broadcast fails.
+
+## Human turn timer checks
+
+Run `npm run test:sql:turn-timers` against the migrated local stack. Its rollback
+fixtures cover deadline preservation, early/expired/stale requests, driver roles,
+legacy fences, completion and seats. Committed disposable fixtures use independent
+connections for timeout/timeout and manual/timeout races and clean up in finally.
+CI runs this before browser smoke. Timer browser fixtures are created directly in
+the local database and cleaned up in finally, preserving shared admission counters.
+`turn-timers.spec.ts` checks two-browser expiry,
+reloads, repeated hands, legal checks, same-actor new-street IDs, retained seats,
+solo suppression and existing Off tables using short injected local fixture deadlines.
+The existing bot-advancement Quick Play fixtures also assert timer Off.
+Preview verification uses ordinary durations and the existing Realtime two-browser
+smoke, because local DB fixture injection is intentionally unavailable for previews.

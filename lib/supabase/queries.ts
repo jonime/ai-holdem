@@ -1,3 +1,5 @@
+import { TurnTimerError } from "@/lib/poker/turn-timer";
+import { turnTimerSchema, humanTurnSecondsSchema } from "@/lib/http/schemas";
 import { UsageUnavailableError } from "@/lib/usage/errors";
 import { admitInference } from "@/lib/usage/admission";
 import { BotStepClaimLostError } from "@/lib/poker/bot-step-claims";
@@ -25,6 +27,8 @@ export interface PersistedGame {
   readonly stateSchemaVersion: number;
   readonly handNumber: number;
   readonly version: number;
+  readonly turnTimer?: z.infer<typeof turnTimerSchema> | null;
+  readonly serverTime?: string | null;
   readonly botsShowUncontestedWins?: boolean;
 }
 
@@ -198,6 +202,7 @@ export interface GameDatabaseClient {
   };
   rpc(
     functionName:
+      | "commit_with_turn_timer"
       | "advance_departure_if_version"
       | "apply_human_action_if_version"
       | "acquire_bot_step_claim"
@@ -334,6 +339,11 @@ function toPersistedGame(value: unknown): PersistedGame {
     ),
     handNumber: requiredNonNegativeInteger(value, "hand_number"),
     version: requiredNonNegativeInteger(value, "version"),
+    turnTimer: [value.turn_decision_id, value.turn_actor_engine_id, value.turn_hand_number, value.turn_deadline].every(field => field == null) ? null : turnTimerSchema.parse({
+      decisionId: value.turn_decision_id, actorEngineId: value.turn_actor_engine_id,
+      handNumber: value.turn_hand_number, deadline: value.turn_deadline,
+    }),
+    serverTime: value.server_time == null ? null : z.iso.datetime({ offset: true }).parse(value.server_time),
     botsShowUncontestedWins: value.bots_show_uncontested_wins === true,
   };
 }
@@ -357,6 +367,7 @@ function toDirectoryEntry(value: unknown): PublicGameDirectoryEntry {
     smallBlind: requiredNonNegativeInteger(value, "small_blind"),
     bigBlind: requiredNonNegativeInteger(value, "big_blind"),
     startingStack: requiredNonNegativeInteger(value, "starting_stack"),
+    humanTurnSeconds: humanTurnSecondsSchema.parse(value.human_turn_seconds ?? null),
     publishedAt: requiredString(value, "published_at"),
   };
 }
@@ -509,6 +520,35 @@ function toGameListing(data: unknown): GameListing {
 export class SupabaseGameRepository {
   constructor(private readonly client: GameDatabaseClient) {}
 
+  private async timerRpc(operation: Parameters<GameDatabaseClient["rpc"]>[0], args: Record<string, unknown>,
+    timeout?: { decisionId: string; driverToken: string }): Promise<DatabaseResult> {
+    const fold = isRecord(args.p_fold) ? args.p_fold : null;
+    const raw = args.p_current_state ?? fold?.currentState;
+    const configured = isRecord(raw) && isRecord(raw.config) && raw.config.humanTurnSeconds != null;
+    const state = configured ? pokerEngineAdapter.restore(raw as unknown as import("@/lib/poker/types").PokerGameState) : null;
+    const transition = state ? pokerEngineAdapter.timerTransition(state) : null;
+    // Untimed operations keep their established SQL protocol. Timed transitions,
+    // timeout commits and read-only-version mutations use the shared boundary.
+    if (!timeout && raw != null && !configured) return this.client.rpc(operation, args);
+    if (!timeout && !state && !["reveal_human_cards_if_version", "set_game_publication_if_version"].includes(operation)) {
+      return this.client.rpc(operation, args);
+    }
+    const result = await this.client.rpc("commit_with_turn_timer", {
+      p_operation: operation, p_arguments: args, p_transition: transition,
+      p_decision_id: timeout?.decisionId ?? null, p_driver_token: timeout?.driverToken ?? null,
+    });
+    if (result.error?.message === "TURN_FORBIDDEN") throw new TurnTimerError("TURN_FORBIDDEN");
+    if (isRecord(result.data) && result.data.timerError === "TURN_NOT_EXPIRED") {
+      throw new TurnTimerError("TURN_NOT_EXPIRED", z.number().int().min(1).max(90_000).parse(result.data.retryAfterMs));
+    }
+    if (isRecord(result.data) && result.data.timerError === "TURN_EXPIRED") throw new TurnTimerError("TURN_EXPIRED");
+    return result;
+  }
+
+  async persistTimeout(input: PersistHumanActionInput & { driverToken: string; decisionId: string }): Promise<PersistedGame> {
+    return this.writeHumanAction(input, { driverToken: input.driverToken, decisionId: input.decisionId });
+  }
+
   async getGameReadSnapshot(gameId: string): Promise<GameReadSnapshot | null> {
     const { data, error } = await this.client.rpc("get_game_read_snapshot", {
       p_game_id: gameId,
@@ -640,7 +680,7 @@ export class SupabaseGameRepository {
     expectedVersion: number,
     seat: number,
   ): Promise<GamePlayerSeatAssignment> {
-    const { data, error } = await this.client.rpc(functionName, arguments_);
+    const { data, error } = await this.timerRpc(functionName, arguments_);
     if (error) throw new Error(`Unable to update seat assignment: ${error.message}`);
     if (!isRecord(data) || typeof data.outcome !== "string") throw new Error("Supabase returned an invalid seat mutation result");
     if (data.outcome === "conflict") throw new GameConflictError(gameId, expectedVersion);
@@ -699,7 +739,7 @@ export class SupabaseGameRepository {
   async createGameSession(
     input: CreateGameSessionInput,
   ): Promise<PersistedGame> {
-    const { data, error } = await this.client.rpc("create_game_session", {
+    const { data, error } = await this.timerRpc("create_game_session", {
       p_current_state: input.currentState,
       p_state_schema_version: input.stateSchemaVersion,
       p_hand_number: input.handNumber,
@@ -803,7 +843,7 @@ export class SupabaseGameRepository {
   }
 
   async removeGameIfVersion(input: import("@/lib/poker/table-removal").RemovalInput & { fold?: import("@/lib/poker/departure-contracts").DepartureFold }): Promise<unknown> {
-    const { data, error } = await this.client.rpc("remove_game_if_version", {
+    const { data, error } = await this.timerRpc("remove_game_if_version", {
       p_game_id: input.gameId, p_expected_version: input.expectedVersion,
       p_player_token: input.playerToken, p_operation: input.operation, p_fold: input.fold ?? null,
     });
@@ -861,7 +901,7 @@ export class SupabaseGameRepository {
     readonly isPublic: boolean;
     readonly title: string | null;
   }): Promise<PersistedGame> {
-    const { data, error } = await this.client.rpc("set_game_publication_if_version", {
+    const { data, error } = await this.timerRpc("set_game_publication_if_version", {
       p_game_id: input.gameId,
       p_expected_version: input.expectedVersion,
       p_host_token: input.hostToken,
@@ -984,7 +1024,7 @@ export class SupabaseGameRepository {
   }
 
   async startNextHand(input: StartNextHandInput): Promise<PersistedGame> {
-    const { data, error } = await this.client.rpc(
+    const { data, error } = await this.timerRpc(
       "start_next_hand_if_version",
       {
         p_game_id: input.gameId,
@@ -1007,7 +1047,7 @@ export class SupabaseGameRepository {
   }
 
   async startGame(input: StartNextHandInput): Promise<PersistedGame> {
-    const { data, error } = await this.client.rpc("start_game_if_version", {
+    const { data, error } = await this.timerRpc("start_game_if_version", {
       p_game_id: input.gameId,
       p_expected_version: input.expectedVersion,
       p_current_state: input.currentState,
@@ -1025,7 +1065,7 @@ export class SupabaseGameRepository {
   }
 
   async updateSeatCount(input: UpdateSeatCountInput): Promise<PersistedGame> {
-    const { data, error } = await this.client.rpc(
+    const { data, error } = await this.timerRpc(
       "update_seat_count_if_version",
       {
         p_game_id: input.gameId,
@@ -1048,7 +1088,7 @@ export class SupabaseGameRepository {
   async updateTableSettings(
     input: UpdateTableSettingsInput,
   ): Promise<PersistedGame> {
-    const { data, error } = await this.client.rpc(
+    const { data, error } = await this.timerRpc(
       "update_table_settings_if_version",
       {
         p_game_id: input.gameId,
@@ -1072,10 +1112,12 @@ export class SupabaseGameRepository {
     return toPersistedGame(data[0]);
   }
 
-  async persistHumanAction(
-    input: PersistHumanActionInput,
-  ): Promise<PersistedGame> {
-    const { data, error } = await this.client.rpc(
+  async persistHumanAction(input: PersistHumanActionInput): Promise<PersistedGame> {
+    return this.writeHumanAction(input);
+  }
+
+  private async writeHumanAction(input: PersistHumanActionInput, timeout?: { driverToken: string; decisionId: string }): Promise<PersistedGame> {
+    const { data, error } = await this.timerRpc(
       "apply_human_action_if_version",
       {
         p_game_id: input.gameId,
@@ -1093,7 +1135,7 @@ export class SupabaseGameRepository {
         p_hand_complete: input.handComplete,
         p_auto_reveal_player_engine_id: input.autoRevealPlayerEngineId ?? null,
         p_auto_reveal_reason: input.autoRevealReason ?? null,
-      },
+      }, timeout,
     );
 
     if (error) {
@@ -1108,7 +1150,7 @@ export class SupabaseGameRepository {
   }
 
   async advanceDepartureIfVersion(input: PersistHumanActionInput & { readonly driverToken: string }): Promise<PersistedGame> {
-    const { data, error } = await this.client.rpc("advance_departure_if_version", {
+    const { data, error } = await this.timerRpc("advance_departure_if_version", {
       p_game_id: input.gameId, p_expected_version: input.expectedVersion,
       p_driver_token: input.driverToken, p_fold: input,
     });
@@ -1162,7 +1204,7 @@ export class SupabaseGameRepository {
       "apply_ai_action_and_leave_if_version" | "apply_ai_action_if_version",
     claimArguments: { p_claim_token: string } | Record<string, never>,
   ): Promise<PersistedGame> {
-    const { data, error } = await this.client.rpc(
+    const { data, error } = await this.timerRpc(
       functionName,
       {
         ...claimArguments,
@@ -1220,7 +1262,7 @@ export class SupabaseGameRepository {
     readonly expectedVersion: number;
     readonly playerToken: string;
   }): Promise<PersistedGame> {
-    const { data, error } = await this.client.rpc(
+    const { data, error } = await this.timerRpc(
       "reveal_human_cards_if_version",
       {
         p_game_id: input.gameId,

@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import { TurnCountdown } from "./TurnCountdown";
+import { turnRemainingMs } from "./turn-clock";
 import { adjustTarget, clampTarget, potPresetTarget, validatedTarget } from "@/components/poker/bet-sizing";
 import { CompletedHandResult } from "@/components/poker/CompletedHandResult";
 import { PlayingCard } from "@/components/poker/PlayingCard";
@@ -71,6 +74,14 @@ export function PokerTable({
   readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
 }) {
   const { locale, t } = useI18n();
+  const [, tickTimer] = useState(0);
+  useEffect(() => {
+    if (!game.turnTimer) return;
+    const timer = setInterval(() => tickTimer(value => value + 1), 250);
+    return () => clearInterval(timer);
+  }, [game]);
+  const turnExpired = (turnRemainingMs(game) ?? 1) <= 0;
+  const canAct = isHumanTurn && !turnExpired;
   const flow = tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost, game.poker.seats);
   const ownedSeat = (game.poker.seats ?? game.poker.players).find(seat =>
     seat.controller === "human" && seat.status === "claimed" && viewerToken !== null && seat.playerToken === viewerToken);
@@ -151,6 +162,7 @@ export function PokerTable({
             <Seat
               key={player.id}
               player={player}
+              countdown={game.turnTimer?.actorEngineId === player.id ? <TurnCountdown game={game} /> : undefined}
               active={game.poker.currentActorId === player.id}
               winner={game.poker.winnerIds.includes(player.id)}
               winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
@@ -185,6 +197,7 @@ export function PokerTable({
             <Seat
               key={player.id}
               player={player}
+              countdown={game.turnTimer?.actorEngineId === player.id ? <TurnCountdown game={game} /> : undefined}
               active={game.poker.currentActorId === player.id}
               winner={game.poker.winnerIds.includes(player.id)}
               winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
@@ -201,6 +214,7 @@ export function PokerTable({
             <Seat
               key={player.id}
               player={player}
+              countdown={game.turnTimer?.actorEngineId === player.id ? <TurnCountdown game={game} /> : undefined}
               active={game.poker.currentActorId === player.id}
               winner={game.poker.winnerIds.includes(player.id)}
               winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
@@ -214,6 +228,7 @@ export function PokerTable({
         </div>
       </div>
       <section className={styles.actionTray}>
+        {game.turnTimer && isHumanTurn ? <TurnCountdown key={game.turnTimer.decisionId} game={game} announce /> : null}
         <div className={styles.flowStatus} role="status" aria-live="polite" aria-atomic="true">
           {gameOver ? (human?.id === gameWinnerId
             ? t("table.youWonTable")
@@ -266,7 +281,7 @@ export function PokerTable({
                 variant="muted"
                 size="action"
                 shortcut={legalAction("fold") ? "A" : undefined}
-                disabled={!isHumanTurn || loading || !legalAction("fold")}
+                disabled={!canAct || loading || !legalAction("fold")}
                 onClick={() => submitFixedAction("fold")}
               >
                 {t("table.fold")}
@@ -280,7 +295,7 @@ export function PokerTable({
                   gameOver ||
                   (game.poker.street === "complete"
                     ? !canStartNextHand
-                    : !isHumanTurn || !checkCallAction)
+                    : !canAct || !checkCallAction)
                 }
                 onClick={() => {
                   if (game.poker.street === "complete") {
@@ -308,7 +323,7 @@ export function PokerTable({
                   loading ||
                   (isFoldEndedHand
                     ? !canRevealCards
-                    : !isHumanTurn || !sizedAction || selectedAmount === null)
+                    : !canAct || !sizedAction || selectedAmount === null)
                 }
                 onClick={() => {
                   if (isFoldEndedHand) {
@@ -357,7 +372,7 @@ export function PokerTable({
                 max={sizedAction?.maxAmount ?? 100}
                 step={1}
                 value={sizedAction ? clampTarget(selectedAmount ?? sizedAction.minAmount, sizedAction) : 0}
-                disabled={!sizedAction || !isHumanTurn || loading}
+                disabled={!sizedAction || !canAct || loading}
                 onChange={(event) => setAmount(event.target.value)}
                 aria-label={t("table.betAmount")}
                 aria-keyshortcuts="Q E ArrowLeft ArrowRight Shift+Q Shift+E Shift+ArrowLeft Shift+ArrowRight"
@@ -382,7 +397,7 @@ export function PokerTable({
                 min={sizedAction?.minAmount}
                 max={sizedAction?.maxAmount}
                 value={amount}
-                disabled={!sizedAction || !isHumanTurn || loading}
+                disabled={!sizedAction || !canAct || loading}
                 aria-invalid={Boolean(sizedAction && selectedAmount === null)}
                 aria-describedby="bet-addition"
                 onChange={(event) => setAmount(event.target.value)}
@@ -408,7 +423,7 @@ export function PokerTable({
                   key={fraction}
                   variant="outline"
                   size="preset"
-                  disabled={!sizedAction || !isHumanTurn || loading}
+                  disabled={!sizedAction || !canAct || loading}
                   onClick={() => setAmount(String(potPresetAmount(fraction)))}
                 >
                   {fraction === 1
@@ -419,7 +434,7 @@ export function PokerTable({
               <Button
                 variant="outline"
                 size="preset"
-                disabled={!sizedAction || !isHumanTurn || loading}
+                disabled={!sizedAction || !canAct || loading}
                 onClick={() => {
                   if (sizedAction) setAmount(String(sizedAction.maxAmount));
                 }}

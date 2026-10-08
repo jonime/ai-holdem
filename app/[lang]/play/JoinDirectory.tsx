@@ -101,6 +101,7 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
                 <span>{text(dictionary, "people", { humans: game.humanCount, bots: game.botCount })}</span>
                 <span>{text(dictionary, "blinds", { small: game.smallBlind, big: game.bigBlind })}</span>
                 <span>{text(dictionary, "stack", { stack: game.startingStack })}</span>
+                <span>{text(dictionary, "turnTimer", { duration: game.humanTurnSeconds == null ? dictionary.timerOff : text(dictionary, "timerDuration", { seconds: game.humanTurnSeconds }) })}</span>
               </span>
               {joiningId === game.gameId ? <span className={styles.rowArrow}>{dictionary.joining}</span> : <FiChevronRight className={styles.rowArrow} aria-hidden="true" />}
             </button>

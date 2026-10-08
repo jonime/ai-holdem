@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { gameEnvelopeSchema, gameSchema, publicAIDecisionSchema } from "./schemas";
+import { gameEnvelopeSchema, gameSchema, publicAIDecisionSchema, humanTurnSecondsSchema } from "./schemas";
 
 import { versionSchema, type Immutable } from "./common-contracts";
 export { gameParamsSchema, type GameParams } from "./common-contracts";
@@ -16,6 +16,9 @@ export const submitActionRequestSchema = z.object({
   action: humanActionSchema,
 });
 export const stepBotRequestSchema = submitActionRequestSchema.pick({ expectedVersion: true });
+export const advanceTimeoutRequestSchema = stepBotRequestSchema.extend({ decisionId: z.uuid() }).strict();
+export const advanceTimeoutResponseSchema = gameEnvelopeSchema;
+export type AdvanceTimeoutRequest = z.infer<typeof advanceTimeoutRequestSchema>;
 export const advanceDepartureRequestSchema = stepBotRequestSchema.strict();
 export const advanceDepartureResponseSchema = gameEnvelopeSchema;
 export const getGameResponseSchema = gameEnvelopeSchema;
@@ -46,6 +49,7 @@ export const seatCountSchema = z.number().int().min(2).max(6);
 export const tableSettingsSchema = z.object({
   seatCount: z.number(), smallBlind: z.number(), bigBlind: z.number(),
   startingStack: z.number(), botsShowUncontestedWins: z.boolean(),
+  humanTurnSeconds: humanTurnSecondsSchema.optional(),
 });
 export const settingsRequestSchema = tableSettingsSchema.extend({ expectedVersion: versionSchema });
 export const seatCountRequestSchema = stepBotRequestSchema.extend({ seatCount: seatCountSchema });

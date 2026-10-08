@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
+import { turnRemainingMs } from "./turn-clock";
 import { HttpError } from "@/lib/http/api";
 import { LLM_CREDIT_EXIT_RULE } from "@/lib/bots/types";
 import { advanceBotTurns, hasAutomaticTurn } from "./bot-advancement";
@@ -31,8 +32,16 @@ export class BotLifecycle {
   private generation = 0;
   private work: symbol | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
+  private timeoutTimer: ReturnType<typeof setTimeout> | null = null;
+  private attemptedDecisions = new Set<string>();
   private attemptedVersions = new Set<number>();
   private applying = false;
+  private mutationPending = false;
+  suspend(pending: boolean) {
+    this.mutationPending = pending;
+    const game = this.driver.readGame();
+    if (!pending && game) this.reconcile(game);
+  }
   constructor(private driver: BotLifecycleDriver) {}
   updateDriver(driver: BotLifecycleDriver) { this.driver = driver; }
   getSnapshot = () => this.state;
@@ -64,6 +73,9 @@ export class BotLifecycle {
     this.work = null;
     this.gameId = gameId;
     this.attemptedVersions.clear();
+    this.attemptedDecisions.clear();
+    if (this.timeoutTimer !== null) clearTimeout(this.timeoutTimer);
+    this.timeoutTimer = null;
     this.clearTimer();
     this.dispatch({ type: "reset" });
   }
@@ -74,6 +86,16 @@ export class BotLifecycle {
   /** Called inside session reconciliation, before React updates or promise continuations. */
   reconcile = (game: Game) => {
     if (game.id !== this.gameId) return;
+    if (this.timeoutTimer !== null) clearTimeout(this.timeoutTimer);
+    this.timeoutTimer = null;
+    const wait = turnRemainingMs(game);
+    if (game.turnTimer && wait !== null && !this.attemptedDecisions.has(game.turnTimer.decisionId) &&
+        canAdvanceBots(game, this.driver.viewerToken())) {
+      this.timeoutTimer = setTimeout(() => {
+        const latest = this.driver.readGame();
+        if (latest && latest.id === this.gameId) void this.advance(latest, true);
+      }, wait + 25);
+    }
     const eligible = this.eligible(game);
     const state = this.state;
     if (!eligible || (!this.applying && state.kind === "running" &&
@@ -92,12 +114,14 @@ export class BotLifecycle {
   }
   advance = async (game: Game, automatic = false): Promise<void> => {
     const latest = this.driver.readGame();
-    if (this.work || !botCanStart(this.state) || !this.eligible(latest) ||
+    if (this.mutationPending || this.work || !botCanStart(this.state) || !this.eligible(latest) ||
         latest.id !== game.id || latest.version !== game.version ||
-        (automatic && this.attemptedVersions.has(game.version))) return;
+        (automatic && (this.attemptedVersions.has(game.version) ||
+          (game.turnTimer && this.attemptedDecisions.has(game.turnTimer.decisionId))))) return;
     const token = Symbol("bot lifecycle");
     const generation = this.generation;
     this.work = token;
+    if (game.turnTimer) this.attemptedDecisions.add(game.turnTimer.decisionId);
     this.attemptedVersions.add(game.version);
     this.driver.clearError();
     this.dispatch({ type: "start", turn: botTurn(game) });
@@ -132,6 +156,7 @@ export class BotLifecycle {
           }
         },
         refresh: async () => {
+          if (attempted.turnTimer) this.attemptedDecisions.delete(attempted.turnTimer.decisionId);
           try {
             await this.driver.refresh(game.id, () => this.work === token && this.generation === generation);
             if (this.gameId === game.id && this.generation === generation) this.driver.refreshFailed(false);
@@ -152,6 +177,15 @@ export class BotLifecycle {
   }
   private async fail(error: unknown, attempted: Game, token: symbol, generation: number) {
     const turn = botTurn(attempted);
+    if (error instanceof HttpError && error.code === "TURN_NOT_EXPIRED" && error.retryAfterMs !== undefined) {
+      if (attempted.turnTimer) this.attemptedDecisions.delete(attempted.turnTimer.decisionId);
+      this.attemptedVersions.delete(attempted.version);
+      this.timeoutTimer = setTimeout(() => {
+        const latest = this.driver.readGame();
+        if (latest && latest.id === this.gameId) void this.advance(latest, true);
+      }, error.retryAfterMs + 25);
+      return;
+    }
     if (error instanceof HttpError && error.retryAfterMs !== undefined &&
         (error.code === "OWNER_AI_LIMIT" || error.code === "GAME_AI_RATE_LIMIT" || error.code === "BOT_STEP_IN_PROGRESS")) {
       if (this.driver.readGame()?.version !== attempted.version) return;
@@ -211,6 +245,7 @@ export function useBotLifecycle(gameId: string | undefined, game: Game | null, m
     lifecycle.reset(gameId);
     return () => lifecycle.reset();
   }, [gameId, lifecycle]);
+  useLayoutEffect(() => { lifecycle.suspend(mutationLoading); }, [mutationLoading, lifecycle]);
   useEffect(() => {
     if (game && !mutationLoading) void lifecycle.advance(game, true);
   }, [game, mutationLoading, lifecycle, state]);

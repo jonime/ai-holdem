@@ -42,6 +42,7 @@ import { isLlmCreditFailure } from "@/lib/bots/provider-http-failure";
 import { logBotProviderFailure } from "@/lib/bots/provider-logging";
 
 export interface CreateDemoGameOptions {
+  readonly humanTurnSeconds?: import("./types").HumanTurnSeconds;
   readonly seatCount?: number;
   readonly smallBlind?: number;
   readonly bigBlind?: number;
@@ -120,6 +121,7 @@ export function createDemoGameConfig(
   const startingStack = options.startingStack ?? 10_000;
 
   return {
+    humanTurnSeconds: options.humanTurnSeconds === undefined ? 60 : options.humanTurnSeconds,
     smallBlind,
     bigBlind,
     startingStack,
@@ -311,6 +313,7 @@ export async function createQuickPlayGame(
   const startingStack = 10_000;
   const bots = quickPlayBotSelections(options.botMode);
   const config: GameConfig = {
+    humanTurnSeconds: null,
     smallBlind: 50,
     bigBlind: 100,
     startingStack,
@@ -741,6 +744,7 @@ export async function startGame(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
+    ...publicTimerFields(persistedGame),
     viewerIsHost: true,
     poker: publicProjectionForViewer(
       projectedState,
@@ -797,6 +801,7 @@ export async function updateSeatCount(
 }
 
 export function validateTableSettings(settings: TableSettings): void {
+  if (settings.humanTurnSeconds !== undefined && ![null, 30, 60, 90].includes(settings.humanTurnSeconds)) throw new Error("Invalid human turn timer");
   if (
     !Number.isSafeInteger(settings.seatCount) ||
     settings.seatCount < 2 ||
@@ -886,6 +891,7 @@ export async function updateTableSettings(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
+    ...publicTimerFields(persistedGame),
     viewerIsHost: true,
     poker: publicProjectionForViewer(
       projectedState,
@@ -973,6 +979,7 @@ export async function getPublicGame(
     id: game.id,
     status: game.status,
     version: game.version,
+    ...publicTimerFields(game),
     viewerIsHost,
     publication: viewerIsHost
       ? {
@@ -1198,6 +1205,7 @@ export async function submitHumanAction(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
+    ...publicTimerFields(persistedGame),
     viewerIsHost: await isCallerHost(repository, gameId, submission.playerId),
     poker: publicProjectionForViewer(
       projectedState,
@@ -1354,6 +1362,7 @@ async function stepResolvedBotAction(
       id: persistedGame.id,
       status: persistedGame.status,
       version: persistedGame.version,
+    ...publicTimerFields(persistedGame),
       viewerIsHost: await isCallerHost(repository, gameId, viewerToken),
       poker: publicProjectionForViewer(
         projectedState,
@@ -1503,6 +1512,7 @@ export async function startNextHand(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
+    ...publicTimerFields(persistedGame),
     viewerIsHost: await isCallerHost(repository, gameId, viewerToken),
     poker: publicProjectionForViewer(
       projectedState,
@@ -1571,6 +1581,7 @@ export async function revealHumanCards(
     id: persistedGame.id,
     status: persistedGame.status,
     version: persistedGame.version,
+    ...publicTimerFields(persistedGame),
     viewerIsHost: await isCallerHost(repository, gameId, playerToken),
     poker: publicProjectionForViewer(
       projectedState,
@@ -1619,7 +1630,7 @@ export async function advanceDeparture(
   const fold = departureFold(game, actor);
   const committed = await repository.advanceDepartureIfVersion({ ...fold, driverToken: viewerToken });
   const projected = await withOpenSeatPlaceholders(repository, gameId, restorePersistedState(fold.currentState));
-  return { id: committed.id, status: committed.status, version: committed.version,
+  return { id: committed.id, status: committed.status, version: committed.version, ...publicTimerFields(committed),
     viewerIsHost: await isCallerHost(repository, gameId, viewerToken),
     poker: publicProjectionForViewer(projected, viewerToken,
       await currentRevealIds(repository, gameId, fold.handNumber), committed.botsShowUncontestedWins ?? false) };
@@ -1641,4 +1652,41 @@ export async function prepareSeatDeparture(
   const state = restorePersistedState(game.currentState);
   const actor = pokerEngineAdapter.snapshot(state).currentActorId;
   if (actor && actor === seat.enginePlayerId) return departureFold(game, actor);
+}
+
+export function publicTimerFields(game: PersistedGame) {
+  return { turnTimer: game.turnTimer ?? null, serverTime: game.serverTime ?? new Date().toISOString() };
+}
+
+export async function advanceTimeout(
+  repository: GameReader & GameHostReader & SeatAssignmentRepository & HandRevealReader & {
+    persistTimeout(input: PersistHumanActionInput & { driverToken: string; decisionId: string }): Promise<PersistedGame>;
+  }, gameId: string, expectedVersion: number, decisionId: string, viewerToken: string | null,
+): Promise<PublicGame> {
+  const game = await repository.getGame(gameId);
+  if (!game) throw new GameNotFoundError(gameId);
+  const before = restorePersistedState(game.currentState);
+  await requireBotDriver(repository, gameId, before, viewerToken);
+  if (game.version !== expectedVersion || game.turnTimer?.decisionId !== decisionId) throw new GameConflictError(gameId, expectedVersion);
+  const snapshot = pokerEngineAdapter.snapshot(before);
+  const actor = snapshot.currentActorId;
+  const seat = (await repository.getSeatAssignments(gameId)).find(player => player.enginePlayerId === actor);
+  if (!actor || actor !== game.turnTimer.actorEngineId || snapshot.handNumber !== game.turnTimer.handNumber ||
+      !seat || seat.controller !== "human" || seat.status !== "claimed" || !viewerToken ||
+      !snapshot.street || snapshot.street === "complete") throw new GameConflictError(gameId, expectedVersion);
+  const action = !seat.leaving && pokerEngineAdapter.getLegalActions(before).some(action => action.type === "check")
+    ? { type: "check" as const } : { type: "fold" as const };
+  const after = pokerEngineAdapter.applyAction(before, actor, action);
+  const next = pokerEngineAdapter.snapshot(after);
+  const reveal = autoRevealForCompletedState(after, game.botsShowUncontestedWins ?? false);
+  const committed = await repository.persistTimeout({ gameId, expectedVersion, decisionId, driverToken: viewerToken,
+    playerEngineId: actor, currentState: after, stateSchemaVersion: after.stateSchemaVersion, handNumber: next.handNumber,
+    status: next.street === "complete" ? "complete" : "playing", street: snapshot.street,
+    action: action.type, amount: null, stateBefore: before, handComplete: next.street === "complete",
+    ...(reveal ? { autoRevealPlayerEngineId: reveal.playerId, autoRevealReason: reveal.reason } : {}) });
+  const projected = await withOpenSeatPlaceholders(repository, gameId, after);
+  return { id: committed.id, status: committed.status, version: committed.version, ...publicTimerFields(committed),
+    viewerIsHost: await isCallerHost(repository, gameId, viewerToken),
+    poker: publicProjectionForViewer(projected, viewerToken, await currentRevealIds(repository, gameId, next.handNumber),
+      committed.botsShowUncontestedWins ?? false) };
 }

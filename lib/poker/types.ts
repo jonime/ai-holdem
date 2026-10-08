@@ -27,7 +27,10 @@ export interface PokerPlayerConfig {
   readonly leaving?: boolean;
 }
 
+export type HumanTurnSeconds = 30 | 60 | 90 | null;
+
 export interface GameConfig {
+  readonly humanTurnSeconds?: HumanTurnSeconds;
   readonly smallBlind: number;
   readonly bigBlind: number;
   readonly startingStack?: number;
@@ -36,6 +39,7 @@ export interface GameConfig {
 }
 
 export interface TableSettings {
+  readonly humanTurnSeconds?: HumanTurnSeconds;
   readonly seatCount: number;
   readonly smallBlind: number;
   readonly bigBlind: number;

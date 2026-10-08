@@ -1,4 +1,5 @@
 "use client";
+import { observeTurnClock, turnRemainingMs } from "./turn-clock";
 
 import { addLocalePrefix } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
@@ -87,6 +88,7 @@ export function useGameSession(gameId?: string) {
         sequence,
       );
       lastAppliedResponse.current = reconciled.applied;
+      if (reconciled.applied.sequence === sequence) observeTurnClock(reconciled.game);
       latestGame.current = reconciled.game;
       botLifecycle.current?.reconcile(reconciled.game);
       setGame(reconciled.game);
@@ -133,6 +135,8 @@ export function useGameSession(gameId?: string) {
       const actor = current.poker.players.find(player => player.id === current.poker.currentActorId);
       const result = actor?.controller === "human" && actor.leaving
         ? await api.games.advanceDeparture({ gameId: current.id, expectedVersion: current.version })
+        : actor?.controller === "human" && current.turnTimer
+          ? await api.games.advanceTimeout({ gameId: current.id, expectedVersion: current.version, decisionId: current.turnTimer.decisionId })
         : await api.games.stepBot({ gameId: current.id, expectedVersion: current.version });
       return { result, sequence };
     },
@@ -387,6 +391,7 @@ export function useGameSession(gameId?: string) {
       try {
         let currentGame = game;
         const settingsChanged =
+          (settings.humanTurnSeconds !== undefined && settings.humanTurnSeconds !== (currentGame.poker.humanTurnSeconds ?? null)) ||
           settings.seatCount !== currentGame.poker.seatCount ||
           settings.smallBlind !== currentGame.poker.smallBlind ||
           settings.bigBlind !== currentGame.poker.bigBlind ||
@@ -440,7 +445,7 @@ export function useGameSession(gameId?: string) {
 
   const submitAction = useCallback(
     async (action: LegalAction, amountOverride: number | null = null) => {
-      if (!game) return;
+      if (!game || (turnRemainingMs(game) ?? 1) <= 0) return;
       if ((action.type === "bet" || action.type === "raise") &&
           (amountOverride === null || !Number.isSafeInteger(amountOverride) ||
            amountOverride < action.minAmount || amountOverride > action.maxAmount)) return;
@@ -458,16 +463,15 @@ export function useGameSession(gameId?: string) {
         applyGame(body.game, sequence);
         await advanceAiTurns(body.game);
       } catch (requestError) {
-        setError(
-          requestError instanceof Error
-            ? requestError.message
-            : t("errors.submitAction"),
-        );
+        if (requestError instanceof HttpError && ["TURN_EXPIRED", "GAME_VERSION_CONFLICT"].includes(requestError.code ?? "")) {
+          try { await loadGame(game.id); }
+          catch { setError(t("errors.refreshGame")); }
+        } else setError(requestError instanceof Error ? requestError.message : t("errors.submitAction"));
       } finally {
         setLoading(false);
       }
     },
-    [advanceAiTurns, applyGame, game, t],
+    [advanceAiTurns, applyGame, game, loadGame, t],
   );
 
   const nextHandPending = useRef(false);

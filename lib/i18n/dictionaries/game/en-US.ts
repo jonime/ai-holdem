@@ -1,6 +1,7 @@
 import "server-only";
 
 const dictionary = {
+  timer: {"retry": "Retry turn timeout", "setting": "Human turn timer", "off": "Off", "duration": "{seconds} seconds", "multiplayer": "Applies to hands starting with two or more humans.", "countdown": "Time left: {seconds}s", "warning": "Ten seconds remaining.", "expired": "Time expired—updating table"},
   gameHeader: {
     retryDeparture: "Retry departure",
     lobby: "Lobby",
@@ -197,6 +198,10 @@ const dictionary = {
     of: "{rank} of {suit}",
   },
   errors: {
+    turnForbidden: "Only the host or a seated human can advance this turn.",
+    turnAdvanceFailed: "Unable to update the expired turn. Retry explicitly.",
+    turnExpired: "Time expired—updating table",
+    turnNotExpired: "This turn has not expired yet.",
     tableUnavailable: "This table is no longer available.",
     ownerAILimit: "The table owner’s AI allowance is shared across their tables. Please wait before retrying.",
     gameAIRateLimit: "This table is advancing external bots too quickly. Please wait before retrying.",

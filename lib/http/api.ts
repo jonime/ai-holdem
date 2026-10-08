@@ -2,6 +2,7 @@ import { addLocalePrefix } from "@/lib/i18n";
 import { z } from "zod";
 import { errorEnvelopeSchema, type GameParams, type VersionRequest } from "./common-contracts";
 import {
+  advanceTimeoutRequestSchema, advanceTimeoutResponseSchema, type AdvanceTimeoutRequest,
   advanceDepartureRequestSchema, advanceDepartureResponseSchema, gameParamsSchema, getGameResponseSchema, submitActionRequestSchema,
   submitActionResponseSchema, stepBotRequestSchema, stepBotResponseSchema,
   startRequestSchema, nextHandRequestSchema, revealRequestSchema,
@@ -178,6 +179,9 @@ export const api = {
     },
     submitAction({ gameId, ...body }: GameParams & SubmitActionRequest, options: Options = {}) {
       return mutation({ gameId }, "action", body, submitActionRequestSchema, submitActionResponseSchema, options);
+    },
+    advanceTimeout({ gameId, ...body }: GameParams & AdvanceTimeoutRequest, options: Options = {}) {
+      return mutation({ gameId }, "advance-timeout", body, advanceTimeoutRequestSchema, advanceTimeoutResponseSchema, options);
     },
     advanceDeparture({ gameId, ...body }: GameParams & AdvanceDepartureRequest, options: Options = {}) {
       return mutation({ gameId }, "advance-departure", body, advanceDepartureRequestSchema, advanceDepartureResponseSchema, options);

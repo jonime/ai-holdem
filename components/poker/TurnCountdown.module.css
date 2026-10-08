@@ -1,0 +1,31 @@
+.countdown {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 5px;
+  border-radius: 50%;
+  background: var(--sun);
+  color: #1c211b;
+  font-family: ui-monospace, monospace;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1;
+}
+
+.announcement {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.expired {
+  font-size: 0.875rem;
+}

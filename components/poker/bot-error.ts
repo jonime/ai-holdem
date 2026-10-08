@@ -3,6 +3,10 @@ import { botFailureCodes } from "@/lib/http/gameplay-contracts";
 import type { GameDictionary } from "@/lib/i18n/types";
 
 const translations = {
+  TURN_FORBIDDEN: "turnForbidden",
+  TURN_ADVANCE_FAILED: "turnAdvanceFailed",
+  TURN_EXPIRED: "turnExpired",
+  TURN_NOT_EXPIRED: "turnNotExpired",
   OWNER_AI_LIMIT: "ownerAILimit",
   GAME_AI_RATE_LIMIT: "gameAIRateLimit",
   GAME_CREATION_LIMIT: "gameCreationLimit",

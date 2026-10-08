@@ -205,3 +205,18 @@ deploying this feature, followed by
 `20261021000000_grant_table_removal_reveal_delete.sql` to explicitly grant the
 server role permission to delete card reveals on hosted Supabase.
 See [gameplay](docs/gameplay.md#removing-tables-from-play).
+
+## Human turn timers
+
+New custom tables default to 60 seconds; hosts can select Off, 30, 60 or 90 seconds
+in the waiting lobby. Quick Play and existing tables remain Off. Timers apply only
+to hands starting with at least two dealt humans, with that eligibility frozen for
+the hand. At expiry the server checks if legal, otherwise folds; departing humans
+always fold. Seats remain claimed and all-ins retain pot eligibility. Bots are
+untimed, and starting the next hand remains an explicit action.
+
+Lobby settings are applied when the host starts the table. The current actor’s seat
+shows a small numeric countdown only below ten seconds, with a single screen-reader
+warning and no additional border change. After expiry
+controls stop accepting that decision. A host or seated human browser processes
+expiry; if all eligible browsers close, processing resumes when one returns.

@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  timer: {"retry": "Ponów zakończenie tury", "setting": "Czas tury człowieka", "off": "Wyłączony", "duration": "{seconds} sekund", "multiplayer": "Dla rozdań rozpoczynanych przez co najmniej dwóch ludzi.", "countdown": "Pozostało: {seconds}s", "warning": "Zostało dziesięć sekund.", "expired": "Czas minął — aktualizowanie stołu"},
   gameHeader: {
     retryDeparture: "Ponów opuszczenie stołu",
     lobby: "Lobby",
@@ -198,6 +199,10 @@ const dictionary = {
     of: "{rank} {suit}",
   },
   errors: {
+    turnForbidden: "Tylko gospodarz lub siedzący człowiek może zakończyć tę turę.",
+    turnAdvanceFailed: "Nie można zaktualizować wygasłej tury. Spróbuj ponownie.",
+    turnExpired: "Czas minął — aktualizowanie stołu",
+    turnNotExpired: "Czas tury jeszcze nie minął.",
     tableUnavailable: "Ten stół nie jest już dostępny.",
     ownerAILimit: "Limit AI właściciela jest wspólny dla wszystkich jego stołów. Poczekaj przed ponowną próbą.",
     gameAIRateLimit: "Przy tym stole boty zewnętrzne grają zbyt szybko. Poczekaj przed ponowną próbą.",

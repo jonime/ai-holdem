@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  timer: {"retry": "Yritä vuoron päättämistä uudelleen", "setting": "Pelaajan vuoroaika", "off": "Pois", "duration": "{seconds} sekuntia", "multiplayer": "Käytössä käsissä, joissa aloittaa vähintään kaksi ihmispelaajaa.", "countdown": "Aikaa jäljellä: {seconds} s", "warning": "Kymmenen sekuntia jäljellä.", "expired": "Aika loppui — päivitetään pöytää"},
   gameHeader: {
     retryDeparture: "Yritä poistumista uudelleen",
     lobby: "Aula",
@@ -197,6 +198,10 @@ const dictionary = {
     of: "{rank} {suit}",
   },
   errors: {
+    turnForbidden: "Vain isäntä tai pöydässä istuva ihmispelaaja voi edistää vuoroa.",
+    turnAdvanceFailed: "Vanhentunutta vuoroa ei voitu päivittää. Yritä uudelleen.",
+    turnExpired: "Aika loppui — päivitetään pöytää",
+    turnNotExpired: "Vuoroaika ei ole vielä loppunut.",
     tableUnavailable: "Tämä pöytä ei ole enää saatavilla.",
     ownerAILimit: "Pöydän omistajan tekoälykiintiö on yhteinen kaikille hänen pöydilleen. Odota ennen uutta yritystä.",
     gameAIRateLimit: "Tämän pöydän ulkoiset botit pelaavat liian nopeasti. Odota ennen uutta yritystä.",

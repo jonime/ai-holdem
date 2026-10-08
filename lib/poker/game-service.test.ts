@@ -134,6 +134,7 @@ describe("createQuickPlayGame", () => {
       );
 
       expect(game).toMatchObject({ gameId: "quick-game-1", version: 0 });
+      expect(game.state.config.humanTurnSeconds).toBeNull();
       const snapshot = pokerEngineAdapter.snapshot(game.state);
       expect(snapshot).toMatchObject({
         handNumber: 1,
