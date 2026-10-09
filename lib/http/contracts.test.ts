@@ -40,3 +40,24 @@ it("legacy broadcasts cannot carry private live-seat ownership tokens", async ()
     seats: publicGame.poker.seats.map(seat => ({ ...seat, playerToken: null })),
   } }).success).toBe(true);
 });
+
+
+it("defaults legacy winning hands to null and validates exactly five distinct card identifiers", async () => {
+  const { publicPlayerSchema } = await import("./schemas");
+  const { gameplayGame } = await import("@/test/fixtures/gameplay");
+  const player = gameplayGame.poker.players[0];
+  expect(publicPlayerSchema.parse(player).winningHand).toBeNull();
+  expect(publicPlayerSchema.parse({ ...player, winningHand: null }).winningHand).toBeNull();
+  const winningHand = { cards: ["As", "Kd", "Qh", "Jc", "Ts"], playsBoard: false };
+  expect(publicPlayerSchema.parse({ ...player, winningHand }).winningHand).toEqual(winningHand);
+  for (const invalid of [
+    { ...winningHand, cards: ["As"] },
+    { ...winningHand, cards: [...winningHand.cards, "2c"] },
+    { ...winningHand, cards: ["As", "Kd", "Qh", "Jc", "10s"] },
+    { ...winningHand, cards: ["As", "Kd", "Qh", "Jc", "Tx"] },
+    { ...winningHand, cards: ["As", "As", "Qh", "Jc", "Ts"] },
+    { cards: winningHand.cards },
+    { ...winningHand, playsBoard: "false" },
+    { ...winningHand, rank: 8 },
+  ]) expect(publicPlayerSchema.safeParse({ ...player, winningHand: invalid }).success).toBe(false);
+});

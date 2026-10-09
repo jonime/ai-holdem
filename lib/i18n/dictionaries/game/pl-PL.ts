@@ -125,6 +125,10 @@ const dictionary = {
     show: "Pokaż",
   },
   result: {
+    winningFive: "Zwycięska piątka",
+    playsBoard: "Gra kartami wspólnymi",
+    holeCardDescription: "{card}, karta własna",
+    boardCardDescription: "{card}, karta wspólna",
     title: "Wynik rozdania",
     potAwards: "Wygrane z pul",
     uncontested: "Przeciwnicy spasowali.",

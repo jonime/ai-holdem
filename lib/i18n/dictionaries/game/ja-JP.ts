@@ -141,6 +141,10 @@ const dictionary = {
     "show": "公開"
   },
   "result": {
+    winningFive: "勝利の5枚",
+    playsBoard: "ボードの5枚を使用",
+    holeCardDescription: "{card}、ホールカード",
+    boardCardDescription: "{card}、コミュニティカード",
     "title": "ハンドの結果",
     "potAwards": "ポットの分配",
     "uncontested": "他のプレイヤーがフォールドしました。",

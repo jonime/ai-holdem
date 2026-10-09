@@ -124,6 +124,10 @@ const dictionary = {
     show: "Tonen",
   },
   result: {
+    winningFive: "De vijf winnende kaarten",
+    playsBoard: "Speelt het board",
+    holeCardDescription: "{card}, holecard",
+    boardCardDescription: "{card}, gemeenschappelijke kaart",
     title: "Resultaat van de hand",
     potAwards: "Potuitkeringen",
     uncontested: "De tegenstanders hebben gefold.",

@@ -138,7 +138,42 @@ test("persists public hand results through feed failure and refresh, preserves c
   await expect(panel.getByRole("heading", { name: "Flop", exact: true }).last().locator("..").locator("[data-playing-card]")).toHaveCount(3);
   await expect(panel.getByRole("heading", { name: "Turn", exact: true }).last().locator("..").locator("[data-playing-card]")).toHaveCount(4);
   await expect(panel.getByRole("heading", { name: "River", exact: true }).last().locator("..").locator("[data-playing-card]")).toHaveCount(5);
+  const rows = result.locator("[data-winning-hand]");
+  await expect(rows).toHaveCount(game.poker.winnerIds.length);
+  for (const row of await rows.all()) {
+    await expect(row.locator("[data-playing-card]")).toHaveCount(5);
+  }
+  const winningMarkup = await rows.evaluateAll(nodes => nodes.map(n => n.innerHTML));
+  await page.route(`**/api/games/${id}/feed*`, route => route.fulfill({ status: 500, json: { error: "Feed unavailable" } }));
+  await page.reload();
+  await expect(rows).toHaveCount(game.poker.winnerIds.length);
+  expect(await rows.evaluateAll(nodes => nodes.map(n => n.innerHTML))).toEqual(winningMarkup);
+  await expect(page.getByRole("button", { name: "Next Hand", exact: true })).toBeEnabled();
+  for (const row of await rows.all()) {
+    await row.locator("[data-playing-card]").last().scrollIntoViewIfNeeded();
+    const fits = await row.evaluate(node => {
+      const result = node.closest("[data-hand-result]")!.getBoundingClientRect();
+      const cards = node.querySelector("[data-playing-card]")!.getBoundingClientRect();
+      const bottom = (node.querySelector("p") ?? node.querySelector('[class*="winningCards"]'))!.getBoundingClientRect();
+      return cards.top >= result.top && bottom.bottom <= result.bottom;
+    });
+    expect(fits).toBe(true);
+  }
+  await result.evaluate(node => { node.scrollTop = 0; });
   await page.screenshot({ path: "test-results/completed-hand-desktop.png", fullPage: true });
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(result).toBeVisible();
+  for (const row of await rows.all()) {
+    const cards = await row.locator("[data-playing-card]").evaluateAll(nodes => nodes.map(n => {
+      const r = n.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, width: r.width };
+    }));
+    expect(new Set(cards.map(c => c.top)).size).toBe(1);
+    expect(cards.every(c => c.left >= 0 && c.right <= 375 && c.width >= 32)).toBe(true);
+  }
+  await expect(page.getByRole("button", { name: "Next Hand", exact: true })).toBeInViewport();
+  await page.screenshot({ path: "test-results/winning-five-mobile.png", fullPage: true });
+  await page.getByRole("button", { name: "Next Hand", exact: true }).click();
+  await expect(result).toHaveCount(0);
   await spectatorContext.close();
   await guestContext.close();
 });

@@ -62,3 +62,7 @@
     font-size: 8px;
   }
 }
+
+.holeCard {
+  border-bottom: 3px solid #c7932e;
+}

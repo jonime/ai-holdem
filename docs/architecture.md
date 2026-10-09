@@ -364,3 +364,24 @@ navigation and response-order guards with bot/departure advancement. Display tim
 uses accepted server samples plus `performance.now()` elapsed time. Failures pause
 until explicit retry; early requests wait for the server-supplied interval. No worker
 or next-hand automation exists.
+
+
+## Public winning five
+
+The shared adapter projection adds nullable `players[].winningHand` containing
+exactly five card identifiers and `playsBoard`. Missing fields parse as null for
+legacy response compatibility. Reads and mutation responses use the same projection;
+no migration or additional request is needed. Only recorded positive pot recipients
+at completed showdowns with non-folded, publicly revealed hole cards and sufficient
+engine evaluation data receive it. Active hands, hidden/folded players, fold-ended
+wins and incomplete legacy data return null.
+
+The adapter uses the installed engine evaluator to select the best five from the
+public board and that recipient's revealed hole cards, validates their membership,
+and retains evaluator order. If the board evaluates equally, it returns the board
+in board order with `playsBoard: true`. It never recalculates winners or awards.
+The HTTP boundary validates five distinct card identifiers and the boolean; no
+ranks, evaluation inputs or new ownership identifiers are exposed. The result panel
+renders authoritative awards independently of the Actions feed, marks hole-card
+sources accessibly, stacks different recipients under Pot awards, and clears with
+the next hand while preserving result scrolling and next-hand controls.

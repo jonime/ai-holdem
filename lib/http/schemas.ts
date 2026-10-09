@@ -27,6 +27,12 @@ export const legalActionSchema = z.union([
   }),
 ]);
 
+export const winningHandSchema = z.object({
+  cards: z.array(z.string().regex(/^[2-9TJQKA][cdhs]$/)).length(5)
+    .refine(cards => new Set(cards).size === 5),
+  playsBoard: z.boolean(),
+}).strict();
+
 export const publicPlayerSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -61,6 +67,7 @@ export const publicPlayerSchema = z.object({
     ])
     .nullable()
     .default(null),
+  winningHand: winningHandSchema.nullable().default(null),
   cardsRevealed: z.boolean().default(false),
   holeCards: z.array(z.string()).nullable(),
 });

@@ -342,3 +342,22 @@
 .replayError { color: #9d302d; text-align: center; }
 .endControls { height: auto; min-height: 64px; flex-wrap: wrap; }
 .endControls button { min-height: 56px; height: auto; flex-basis: 140px; }
+
+.handResult li + li { margin-top: 12px; }
+.handResult:has([data-winning-hand]) { padding-block: 2px; }
+.handResult:has([data-winning-hand]) h2 { margin-bottom: 2px; }
+.winningHand {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: center;
+  gap: 2px 8px;
+  margin-top: 4px;
+}
+.winningLabel { font-size: 12px; }
+.winningCards { display: flex; justify-content: center; gap: 6px; }
+.winningCards [data-playing-card] { width: 32px; height: 44px; font-size: 16px; flex-shrink: 0; }
+.winningHand p { grid-column: 1 / -1; margin: 0; font-size: 11px; line-height: 1.2; font-weight: 400; }
+@media (max-width: 560px) {
+  .winningHand { grid-template-columns: auto; }
+}
