@@ -124,6 +124,10 @@ const dictionary = {
     show: "Visa",
   },
   result: {
+    winningFive: "Vinnande fem",
+    playsBoard: "Spelar bordet",
+    holeCardDescription: "{card}, hålkort",
+    boardCardDescription: "{card}, gemensamt kort",
     title: "Handens resultat",
     potAwards: "Pottvinster",
     uncontested: "Motståndarna lade sig.",

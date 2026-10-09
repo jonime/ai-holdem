@@ -405,3 +405,82 @@ describe("pokerEngineAdapter", () => {
     expect(secondSnapshot.communityCards).not.toEqual(firstBoard);
   });
 });
+
+describe("public winning five", () => {
+  function rigged(hole: string[], other: string[], board: string[]) {
+    const used = [...hole, ...other, ...board];
+    const burns = createDeterministicDeck().map(c => `${c.rank}${c.suit}`).filter(c => !used.includes(c)).slice(0, 3);
+    return pokerEngineAdapter.startHand(pokerEngineAdapter.createGame(headsUpConfig),
+      createDeterministicDeck([other[0], hole[0], other[1], hole[1], burns[0],
+        ...board.slice(0, 3), burns[1], board[3], burns[2], board[4]]));
+  }
+  it.each([
+    ["full-house", ["Kh", "Kd"], ["2c", "3c"], ["Ks", "7d", "7c", "9h", "Js"], ["Kh", "Kd", "Ks", "7d", "7c"]],
+    ["one-pair", ["Ah", "Qc"], ["As", "Tc"], ["Ad", "Kh", "9c", "6s", "2d"], ["Ah", "Ad", "Kh", "Qc", "9c"]],
+    ["straight", ["9h", "8d"], ["2c", "3c"], ["7s", "6h", "5c", "Kd", "Qs"], ["9h", "8d", "7s", "6h", "5c"]],
+    ["straight", ["Ah", "2d"], ["Kc", "Qc"], ["3s", "4h", "5c", "Kd", "9s"], ["Ah", "2d", "3s", "4h", "5c"]],
+    ["flush", ["Ah", "8h"], ["Kc", "Qc"], ["3h", "4h", "5h", "Kd", "9s"], ["Ah", "8h", "3h", "4h", "5h"]],
+  ])("selects engine cards for %s", (category, hole, other, board, expected) => {
+    const state = playToShowdown(rigged(hole, other, board));
+    const game = pokerEngineAdapter.publicProjection(state, null);
+    expect(game.winnerIds).toContain("human");
+    const winner = game.players.find(p => p.id === "human")!;
+    expect(winner.bestHand).toBe(category);
+    expect(winner.winningHand?.cards).toEqual(expect.arrayContaining(expected));
+    expect(winner.winningHand?.cards).toEqual(pokerEngineAdapter.describePlayerHand(state, "human").bestFive);
+    expect(winner.winningHand?.cards).toHaveLength(5);
+    expect(winner.winningHand?.playsBoard).toBe(false);
+    expect(game.players.find(p => p.id === "ai")?.winningHand).toBeNull();
+    expect(pokerEngineAdapter.publicProjection(state, "human")).toEqual({ ...game, legalActions: [] });
+  });
+  it("prefers the board in board order for tied winners, even if hole cards make an equivalent hand", () => {
+    const board = ["Ts", "Jh", "Qd", "Kc", "As"];
+    const game = pokerEngineAdapter.publicProjection(playToShowdown(rigged(["Ah", "2c"], ["Ad", "3c"], board)), null);
+    expect(game.winnerIds).toHaveLength(2);
+    for (const p of game.players) expect(p.winningHand).toEqual({ cards: board, playsBoard: true });
+  });
+  it("omits cards during active hands and fold wins, even for owners or voluntarily revealed winners", () => {
+    const active = startHand();
+    expect(pokerEngineAdapter.publicProjection(active, "human", ["ai"]).players.every(p => p.winningHand === null)).toBe(true);
+    const folded = pokerEngineAdapter.applyAction(active, currentActor(active), { type: "fold" });
+    expect(pokerEngineAdapter.publicProjection(folded, "human", ["human", "ai"]).players.every(p => p.winningHand === null)).toBe(true);
+  });
+  it("omits legacy winners without evaluation evidence or sufficient hole cards", () => {
+    const original = playToShowdown(startHand());
+    for (const incomplete of ["rank", "hole"] as const) {
+      const state = structuredClone(original);
+      // Preserve the engine's deck invariant while simulating incomplete legacy participant data.
+      const engine = state.engineState as import("@hivetech/poker-engine").TableState;
+      const hand = engine.hand!;
+      const legacy = { ...state, engineState: { ...engine, hand: { ...hand, players: hand.players.map(p => ({ ...p,
+        ...(incomplete === "rank" ? { handRank: null } : { holeCards: p.holeCards.slice(0, 1) }),
+      })), deck: incomplete === "hole" ? [...hand.deck, ...hand.players.flatMap(p => p.holeCards.slice(1))] : hand.deck } } };
+      expect(pokerEngineAdapter.publicProjection(legacy, null).players.every(p => p.winningHand === null)).toBe(true);
+    }
+  });
+  it("selects separately for different side-pot recipients and excludes folded players", () => {
+    const config: GameConfig = { ...headsUpConfig, players: [
+      { id: "short", name: "Short", controller: "human", seat: 0, stack: 100 },
+      { id: "deep", name: "Deep", controller: "human", seat: 1, stack: 500 },
+      { id: "loser", name: "Loser", controller: "human", seat: 2, stack: 500 },
+      { id: "folded", name: "Folded", controller: "human", seat: 3, stack: 500 },
+    ] };
+    let state = pokerEngineAdapter.startHand(pokerEngineAdapter.createGame(config), createDeterministicDeck([
+      "Kh", "Qh", "Jh", "Ah", "Kd", "Qd", "Jd", "Ad", "Tc", "2c", "4s", "7h", "3c", "9d", "5c", "Ts",
+    ]));
+    while (pokerEngineAdapter.snapshot(state).street !== "complete") {
+      const actor = currentActor(state);
+      const raise = pokerEngineAdapter.getLegalActions(state).find(a => a.type === "raise");
+      state = pokerEngineAdapter.applyAction(state, actor, actor === "folded" ? { type: "fold" } :
+        raise?.type === "raise" ? { type: "raise", amount: raise.maxAmount } : passiveAction(state));
+    }
+    const game = pokerEngineAdapter.publicProjection(state, null, ["folded"]);
+    expect(new Set(game.winnerIds)).toEqual(new Set(["short", "deep"]));
+    for (const p of game.players) {
+      if (game.winnerIds.includes(p.id)) {
+        expect(p.winningHand?.cards).toHaveLength(5);
+        expect(p.winningHand?.cards.every(c => [...game.communityCards, ...(p.holeCards ?? [])].includes(c))).toBe(true);
+      } else expect(p.winningHand).toBeNull();
+    }
+  });
+});

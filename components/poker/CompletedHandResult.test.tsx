@@ -51,3 +51,34 @@ describe("CompletedHandResult", () => {
     expect(render({ ...completed, handNumber: 2, street: "preflop" })).toBe("");
   });
 });
+
+
+describe("winning five", () => {
+  const cards = ["As", "Ks", "Qs", "Js", "9s"];
+  const winner = { ...player, holeCards: ["As", "Ks"], winningHand: { cards, playsBoard: false } };
+  it("shows five cards and identifies both sources with neutral wording", () => {
+    const html = render({ ...completed, completionReason: "showdown", players: [winner] });
+    expect(html.match(/data-playing-card/g)).toHaveLength(5);
+    expect(html.match(/data-hole-card="true"/g)).toHaveLength(2);
+    expect(html).not.toContain("Gold underline");
+    expect(html).toContain(", hole card");
+    expect(html).toContain(", community card");
+  });
+  it("shows the board-only label without hole markers or legend", () => {
+    const html = render({ ...completed, completionReason: "showdown", players: [
+      { ...winner, winningHand: { cards, playsBoard: true } },
+    ] });
+    expect(html).toContain("Plays the board");
+    expect(html).not.toContain("Gold underline");
+    expect(html).not.toContain("data-hole-card");
+  });
+  it("stacks cards for each pot recipient and retains legacy fallbacks", () => {
+    const html = render({ ...completed, completionReason: "showdown", players: [winner,
+      { ...winner, id: "other", name: "Bob" }], winnerIds: ["winner", "other"], winnerAmounts: { winner: 300, other: 700 } });
+    expect(html.match(/data-winning-hand/g)).toHaveLength(2);
+    expect(html).toContain("Pot awards");
+    expect(render({ ...completed, completionReason: "showdown" })).not.toContain("Winning five");
+    expect(render({ ...completed, players: [winner] })).not.toContain("Winning five");
+    expect(render({ ...completed, players: [winner], street: "preflop" })).toBe("");
+  });
+});

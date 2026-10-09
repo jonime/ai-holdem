@@ -77,6 +77,13 @@ The final hand result and Actions remain available, including eligible card reve
 
 Completed hands show each winner’s awarded chips centered in the sizing area,
 with an explanation for opponents folding or the public showdown hand category.
+At completed showdowns, each pot recipient with publicly revealed hole cards also
+shows “Winning five”: the engine-selected five cards, with gold underlines on hole
+cards and accessible descriptions identifying each card's source. Board-only hands
+show the five community cards in board order and “Plays the board”. The community
+board stays in its existing position. Fold-ended wins and incomplete legacy hands
+keep the existing result without this row. Only the translated hand category is
+shown; detailed hand descriptions are not included.
 These are winnings, not net profit. Multiple winners are listed as “Pot awards”
 since separate side pots do not necessarily constitute a split pot. Results use
 current authoritative public game state, survive refresh and feed failures, and

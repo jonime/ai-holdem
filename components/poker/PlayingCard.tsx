@@ -5,9 +5,11 @@ import styles from "@/components/poker/PlayingCard.module.css";
 export function PlayingCard({
   card,
   hidden = false,
+  holeCard,
 }: {
   readonly card?: string;
   readonly hidden?: boolean;
+  readonly holeCard?: boolean;
 }) {
   const { dictionary, t } = useI18n();
   if (hidden) {
@@ -42,9 +44,13 @@ export function PlayingCard({
   const red = suit === "d" || suit === "h";
   return (
     <span
-      className={`${styles.playingCard} ${red ? styles.redCard : ""}`}
+      className={`${styles.playingCard} ${red ? styles.redCard : ""} ${holeCard === true ? styles.holeCard : ""}`}
       data-playing-card
-      aria-label={cardLabel(card, dictionary.cards)}
+      data-hole-card={holeCard === true ? "true" : undefined}
+      aria-label={holeCard === undefined ? cardLabel(card, dictionary.cards) : t(
+        holeCard ? "result.holeCardDescription" : "result.boardCardDescription",
+        { card: cardLabel(card, dictionary.cards) },
+      )}
     >
       <span className={styles.cardFace} aria-hidden="true">
         <span className={styles.cardRank}>{rank}</span>

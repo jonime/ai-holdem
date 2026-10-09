@@ -28,6 +28,18 @@ import {
   PokerRuleError,
 } from "./types";
 
+/** Select only from already public cards; awards remain engine-authoritative. */
+function publicWinningHand(hole: readonly string[], board: readonly string[]) {
+  if (hole.length !== 2 || board.length !== 5) return null;
+  const visible = [...hole, ...board];
+  if (new Set(visible).size !== 7 || visible.some(card => !/^[2-9TJQKA][cdhs]$/.test(card))) return null;
+  const best = evaluateHand(visible.map(parseCard));
+  const playsBoard = compareHandRanks(evaluateHand(board.map(parseCard)), best) === 0;
+  const cards = playsBoard ? [...board] : best.cards.map(cardToString);
+  if (cards.length !== 5 || new Set(cards).size !== 5 || cards.some(card => !visible.includes(card))) return null;
+  return { cards, playsBoard };
+}
+
 /** Worst possible heads-up river pot share, using only hero's visible cards. */
 export function minimumRiverShare(
   holeCards: readonly string[],
@@ -673,6 +685,11 @@ export const pokerEngineAdapter = {
           bestHand:
             publicAtCompletion && player && !player.folded
               ? (sourcePlayer?.handRank?.category ?? null)
+              : null,
+          winningHand:
+            publicAtCompletion && player && !player.folded && sourcePlayer?.handRank &&
+            snapshot.winnerIds.includes(config.id) && (snapshot.winnerAmounts[config.id] ?? 0) > 0
+              ? publicWinningHand(sourcePlayer.holeCards?.map(cardToString) ?? [], snapshot.communityCards)
               : null,
           cardsRevealed:
             Boolean(player) &&

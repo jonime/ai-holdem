@@ -1,3 +1,4 @@
+import { PlayingCard } from "./PlayingCard";
 import type { PublicPokerGame } from "@/lib/poker/types";
 import { useI18n } from "@/components/poker/I18nProvider";
 import { formatChips } from "@/components/poker/view-model";
@@ -21,12 +22,26 @@ export function CompletedHandResult({
           if (!player || amount === undefined) return null;
           return (
             <li key={id}>
-              {t("result.award", {
-                player: player.name,
-                amount: formatChips(amount, locale),
-              })}
-              {poker.completionReason === "showdown" && player.bestHand ? (
-                <span> · {dictionary.seat.handCategories[player.bestHand]}</span>
+              <div>
+                {t("result.award", {
+                  player: player.name,
+                  amount: formatChips(amount, locale),
+                })}
+                {poker.completionReason === "showdown" && player.bestHand ? (
+                  <span> · {dictionary.seat.handCategories[player.bestHand]}</span>
+                ) : null}
+              </div>
+              {poker.completionReason === "showdown" && player.winningHand ? (
+                <div className={styles.winningHand} data-winning-hand>
+                  <span className={styles.winningLabel}>{t("result.winningFive")}</span>
+                  <div className={styles.winningCards}>
+                    {player.winningHand.cards.map(card => (
+                      <PlayingCard key={card} card={card}
+                        holeCard={!player.winningHand?.playsBoard && (player.holeCards?.includes(card) ?? false)} />
+                    ))}
+                  </div>
+                  {player.winningHand.playsBoard ? <p>{t("result.playsBoard")}</p> : null}
+                </div>
               ) : null}
             </li>
           );

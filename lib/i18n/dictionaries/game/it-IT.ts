@@ -124,6 +124,10 @@ const dictionary = {
     show: "Mostra",
   },
   result: {
+    winningFive: "Le cinque carte vincenti",
+    playsBoard: "Gioca il board",
+    holeCardDescription: "{card}, carta personale",
+    boardCardDescription: "{card}, carta comune",
     title: "Risultato della mano",
     potAwards: "Premi dei piatti",
     uncontested: "Gli avversari hanno passato.",

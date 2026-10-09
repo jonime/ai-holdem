@@ -124,6 +124,10 @@ const dictionary = {
     show: "Aufdecken",
   },
   result: {
+    winningFive: "Die fünf Gewinnkarten",
+    playsBoard: "Spielt das Board",
+    holeCardDescription: "{card}, Hole Card",
+    boardCardDescription: "{card}, Gemeinschaftskarte",
     title: "Ergebnis der Hand",
     potAwards: "Pot-Auszahlungen",
     uncontested: "Die Gegner haben gepasst.",

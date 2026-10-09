@@ -141,6 +141,10 @@ const dictionary = {
     "show": "亮牌"
   },
   "result": {
+    winningFive: "获胜的五张牌",
+    playsBoard: "使用公共牌",
+    holeCardDescription: "{card}，底牌",
+    boardCardDescription: "{card}，公共牌",
     "title": "本手结果",
     "potAwards": "底池分配",
     "uncontested": "对手均已弃牌。",

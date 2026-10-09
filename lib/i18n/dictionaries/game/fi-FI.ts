@@ -124,6 +124,10 @@ const dictionary = {
     show: "Näytä",
   },
   result: {
+    winningFive: "Voittavat viisi",
+    playsBoard: "Pelaa pöydän korteilla",
+    holeCardDescription: "{card}, taskukortti",
+    boardCardDescription: "{card}, yhteinen kortti",
     title: "Jaon tulos",
     potAwards: "Pottien voitot",
     uncontested: "Vastustajat kippasivat.",

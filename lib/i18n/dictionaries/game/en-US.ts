@@ -124,6 +124,10 @@ const dictionary = {
     show: "Show",
   },
   result: {
+    winningFive: "Winning five",
+    playsBoard: "Plays the board",
+    holeCardDescription: "{card}, hole card",
+    boardCardDescription: "{card}, community card",
     title: "Hand result",
     potAwards: "Pot awards",
     uncontested: "Opponents folded.",
