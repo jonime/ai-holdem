@@ -37,6 +37,10 @@ test("@smoke Play public refresh failures recover without refreshing personal ta
   let personalRequests = 0;
   page.on("request", request => { if (request.url().endsWith("/api/games/mine")) personalRequests++; });
   await expect(page.getByRole("button", { name: "Refresh all tables" })).toHaveCount(0);
+  // Local runs preserve tables, so establish the empty-directory branch explicitly.
+  await page.route("**/api/games/public*", route => route.fulfill({ json: { games: [], nextCursor: null } }));
+  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await expect(page.getByText("No public tables are available right now.")).toBeVisible();
   await page.route("**/api/games/public*", route => route.fulfill({ status: 500, json: { error: "Failed" } }));
   await page.getByRole("button", { name: "Refresh", exact: true }).click();
   await expect(page.getByText("Public tables could not be loaded.")).toBeVisible();

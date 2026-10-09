@@ -63,7 +63,7 @@ Use a clean local database when validating migration-dependent behavior:
 npm run test:e2e:reset
 ```
 
-## Production smoke integration
+## Production browser integration
 
 CI runs an independent integration job alongside the unchanged
 lint/typecheck/unit-test/build job on pull requests and pushes to `main`. It has a
@@ -88,21 +88,39 @@ migrations, then run these commands in order:
 
 ```sh
 npm run test:sql:game-reads
+npm run test:sql:my-games
+npm run test:sql:removal
 npm run test:sql:bot-context
 npm run test:sql:seats
 npm run test:sql:departures
+npm run test:sql:turn-timers
 npm run test:sql:bot-claims
 npm run test:sql:usage
-npm run test:e2e:smoke
+npm run test:e2e:ci
 ```
 
-`test:e2e:smoke` builds an isolated temporary source/dependency copy that excludes
+All three production commands share one runner. `test:e2e:smoke` selects `@smoke`;
+`test:e2e:ui` selects `@ui-regression`; `test:e2e:ci` selects their union, building
+once and running one Playwright invocation with one combined HTML report. The UI
+suite contains all eight tests in `dialogs.spec.ts`, `betting-controls.spec.ts`,
+and `hand-results-actions.spec.ts`, preserving desktop/mobile, focus/keyboard,
+betting validation, hand results, and Actions feed coverage. CI runs the combined
+command after all SQL checks. Production UI setup seeds only its own waiting
+local tables through the service-role creation RPC, gives each host a fresh
+browser identity, and deletes those fixtures after each test. Starting hands,
+joining, betting, revealing, and next-hand mutations still use the application.
+This keeps UI setup from exhausting the shared local IP creation allowance;
+creation/fair-use smoke tests continue through the real creation routes with
+all protections enabled. Development/explicit preview UI setup keeps using
+normal creation routes.
+
+Each command builds an isolated temporary source/dependency copy that excludes
 application `.env*` files. It uses the normal Turbopack production build with
 `.next-e2e`, then Playwright starts `next start` on port **3002**, waits for
 readiness, and never reuses an existing server. Build and startup inherit the
 same validated loopback credentials from `supabase status`; credentials are
 masked in Actions and logs are sanitized. External inference is forced off and
-provider credentials are cleared. `E2E_BASE_URL` is rejected by the smoke runner
+provider credentials are cleared. `E2E_BASE_URL` is rejected by the production runner
 and by all Playwright modes in CI. No hosted credentials are needed.
 
 The `@smoke` suites cover Play navigation, browser identity isolation, personal/public failures, retries, pagination, redirects, mobile and keyboard behavior, public joining, plus four fair-use tests (both countdown codes, rules-only replay/navigation, and shared HTML/JSON creation denials) and these five lifecycle tests: six-seat Quick Play to a human turn;
@@ -111,14 +129,36 @@ hand through the Actions feed and another hand; actual two-browser Realtime for 
 game and same-version seat changes; and polling recovery with intentionally
 blocked WebSockets. Selection uses `--grep @smoke`, Chromium, one worker, and no
 retries. To inspect selection without building, use
-`npm run test:e2e -- --grep @smoke --list` with local Supabase running.
+these commands with local Supabase running (no production build):
+
+```sh
+npm run test:e2e -- --grep @smoke --list
+npm run test:e2e -- --grep @ui-regression --list
+npm run test:e2e -- --grep '@smoke|@ui-regression' --list
+```
+
+The production commands also accept `--list` (after their isolated build).
+Local smoke/UI commands accept file filters and explicit `--grep` overrides;
+file filters intersect the default tag, while explicit grep replaces it. An
+empty grep selects every test in the supplied files:
+
+```sh
+npm run test:e2e:smoke -- test/e2e/realtime.spec.ts
+npm run test:e2e:ui -- test/e2e/dialogs.spec.ts
+npm run test:e2e:ui -- test/e2e/betting-controls.spec.ts --grep ''
+```
+
+The combined command accepts only `--list`; other arguments are rejected before
+building so filters, sharding, alternative configs, or last-failed selection
+cannot silently omit either suite. Empty selections fail in all three commands;
+`--pass-with-no-tests` is forbidden.
 
 The CI setup script starts the full stack with health checks enabled and resets
 only its disposable local database to apply committed migrations. Neither SQL
-suite nor `test:e2e:smoke` resets ordinary local databases; SQL fixtures keep their
+suite nor any production browser command resets ordinary local databases; SQL fixtures keep their
 existing isolation and cleanup. Playwright tears down the application after
 success or failure, the runner removes its temporary workspace, and an `always()`
-workflow step stops Supabase without a backup. Local smoke leaves your already
+workflow step stops Supabase without a backup. Local production verification leaves your already
 running Supabase available.
 
 HTML reports are generated in `playwright-report/`; failure traces/screenshots

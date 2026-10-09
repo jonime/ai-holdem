@@ -70,11 +70,17 @@ containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
 disposable database, then runs `test:sql:game-reads`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
-`test:sql:departures`, `test:sql:turn-timers`, `test:sql:bot-claims`, `test:sql:usage`, and `test:e2e:smoke` in order. Startup/migration errors fail the job; never ignore
+`test:sql:departures`, `test:sql:turn-timers`, `test:sql:bot-claims`, `test:sql:usage`, and `test:e2e:ci` in order. Startup/migration errors fail the job; never ignore
 health checks. Preserve workflow cancellation for superseded commits.
 
-Local production smoke requires an already-running migrated local Supabase and
-Chromium (`npx playwright install chromium`). `npm run test:e2e:smoke` builds an
+Local production browser verification requires an already-running migrated local Supabase and
+Chromium (`npx playwright install chromium`). The shared production runner exposes
+`test:e2e:smoke` (`@smoke`), `test:e2e:ui` (`@ui-regression`), and `test:e2e:ci`
+(the union). CI builds once and runs one Playwright invocation/report. The UI suite
+contains all eight dialog, betting-controls, and hand-results/Actions tests. Local
+smoke/UI commands retain file filters and explicit grep overrides; the combined
+command accepts only `--list` and rejects selection overrides. Empty selections
+must fail. Each command builds an
 isolated copy without application `.env*`, uses `.next-e2e` and port 3002, and
 starts `next start` with identical local build/server environment values. Never
 reuse a server or read hosted credentials. Validate loopback status origins,
@@ -83,13 +89,13 @@ Reject `E2E_BASE_URL` in CI; keep development and explicit preview modes outside
 CI. The lifecycle `@smoke` tests cover Quick Play, unseated host seat authority,
 Equity Rules completion/Actions feed/next hand, real two-browser Realtime game/seat
 events, and intentionally blocked WebSocket polling recovery. Use Chromium with
-one worker and no retries. Ordinary local smoke/SQL commands never reset the DB.
+one worker and no retries. Ordinary local production browser/SQL commands never reset the DB.
 
 Keep failure traces/screenshots, HTML reports, and sanitized application/startup
 logs in `test-results/`, `playwright-report/`, and `integration-logs/`; upload CI
 diagnostics for seven days. Never upload status/environment dumps, service-role
 keys, database contents, or production data. Always tear down the application
-and CI Supabase even after failures; local smoke preserves the running stack.
+and CI Supabase even after failures; local production verification preserves the running stack.
 See `CONTRIBUTING.md` for prerequisites, selection and artifact inspection. This
 integration job does not replace the Vercel two-browser lifecycle smoke test.
 

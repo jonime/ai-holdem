@@ -1,3 +1,4 @@
+import { createUITable } from "./ui-fixtures";
 import { expect, test, type Page } from "@playwright/test";
 
 async function submit(page: Page, type: string, amount?: number, keyboard = false) {
@@ -14,11 +15,12 @@ async function submit(page: Page, type: string, amount?: number, keyboard = fals
   return (await result.json()).game;
 }
 
-test("synchronizes targets, validates edits, resets decisions, and fits mobile", async ({ browser, page }) => {
+test("synchronizes targets, validates edits, resets decisions, and fits mobile", { tag: "@ui-regression" }, async ({ browser, page }) => {
   test.setTimeout(90_000);
   await page.goto("/");
   await page.goto("/play");
-  await page.getByRole("button", { name: "Create table" }).click();
+  const gameId = await createUITable(page);
+  await page.goto(`/game/${gameId}`);
   await expect(page).toHaveURL(/\/game\//);
   await page.getByRole("combobox", { name: "Seats" }).selectOption("2");
   await page.getByLabel("Small blind", { exact: true }).fill("50");

@@ -153,8 +153,10 @@ or TypeSafe services. Also run `npm run build` for changes affecting routing,
 rendering, environment handling, or deployment behavior.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the contributor workflow, translations,
-local Supabase E2E and SQL checks, production smoke CI (`npm run test:e2e:smoke`),
-HTTP contracts, and deployed Realtime verification.
+local Supabase E2E and SQL checks, HTTP contracts, and deployed Realtime verification.
+Production browser CI runs `npm run test:e2e:ci`, combining lifecycle smoke with
+eight dialog, betting-controls, and hand-results/Actions regression tests in one
+build and report. Run `test:e2e:smoke` or `test:e2e:ui` for either suite separately.
 Bot evaluations and benchmarks are documented in [benchmarks/README.md](benchmarks/README.md).
 
 ## Deployment

@@ -23,7 +23,7 @@
     "test:sql:game-reads": "node scripts/local-game-reads.mjs test",
     "benchmark:game-reads": "node scripts/local-game-reads.mjs benchmark",
     "test:e2e": "playwright test",
-    "test:e2e:smoke": "node scripts/e2e/smoke.mjs",
+    "test:e2e:smoke": "node scripts/e2e/production.mjs smoke",
     "test:e2e:reset": "supabase db reset --local --yes && playwright test",
     "check": "npm run lint && npm run typecheck && npm test",
     "test:bots": "vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/bot-scenarios.benchmark.ts",
@@ -36,7 +36,9 @@
     "test:sql:removal": "node scripts/local-table-removal.mjs",
     "test:sql:my-games": "node scripts/local-my-games.mjs",
     "test:sql:usage": "node scripts/local-usage-limits.mjs",
-    "test:sql:turn-timers": "node scripts/local-turn-timers.mjs"
+    "test:sql:turn-timers": "node scripts/local-turn-timers.mjs",
+    "test:e2e:ui": "node scripts/e2e/production.mjs ui",
+    "test:e2e:ci": "node scripts/e2e/production.mjs ci"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",

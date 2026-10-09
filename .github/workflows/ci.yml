@@ -46,7 +46,7 @@ jobs:
         run: npm run build
 
   integration:
-    name: Local SQL and production browser smoke
+    name: Local SQL and production browser verification
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -122,7 +122,7 @@ jobs:
 
       - name: Build and test the production application
         timeout-minutes: 18
-        run: npm run test:e2e:smoke
+        run: npm run test:e2e:ci
 
       - name: Stop disposable Supabase
         if: always()

@@ -1,11 +1,10 @@
+import { createUITable } from "./ui-fixtures";
 import { expect, test, type Page, type Locator } from "@playwright/test";
 import type { Game, GameFeedEvent } from "../../components/poker/types";
 
 // Real persisted route, with controlled public responses for deterministic UI transitions.
 async function fixture(page: Page, spectator = false) {
-  const response = await page.request.post("/quick-game", { headers: { Accept: "application/json" } });
-  expect(response.status()).toBe(201);
-  const { gameId } = await response.json();
+  const gameId = await createUITable(page, true);
   const original: Game = (await (await page.request.get(`/api/games/${gameId}`)).json()).game;
   const human = original.poker.players.find(p => p.controller === "human")!;
   let game: Game = { ...original, version: original.version + 100,
@@ -45,7 +44,7 @@ async function openActions(page: Page) {
   await expect(actions(page).getByRole("button", { name: "Close actions panel" })).toBeFocused();
 }
 
-test("Actions contains focus, locks background scroll, preserves reading and ignores gameplay keys", async ({ page }) => {
+test("Actions contains focus, locks background scroll, preserves reading and ignores gameplay keys", { tag: "@ui-regression" }, async ({ page }) => {
   const f = await fixture(page);
   const input = page.locator("#bet-target");
   await expect(input).toHaveValue("200");
@@ -108,7 +107,7 @@ test("Actions contains focus, locks background scroll, preserves reading and ign
   expect(await page.evaluate(() => (window as typeof window & { restored: string[] }).restored)).toEqual([]);
 });
 
-test("Actions suppresses reveal and next-hand, then restores eligible shortcuts", async ({ page }) => {
+test("Actions suppresses reveal and next-hand, then restores eligible shortcuts", { tag: "@ui-regression" }, async ({ page }) => {
   const f = await fixture(page);
   const game = f.current();
   f.set({ ...game, status: "complete", poker: { ...game.poker, street: "complete", completionReason: "fold",
@@ -130,7 +129,7 @@ test("Actions suppresses reveal and next-hand, then restores eligible shortcuts"
   await expect.poll(() => next).toBe(1);
 });
 
-test("Join form retains typing, containment and retry; dismissal keeps pending claim and restores fallback", async ({ page }) => {
+test("Join form retains typing, containment and retry; dismissal keeps pending claim and restores fallback", { tag: "@ui-regression" }, async ({ page }) => {
   const f = await fixture(page, true);
   const spectatorGame = f.current();
   const opener = page.getByRole("button", { name: "Sit in an open seat" });
@@ -192,7 +191,7 @@ test("Join form retains typing, containment and retry; dismissal keeps pending c
   expect(claims).toBe(3);
 });
 
-test("turn advancement continues in Actions; unmount unlocks scroll without focusing the old table", async ({ page }) => {
+test("turn advancement continues in Actions; unmount unlocks scroll without focusing the old table", { tag: "@ui-regression" }, async ({ page }) => {
   const f = await fixture(page);
   const game = f.current();
   const now = Date.now();

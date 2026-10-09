@@ -97,6 +97,12 @@ test("@smoke remaining browsers fold a departed human and finish after that brow
     });
     await guest.getByRole("button", { name: "Leave table", exact: true }).click();
     await expect(guest).toHaveURL(/\/play$/); await guest.close();
+    // Departure changes the version; settle the host's authoritative refresh before acting.
+    const departureRefresh = page.waitForResponse(response => new URL(response.url()).pathname === `/api/games/${gameId}` && response.request().method() === "GET");
+    await page.bringToFront();
+    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+    await departureRefresh;
+    await expect(page.getByText("Leaving after this hand", { exact: true }).filter({ visible: true })).toBeVisible();
     const advance = page.waitForResponse(response => response.url().endsWith("/advance-departure") && response.status() === 200);
     await page.getByRole("button", { name: /^Call/ }).click();
     await advance;

@@ -1,3 +1,4 @@
+import { createUITable } from "./ui-fixtures";
 import { expect, test, type Browser, type Page, type Locator } from "@playwright/test";
 import type { Game, GameFeedEvent } from "../../components/poker/types";
 
@@ -6,7 +7,8 @@ test.use({ screenshot: "only-on-failure" });
 async function twoPlayers(browser: Browser, page: Page) {
   await page.goto("/");
   await page.goto("/play");
-  await page.getByRole("button", { name: "Create table" }).click();
+  const gameId = await createUITable(page);
+  await page.goto(`/game/${gameId}`);
   await page.getByRole("textbox", { name: "Your name" }).fill("Alex");
   const renamed = page.waitForResponse(r => r.url().endsWith("/name") && r.request().method() === "PATCH");
   await page.getByRole("button", { name: "Save name" }).click();
@@ -53,7 +55,7 @@ async function trayGeometry(page: Page) {
   });
 }
 
-test("persists public hand results through feed failure and refresh, preserves controls, and renders showdown boards", async ({ browser, page }) => {
+test("persists public hand results through feed failure and refresh, preserves controls, and renders showdown boards", { tag: "@ui-regression" }, async ({ browser, page }) => {
   test.setTimeout(45_000);
   const { guestContext, guest, id, hostId, getGame } = await twoPlayers(browser, page);
   const panel = page.getByRole("complementary", { name: "Actions", exact: true });
@@ -141,7 +143,7 @@ test("persists public hand results through feed failure and refresh, preserves c
   await guestContext.close();
 });
 
-test("follows within 24px, pauses older reading, handles legacy identity, and reopens desktop and mobile at latest", async ({ browser, page }) => {
+test("follows within 24px, pauses older reading, handles legacy identity, and reopens desktop and mobile at latest", { tag: "@ui-regression" }, async ({ browser, page }) => {
   test.setTimeout(45_000);
   const { guestContext, guest, id, hostId, getGame } = await twoPlayers(browser, page);
   const guestId = (await getGame()).poker.players.find(p => p.id !== hostId)!.id;
@@ -220,7 +222,7 @@ test("follows within 24px, pauses older reading, handles legacy identity, and re
 });
 
 
-test("refreshes only the changing hand range and retains earlier results", async ({ browser, page }) => {
+test("refreshes only the changing hand range and retains earlier results", { tag: "@ui-regression" }, async ({ browser, page }) => {
   test.setTimeout(45_000);
   const feeds: { query: string | null; events: GameFeedEvent[] }[] = [];
   page.on("response", async response => {
