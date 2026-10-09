@@ -61,7 +61,7 @@ export function PokerTable({
   readonly amount: string;
   readonly loading: boolean;
   readonly setAmount: (value: string) => void;
-  readonly onClaimFirstOpenSeat: () => void;
+  readonly onClaimFirstOpenSeat: (opener: HTMLButtonElement) => void;
   readonly onStandUp: () => void;
   readonly onSubmitAction: (
     action: LegalAction,
@@ -70,7 +70,7 @@ export function PokerTable({
   readonly onBeginNextHand: () => void;
   readonly onRevealCards: () => void;
   readonly feedCollapsed: boolean;
-  readonly onToggleFeed: () => void;
+  readonly onToggleFeed: (opener: HTMLButtonElement) => void;
   readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
 }) {
   const { locale, t } = useI18n();
@@ -146,7 +146,7 @@ export function PokerTable({
             variant="ghost"
             size="small"
             className={styles.feedToggle}
-            onClick={onToggleFeed}
+            onClick={event => onToggleFeed(event.currentTarget)}
             aria-pressed={!feedCollapsed}
             aria-label={t(feedCollapsed ? "feed.expand" : "feed.collapse")}
           >
@@ -268,7 +268,7 @@ export function PokerTable({
               <Button
                 variant="primary"
                 disabled={loading}
-                onClick={onClaimFirstOpenSeat}
+                onClick={event => onClaimFirstOpenSeat(event.currentTarget)}
               >
                 {loading ? t("table.claimingSeat") : t("table.sitOpenSeat")}
               </Button>

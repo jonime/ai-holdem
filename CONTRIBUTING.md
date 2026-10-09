@@ -650,3 +650,16 @@ solo suppression and existing Off tables using short injected local fixture dead
 The existing bot-advancement Quick Play fixtures also assert timer Off.
 Preview verification uses ordinary durations and the existing Realtime two-browser
 smoke, because local DB fixture injection is intentionally unavailable for previews.
+
+The game UI owns a single active overlay in `PokerApp`: none, mobile Actions,
+or Join table. These overlays use `components/poker/Modal.tsx`, opened through
+native `showModal()` for focus containment and inert background content. The
+wrapper owns Escape/backdrop dismissal, scroll locking, initial focus, and focus
+restoration to the opener or the stable table container. Restore only on the
+same page while the table remains mounted; content refreshes must not refocus or
+remount the feed. The Actions collapsed preference remains independent of modal
+ownership. Gameplay keyboard shortcuts must return immediately while either
+modal is open. Timers, bot/departure advancement, Realtime and authoritative
+refreshes continue normally. Dismissing Join table does not cancel a submitted
+claim. Verify changes with `test/e2e/dialogs.spec.ts` alongside betting controls
+and Actions-feed regressions using the existing Chromium configuration.

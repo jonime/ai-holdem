@@ -200,9 +200,6 @@ test("follows within 24px, pauses older reading, handles legacy identity, and re
   await guest.getByRole("button", { name: "Fold", exact: true }).click();
   await expect(sheet.getByText("Alex folds", { exact: true })).toHaveCount(1);
   expect(await scroller(sheet).evaluate(n => n.scrollTop)).toBe(mobilePosition);
-  // Next development cache badge overlaps the sheet footer on narrow screens.
-  const cacheBadge = page.getByRole("button", { name: "Collapse Cache disabled badge" });
-  if (await cacheBadge.isVisible()) await cacheBadge.click();
   await sheet.getByRole("button", { name: "Latest action", exact: true }).click();
   await expect.poll(() => bottomDistance(sheet)).toBeLessThanOrEqual(1);
   events = [...events, { type: "win", handNumber: 2, player: "Alex", playerId: hostId, amount: 100, uncontested: true }];

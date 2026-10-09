@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, Ref } from "react";
 
 import styles from "@/components/Button.module.css";
 
@@ -22,6 +22,7 @@ export function Button({
   type = "button",
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
+  readonly ref?: Ref<HTMLButtonElement>;
   readonly shortcut?: string;
   readonly variant?: ButtonVariant;
   readonly size?: ButtonSize;

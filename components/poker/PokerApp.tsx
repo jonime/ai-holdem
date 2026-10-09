@@ -1,4 +1,5 @@
 "use client";
+import { Modal } from "./Modal";
 import { turnRemainingMs } from "./turn-clock";
 import Link from "next/link";
 
@@ -54,14 +55,21 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   );
   const [playerNameEdited, setPlayerNameEdited] = useState(false);
   const [amountDraft, setAmountDraft] = useState({ scope: "", value: "" });
-  const [joinDialogOpen, setJoinDialogOpen] = useState(false);
+  const [overlay, setOverlay] = useState<"none" | "actions" | "join">("none");
+  const openerRef = useRef<HTMLElement | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const joinPending = useRef(false);
+  const openOverlay = (next: "actions" | "join", opener: HTMLElement) => {
+    openerRef.current = opener;
+    setOverlay(next);
+  };
   const [feedCollapsed, setFeedCollapsed] = useState(() =>
     typeof window === "undefined"
       ? false
       : window.matchMedia("(max-width: 900px)").matches ||
         window.localStorage.getItem(feedCollapsedStorageKey) === "true",
   );
-  const [feedModalOpen, setFeedModalOpen] = useState(false);
 
   const toggleFeedCollapsed = () => {
     setFeedCollapsed((current) => {
@@ -71,10 +79,11 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     });
   };
 
-  const toggleFeed = () => {
+  const toggleFeed = (opener: HTMLButtonElement) => {
     if (window.matchMedia("(max-width: 900px)").matches) {
-      const next = !feedModalOpen;
-      setFeedModalOpen(next);
+      const next = overlay !== "actions";
+      if (next) openOverlay("actions", opener);
+      else setOverlay("none");
       setFeedCollapsed(!next);
       window.localStorage.setItem(feedCollapsedStorageKey, String(!next));
       return;
@@ -83,7 +92,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   };
 
   const closeFeedModal = () => {
-    setFeedModalOpen(false);
+    setOverlay("none");
     setFeedCollapsed(true);
     window.localStorage.setItem(feedCollapsedStorageKey, "true");
   };
@@ -170,6 +179,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   const ownedSeat = (game?.poker.seats ?? game?.poker.players ?? []).find(seat =>
     seat.controller === "human" && seat.status === "claimed" && viewerToken !== null && seat.playerToken === viewerToken);
   const isSpectator = viewerPlayer === null && !ownedSeat && Boolean(game);
+  if (overlay === "join" && !isSpectator) setOverlay("none");
   const canRevealCards =
     game?.poker.street === "complete" &&
     game.poker.completionReason === "fold" &&
@@ -193,6 +203,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
 
   useEffect(() => {
     function handleShortcut(event: KeyboardEvent) {
+      if (overlay !== "none") return;
       const completedHand = game?.poker.street === "complete";
 
       if (
@@ -281,6 +292,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
   }, [
+    overlay,
     selectedAmount,
     amountScope,
     game,
@@ -350,7 +362,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
           onRefresh={refreshDirectoryState}
         />
       ) : (
-        <div className={styles.gameLayout}>
+        <div ref={tableRef} tabIndex={-1} className={styles.gameLayout}>
           <div
             className={`${styles.tableRow} ${feedCollapsed ? styles.feedCollapsed : ""}`}
           >
@@ -370,8 +382,8 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               amount={amount}
               loading={loading || replaying || creationWait > 0}
               setAmount={setAmount}
-              onClaimFirstOpenSeat={() => {
-                setJoinDialogOpen(true);
+              onClaimFirstOpenSeat={(opener) => {
+                openOverlay("join", opener);
               }}
               onStandUp={() => {
                 if (ownedSeat && !replayPending.current) void releaseSeat(ownedSeat.seat);
@@ -395,46 +407,40 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
               </div>
             )}
           </div>
-          {feedModalOpen ? (
+          {overlay === "actions" ? (
             <ActionFeedModal
               viewerPlayerId={viewerPlayer?.id ?? null}
               feed={feed}
               loading={feedLoading}
               onClose={closeFeedModal}
+              restoreFocus={openerRef}
+              fallbackFocus={tableRef}
             />
           ) : null}
-          {joinDialogOpen && isSpectator ? (
-            <div
-              className={styles.joinModal}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="join-table-title"
-            >
-              <button
-                type="button"
-                className={styles.joinBackdrop}
-                aria-label={t("table.joinCancel")}
-                onClick={() => setJoinDialogOpen(false)}
-              />
+          {overlay === "join" && isSpectator ? (
+            <Modal open title={t("table.joinTitle")} onDismiss={() => setOverlay("none")}
+              initialFocus={nameRef} restoreFocus={openerRef} fallbackFocus={tableRef}
+              className={styles.joinDialog}>
               <form
-                className={styles.joinDialog}
                 onSubmit={(event) => {
                   event.preventDefault();
+                  if (loading || joinPending.current) return;
                   const openSeat = (game.poker.seats ?? game.poker.players).find(
                     (player) => player.status === "open",
                   );
                   if (!openSeat) {
-                    setJoinDialogOpen(false);
+                    setOverlay("none");
                     return;
                   }
+                  joinPending.current = true;
                   void claimSeatAt(openSeat.seat, displayedPlayerName).then(
                     (joined) => {
                       if (joined) {
                         setPlayerNameEdited(false);
-                        setJoinDialogOpen(false);
+                        setOverlay("none");
                       }
                     },
-                  );
+                  ).finally(() => { joinPending.current = false; });
                 }}
               >
                 <h2 id="join-table-title">{t("table.joinTitle")}</h2>
@@ -442,7 +448,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                 <label>
                   <span>{t("lobby.yourName")}</span>
                   <input
-                    autoFocus
+                    ref={nameRef}
                     type="text"
                     value={displayedPlayerName}
                     maxLength={30}
@@ -456,7 +462,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                 <div className={styles.joinActions}>
                   <Button
                     disabled={loading}
-                    onClick={() => setJoinDialogOpen(false)}
+                    onClick={() => setOverlay("none")}
                   >
                     {t("table.joinCancel")}
                   </Button>
@@ -465,7 +471,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                   </Button>
                 </div>
               </form>
-            </div>
+            </Modal>
           ) : null}
         </div>
       )}

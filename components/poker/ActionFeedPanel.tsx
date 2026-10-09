@@ -1,6 +1,7 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { Modal } from "./Modal";
 import { Button } from "@/components/Button";
 import { PlayingCard } from "@/components/poker/PlayingCard";
 import type { GameFeed, GameFeedEvent } from "@/components/poker/types";
@@ -151,23 +152,22 @@ export function ActionFeedPanel(props: FeedProps) {
 
 export function ActionFeedModal({
   onClose,
+  restoreFocus,
+  fallbackFocus,
   ...props
-}: FeedProps & { readonly onClose: () => void }) {
+}: FeedProps & { readonly onClose: () => void; readonly restoreFocus: RefObject<HTMLElement | null>; readonly fallbackFocus: RefObject<HTMLElement | null> }) {
   const { t } = useI18n();
+  const closeRef = useRef<HTMLButtonElement>(null);
   return (
-    <div
-      className={styles.modalOverlay}
-      role="dialog"
-      aria-modal="true"
-      aria-label={t("feed.title")}
-    >
-      <div className={styles.modalBackdrop} onClick={onClose} />
-      <div className={styles.modalDialog}>
+    <Modal open title={t("feed.title")} onDismiss={onClose}
+      initialFocus={closeRef} restoreFocus={restoreFocus} fallbackFocus={fallbackFocus}
+      className={styles.modalDialog} dialogClassName={styles.modalOverlay}>
         <div className={styles.header}>
           <div className={styles.titleGroup}>
             <h2>{t("feed.title")}</h2>
           </div>
           <Button
+            ref={closeRef}
             variant="icon"
             className={styles.modalClose}
             onClick={onClose}
@@ -177,7 +177,6 @@ export function ActionFeedModal({
           </Button>
         </div>
         <FeedBody {...props} />
-      </div>
-    </div>
+    </Modal>
   );
 }
