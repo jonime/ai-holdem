@@ -22,6 +22,7 @@ export function LobbyPanel({
   game,
   botCatalog,
   loading,
+  busy = loading,
   playerName,
   setPlayerName,
   viewerToken,
@@ -35,6 +36,7 @@ export function LobbyPanel({
   readonly game: Game;
   readonly botCatalog: readonly BotDescriptor[];
   readonly loading: boolean;
+  readonly busy?: boolean;
   readonly playerName: string;
   readonly setPlayerName: (value: string) => void;
   readonly viewerToken: string | null;
@@ -186,7 +188,7 @@ export function LobbyPanel({
           </label>
           {viewerPlayer ? (
             <Button type="submit" disabled={loading || !playerNameChanged}>
-              {loading ? t("lobby.savingName") : t("lobby.saveName")}
+              {busy ? t("lobby.savingName") : t("lobby.saveName")}
             </Button>
           ) : null}
         </form>

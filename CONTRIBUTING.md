@@ -102,9 +102,10 @@ npm run test:e2e:ci
 All three production commands share one runner. `test:e2e:smoke` selects `@smoke`;
 `test:e2e:ui` selects `@ui-regression`; `test:e2e:ci` selects their union, building
 once and running one Playwright invocation with one combined HTML report. The UI
-suite contains all eight tests in `dialogs.spec.ts`, `betting-controls.spec.ts`,
-and `hand-results-actions.spec.ts`, preserving desktop/mobile, focus/keyboard,
-betting validation, hand results, and Actions feed coverage. CI runs the combined
+suite contains twelve tests in `dialogs.spec.ts`, `betting-controls.spec.ts`,
+`hand-results-actions.spec.ts`, and `request-recovery.spec.ts`, preserving
+desktop/mobile, focus/keyboard, betting validation, hand results, Actions feed,
+and stalled-request recovery coverage. CI runs the combined
 command after all SQL checks. Production UI setup seeds only its own waiting
 local tables through the service-role creation RPC, gives each host a fresh
 browser identity, and deletes those fixtures after each test. Starting hands,
@@ -456,6 +457,29 @@ outgoing envelopes with `satisfies`. Test actual route responses against their
 schemas. Do not runtime-parse mutation responses after committing: a projection
 failure must not misreport a committed mutation as a failure.
 
+
+Gameplay mutation deadlines belong to the typed browser transport: actions,
+settings/seat count, start/next hand, reveals, seat changes, departures and timeout
+advancement wait at most 15 seconds; bot steps wait 100 seconds, beyond the
+90-second server route allowance. The deadline covers headers and body and
+composes with navigation cancellation. Read/feed deadlines remain owned by their
+existing coordinators. Creation, discovery, publication and heartbeat requests
+retain their existing behavior. The server provider deadline remains 60 seconds.
+
+A deadline, network failure or unusable successful mutation response means an
+unknown outcome. The game session synchronously gates all human mutations,
+including shortcuts, and makes one bounded authoritative read without replaying
+anything. Successful reconciliation asks the player to inspect the table before
+another explicit decision; it does not establish that the earlier action failed.
+Failed reconciliation releases the spinner while blocking mutations behind
+Refresh table. Any later successful authoritative read clears that block.
+Uncertain settings stop the start workflow; uncertain departures stay on the
+table. Bot unknown outcomes have a separate pause reason: the same hand/actor
+remains paused across version-only refreshes until explicit retry; proven turn
+progression resumes normal eligibility. Client cancellation does not stop server
+inference or release claims. Session generations and abort signals prevent late
+results from changing a different table or navigating after unmount.
+
 The endpoint-to-contract/client checklist is complete:
 
 | Endpoint | Request contract (path/query/body) | Response schema | Named method (`api.` prefix) |
@@ -601,6 +625,9 @@ already running on the server is never cancelled.
 | Timeout failure | Pause the decision across version-only refreshes until explicit retry |
 | Running, successful step | Reconcile and report accepted decision; continue up to twelve steps |
 | Running, version conflict | Refresh silently and end stale loop; refresh failures remain visible |
+| Running, transport failure or invalid success | Reconciling unknown outcome; one bounded read, no resubmission |
+| Unknown reconciliation, same hand/actor | Pause across version-only updates until explicit retry |
+| Unknown reconciliation, proven turn progression | Resume normal eligibility-based advancement |
 | Running, provider failure | Paused by game/hand/actor, including version-only refreshes |
 | Running, claim in progress | Quiet version-fenced wait until advancement or deadline |
 | Claim deadline | Paused with retry notice; no inference |

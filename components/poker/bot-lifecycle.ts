@@ -11,9 +11,10 @@ type Notice = { readonly notice: string | null };
 export type BotLifecycleState =
   | ({ readonly kind: "idle" } & Notice)
   | ({ readonly kind: "running"; readonly turn: BotTurn } & Notice)
+  | ({ readonly kind: "reconcilingUnknown"; readonly turn: BotTurn } & Notice)
   | ({ readonly kind: "refreshingForRetry"; readonly turn: BotTurn } & Notice)
   | ({ readonly kind: "waitingForClaim"; readonly turn: BotTurn; readonly deadline: number; readonly reason: "claim" } & Notice)
-  | ({ readonly kind: "paused"; readonly turn: BotTurn; readonly reason: "provider" | "claimLost" | "claimExpired" | "retryRefresh" } & Notice)
+  | ({ readonly kind: "paused"; readonly turn: BotTurn; readonly reason: "unknownOutcome" | "provider" | "claimLost" | "claimExpired" | "retryRefresh" } & Notice)
   | ({ readonly kind: "usageLimited"; readonly turn: BotTurn; readonly reason: "OWNER_AI_LIMIT" | "GAME_AI_RATE_LIMIT"; readonly deadline: number; readonly now: number } & Notice);
 
 export const initialBotLifecycle: BotLifecycleState = { kind: "idle", notice: null };
@@ -25,7 +26,7 @@ export function sameBotTurn(a: BotTurn, b: BotTurn): boolean {
   return a.gameId === b.gameId && a.handNumber === b.handNumber && a.actorId === b.actorId && a.decisionId === b.decisionId;
 }
 export function botBusy(state: BotLifecycleState): boolean {
-  return state.kind === "running" || state.kind === "refreshingForRetry";
+  return state.kind === "running" || state.kind === "refreshingForRetry" || state.kind === "reconcilingUnknown";
 }
 export function botRetryAfterMs(state: BotLifecycleState): number {
   return state.kind === "usageLimited" ? Math.max(0, state.deadline - state.now) : 0;
@@ -38,6 +39,7 @@ export function botCanRetry(state: BotLifecycleState, now: number): boolean {
 }
 
 export type BotLifecycleEvent =
+  | { type: "unknownRecovery"; turn: BotTurn; notice: string }
   | { type: "reset" }
   | { type: "start"; turn: BotTurn }
   | { type: "retry"; turn: BotTurn; now: number }
@@ -54,6 +56,7 @@ export type BotLifecycleEvent =
 export function transitionBotLifecycle(state: BotLifecycleState, event: BotLifecycleEvent): BotLifecycleState {
   switch (event.type) {
     case "reset": return initialBotLifecycle;
+    case "unknownRecovery": return { kind: "reconcilingUnknown", turn: event.turn, notice: event.notice };
     case "notice": return { ...state, notice: event.notice };
     case "start": return botCanStart(state) ? { kind: "running", turn: event.turn, notice: null } : state;
     case "retry": return botCanRetry(state, event.now) ? { kind: "refreshingForRetry", turn: event.turn, notice: null } : state;

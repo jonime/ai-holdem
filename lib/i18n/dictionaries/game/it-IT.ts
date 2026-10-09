@@ -198,6 +198,11 @@ const dictionary = {
     of: "{rank} di {suit}",
   },
   errors: {
+    actionUnconfirmed: "Non abbiamo potuto confermare la tua azione. Controllo del tavolo…",
+    actionReconciled: "Tavolo aggiornato. Controlla il tavolo prima di riprovare; la tua azione precedente potrebbe essere stata completata.",
+    actionRecoveryFailed: "Non abbiamo potuto confermare la tua azione o aggiornare il tavolo. Aggiorna il tavolo prima di un’altra azione.",
+    refreshTable: "Aggiorna tavolo",
+
     turnForbidden: "Solo l’host o un umano seduto può far avanzare questo turno.",
     turnAdvanceFailed: "Impossibile aggiornare il turno scaduto. Riprova.",
     turnExpired: "Tempo scaduto — aggiornamento del tavolo",

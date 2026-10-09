@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { turnRemainingMs } from "./turn-clock";
-import { HttpError } from "@/lib/http/api";
+import { HttpError, unknownOutcome } from "@/lib/http/api";
 import { LLM_CREDIT_EXIT_RULE } from "@/lib/bots/types";
 import { advanceBotTurns, hasAutomaticTurn } from "./bot-advancement";
 import { canAdvanceBots } from "./view-model";
@@ -21,6 +21,7 @@ export type BotLifecycleDriver = {
   readonly clearError: () => void;
   readonly errorMessage: (error: unknown) => string;
   readonly unfinishedMessage: () => string;
+  readonly unknownMessage?: () => string;
   readonly creditMessage: (decision: AIDecision) => string;
 };
 
@@ -98,6 +99,9 @@ export class BotLifecycle {
     }
     const eligible = this.eligible(game);
     const state = this.state;
+    if (state.kind === "reconcilingUnknown" && (!eligible || !sameBotTurn(state.turn, botTurn(game)))) {
+      this.dispatch({ type: "notice", notice: null });
+    }
     if (!eligible || (!this.applying && state.kind === "running" &&
         !sameBotTurn(state.turn, botTurn(game)))) {
       this.generation++;
@@ -177,6 +181,26 @@ export class BotLifecycle {
   }
   private async fail(error: unknown, attempted: Game, token: symbol, generation: number) {
     const turn = botTurn(attempted);
+    if (unknownOutcome(error)) {
+      this.dispatch({ type: "unknownRecovery", turn, notice: this.driver.unknownMessage?.() ?? this.driver.unfinishedMessage() });
+      try {
+        await this.driver.refresh(attempted.id, () => this.work === token && this.generation === generation);
+        if (this.work === token && this.generation === generation) {
+          this.driver.refreshFailed(false);
+          const latest = this.driver.readGame();
+          if (latest) this.reconcile(latest);
+          if (latest && sameBotTurn(turn, botTurn(latest))) {
+            this.dispatch({ type: "pause", turn, reason: "unknownOutcome", notice: this.driver.unfinishedMessage() });
+          }
+        }
+      } catch {
+        if (this.work === token && this.generation === generation) {
+          this.driver.refreshFailed(true);
+          this.dispatch({ type: "pause", turn, reason: "unknownOutcome", notice: this.driver.unfinishedMessage() });
+        }
+      }
+      return;
+    }
     if (error instanceof HttpError && error.code === "TURN_NOT_EXPIRED" && error.retryAfterMs !== undefined) {
       if (attempted.turnTimer) this.attemptedDecisions.delete(attempted.turnTimer.decisionId);
       this.attemptedVersions.delete(attempted.version);
@@ -211,7 +235,7 @@ export class BotLifecycle {
   }
   retry = async (): Promise<void> => {
     const game = this.driver.readGame();
-    if (this.work || !this.eligible(game) || !botCanRetry(this.state, Date.now())) return;
+    if (this.mutationPending || this.work || !this.eligible(game) || !botCanRetry(this.state, Date.now())) return;
     const token = Symbol("bot retry");
     const generation = this.generation;
     this.work = token;

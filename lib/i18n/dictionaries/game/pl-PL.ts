@@ -199,6 +199,11 @@ const dictionary = {
     of: "{rank} {suit}",
   },
   errors: {
+    actionUnconfirmed: "Nie mogliśmy potwierdzić Twojej akcji. Sprawdzamy stół…",
+    actionReconciled: "Stół odświeżony. Sprawdź stół przed ponowną próbą; poprzednia akcja mogła się zakończyć.",
+    actionRecoveryFailed: "Nie mogliśmy potwierdzić akcji ani odświeżyć stołu. Odśwież stół przed kolejną akcją.",
+    refreshTable: "Odśwież stół",
+
     turnForbidden: "Tylko gospodarz lub siedzący człowiek może zakończyć tę turę.",
     turnAdvanceFailed: "Nie można zaktualizować wygasłej tury. Spróbuj ponownie.",
     turnExpired: "Czas minął — aktualizowanie stołu",

@@ -1,3 +1,5 @@
+import { TransportError, withDeadline } from "./deadline";
+export { TransportError, unknownOutcome } from "./deadline";
 import { addLocalePrefix } from "@/lib/i18n";
 import { z } from "zod";
 import { errorEnvelopeSchema, type GameParams, type VersionRequest } from "./common-contracts";
@@ -43,7 +45,12 @@ function gameUrl(params: GameParams) {
   return `/api/games/${encodeURIComponent(gameParamsSchema.parse(params).gameId)}`;
 }
 async function send<S extends z.ZodType>(url: string, schema: S, init: RequestInit): Promise<z.output<S>> {
-  const response = await fetch(url, { ...init, credentials: "same-origin" });
+  let response: Response;
+  try { response = await fetch(url, { ...init, credentials: "same-origin" }); }
+  catch (error) {
+    if (init.signal?.aborted) { init.signal.throwIfAborted(); }
+    throw new TransportError("network", error instanceof Error ? error.message : "Network failure");
+  }
   let body: unknown;
   try {
     body = await response.json();
@@ -52,7 +59,7 @@ async function send<S extends z.ZodType>(url: string, schema: S, init: RequestIn
       init.signal.throwIfAborted();
       throw error;
     }
-    if (response.ok) throw new Error("Invalid response payload");
+    if (response.ok) throw new TransportError(error instanceof TypeError ? "network" : "invalidResponse", error instanceof TypeError ? "Response body disconnected" : "Invalid response payload");
   }
   init.signal?.throwIfAborted();
   if (!response.ok) {
@@ -66,7 +73,7 @@ async function send<S extends z.ZodType>(url: string, schema: S, init: RequestIn
     );
   }
   const parsed = schema.safeParse(body);
-  if (!parsed.success) throw new Error("Invalid response payload");
+  if (!parsed.success) throw new TransportError("invalidResponse", "Invalid response payload");
   return parsed.data;
 }
 function mutation<S extends z.ZodType>(
@@ -78,12 +85,14 @@ function mutation<S extends z.ZodType>(
   options: Options,
   method = "POST",
 ) {
-  return send(`${gameUrl(params)}/${suffix}`, response, {
+  const scoped = ["action", "settings", "seat-count", "start", "next-hand", "reveal", "advance-timeout", "advance-departure", "step"].includes(suffix) || suffix.startsWith("seats/");
+  const request = (signal?: AbortSignal) => send(`${gameUrl(params)}/${suffix}`, response, {
     method,
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(schema.parse(body)),
-    signal: options.signal,
+    signal,
   });
+  return scoped ? withDeadline(request, suffix === "step" ? 100_000 : 15_000, options.signal) : request(options.signal);
 }
 
 function seatMutation(

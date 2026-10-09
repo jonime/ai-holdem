@@ -222,3 +222,8 @@ shows a small numeric countdown only below ten seconds, with a single screen-rea
 warning and no additional border change. After expiry
 controls stop accepting that decision. A host or seated human browser processes
 expiry; if all eligible browsers close, processing resumes when one returns.
+
+Gameplay requests recover from stalled connections with bounded client waiting and
+one authoritative refresh. Check the table before retrying an unconfirmed action;
+requests are never replayed automatically. If the refresh fails, use **Refresh
+table** to unlock controls. See [CONTRIBUTING.md](CONTRIBUTING.md) for deadline ownership.

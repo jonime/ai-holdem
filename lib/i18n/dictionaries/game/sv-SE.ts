@@ -198,6 +198,11 @@ const dictionary = {
     of: "{rank} i {suit}",
   },
   errors: {
+    actionUnconfirmed: "Vi kunde inte bekräfta din åtgärd. Kontrollerar bordet…",
+    actionReconciled: "Bordet uppdaterat. Kontrollera bordet innan du försöker igen; din förra åtgärd kan ha genomförts.",
+    actionRecoveryFailed: "Vi kunde inte bekräfta din åtgärd eller uppdatera bordet. Uppdatera bordet innan nästa åtgärd.",
+    refreshTable: "Uppdatera bordet",
+
     turnForbidden: "Bara värden eller en sittande människa kan fortsätta turen.",
     turnAdvanceFailed: "Den avslutade turen kunde inte uppdateras. Försök igen.",
     turnExpired: "Tiden är slut — bordet uppdateras",

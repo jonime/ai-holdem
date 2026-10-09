@@ -331,3 +331,37 @@ it("waits for the server's remaining interval after an early timeout request",as
   await vi.advanceTimersByTimeAsync(100);expect(f.driver.step).toHaveBeenCalledTimes(2);
   expect(f.lifecycle.getSnapshot().notice).toBeNull();f.lifecycle.reset();
 });
+
+it("reconciles unknown outcomes once and pauses the same turn across version changes until explicit retry", async () => {
+  const { TransportError } = await import("@/lib/http/api");
+  const f = fixture();
+  f.driver.step.mockRejectedValueOnce(new TransportError("deadline", "timeout"));
+  await f.lifecycle.advance(f.game(), true);
+  expect(f.driver.refresh).toHaveBeenCalledOnce();
+  expect(f.lifecycle.getSnapshot()).toMatchObject({ kind: "paused", reason: "unknownOutcome" });
+  f.reconcile({ ...f.game(), version: 4 });
+  await f.lifecycle.advance(f.game(), true);
+  expect(f.driver.step).toHaveBeenCalledOnce();
+  await f.lifecycle.retry();
+  expect(f.driver.step).toHaveBeenCalledTimes(2);
+});
+it("clears unknown pause when authoritative state proves progression", async () => {
+  const { TransportError } = await import("@/lib/http/api");
+  const f = fixture();
+  f.driver.step.mockRejectedValueOnce(new TransportError("network", "offline"));
+  f.driver.refresh.mockImplementationOnce(async () => f.reconcile(humanTurn(f.game())));
+  await f.lifecycle.advance(f.game(), true);
+  expect(f.lifecycle.getSnapshot()).toMatchObject({ kind: "idle", notice: null });
+  expect(f.driver.step).toHaveBeenCalledOnce();
+});
+it("keeps controls busy while unknown-outcome reconciliation is pending", async () => {
+  const { TransportError } = await import("@/lib/http/api");
+  const f = fixture(); const held = deferred<void>();
+  f.driver.step.mockRejectedValueOnce(new TransportError("deadline", "timeout"));
+  f.driver.refresh.mockReturnValueOnce(held.promise);
+  const work = f.lifecycle.advance(f.game());
+  await vi.waitFor(() => expect(f.lifecycle.getSnapshot().kind).toBe("reconcilingUnknown"));
+  await f.lifecycle.retry(); expect(f.driver.step).toHaveBeenCalledOnce();
+  held.resolve(); await work;
+  expect(f.lifecycle.getSnapshot()).toMatchObject({ kind: "paused", reason: "unknownOutcome" });
+});

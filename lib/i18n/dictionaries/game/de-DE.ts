@@ -198,6 +198,11 @@ const dictionary = {
     of: "{rank} von {suit}",
   },
   errors: {
+    actionUnconfirmed: "Wir konnten deine Aktion nicht bestätigen. Der Tisch wird geprüft…",
+    actionReconciled: "Tisch aktualisiert. Prüfe den Tisch vor einem erneuten Versuch; deine letzte Aktion wurde möglicherweise ausgeführt.",
+    actionRecoveryFailed: "Wir konnten deine Aktion nicht bestätigen oder den Tisch aktualisieren. Aktualisiere den Tisch vor der nächsten Aktion.",
+    refreshTable: "Tisch aktualisieren",
+
     turnForbidden: "Nur der Gastgeber oder ein sitzender Mensch kann diesen Zug fortsetzen.",
     turnAdvanceFailed: "Der abgelaufene Zug konnte nicht aktualisiert werden. Erneut versuchen.",
     turnExpired: "Zeit abgelaufen — Tisch wird aktualisiert",

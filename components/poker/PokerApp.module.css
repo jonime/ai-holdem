@@ -12,6 +12,10 @@
   color: #77321f;
 }
 
+.recoveryButton {
+  margin-inline-start: 12px;
+}
+
 .gameLayout {
   max-width: 1220px;
   margin: auto;

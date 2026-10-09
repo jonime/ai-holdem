@@ -31,6 +31,7 @@ export function PokerTable({
   sizedAction,
   amount,
   loading,
+  busy = loading,
   setAmount,
   onClaimFirstOpenSeat,
   onStandUp,
@@ -60,6 +61,7 @@ export function PokerTable({
     | undefined;
   readonly amount: string;
   readonly loading: boolean;
+  readonly busy?: boolean;
   readonly setAmount: (value: string) => void;
   readonly onClaimFirstOpenSeat: (opener: HTMLButtonElement) => void;
   readonly onStandUp: () => void;
@@ -270,7 +272,7 @@ export function PokerTable({
                 disabled={loading}
                 onClick={event => onClaimFirstOpenSeat(event.currentTarget)}
               >
-                {loading ? t("table.claimingSeat") : t("table.sitOpenSeat")}
+                {busy ? t("table.claimingSeat") : t("table.sitOpenSeat")}
               </Button>
             ) : null}
           </div>
@@ -306,7 +308,7 @@ export function PokerTable({
                 }}
               >
                 {game.poker.street === "complete"
-                  ? loading
+                  ? busy
                     ? t("table.preparing")
                     : t("table.nextHand")
                   : checkCallAction?.type === "call"

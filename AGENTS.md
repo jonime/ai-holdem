@@ -77,7 +77,7 @@ Local production browser verification requires an already-running migrated local
 Chromium (`npx playwright install chromium`). The shared production runner exposes
 `test:e2e:smoke` (`@smoke`), `test:e2e:ui` (`@ui-regression`), and `test:e2e:ci`
 (the union). CI builds once and runs one Playwright invocation/report. The UI suite
-contains all eight dialog, betting-controls, and hand-results/Actions tests. Local
+contains dialog, betting-controls, hand-results/Actions, and request-recovery tests. Local
 smoke/UI commands retain file filters and explicit grep overrides; the combined
 command accepts only `--list` and rejects selection overrides. Empty selections
 must fail. Each command builds an
@@ -290,6 +290,18 @@ compatibility; the application sends null for inspection payloads.
 - Directory joins and lobby seat mutations must stay in atomic, version-checked
 	RPCs that lock the game row. Apply the public-directory migration before the
 	application code; existing games require no listing backfill.
+
+## Client request recovery
+
+In-game mutations have 15-second client transport deadlines; bot steps have
+100 seconds. These cover headers/body and compose with caller cancellation.
+Transport failures and invalid successes mean unknown outcomes: reconcile once
+without replay, then require a new explicit decision. Failed recovery blocks
+mutations behind Refresh table. Bot unknown outcomes stay paused on the same
+hand/actor across version-only refreshes until explicit retry. Abort clients and
+fence late results by session generation on navigation; never release server
+claims from client cancellation. Read/feed and creation/discovery deadlines are
+unchanged. See CONTRIBUTING.md for deadline ownership and recovery details.
 
 ## Local game-read verification
 

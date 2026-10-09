@@ -198,6 +198,11 @@ const dictionary = {
     of: "{rank} de {suit}",
   },
   errors: {
+    actionUnconfirmed: "No pudimos confirmar tu acción. Comprobando la mesa…",
+    actionReconciled: "Mesa actualizada. Comprueba la mesa antes de reintentar; tu acción anterior podría haberse completado.",
+    actionRecoveryFailed: "No pudimos confirmar tu acción ni actualizar la mesa. Actualiza la mesa antes de otra acción.",
+    refreshTable: "Actualizar mesa",
+
     turnForbidden: "Solo el anfitrión o un humano sentado puede avanzar este turno.",
     turnAdvanceFailed: "No se pudo actualizar el turno vencido. Reintenta.",
     turnExpired: "Tiempo agotado — actualizando la mesa",

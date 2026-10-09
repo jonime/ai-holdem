@@ -198,6 +198,11 @@ const dictionary = {
     of: "{rank} of {suit}",
   },
   errors: {
+    actionUnconfirmed: "We couldn’t confirm your action. Checking the table…",
+    actionReconciled: "Table refreshed. Check the table before trying again; your previous action may have completed.",
+    actionRecoveryFailed: "We couldn’t confirm your action or refresh the table. Refresh the table before taking another action.",
+    refreshTable: "Refresh table",
+
     turnForbidden: "Only the host or a seated human can advance this turn.",
     turnAdvanceFailed: "Unable to update the expired turn. Retry explicitly.",
     turnExpired: "Time expired—updating table",

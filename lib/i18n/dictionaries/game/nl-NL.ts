@@ -198,6 +198,11 @@ const dictionary = {
     of: "{rank} van {suit}",
   },
   errors: {
+    actionUnconfirmed: "We konden je actie niet bevestigen. De tafel wordt gecontroleerd…",
+    actionReconciled: "Tafel vernieuwd. Controleer de tafel voordat je opnieuw probeert; je vorige actie kan zijn uitgevoerd.",
+    actionRecoveryFailed: "We konden je actie niet bevestigen of de tafel vernieuwen. Vernieuw de tafel voor een volgende actie.",
+    refreshTable: "Tafel vernieuwen",
+
     turnForbidden: "Alleen de host of een zittende mens kan deze beurt voortzetten.",
     turnAdvanceFailed: "De verlopen beurt kon niet worden bijgewerkt. Probeer opnieuw.",
     turnExpired: "Tijd verstreken — tafel wordt bijgewerkt",

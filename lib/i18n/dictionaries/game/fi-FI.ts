@@ -198,6 +198,11 @@ const dictionary = {
     of: "{rank} {suit}",
   },
   errors: {
+    actionUnconfirmed: "Emme voineet vahvistaa toimintoasi. Tarkistetaan pöytää…",
+    actionReconciled: "Pöytä päivitetty. Tarkista pöytä ennen uutta yritystä; aiempi toimintosi on saattanut onnistua.",
+    actionRecoveryFailed: "Emme voineet vahvistaa toimintoasi tai päivittää pöytää. Päivitä pöytä ennen seuraavaa toimintoa.",
+    refreshTable: "Päivitä pöytä",
+
     turnForbidden: "Vain isäntä tai pöydässä istuva ihmispelaaja voi edistää vuoroa.",
     turnAdvanceFailed: "Vanhentunutta vuoroa ei voitu päivittää. Yritä uudelleen.",
     turnExpired: "Aika loppui — päivitetään pöytää",

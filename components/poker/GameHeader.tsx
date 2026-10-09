@@ -11,9 +11,10 @@ import { getClientPlayerToken } from "@/lib/identity/player-token-client";
 import { headerDepartureSeat } from "./header-navigation";
 import type { Game } from "./types";
 
-export function GameHeader({ game, loading, onLeave }: {
+export function GameHeader({ game, loading, mutationsBlocked = false, onLeave }: {
   readonly game: Game | null;
   readonly loading: boolean;
+  readonly mutationsBlocked?: boolean;
   readonly onLeave: (seat: number, navigate: boolean) => Promise<boolean>;
 }) {
   const router = useRouter();
@@ -32,7 +33,7 @@ export function GameHeader({ game, loading, onLeave }: {
     <header className={styles.gameHeader}>
       <div className={styles.gameHeaderInner}>
         <Link href={addLocalePrefix("/", locale)} className={styles.gameHeaderTitle}>{APP_NAME}</Link>
-        <Button variant="primary" size="small" disabled={loading} onClick={handleExit}>
+        <Button variant="primary" size="small" disabled={loading || (!!departing && mutationsBlocked)} onClick={handleExit}>
           {t(departing ? "gameHeader.leaveTable" : "gameHeader.lobby")}
         </Button>
       </div>

@@ -42,7 +42,7 @@ describe("gameplay client", () => {
     const signal = new AbortController().signal;
     const body = await api.games.stepBot({ gameId: "game-1", expectedVersion: 2 }, { signal });
     expect(fetch).toHaveBeenCalledWith("/api/games/game-1/step", expect.objectContaining({
-      method: "POST", body: '{"expectedVersion":2}', signal,
+      method: "POST", body: '{"expectedVersion":2}', signal: expect.any(AbortSignal),
     }));
     expectTypeOf(body).toExtend<StepBotResponse>();
     mockResponse({ game, aiDecision: {} });
@@ -122,7 +122,7 @@ it.each(methods)("serializes $name and forwards cancellation and credentials", a
   const signal = new AbortController().signal;
   await endpoint.run(signal);
   expect(fetch).toHaveBeenCalledOnce();
-  expect(fetch).toHaveBeenCalledWith(endpoint.path, expect.objectContaining({ signal, credentials: "same-origin", ...(endpoint.method ? { method: endpoint.method } : { cache: "no-store" }) }));
+  expect(fetch).toHaveBeenCalledWith(endpoint.path, expect.objectContaining({ signal: expect.any(AbortSignal), credentials: "same-origin", ...(endpoint.method ? { method: endpoint.method } : { cache: "no-store" }) }));
   const init = fetch.mock.calls[0][1];
   if ("body" in endpoint) expect(JSON.parse(init.body)).toEqual(endpoint.body);
   else expect(init.body).toBeUndefined();

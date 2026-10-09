@@ -105,6 +105,10 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     feedLoading,
     loading,
     navigationLoading,
+    requestBusy,
+    recoveryBlocked,
+    refreshing,
+    refreshGame,
     error,
     claimSeatAt,
     updatePlayerName,
@@ -310,12 +314,13 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
 
   return (
     <>
-    <GameHeader game={game} loading={navigationLoading || replaying} onLeave={releaseSeat} />
+    <GameHeader game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={releaseSeat} />
     <main className={styles.pokerApp}>
       {creationNotice ? <p className={styles.errorBanner} role="alert">{creationNotice.message} {t("errors.retryAvailable", { seconds: Math.ceil(creationWait / 1000) })}</p> : null}
       {error ? (
         <p className={styles.errorBanner} role="alert">
           {error}
+          {recoveryBlocked ? <Button className={styles.recoveryButton} size="small" disabled={refreshing} onClick={refreshGame}>{t("errors.refreshTable")}</Button> : null}
           {usageLimited ? <> <span>{t("errors.retryAvailable", { seconds: Math.ceil(usageRetryAfterMs / 1000) })}</span> <Button size="small" disabled={loading || replaying || creationWait > 0} onClick={() => void newQuickPlay("rules")}>{t("errors.rulesOnlyGame")}</Button></> : null}
           {game && canAdvanceBots(game, viewerToken) && hasAutomaticTurn(game) ? (
             <Button
@@ -335,6 +340,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
         <div className="route-loading" aria-label={t("table.waiting")} />
       ) : game.status === "waiting" ? (
         <LobbyPanel
+          busy={requestBusy}
           game={game}
           botCatalog={botCatalog}
           loading={loading}
@@ -367,6 +373,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
             className={`${styles.tableRow} ${feedCollapsed ? styles.feedCollapsed : ""}`}
           >
             <PokerTable
+              busy={requestBusy}
               game={game}
               seatRows={seatRows}
               linearSeats={linearSeats}
@@ -467,7 +474,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
                     {t("table.joinCancel")}
                   </Button>
                   <Button variant="primary" type="submit" disabled={loading}>
-                    {loading ? t("table.claimingSeat") : t("table.joinConfirm")}
+                    {requestBusy ? t("table.claimingSeat") : t("table.joinConfirm")}
                   </Button>
                 </div>
               </form>

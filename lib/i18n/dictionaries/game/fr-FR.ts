@@ -198,6 +198,11 @@ const dictionary = {
     of: "{rank} de {suit}",
   },
   errors: {
+    actionUnconfirmed: "Nous n’avons pas pu confirmer votre action. Vérification de la table…",
+    actionReconciled: "Table actualisée. Vérifiez la table avant de réessayer ; votre action précédente a peut-être abouti.",
+    actionRecoveryFailed: "Nous n’avons pas pu confirmer votre action ni actualiser la table. Actualisez la table avant une autre action.",
+    refreshTable: "Actualiser la table",
+
     turnForbidden: "Seul l’hôte ou un humain assis peut faire avancer ce tour.",
     turnAdvanceFailed: "Impossible de mettre à jour le tour expiré. Réessayez.",
     turnExpired: "Temps écoulé — mise à jour de la table",
