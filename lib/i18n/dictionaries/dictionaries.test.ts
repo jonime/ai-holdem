@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import { SUPPORTED_LOCALES, type Locale } from "@/lib/i18n";
+import type {
+  GameDictionary,
+  MetadataDictionary,
+  LandingServerDictionary,
+  JoinGameDictionary,
+  PlayDictionary,
+} from "@/lib/i18n/types";
+
 import deDeGame from "./game/de-DE";
 import enUsGame from "./game/en-US";
 import esEsGame from "./game/es-ES";
@@ -52,6 +61,15 @@ import svSeJoin from "./join-game/sv-SE";
 import enUsPlay from "./play/en-US";
 import jaJpPlay from "./play/ja-JP";
 import zhHansPlay from "./play/zh-Hans";
+import deDePlay from "./play/de-DE";
+import esEsPlay from "./play/es-ES";
+import fiFiPlay from "./play/fi-FI";
+import frFrPlay from "./play/fr-FR";
+import itItPlay from "./play/it-IT";
+import nlNlPlay from "./play/nl-NL";
+import plPlPlay from "./play/pl-PL";
+import ptBrPlay from "./play/pt-BR";
+import svSePlay from "./play/sv-SE";
 
 const metadataDictionaries = {
   "de-DE": deDeMetadata,
@@ -66,7 +84,7 @@ const metadataDictionaries = {
   "zh-Hans": zhHansMetadata,
   "pt-BR": ptBrMetadata,
   "sv-SE": svSeMetadata,
-};
+} satisfies Record<Locale, MetadataDictionary>;
 
 const landingServerDictionaries = {
   "de-DE": deDeLandingServer,
@@ -81,7 +99,7 @@ const landingServerDictionaries = {
   "zh-Hans": zhHansLandingServer,
   "pt-BR": ptBrLandingServer,
   "sv-SE": svSeLandingServer,
-};
+} satisfies Record<Locale, LandingServerDictionary>;
 
 const gameDictionaries = {
   "de-DE": deDeGame,
@@ -96,7 +114,7 @@ const gameDictionaries = {
   "zh-Hans": zhHansGame,
   "pt-BR": ptBrGame,
   "sv-SE": svSeGame,
-};
+} satisfies Record<Locale, GameDictionary>;
 
 const joinDictionaries = {
   "de-DE": deDeJoin, "en-US": enUsJoin, "es-ES": esEsJoin,
@@ -105,7 +123,22 @@ const joinDictionaries = {
   "ja-JP": jaJpJoin,
   "zh-Hans": zhHansJoin, "pt-BR": ptBrJoin,
   "sv-SE": svSeJoin,
-};
+} satisfies Record<Locale, JoinGameDictionary>;
+
+const playDictionaries = {
+  "en-US": enUsPlay,
+  "de-DE": deDePlay,
+  "es-ES": esEsPlay,
+  "fi-FI": fiFiPlay,
+  "fr-FR": frFrPlay,
+  "it-IT": itItPlay,
+  "nl-NL": nlNlPlay,
+  "pl-PL": plPlPlay,
+  "pt-BR": ptBrPlay,
+  "sv-SE": svSePlay,
+  "ja-JP": jaJpPlay,
+  "zh-Hans": zhHansPlay,
+} satisfies Record<Locale, PlayDictionary>;
 
 function leafMap(value: unknown, path = ""): Record<string, string[]> {
   if (value === null || typeof value !== "object") {
@@ -123,6 +156,25 @@ function leafMap(value: unknown, path = ""): Record<string, string[]> {
 }
 
 describe("translation dictionaries", () => {
+  it.each([
+    ["metadata", metadataDictionaries], ["landing server", landingServerDictionaries],
+    ["game", gameDictionaries], ["join", joinDictionaries], ["play", playDictionaries],
+  ])("%s registry covers every supported locale", (_group, dictionaries) => {
+    expect(Object.keys(dictionaries).sort()).toEqual([...SUPPORTED_LOCALES].sort());
+  });
+
+  it("detects missing leaf keys", () => {
+    expect(leafMap({ table: {} })).not.toEqual(leafMap({ table: { hand: "Hand {hand}" } }));
+  });
+
+  it.each(["Hand {number}", "Hand"])("detects renamed or missing placeholders: %s", hand => {
+    expect(leafMap({ hand })).not.toEqual(leafMap({ hand: "Hand {hand}" }));
+  });
+
+  it("compares sorted placeholders while retaining duplicate occurrences", () => {
+    expect(leafMap({ label: "{a} {b} {a}" })).toEqual(leafMap({ label: "{b} {a} {a}" }));
+    expect(leafMap({ label: "{a} {b}" })).not.toEqual(leafMap({ label: "{a} {b} {a}" }));
+  });
   it.each(Object.entries(metadataDictionaries))(
     "%s metadata preserves every leaf key and interpolation placeholder",
     (_locale, dictionary) => {
@@ -149,7 +201,7 @@ describe("translation dictionaries", () => {
     (_locale, dictionary) => expect(leafMap(dictionary)).toEqual(leafMap(enUsJoin)),
   );
 
-  it.each([["ja-JP", jaJpPlay], ["zh-Hans", zhHansPlay]])(
+  it.each(Object.entries(playDictionaries))(
     "%s play preserves every leaf key and interpolation placeholder",
     (_locale, dictionary) => expect(leafMap(dictionary)).toEqual(leafMap(enUsPlay)),
   );

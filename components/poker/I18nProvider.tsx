@@ -3,10 +3,12 @@
 import { createContext, useContext } from "react";
 
 import type { Locale } from "@/lib/i18n";
-import type { GameDictionary } from "@/lib/i18n/types";
-
-type TranslationValue = string | number;
-type TranslationKey = string;
+import type {
+  GameDictionary,
+  GameTranslationKey,
+  GameTranslator,
+  TranslationValues,
+} from "@/lib/i18n/types";
 
 /**
  * Route-scoped provider for the game route (`/[lang]/game/[gameId]`), which
@@ -15,7 +17,7 @@ type TranslationKey = string;
  * receives narrow string props instead.
  */
 
-function lookup(dictionary: GameDictionary, key: TranslationKey): string {
+function lookup(dictionary: GameDictionary, key: GameTranslationKey): string {
   const value = key.split(".").reduce<unknown>((current, part) => {
     if (!current || typeof current !== "object") return undefined;
     return (current as Record<string, unknown>)[part];
@@ -23,7 +25,7 @@ function lookup(dictionary: GameDictionary, key: TranslationKey): string {
   return typeof value === "string" ? value : key;
 }
 
-function interpolate(value: string, values?: Readonly<Record<string, TranslationValue>>): string {
+function interpolate(value: string, values?: TranslationValues): string {
   if (!values) return value;
   return value.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key] ?? `{${key}}`));
 }
@@ -31,7 +33,7 @@ function interpolate(value: string, values?: Readonly<Record<string, Translation
 export type I18nContextValue = {
   readonly locale: Locale;
   readonly dictionary: GameDictionary;
-  readonly t: (key: TranslationKey, values?: Readonly<Record<string, TranslationValue>>) => string;
+  readonly t: GameTranslator;
 };
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -41,7 +43,7 @@ export function I18nProvider({
   dictionary,
   children,
 }: Omit<I18nContextValue, "t"> & { readonly children: React.ReactNode }) {
-  const t = (key: TranslationKey, values?: Readonly<Record<string, TranslationValue>>) =>
+  const t: GameTranslator = (key, values) =>
     interpolate(lookup(dictionary, key), values);
   return <I18nContext.Provider value={{ locale, dictionary, t }}>{children}</I18nContext.Provider>;
 }
