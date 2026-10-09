@@ -248,7 +248,12 @@ compatibility; the application sends null for inspection payloads.
 - `app/api/games/`: HTTP boundary for game creation, actions, seats, feed,
 	AI stepping, and hand transitions.
 - `lib/poker/`: domain types, engine adapter, public projections, and game
-	orchestration. `seat-service.ts` owns atomic claim, bot assignment, and release;
+	orchestration. `bot-turn-service.ts` owns claim-protected bot execution and the
+  legacy claim-free test seam; `game-service.ts` retains other game lifecycle work.
+  The services share `driver-authorization.ts`, `game-errors.ts`,
+  `persisted-state.ts`, `game-projection.ts`, and `game-service-contracts.ts`
+  without importing each other. Shared modules never resolve bot providers.
+  `seat-service.ts` owns atomic claim, bot assignment, and release;
   `seat-contracts.ts` and `host-authorization.ts` hold dependency-neutral contracts
   and durable host authorization. Seat mutations require an expected version and
   parse the RPC-returned seat without a follow-up seat query.

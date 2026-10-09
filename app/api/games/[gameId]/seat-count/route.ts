@@ -4,7 +4,8 @@ import { versionSchema } from "@/lib/http/common-contracts";
 import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
-import { GameNotFoundError, updateSeatCount } from "@/lib/poker/game-service";
+import { GameNotFoundError } from "@/lib/poker/game-errors";
+import { updateSeatCount } from "@/lib/poker/game-service";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { scheduleGameEvent } from "@/lib/realtime/schedule";
 import { GameConflictError } from "@/lib/supabase/queries";

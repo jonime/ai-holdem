@@ -3,7 +3,7 @@ import { POST } from "./route";
 import { POST as action } from "../action/route";
 import { advanceTimeoutResponseSchema } from "@/lib/http/gameplay-contracts";
 import { TurnTimerError } from "@/lib/poker/turn-timer";
-import { BotStepForbiddenError } from "@/lib/poker/game-service";
+import { BotStepForbiddenError } from "@/lib/poker/driver-authorization";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { gameplayGame } from "@/test/fixtures/gameplay";
 const { advance, submit, schedule } = vi.hoisted(() => ({ advance:vi.fn(),submit:vi.fn(),schedule:vi.fn() }));

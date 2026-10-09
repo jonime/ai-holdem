@@ -1,6 +1,7 @@
 import "server-only";
 import { removalRpcResultSchema, type RemoveGameRequest } from "@/lib/http/discovery-contracts";
-import { prepareSeatDeparture, type GameReader } from "./game-service";
+import type { GameReader } from "./game-service-contracts";
+import { prepareSeatDeparture } from "./game-service";
 import type { GameHostReader } from "./host-authorization";
 import type { SeatAssignmentRepository } from "./seat-contracts";
 import type { DepartureFold } from "./departure-contracts";

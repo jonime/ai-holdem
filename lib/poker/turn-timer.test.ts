@@ -1,7 +1,8 @@
 import lobbyFixture from "@/test/fixtures/turn-timer-lobby.json";
 import { describe, expect, it, vi } from "vitest";
 import { pokerEngineAdapter, createDeterministicDeck } from "./adapter";
-import { advanceTimeout, BotStepForbiddenError, createDemoGameConfig } from "./game-service";
+import { BotStepForbiddenError } from "./driver-authorization";
+import { advanceTimeout, createDemoGameConfig } from "./game-service";
 import { GameConflictError, type PersistedGame, type PersistHumanActionInput } from "@/lib/supabase/queries";
 import { humanTurnSecondsSchema } from "@/lib/http/schemas";
 

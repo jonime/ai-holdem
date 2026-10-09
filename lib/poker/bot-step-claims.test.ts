@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { withBotClaims } from "@/test/fixtures/bot-claims";
 import { createDeterministicDeck, pokerEngineAdapter } from "./adapter";
-import { BotStepForbiddenError, stepBotAction } from "./game-service";
+import { BotStepForbiddenError } from "./driver-authorization";
+import { stepBotAction } from "./bot-turn-service";
 import { BotStepClaimLostError, BotStepInProgressError } from "./bot-step-claims";
 import { emptyDiagnostics } from "@/lib/bots/types";
 import { GameConflictError, type PersistAIActionInput, type PersistedGame } from "@/lib/supabase/queries";

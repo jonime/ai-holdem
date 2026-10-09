@@ -12,9 +12,10 @@ import { getGameResponseSchema, submitActionResponseSchema, stepBotResponseSchem
 import { gameplayGame as game, gameplayDecision as aiDecision } from "@/test/fixtures/gameplay";
 
 const { read, submit, advance, schedule } = vi.hoisted(() => ({ read: vi.fn(), submit: vi.fn(), advance: vi.fn(), schedule: vi.fn() }));
+vi.mock("@/lib/poker/bot-turn-service", () => ({ stepBotAction: advance }));
 vi.mock("@/lib/poker/game-service", async original => ({
   ...await original<typeof import("@/lib/poker/game-service")>(),
-  getPublicGame: read, submitHumanAction: submit, stepBotAction: advance,
+  getPublicGame: read, submitHumanAction: submit,
 }));
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseGameRepository: () => ({}) }));
 vi.mock("@/lib/realtime/schedule", () => ({ scheduleGameEvent: schedule }));

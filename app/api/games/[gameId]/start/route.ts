@@ -2,7 +2,8 @@ import { startRequestSchema, gameParamsSchema, type GameResponseEnvelope } from 
 import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
-import { GameNotFoundError, startGame } from "@/lib/poker/game-service";
+import { GameNotFoundError } from "@/lib/poker/game-errors";
+import { startGame } from "@/lib/poker/game-service";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";

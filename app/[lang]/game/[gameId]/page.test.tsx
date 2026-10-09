@@ -17,8 +17,8 @@ vi.mock("next/navigation", () => ({
   notFound: (...args: unknown[]) => notFoundMock(...args),
 }));
 
+vi.mock("@/lib/poker/game-errors", () => ({ GameNotFoundError: GameNotFoundErrorMock }));
 vi.mock("@/lib/poker/game-service", () => ({
-  GameNotFoundError: GameNotFoundErrorMock,
   getPublicGame: (...args: unknown[]) => getPublicGameMock(...args),
 }));
 

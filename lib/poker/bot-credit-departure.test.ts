@@ -5,7 +5,8 @@ import { BotProviderError, LLM_CREDIT_EXIT_RULE } from "@/lib/bots/types";
 import { providerHttpFailureDiagnostics } from "@/lib/bots/provider-http-failure";
 import { GameConflictError, type PersistAIActionInput, type PersistedGame } from "@/lib/supabase/queries";
 import { createDeterministicDeck, pokerEngineAdapter } from "./adapter";
-import { BotStepForbiddenError, stepBotAction } from "./game-service";
+import { BotStepForbiddenError } from "./driver-authorization";
+import { stepBotAction } from "./bot-turn-service";
 import type { BotDescriptor } from "./types";
 
 const descriptor = { id: "llm", label: "LLM", provider: "llm", modelId: "vendor/model" } satisfies BotDescriptor;

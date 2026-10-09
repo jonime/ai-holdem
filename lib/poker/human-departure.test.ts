@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { pokerEngineAdapter, createDeterministicDeck } from "./adapter";
-import { advanceDeparture, BotStepForbiddenError, departureFold, prepareSeatDeparture, reconcilePublicSeats, submitHumanAction } from "./game-service";
+import { BotStepForbiddenError } from "./driver-authorization";
+import { reconcilePublicSeats } from "./game-projection";
+import { advanceDeparture, departureFold, prepareSeatDeparture, submitHumanAction } from "./game-service";
 import { releaseSeat } from "./seat-service";
 import { GameConflictError, type PersistedGame, type PersistHumanActionInput, type GameReadSnapshot } from "@/lib/supabase/queries";
 import type { PokerGameState } from "./types";

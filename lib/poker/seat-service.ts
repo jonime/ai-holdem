@@ -1,4 +1,5 @@
-import { prepareSeatDeparture, type GameReader } from "./game-service";
+import type { GameReader } from "./game-service-contracts";
+import { prepareSeatDeparture } from "./game-service";
 import type { AIDifficulty, BotDescriptor, BotPlaystyleId } from "./types";
 import type { AtomicSeatAssignmentRepository, SeatAssignmentRepository } from "./seat-contracts";
 import { isCallerHost, type GameHostReader } from "./host-authorization";

@@ -10,7 +10,7 @@ const {
   GameNotFoundErrorMock,
   getPublicGameMock,
   startNextHandMock,
-  stepTypesafeActionMock,
+  stepBotActionMock,
 } = vi.hoisted(() => ({
   BotStepForbiddenErrorMock: class BotStepForbiddenError extends Error {},
   GameNotFoundErrorMock: class GameNotFoundError extends Error {
@@ -21,16 +21,16 @@ const {
   },
   getPublicGameMock: vi.fn(),
   startNextHandMock: vi.fn(),
-  stepTypesafeActionMock: vi.fn(),
+  stepBotActionMock: vi.fn(),
 }));
 
+vi.mock("@/lib/poker/game-errors", () => ({ GameNotFoundError: GameNotFoundErrorMock }));
+vi.mock("@/lib/poker/driver-authorization", () => ({ BotStepForbiddenError: BotStepForbiddenErrorMock }));
+vi.mock("@/lib/poker/bot-turn-service", () => ({ stepBotAction: (...args: unknown[]) => stepBotActionMock(...args) }));
+
 vi.mock("@/lib/poker/game-service", () => ({
-  GameNotFoundError: GameNotFoundErrorMock,
-  BotStepForbiddenError: BotStepForbiddenErrorMock,
   getPublicGame: (...args: unknown[]) => getPublicGameMock(...args),
   startNextHand: (...args: unknown[]) => startNextHandMock(...args),
-  stepTypesafeAction: (...args: unknown[]) => stepTypesafeActionMock(...args),
-  stepBotAction: (...args: unknown[]) => stepTypesafeActionMock(...args),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -69,7 +69,7 @@ describe("GET /api/games/[gameId]", () => {
 
 describe.each([
   { name: "next-hand", handler: nextHand, service: startNextHandMock },
-  { name: "step", handler: step, service: stepTypesafeActionMock },
+  { name: "step", handler: step, service: stepBotActionMock },
 ])("POST /api/games/[gameId]/$name", ({ name, handler, service }) => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -133,7 +133,7 @@ describe.each([
 
  it("returns forbidden for unauthorized bot steps without broadcasting", async () => {
   vi.clearAllMocks();
-  stepTypesafeActionMock.mockRejectedValue(new BotStepForbiddenErrorMock("Forbidden"));
+  stepBotActionMock.mockRejectedValue(new BotStepForbiddenErrorMock("Forbidden"));
   const response = await step(new Request("http://localhost/api/games/game-1/step", {
     method: "POST", body: JSON.stringify({ expectedVersion: 1 }),
   }), { params: Promise.resolve({ gameId: "game-1" }) });

@@ -1,45 +1,55 @@
+import type {
+  GameSessionWriter,
+  GameReader,
+  GameSnapshotReader,
+  HandRevealReader,
+  HumanRevealWriter,
+  HumanActionWriter,
+  GameFeedReader,
+  NextHandWriter,
+  StartGameWriter,
+  UpdateSeatCountWriter,
+  UpdateTableSettingsWriter,
+  DepartureWriter,
+} from "./game-service-contracts";
+import { GameNotFoundError } from "./game-errors";
+import { restorePersistedState } from "./persisted-state";
+import { BotStepForbiddenError, requireBotDriver } from "./driver-authorization";
+import {
+  enginePlayerIdForAssignment,
+  supportsDifficulty,
+  playerConfigForAssignment,
+  withOpenSeatPlaceholders,
+  reconcilePublicSeats,
+  publicLiveSeats,
+  publicProjectionForViewer,
+  currentRevealIds,
+  autoRevealForCompletedState,
+  publicTimerFields,
+} from "./game-projection";
 import type { DepartureFold } from "./departure-contracts";
-import { randomUUID } from "node:crypto";
-import { BotStepInProgressError, type BotStepClaimRepository } from "./bot-step-claims";
-import { BotHistoryConflictError, projectBotHistory, legacyDecisionHistory, type BotHandContext } from "./bot-history";
 import { isCallerHost, type GameHostReader } from "./host-authorization";
 import type { SeatAssignment, SeatAssignmentRepository } from "./seat-contracts";
 export type { SeatAssignment, SeatAssignmentRepository } from "./seat-contracts";
 import { pokerEngineAdapter } from "./adapter";
-import { createPokerAIState } from "./ai-state";
-import { createSizingOptions, createLegacySizingOptions } from "@/lib/typesafe/questions";
 import { HumanActionError, applyHumanAction, type HumanActionSubmission } from "./human-actions";
 import type {
   BotDescriptor,
   BotPlaystyleId,
   GameConfig,
   PokerGameState,
-  PublicPokerGame,
   PokerPlayerConfig,
   TableSettings,
 } from "./types";
 import type {
-  CreateGameSessionInput,
-  GameFeed,
-  PersistAIActionInput,
   PersistHumanActionInput,
   PersistedGame,
-  GameListing,
-  GameReadSnapshot,
-  StartNextHandInput,
-  UpdateSeatCountInput,
 } from "@/lib/supabase/queries";
 import { GameConflictError } from "@/lib/supabase/queries";
-import type { TypesafeDecisionClient } from "@/lib/typesafe/decision";
-import { JevPokerBot } from "@/lib/bots/jev";
 import {
   equityRulesV2BotDescriptor,
   getBotCatalog,
-  type BotRegistry,
 } from "@/lib/bots/registry";
-import { emptyDiagnostics, LLM_CREDIT_EXIT_RULE, type BotDecision, type PokerBot } from "@/lib/bots/types";
-import { isLlmCreditFailure } from "@/lib/bots/provider-http-failure";
-import { logBotProviderFailure } from "@/lib/bots/provider-logging";
 
 export interface CreateDemoGameOptions {
   readonly humanTurnSeconds?: import("./types").HumanTurnSeconds;
@@ -143,60 +153,11 @@ export function createDemoGameConfig(
 
 export const demoGameConfig: GameConfig = createDemoGameConfig();
 
-export interface GameSessionWriter {
-  createGameSession(input: CreateGameSessionInput): Promise<PersistedGame>;
-}
-
-export interface GameReader {
-  getGame(gameId: string): Promise<PersistedGame | null>;
-}
-
-export interface GameSnapshotReader {
-  getGameReadSnapshot(gameId: string): Promise<GameReadSnapshot | null>;
-}
-
-export interface HandRevealReader {
-  getCurrentHandRevealedPlayerIds(
-    gameId: string,
-    handNumber: number,
-  ): Promise<readonly string[]>;
-}
-
-export interface HumanRevealWriter {
-  revealHumanCards(input: {
-    readonly gameId: string;
-    readonly handNumber: number;
-    readonly expectedVersion: number;
-    readonly playerToken: string;
-  }): Promise<PersistedGame>;
-}
-
-export interface GameListingReader {
-  getGameListing(gameId: string): Promise<GameListing | null>;
-}
-
-export interface HumanActionWriter {
-  persistHumanAction(input: PersistHumanActionInput): Promise<PersistedGame>;
-}
-
-export interface AIActionWriter {
-  persistAIAction(input: PersistAIActionInput): Promise<PersistedGame>;
-}
-
-export interface BotHandContextReader {
-  getBotHandContext(gameId: string, handNumber: number): Promise<BotHandContext | null>;
-}
-
-export interface GameFeedReader {
-  getGameFeed(
-    gameId: string,
-    handLimit?: number,
-    sinceHand?: number,
-  ): Promise<GameFeed>;
-}
-
 export type { GameFeedEvent as PublicFeedEvent, GameFeed as PublicGameFeed } from "@/lib/http/feed-contracts";
-import type { GameFeedEvent as PublicFeedEvent, GameFeed as PublicGameFeed } from "@/lib/http/feed-contracts";
+import type {
+  GameFeedEvent as PublicFeedEvent,
+  GameFeed as PublicGameFeed,
+} from "@/lib/http/feed-contracts";
 
 const bettingStreets = ["preflop", "flop", "turn", "river"] as const;
 
@@ -216,24 +177,6 @@ function boardThroughStreet(
   }
 }
 
-export interface NextHandWriter {
-  startNextHand(input: StartNextHandInput): Promise<PersistedGame>;
-}
-
-export interface StartGameWriter {
-  startGame(input: StartNextHandInput): Promise<PersistedGame>;
-}
-
-export interface UpdateSeatCountWriter {
-  updateSeatCount(input: UpdateSeatCountInput): Promise<PersistedGame>;
-}
-
-export interface UpdateTableSettingsWriter {
-  updateTableSettings(
-    input: UpdateSeatCountInput & TableSettings,
-  ): Promise<PersistedGame>;
-}
-
 export interface CreatedGame {
   readonly gameId: string;
   readonly state: PokerGameState;
@@ -241,32 +184,7 @@ export interface CreatedGame {
 }
 
 export type { GameplayGame as PublicGame, GameplayAIDecision as PublicAIDecision } from "@/lib/http/gameplay-contracts";
-import type { GameplayGame as PublicGame, BotStepResponseEnvelope as BotStepResult } from "@/lib/http/gameplay-contracts";
-export type { BotStepResponseEnvelope as BotStepResult } from "@/lib/http/gameplay-contracts";
-
-export type TypesafeStepResult = BotStepResult;
-
-export class GameNotFoundError extends Error {
-  constructor(gameId: string) {
-    super(`Game not found: ${gameId}`);
-    this.name = "GameNotFoundError";
-  }
-}
-
-function restorePersistedState(raw: unknown): PokerGameState {
-  if (!raw || typeof raw !== "object") {
-    throw new Error("Malformed persisted game state");
-  }
-  const state = raw as Record<string, unknown>;
-  if (state.stateSchemaVersion !== 1) {
-    throw new Error("Malformed persisted game state");
-  }
-  try {
-    return pokerEngineAdapter.restore(state as unknown as PokerGameState);
-  } catch {
-    throw new Error("Malformed persisted game state");
-  }
-}
+import type { GameplayGame as PublicGame } from "@/lib/http/gameplay-contracts";
 
 export async function createDemoGame(
   repository: GameSessionWriter,
@@ -385,134 +303,6 @@ export async function createQuickPlayGame(
   };
 }
 
-function enginePlayerIdForAssignment(
-  gameId: string,
-  assignment: SeatAssignment,
-): string {
-  return (
-    assignment.enginePlayerId ??
-    `${assignment.status === "bot" ? "bot" : "player"}-${gameId}-${assignment.seat}`
-  );
-}
-
-function supportsDifficulty(
-  provider: BotDescriptor["provider"] | null | undefined,
-) {
-  return provider === "typesafe" || provider === "rules";
-}
-
-function playerConfigForAssignment(
-  gameId: string,
-  assignment: SeatAssignment,
-  startingStack: number,
-): PokerPlayerConfig {
-  return {
-    id: enginePlayerIdForAssignment(gameId, assignment),
-    seat: assignment.seat,
-    name:
-      assignment.name ??
-      (assignment.status === "bot"
-        ? (assignment.bot?.label ?? "TypeSafe Jev")
-        : `Player ${assignment.seat + 1}`),
-    controller: assignment.controller,
-    bot: assignment.controller === "bot" ? assignment.bot : null,
-    aiDifficulty: supportsDifficulty(assignment.bot?.provider)
-      ? (assignment.aiDifficulty ?? "medium")
-      : null,
-    botProfileId:
-      assignment.bot?.provider === "llm"
-        ? (assignment.botProfileId ?? "balanced")
-        : null,
-    stack: startingStack,
-    status: assignment.status,
-    playerToken: assignment.playerToken,
-    isHost: assignment.isHost,
-    leaving: assignment.leaving ?? false,
-  };
-}
-
-async function withOpenSeatPlaceholders(
-  repository: SeatAssignmentRepository,
-  gameId: string,
-  state: PokerGameState,
-): Promise<PokerGameState & { readonly seatAssignments: readonly SeatAssignment[] }> {
-  const assignments = await repository.getSeatAssignments(gameId);
-  return reconcilePublicSeats(gameId, state, assignments);
-}
-
-export function reconcilePublicSeats(
-  gameId: string,
-  state: PokerGameState,
-  assignments: readonly SeatAssignment[],
-): PokerGameState & { readonly seatAssignments: readonly SeatAssignment[] } {
-  const startingStack =
-    state.config.startingStack ?? state.config.players[0]?.stack ?? 10_000;
-  const assignmentsById = new Map(
-    assignments
-      .filter((assignment) => assignment.enginePlayerId)
-      .map((assignment) => [assignment.enginePlayerId, assignment]),
-  );
-  const assignmentsBySeat = new Map(
-    assignments.map((assignment) => [assignment.seat, assignment]),
-  );
-  const configuredPlayerIds = new Set(
-    state.config.players.map((player) => player.id),
-  );
-  const completed = pokerEngineAdapter.snapshot(state).street === "complete";
-  const players = state.config.players.map((player) => {
-    const assignment =
-      assignmentsById.get(player.id) ?? assignmentsBySeat.get(player.seat);
-    // Completed participants retain their immutable identity and private ownership.
-    // Seat availability is separate from their engine participation and awards.
-    if (completed) {
-      const retained = assignment?.enginePlayerId === player.id;
-      return { ...player, status: retained ? assignment.status : "open" as const,
-        leaving: retained ? (assignment.leaving ?? false) : true,
-        isHost: retained ? assignment.isHost : false };
-    }
-    return assignment
-      ? {
-          ...player,
-          seat: assignment.seat,
-          name: assignment.name ?? player.name,
-          controller: assignment.controller,
-          bot: assignment.controller === "bot" ? assignment.bot : null,
-          aiDifficulty: supportsDifficulty(assignment.bot?.provider)
-            ? (assignment.aiDifficulty ?? "medium")
-            : null,
-          botProfileId:
-            assignment.bot?.provider === "llm"
-              ? (assignment.botProfileId ?? "balanced")
-              : null,
-          status: assignment.status,
-          playerToken: assignment.playerToken,
-          isHost: assignment.isHost,
-          leaving: assignment.leaving ?? false,
-        }
-      : player;
-  });
-  const configuredSeats = new Set(players.map((player) => player.seat));
-  for (const assignment of assignments) {
-    if (
-      assignment.enginePlayerId &&
-      configuredPlayerIds.has(assignment.enginePlayerId)
-    ) {
-      continue;
-    }
-    if (configuredSeats.has(assignment.seat)) continue;
-    players.push(playerConfigForAssignment(gameId, assignment, startingStack));
-    configuredSeats.add(assignment.seat);
-  }
-  return {
-    ...state,
-    seatAssignments: assignments,
-    config: {
-      ...state.config,
-      players,
-    },
-  };
-}
-
 async function reconcileState(
   repository: SeatAssignmentRepository,
   gameId: string,
@@ -627,67 +417,6 @@ async function reconcileState(
       }),
     },
   };
-}
-
-function publicLiveSeats(state: PokerGameState, assignments: readonly SeatAssignment[], viewerToken: string | null) {
-  const players = pokerEngineAdapter.publicProjection(state, null).players;
-  return assignments.map(seat => ({
-    id: enginePlayerIdForAssignment(seat.gameId, seat), seat: seat.seat,
-    status: seat.status, controller: seat.controller, leaving: seat.leaving ?? false,
-    playerToken: viewerToken && seat.playerToken === viewerToken ? viewerToken : null,
-    stack: seat.status === "open" ? 0 : players.find(player => player.id === seat.enginePlayerId)?.stack
-      ?? state.config.startingStack ?? state.config.players[0]?.stack ?? 10_000,
-  }));
-}
-
-function publicProjectionForViewer(
-  state: PokerGameState & { readonly seatAssignments?: readonly SeatAssignment[] },
-  viewerToken: string | null,
-  revealedPlayerIds: readonly string[] = [],
-  botsShowUncontestedWins = false,
-): PublicPokerGame {
-  const viewerPlayerId = viewerToken
-    ? (state.config.players.find(
-        (player) =>
-          player.playerToken === viewerToken || player.id === viewerToken,
-      )?.id ?? null)
-    : null;
-  return {
-    ...pokerEngineAdapter.publicProjection(
-      state,
-      viewerPlayerId,
-      revealedPlayerIds,
-    ),
-    botsShowUncontestedWins,
-    ...(state.seatAssignments ? { seats: publicLiveSeats(state, state.seatAssignments, viewerToken) } : {}),
-  };
-}
-
-async function currentRevealIds(
-  repository: Partial<HandRevealReader>,
-  gameId: string,
-  handNumber: number,
-): Promise<readonly string[]> {
-  return repository.getCurrentHandRevealedPlayerIds
-    ? repository.getCurrentHandRevealedPlayerIds(gameId, handNumber)
-    : [];
-}
-
-function autoRevealForCompletedState(
-  state: PokerGameState,
-  botsShowUncontestedWins: boolean,
-): { playerId: string; reason: "bot_uncontested" } | null {
-  const snapshot = pokerEngineAdapter.snapshot(state);
-  if (!botsShowUncontestedWins || snapshot.completionReason !== "fold") {
-    return null;
-  }
-  if (snapshot.winnerIds.length !== 1) return null;
-  const winner = state.config.players.find(
-    (player) => player.id === snapshot.winnerIds[0],
-  );
-  return winner && winner.controller !== "human"
-    ? { playerId: winner.id, reason: "bot_uncontested" }
-    : null;
 }
 
 export async function startGame(
@@ -1216,247 +945,6 @@ export async function submitHumanAction(
   };
 }
 
-export class BotStepForbiddenError extends Error {
-  constructor() {
-    super("Only the host or a seated human can advance bots");
-    this.name = "BotStepForbiddenError";
-  }
-}
-
-async function requireBotDriver(
-  repository: GameHostReader & Partial<SeatAssignmentRepository>,
-  gameId: string,
-  state: ReturnType<typeof restorePersistedState>,
-  viewerToken: string | null,
-) {
-  if (!viewerToken) throw new BotStepForbiddenError();
-  if (await isCallerHost(repository, gameId, viewerToken)) return;
-  const players = repository.getSeatAssignments
-    ? await repository.getSeatAssignments(gameId)
-    : state.config.players;
-  if (players.some(player => player.controller === "human" &&
-      (player.status ?? "claimed") === "claimed" && player.playerToken === viewerToken)) return;
-  throw new BotStepForbiddenError();
-}
-
-async function stepResolvedBotAction(
-  repository: GameReader &
-    AIActionWriter &
-    GameHostReader &
-    Partial<
-      SeatAssignmentRepository &
-        BotHandContextReader &
-        HandRevealReader
-    >,
-  bot: PokerBot,
-  botDescriptor: BotDescriptor,
-  gameId: string,
-  expectedVersion: number,
-  viewerToken: string | null = null,
-  beforeInference: () => Promise<void> = async () => {},
-  commit: AIActionWriter["persistAIAction"] = input => repository.persistAIAction(input),
-): Promise<BotStepResult> {
-  const game = await repository.getGame(gameId);
-  if (!game) {
-    throw new GameNotFoundError(gameId);
-  }
-  await requireBotDriver(repository, gameId, restorePersistedState(game.currentState), viewerToken);
-  if (game.version !== expectedVersion) {
-    throw new GameConflictError(gameId, expectedVersion);
-  }
-
-  const stateBefore = restorePersistedState(game.currentState);
-  const snapshotBefore = pokerEngineAdapter.snapshot(stateBefore);
-  const botPlayer = stateBefore.config.players.find(
-    (player) => player.id === snapshotBefore.currentActorId,
-  );
-  if (!botPlayer || botPlayer.controller === "human") {
-    throw new Error("It is not a bot turn");
-  }
-  if (!snapshotBefore.street || snapshotBefore.street === "complete") {
-    throw new Error("The current hand is not accepting actions");
-  }
-
-  const history = repository.getBotHandContext
-    ? await repository.getBotHandContext(gameId, snapshotBefore.handNumber) : null;
-  if (history && history.version !== expectedVersion) throw new GameConflictError(gameId, expectedVersion);
-  let projectedHistory: ReturnType<typeof projectBotHistory>;
-  try { projectedHistory = projectBotHistory(history, stateBefore, botPlayer.id); }
-  catch (error) {
-    if (error instanceof BotHistoryConflictError) throw new GameConflictError(gameId, expectedVersion);
-    throw error;
-  }
-  const aiState = createPokerAIState(stateBefore, botPlayer.id, {
-    difficulty: botPlayer.aiDifficulty ?? "medium",
-    decisionHistory: botDescriptor.provider === "rules" ? legacyDecisionHistory(projectedHistory.actions) : projectedHistory.actions,
-    historyStatus: projectedHistory.status,
-    correctedContext: botDescriptor.provider !== "rules",
-  });
-  const context = { ...aiState, sizingOptions: botDescriptor.provider === "rules"
-    ? createLegacySizingOptions(aiState) : createSizingOptions(aiState) };
-  if (botDescriptor.provider !== "rules") await beforeInference();
-  let decision: BotDecision;
-  let creditFailure: unknown;
-  try {
-    decision = await bot.decide(context);
-  } catch (error) {
-    if (botDescriptor.provider !== "llm" || !isLlmCreditFailure(error) ||
-        !pokerEngineAdapter.getLegalActions(stateBefore).some(action => action.type === "fold")) throw error;
-    creditFailure = error;
-    decision = {
-      action: { type: "fold" },
-      diagnostics: emptyDiagnostics({ matchedRule: LLM_CREDIT_EXIT_RULE, botProfileId: botPlayer.botProfileId ?? null }),
-      rawResponse: null,
-    };
-  }
-  const stateAfter = pokerEngineAdapter.applyAction(
-    stateBefore,
-    botPlayer.id,
-    decision.action,
-  );
-  const snapshotAfter = pokerEngineAdapter.snapshot(stateAfter);
-  const persistedGame = await commit({
-    gameId,
-    expectedVersion,
-    leaveSeat: creditFailure !== undefined,
-    playerEngineId: botPlayer.id,
-    currentState: stateAfter,
-    stateSchemaVersion: stateAfter.stateSchemaVersion,
-    handNumber: snapshotAfter.handNumber,
-    status: snapshotAfter.street === "complete" ? "complete" : "playing",
-    street: snapshotBefore.street,
-    action: decision.action.type,
-    amount:
-      "amount" in decision.action ? (decision.action.amount ?? null) : null,
-    stateBefore,
-    handComplete: snapshotAfter.street === "complete",
-    choice: decision.action.type,
-    bot: botDescriptor,
-    matchedRule: decision.diagnostics.matchedRule,
-    ...(() => {
-      const autoReveal = autoRevealForCompletedState(
-        stateAfter,
-        game.botsShowUncontestedWins ?? false,
-      );
-      return autoReveal
-        ? {
-            autoRevealPlayerEngineId: autoReveal.playerId,
-            autoRevealReason: autoReveal.reason,
-          }
-        : {};
-    })(),
-  });
-
-  if (creditFailure !== undefined) logBotProviderFailure(gameId, creditFailure, "fold_and_leave");
-
-  const projectedState = repository.getSeatAssignments
-    ? await withOpenSeatPlaceholders(
-        repository as SeatAssignmentRepository,
-        gameId,
-        stateAfter,
-      )
-    : stateAfter;
-
-  return {
-    game: {
-      id: persistedGame.id,
-      status: persistedGame.status,
-      version: persistedGame.version,
-    ...publicTimerFields(persistedGame),
-      viewerIsHost: await isCallerHost(repository, gameId, viewerToken),
-      poker: publicProjectionForViewer(
-        projectedState,
-        viewerToken,
-        await currentRevealIds(repository, gameId, snapshotAfter.handNumber),
-        persistedGame.botsShowUncontestedWins ?? false,
-      ),
-    },
-    aiDecision: {
-      action: decision.action.type,
-      amount:
-        "amount" in decision.action ? (decision.action.amount ?? null) : null,
-      bot: botDescriptor,
-      botProfileId: decision.diagnostics.botProfileId,
-      probabilities: decision.diagnostics.probabilities,
-      confidence: decision.diagnostics.confidence,
-      sizing: decision.diagnostics.sizing,
-      matchedRule: decision.diagnostics.matchedRule,
-    },
-  };
-}
-
-export async function stepBotAction(
-  repository: Parameters<typeof stepResolvedBotAction>[0] & BotStepClaimRepository,
-  registry: BotRegistry,
-  gameId: string,
-  expectedVersion: number,
-  viewerToken: string | null = null,
-): Promise<BotStepResult> {
-  const game = await repository.getGame(gameId);
-  if (!game) throw new GameNotFoundError(gameId);
-  await requireBotDriver(repository, gameId, restorePersistedState(game.currentState), viewerToken);
-  if (game.version !== expectedVersion) {
-    throw new GameConflictError(gameId, expectedVersion);
-  }
-  const state = restorePersistedState(game.currentState);
-  const snapshot = pokerEngineAdapter.snapshot(state);
-  const actorId = snapshot.currentActorId;
-  const player = state.config.players.find(
-    (candidate) => candidate.id === actorId,
-  );
-  if (!player || player.controller === "human" || !snapshot.street || snapshot.street === "complete") {
-    throw new Error("It is not a bot turn");
-  }
-  const claimToken = randomUUID();
-  const claim = await repository.acquireBotStepClaim({ gameId, expectedVersion, actorEngineId: player.id, claimToken });
-  if (claim.outcome === "busy") throw new BotStepInProgressError(claim.retryAfterMs);
-  try {
-    const botId = player.bot?.id ?? "jev";
-    const resolved = registry.get({
-      botId,
-      profileId: player.botProfileId,
-    });
-    return await stepResolvedBotAction(
-      repository,
-      resolved.bot,
-      resolved.descriptor,
-      gameId,
-      expectedVersion,
-      viewerToken,
-      () => repository.admitExternalBotCall({ gameId, expectedVersion, claimToken }),
-      input => repository.persistClaimedAIAction({ ...input, claimToken }),
-    );
-  } finally {
-    try { await repository.releaseBotStepClaim(gameId, claimToken); }
-    catch { console.warn("Bot claim cleanup failed", { gameId }); }
-  }
-}
-
-/** Legacy test seam retained while callers migrate to the bot registry. */
-export async function stepTypesafeAction(
-  repository: Parameters<typeof stepResolvedBotAction>[0],
-  client: TypesafeDecisionClient,
-  gameId: string,
-  viewerToken: string | null = null,
-): Promise<BotStepResult> {
-  const game = await repository.getGame(gameId);
-  if (!game) throw new GameNotFoundError(gameId);
-  await requireBotDriver(repository, gameId, restorePersistedState(game.currentState), viewerToken);
-  return stepResolvedBotAction(
-    repository,
-    new JevPokerBot(client),
-    {
-      id: "jev",
-      label: "TypeSafe Jev",
-      provider: "typesafe",
-      modelId: "jev-latest",
-    },
-    gameId,
-    game.version,
-    viewerToken,
-  );
-}
-
 export async function startNextHand(
   repository: GameReader &
     NextHandWriter &
@@ -1609,9 +1097,6 @@ export function departureFold(game: PersistedGame, actorId: string): DepartureFo
     ...(reveal ? { autoRevealPlayerEngineId: reveal.playerId, autoRevealReason: reveal.reason } : {}) };
 }
 
-export interface DepartureWriter {
-  advanceDepartureIfVersion(input: DepartureFold & { readonly driverToken: string }): Promise<PersistedGame>;
-}
 export async function advanceDeparture(
   repository: GameReader & GameHostReader & SeatAssignmentRepository & DepartureWriter & Partial<HandRevealReader>,
   gameId: string, expectedVersion: number, viewerToken: string | null,
@@ -1652,10 +1137,6 @@ export async function prepareSeatDeparture(
   const state = restorePersistedState(game.currentState);
   const actor = pokerEngineAdapter.snapshot(state).currentActorId;
   if (actor && actor === seat.enginePlayerId) return departureFold(game, actor);
-}
-
-export function publicTimerFields(game: PersistedGame) {
-  return { turnTimer: game.turnTimer ?? null, serverTime: game.serverTime ?? new Date().toISOString() };
 }
 
 export async function advanceTimeout(

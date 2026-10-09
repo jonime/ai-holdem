@@ -20,9 +20,10 @@ vi.mock("@/lib/poker/public-directory-cache", () => ({ invalidatePublicDirectory
 vi.mock("@/lib/poker/directory", () => ({ joinPublicGame: mutation }));
 vi.mock("@/lib/bots/catalog", () => ({ getBotCatalog: () => [{ id: "equity-rules-v2", provider: "rules" }] }));
 vi.mock("@/lib/poker/seat-service", () => ({ claimSeat: mutation, releaseSeat: mutation, assignBotToSeat: mutation }));
+vi.mock("@/lib/poker/bot-turn-service", () => ({ stepBotAction: mutation }));
 vi.mock("@/lib/poker/game-service", async original => ({
   ...await original<typeof import("@/lib/poker/game-service")>(),
-  submitHumanAction: mutation, stepBotAction: mutation, startGame: mutation, startNextHand: mutation,
+  submitHumanAction: mutation, startGame: mutation, startNextHand: mutation,
   revealHumanCards: mutation, updateTableSettings: mutation, updateSeatCount: mutation,
   updatePlayerName: mutation,
 }));

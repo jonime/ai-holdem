@@ -6,11 +6,9 @@ import { stepBotRequestSchema, GAME_VERSION_CONFLICT, botFailureCodes, type BotS
 import { NextResponse } from "next/server";
 
 import { getPlayerTokenFromRequest } from "@/lib/identity/player-token";
-import {
-  GameNotFoundError,
-  BotStepForbiddenError,
-  stepBotAction,
-} from "@/lib/poker/game-service";
+import { GameNotFoundError } from "@/lib/poker/game-errors";
+import { BotStepForbiddenError } from "@/lib/poker/driver-authorization";
+import { stepBotAction } from "@/lib/poker/bot-turn-service";
 import { ServerBotRegistry } from "@/lib/bots/registry";
 import { BotProviderError } from "@/lib/bots/types";
 import { logBotProviderFailure } from "@/lib/bots/provider-logging";

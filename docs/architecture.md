@@ -18,6 +18,28 @@ Each request applies at most one player action. Supabase RPCs atomically store
 the resulting engine state and action record while enforcing the expected
 game version. Bot decision inspection data is not stored.
 
+## Poker service boundaries
+
+`lib/poker/bot-turn-service.ts` owns bot authorization, claims, history/context
+validation, usage admission, inference and token-matched persistence. Production
+routes call only `stepBotAction`; the decision/commit pipeline is private.
+`stepTypesafeAction` remains a claim-free legacy test seam and is never used by
+production routes. The entry point authorizes and checks the version before
+provider resolution, acquires a claim before context preparation, then the
+claimed pipeline rereads and revalidates the game before inference.
+
+`lib/poker/game-service.ts` owns creation, settings, human actions, feeds, hand
+transitions, departures and timeouts. Neither service imports the other.
+`driver-authorization.ts` shares host/owned-seat driver authorization and the
+single `BotStepForbiddenError` definition across bot turns, departures and
+timeouts. `game-errors.ts` owns `GameNotFoundError`; `persisted-state.ts` restores
+and validates persisted engine state. `game-projection.ts` shares seat
+placeholders, viewer privacy filtering, hand-scoped reveals and timer response
+fields. `game-service-contracts.ts` holds dependency-neutral repository
+interfaces; bot-specific interfaces stay with the bot service. These shared
+modules import neither service and do not resolve providers. Response types
+continue to come from the existing HTTP contracts.
+
 ## Human departure
 
 Deploy `20261019000000_add_human_departures.sql` before application code.

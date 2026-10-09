@@ -4,7 +4,8 @@ import { gameParamsSchema } from "@/lib/http/common-contracts";
 import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
-import { GameNotFoundError, submitHumanAction } from "@/lib/poker/game-service";
+import { GameNotFoundError } from "@/lib/poker/game-errors";
+import { submitHumanAction } from "@/lib/poker/game-service";
 import { HumanActionError } from "@/lib/poker/human-actions";
 import { submitActionRequestSchema, GAME_VERSION_CONFLICT, type GameResponseEnvelope } from "@/lib/http/gameplay-contracts";
 import { GameConflictError } from "@/lib/supabase/queries";

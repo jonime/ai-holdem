@@ -2,7 +2,8 @@ import { nextHandRequestSchema, gameParamsSchema, type GameResponseEnvelope } fr
 import { NextResponse } from "next/server";
 
 import { getPlayerTokenFromRequest } from "@/lib/identity/player-token";
-import { GameNotFoundError, startNextHand } from "@/lib/poker/game-service";
+import { GameNotFoundError } from "@/lib/poker/game-errors";
+import { startNextHand } from "@/lib/poker/game-service";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { scheduleGameEvent } from "@/lib/realtime/schedule";

@@ -2,10 +2,8 @@ import { renameSeatRequestSchema, seatPathParamsSchema, type SeatResponse } from
 import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
-import {
-  GameNotFoundError,
-  updatePlayerName,
-} from "@/lib/poker/game-service";
+import { GameNotFoundError } from "@/lib/poker/game-errors";
+import { updatePlayerName } from "@/lib/poker/game-service";
 import { scheduleSeatEvent } from "@/lib/realtime/schedule";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 

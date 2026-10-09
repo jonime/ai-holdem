@@ -187,6 +187,12 @@ Authorization uses the durable host record; a missing record never grants host
 permissions. Keep database locking, idempotent retries, and moves authoritative in
 the existing RPCs. Parse their returned seat rows without querying seats afterward.
 Player renaming and other game lifecycle operations remain in `game-service.ts`.
+Bot execution belongs in `bot-turn-service.ts`; production callers use the
+claim-protected `stepBotAction`, while `stepTypesafeAction` is only a legacy test
+seam. Both services use the shared driver authorization, persisted-state,
+projection/reveal/timer helpers and repository contracts described in
+[service boundaries](docs/architecture.md#poker-service-boundaries), and neither
+service imports the other.
 
 With Docker and Supabase CLI available and all local migrations applied, run:
 

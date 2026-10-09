@@ -4,11 +4,8 @@ import { versionSchema } from "@/lib/http/common-contracts";
 import { NextResponse } from "next/server";
 
 import { getOrCreatePlayerToken } from "@/lib/identity/player-token";
-import {
-  GameNotFoundError,
-  updateTableSettings,
-  validateTableSettings,
-} from "@/lib/poker/game-service";
+import { GameNotFoundError } from "@/lib/poker/game-errors";
+import { updateTableSettings, validateTableSettings } from "@/lib/poker/game-service";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import type { TableSettings } from "@/lib/poker/types";
 import { scheduleGameEvent } from "@/lib/realtime/schedule";

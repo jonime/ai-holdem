@@ -1,7 +1,7 @@
 import { beforeEach, expect, it, vi } from "vitest";
 import { POST } from "./route";
 import { advanceDepartureResponseSchema, GAME_VERSION_CONFLICT } from "@/lib/http/gameplay-contracts";
-import { BotStepForbiddenError } from "@/lib/poker/game-service";
+import { BotStepForbiddenError } from "@/lib/poker/driver-authorization";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { gameplayGame } from "@/test/fixtures/gameplay";
 const { advance, schedule, invalidate } = vi.hoisted(() => ({ advance: vi.fn(), schedule: vi.fn(), invalidate: vi.fn() }));

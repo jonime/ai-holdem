@@ -1,16 +1,12 @@
-import { withBotClaims } from "@/test/fixtures/bot-claims";
-import { BotStepInProgressError } from "./bot-step-claims";
+import { GameNotFoundError } from "./game-errors";
+import { stepTypesafeAction } from "./bot-turn-service";
 import { describe, expect, it, vi } from "vitest";
 
 import {
   createDemoGame,
   createQuickPlayGame,
-  GameNotFoundError,
-  BotStepForbiddenError,
-  stepBotAction,
   getGameFeed,
   getPublicGame,
-  stepTypesafeAction,
   startGame,
   startNextHand,
   submitHumanAction,
@@ -20,8 +16,6 @@ import {
   validateTableSettings,
 } from "./game-service";
 import { createDeterministicDeck, pokerEngineAdapter } from "./adapter";
-import { emptyDiagnostics } from "@/lib/bots/types";
-import { GameConflictError } from "@/lib/supabase/queries";
 import type {
   GameFeedActionItem,
   PersistAIActionInput,
@@ -1002,166 +996,6 @@ describe("submitHumanAction", () => {
   });
 });
 
-describe("stepTypesafeAction", () => {
-  it.each(["host-token"])(
-    "applies an AI action with a private response for viewer %s",
-    async (viewerToken) => {
-      const started = pokerEngineAdapter.startHand(
-        pokerEngineAdapter.createGame({
-          smallBlind: 50,
-          bigBlind: 100,
-          players: [
-            {
-              id: "human",
-              name: "You",
-              controller: "human",
-              seat: 0,
-              stack: 10_000,
-              playerToken: "host-token",
-              isHost: true,
-            },
-            {
-              id: "typesafe-ai",
-              name: "TypeSafe AI",
-              controller: "typesafe_ai",
-              seat: 1,
-              stack: 10_000,
-            },
-          ],
-        }),
-        createDeterministicDeck(),
-      );
-      const aiTurn = pokerEngineAdapter.applyAction(started, "human", {
-        type: "call",
-        amount: 50,
-      });
-      const persistAIAction = vi.fn().mockResolvedValue({
-        id: "game-1",
-        status: "playing",
-        currentState: {},
-        stateSchemaVersion: 1,
-        handNumber: 1,
-        version: 2,
-      });
-
-      const game = await stepTypesafeAction(
-        {
-          getHostToken: async () => null,
-          getGame: vi.fn().mockResolvedValue({
-            id: "game-1",
-            status: "playing",
-            currentState: aiTurn,
-            stateSchemaVersion: 1,
-            handNumber: 1,
-            version: 1,
-          }),
-          getBotHandContext: vi.fn().mockResolvedValue({
-            version: 1, handNumber: 1, initialState: started,
-            actions: [{ sequence: 1, action: { type: "call", amount: 50 }, stateBefore: started }],
-          }),
-          persistAIAction,
-        },
-        {
-          evaluate: async (request) => {
-            const choices = Object.keys(request.questions.move.criteria);
-            return {
-              answers: {
-                move: {
-                  type: "choice",
-                  choice: "check",
-                  probabilities: Object.fromEntries(
-                    choices.map((choice) => [
-                      choice,
-                      choice === "check" ? 1 : 0,
-                    ]),
-                  ),
-                  confidence: 1,
-                },
-              },
-            };
-          },
-        },
-        "game-1",
-        viewerToken,
-      );
-
-      expect(game.game.version).toBe(2);
-      const human = game.game.poker.players.find(
-        (player) => player.id === "human",
-      );
-      expect(human?.playerToken).toBe(
-        viewerToken === "host-token" ? "host-token" : null,
-      );
-      expect(human?.isHost).toBe(true);
-      if (viewerToken === "host-token") {
-        expect(human?.holeCards).toHaveLength(2);
-      } else {
-        expect(human?.holeCards).toBeNull();
-        expect(game.game.poker.legalActions).toEqual([]);
-      }
-      expect(
-        game.game.poker.players.find((player) => player.id === "typesafe-ai"),
-      ).toMatchObject({
-        playerToken: null,
-        holeCards: null,
-      });
-      expect(game.game.poker.currentActorId).toBe("typesafe-ai");
-      expect(game.aiDecision.action).toBe("check");
-      expect(persistAIAction).toHaveBeenCalledWith(
-        expect.objectContaining({
-          action: "check",
-          choice: "check",
-        }),
-      );
-    },
-  );
-
-  it("rejects attempts to step a human turn", async () => {
-    const humanTurn = pokerEngineAdapter.startHand(
-      pokerEngineAdapter.createGame({
-        smallBlind: 50,
-        bigBlind: 100,
-        players: [
-          {
-            id: "human",
-            name: "You",
-            controller: "human",
-            seat: 0,
-            stack: 10_000,
-          },
-          {
-            id: "typesafe-ai",
-            name: "TypeSafe AI",
-            controller: "typesafe_ai",
-            seat: 1,
-            stack: 10_000,
-          },
-        ],
-      }),
-      createDeterministicDeck(),
-    );
-    await expect(
-      stepTypesafeAction(
-        {
-          getGame: vi.fn().mockResolvedValue({
-            id: "game-1",
-            status: "playing",
-            currentState: humanTurn,
-            stateSchemaVersion: 1,
-            handNumber: 1,
-            version: 0,
-          }),
-          getHostToken: async () => "host-token",
-          persistAIAction: vi.fn(),
-        },
-        { evaluate: vi.fn() },
-        "game-1",
-        "host-token",
-      ),
-    ).rejects.toThrow("not a bot turn");
-  });
-});
-
 describe("startNextHand", () => {
   it("uses atomically released human assignments without independent cleanup when the next hand starts", async () => {
     let completedState = pokerEngineAdapter.startHand(
@@ -2008,101 +1842,5 @@ describe("getGameFeed", () => {
         expect.objectContaining({ type: "action", action: "check", playerId: null }),
       ],
     });
-  });
-});
-
-describe("bot driver authorization", () => {
-  const started = pokerEngineAdapter.startHand(pokerEngineAdapter.createGame({
-    smallBlind: 50, bigBlind: 100,
-    players: [
-      { id: "human", name: "Human", controller: "human", seat: 0, stack: 1000, playerToken: "owner" },
-      { id: "bot", name: "Bot", controller: "bot", seat: 1, stack: 1000 },
-    ],
-  }), createDeterministicDeck());
-  const currentState = pokerEngineAdapter.applyAction(started, "human", { type: "call", amount: 50 });
-  const game = { id: "game-1", status: "playing" as const, currentState, stateSchemaVersion: 1, handNumber: 1, version: 1 };
-
-  it.each([null, "spectator", "", "owner"])("rejects nonowners %s before registry, inference, or persistence", async token => {
-    const persistAIAction = vi.fn();
-    const evaluate = vi.fn();
-    const get = vi.fn();
-    const repository = { getGame: async () => game, getHostToken: async () => null,
-      getSeatAssignments: async () => [], persistAIAction };
-    await expect(stepBotAction(withBotClaims(repository), { get }, "game-1", 0, token)).rejects.toBeInstanceOf(BotStepForbiddenError);
-    await expect(stepTypesafeAction(repository, { evaluate }, "game-1", token)).rejects.toBeInstanceOf(BotStepForbiddenError);
-    expect(get).not.toHaveBeenCalled();
-    expect(evaluate).not.toHaveBeenCalled();
-    expect(persistAIAction).not.toHaveBeenCalled();
-  });
-
-  it.each(["host", "owner", "folded", "eliminated", "bot-only-host"])("permits %s before provider resolution", async token => {
-    const get = vi.fn(() => { throw new Error("provider reached"); });
-    const repository = { getGame: async () => game,
-      getHostToken: async () => token.includes("host") ? token : "host",
-      getSeatAssignments: async () => token === "bot-only-host" ? [] : [{
-        gameId: "game-1", seat: 0, controller: "human" as const, status: "claimed" as const,
-        playerToken: token, isHost: false,
-      }], persistAIAction: vi.fn() };
-    await expect(stepBotAction(withBotClaims(repository), { get }, "game-1", 1, token)).rejects.toThrow("provider reached");
-    expect(get).toHaveBeenCalledOnce();
-    expect(repository.persistAIAction).not.toHaveBeenCalled();
-  });
-
-  it("persists exactly one action when two authorized browsers race", async () => {
-    let stored: PersistedGame = game;
-    let commits = 0;
-    const decide = vi.fn(async () => {
-      return { action: { type: "check" as const }, diagnostics: emptyDiagnostics(), rawResponse: null };
-    });
-    const repository = {
-      getHostToken: async () => null,
-      getGame: async () => stored,
-      persistAIAction: vi.fn(async (input: PersistAIActionInput) => {
-        if (input.expectedVersion !== stored.version) throw new GameConflictError("game-1", input.expectedVersion);
-        commits++;
-        stored = { ...stored, currentState: input.currentState, version: stored.version + 1 };
-        return stored;
-      }),
-    };
-    const registry = { get: () => ({ bot: { decide }, descriptor: {
-      id: "rules", label: "Rules", provider: "rules" as const, modelId: null,
-    } }) };
-    const claimedRepository = withBotClaims(repository);
-    const results = await Promise.allSettled([
-      stepBotAction(claimedRepository, registry, "game-1", 1, "owner"),
-      stepBotAction(claimedRepository, registry, "game-1", 1, "owner"),
-    ]);
-    expect(decide).toHaveBeenCalledTimes(1);
-    expect(commits).toBe(1);
-    expect(stored.version).toBe(2);
-    expect(results.filter(result => result.status === "fulfilled")).toHaveLength(1);
-    const rejected = results.find(result => result.status === "rejected");
-    expect(rejected?.status === "rejected" && rejected.reason).toBeInstanceOf(BotStepInProgressError);
-  });
-
-  it("fails closed when ownership and identity are absent in the legacy seam", async () => {
-    const evaluate = vi.fn();
-    await expect(stepTypesafeAction({ getHostToken: async () => null, getGame: async () => game, persistAIAction: vi.fn() },
-      { evaluate }, "game-1")).rejects.toBeInstanceOf(BotStepForbiddenError);
-    expect(evaluate).not.toHaveBeenCalled();
-  });
-});
-
-describe("bot history validation before inference", () => {
-  it.each(["version","history","database"] as const)("rejects %s failure before a provider call", async kind => {
-    const initial=pokerEngineAdapter.startHand(pokerEngineAdapter.createGame({ smallBlind:1,bigBlind:2,
-      players:[{ id:"human",seat:0,name:"Duplicate",controller:"human",stack:200,playerToken:"host" },
-        { id:"bot",seat:1,name:"Duplicate",controller:"bot",stack:200 }] }),createDeterministicDeck());
-    const current=pokerEngineAdapter.applyAction(initial,"human",{ type:"call",amount:1 });
-    const evaluate=vi.fn();
-    const persistAIAction=vi.fn();
-    const getBotHandContext=vi.fn(async () => {
-      if (kind === "database") throw new Error("Database failed");
-      return { version:kind === "version" ? 2 : 1,handNumber:1,initialState:initial,actions:[] };
-    });
-    const promise=stepTypesafeAction({ getHostToken:async () => "host",getGame:async () => ({ id:"game-1",status:"playing",version:1,handNumber:1,stateSchemaVersion:1,currentState:current }),getBotHandContext,persistAIAction },{ evaluate },"game-1","host");
-    await expect(promise).rejects.toThrow(kind === "database" ? "Database failed" : GameConflictError);
-    expect(evaluate).not.toHaveBeenCalled();
-    expect(persistAIAction).not.toHaveBeenCalled();
   });
 });
