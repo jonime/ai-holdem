@@ -12,6 +12,7 @@ import type {
 import {
   copyInviteUrl,
   filledSeatCount,
+  formatChips,
   inviteUrlFromLocation,
   selectLobbyGuidance,
 } from "@/components/poker/view-model";
@@ -52,7 +53,7 @@ export function LobbyPanel({
   readonly onStartWaitingGame: (settings: TableSettings) => void;
   readonly onRefresh: () => Promise<unknown>;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const canManage = game.viewerIsHost;
   const viewerPlayer = game.poker.players.find(
     (player) =>
@@ -299,7 +300,7 @@ export function LobbyPanel({
             <div>
               <span>{t("lobby.blinds")}</span>
               <strong>
-                {game.poker.smallBlind} / {game.poker.bigBlind}
+                {formatChips(game.poker.smallBlind, locale)} / {formatChips(game.poker.bigBlind, locale)}
               </strong>
             </div>
             <div>
@@ -308,7 +309,7 @@ export function LobbyPanel({
             </div>
             <div>
               <span>{t("lobby.startingStack")}</span>
-              <strong>{game.poker.startingStack.toLocaleString()}</strong>
+              <strong>{formatChips(game.poker.startingStack, locale)}</strong>
             </div>
           </div>
         )}

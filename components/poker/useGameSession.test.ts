@@ -1,3 +1,4 @@
+import type { GameTranslator } from "@/lib/i18n/types";
 /* eslint-disable react-hooks/rules-of-hooks -- This test drives hook slots without a React renderer. */
 import { beforeEach, expect, it, vi } from "vitest";
 import { gameplayGame } from "@/test/fixtures/gameplay";
@@ -16,7 +17,7 @@ vi.mock("react", () => ({
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: h.push }) }));
 vi.mock("./useGameFeed", () => ({ useGameFeed: () => ({ feed: null, refreshFeed: vi.fn() }) }));
 vi.mock("./useBotLifecycle", () => ({ useBotLifecycle: () => ({ lifecycle: { reconcile: vi.fn(), suspend: h.suspend, clearNotice: vi.fn(), reset: vi.fn() }, loading: false, retry: vi.fn() }) }));
-vi.mock("./I18nProvider", () => ({ useI18n: () => ({ locale: "en-US", t: (key: string) => key }) }));
+vi.mock("./I18nProvider", () => ({ useI18n: () => ({ locale: "en-US", t: ((key) => key) satisfies GameTranslator }) }));
 vi.mock("@/lib/realtime/useGameChannel", () => ({ useGameChannel: () => "subscribed" }));
 vi.mock("@/lib/identity/player-token-client", () => ({ getClientPlayerToken: () => "owner" }));
 vi.mock("@/lib/http/api", async importOriginal => ({ ...await importOriginal<object>(), api: {

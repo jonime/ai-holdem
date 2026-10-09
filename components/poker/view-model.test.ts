@@ -623,3 +623,15 @@ describe("end-of-table flow", () => {
     expect(tableFlow([player("a", 100), player("b", 0)], "complete", "a", false).canStartNextHand).toBe(false);
   });
 });
+
+describe("locale chip formatting", () => {
+  it.each([
+    ["en-US", "1,234,567"],
+    ["fi-FI", "1\u00a0234\u00a0567"],
+    ["ja-JP", "1,234,567"],
+    ["zh-Hans", "1,234,567"],
+  ] as const)("formats zero and grouped amounts for %s", (locale, grouped) => {
+    expect(formatChips(0, locale)).toBe("0");
+    expect(formatChips(1_234_567, locale)).toBe(grouped);
+  });
+});
