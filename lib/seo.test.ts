@@ -43,6 +43,15 @@ describe("public SEO metadata", () => {
     expect(metadata.twitter).toMatchObject({ card: "summary_large_image", description: "Kuvaus" });
   });
 
+  it("keeps Simplified Chinese script tags in URLs and territory tags in Open Graph", () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://poker.example");
+    const metadata = getPageMetadata({ locale: "zh-Hans", title: "关于", description: "说明", pathname: "/about" });
+    expect(metadata.alternates?.canonical).toBe("https://poker.example/zh-Hans/about");
+    expect(metadata.alternates?.languages).toMatchObject({ "zh-Hans": "https://poker.example/zh-Hans/about", "ja-JP": "https://poker.example/ja-JP/about" });
+    expect(metadata.openGraph).toMatchObject({ locale: "zh_CN" });
+    expect(getPageMetadata({ locale: "ja-JP", title: "紹介", description: "説明" }).openGraph).toMatchObject({ locale: "ja_JP", alternateLocale: expect.arrayContaining(["zh_CN"]) });
+  });
+
   it("uses unprefixed English canonicals and fallback alternates", () => {
     vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://poker.example");
     expect(getPageMetadata({ locale: "en-US", title: "Home", description: "English" }).alternates?.canonical).toBe("https://poker.example/");

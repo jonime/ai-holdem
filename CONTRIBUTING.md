@@ -277,7 +277,7 @@ content lives in `content/about/<locale>.mdx`, including a localized `metadata`
 export. `lib/about/server.ts` is the server-only locale loader. Keep the heading
 structure and links aligned across all ten documents when changing About copy.
 
-There are ten locales (`en-US`, `fi-FI`, `es-ES`, `de-DE`, `sv-SE`, `fr-FR`, `pt-BR`, `it-IT`, `nl-NL`, `pl-PL`). The English module exports `as const`; every other locale uses `satisfies` with the corresponding type from `lib/i18n/types.ts`. Every dictionary module imports `server-only`.
+There are twelve locales (`en-US`, `fi-FI`, `es-ES`, `de-DE`, `sv-SE`, `fr-FR`, `pt-BR`, `it-IT`, `nl-NL`, `pl-PL`, `ja-JP`, `zh-Hans`). The English module exports `as const`; every other locale uses `satisfies` with the corresponding type from `lib/i18n/types.ts`. Every dictionary module imports `server-only`. Japanese and Simplified Chinese use horizontal left-to-right layouts with system CJK font fallbacks. The `pt-BR` translation is Brazilian Portuguese and is labeled accordingly; Portugal Portuguese would require a separate `pt-PT` translation.
 
 `app/(english)` serves English at unprefixed URLs (`/`, `/about`, `/play`,
 and `/game/<id>`) through wrappers that reuse the shared `app/[lang]` pages,
@@ -294,7 +294,7 @@ with English as `x-default`. Page caching and Markdown content negotiation
 from the unlocalized game-creation API; it does not control page routing.
 
 - To add a key, add it to the English dictionary and to every other locale in the same directory; `lib/i18n/dictionaries/dictionaries.test.ts` compares leaf-key paths and placeholders against English.
-- To add a locale, add `<locale>.ts` to each dictionary directory, register it in `SUPPORTED_LOCALES` in `lib/i18n/index.ts`, and add its dynamic import entry to the matching map in `lib/i18n/server.ts`.
+- To add a locale, add `<locale>.ts` to each dictionary directory, register it in `SUPPORTED_LOCALES` in `lib/i18n/index.ts`, and add its dynamic import entry to the matching map in `lib/i18n/server.ts`. Also register native language labels in `lib/i18n/languages.ts` and add the translated About MDX document and its loader in `lib/about/server.ts`. Script-based locales such as `zh-Hans` need a territory-based Open Graph locale in `lib/seo.ts`.
 - Server Components load dictionaries directly through the loaders in `lib/i18n/server` (`getMetadataDictionary`, `getLandingServerDictionary`, `getGameDictionary`).
 - The landing page is cached server output: `LanguageMenu` uses locale links and the Quick Play control is a plain POST form. Keep request cookies and game creation in `app/[lang]/new-game/route.ts`, outside the cached page.
 - Keep the landing-page **Play** control a plain server-rendered anchor.

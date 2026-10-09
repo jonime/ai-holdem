@@ -8,6 +8,8 @@ import frFrGame from "./dictionaries/game/fr-FR";
 import itItGame from "./dictionaries/game/it-IT";
 import nlNlGame from "./dictionaries/game/nl-NL";
 import plPlGame from "./dictionaries/game/pl-PL";
+import jaJpGame from "./dictionaries/game/ja-JP";
+import zhHansGame from "./dictionaries/game/zh-Hans";
 import ptBrGame from "./dictionaries/game/pt-BR";
 import svSeGame from "./dictionaries/game/sv-SE";
 import deDeLandingServer from "./dictionaries/landing-server/de-DE";
@@ -18,6 +20,8 @@ import frFrLandingServer from "./dictionaries/landing-server/fr-FR";
 import itItLandingServer from "./dictionaries/landing-server/it-IT";
 import nlNlLandingServer from "./dictionaries/landing-server/nl-NL";
 import plPlLandingServer from "./dictionaries/landing-server/pl-PL";
+import jaJpLandingServer from "./dictionaries/landing-server/ja-JP";
+import zhHansLandingServer from "./dictionaries/landing-server/zh-Hans";
 import ptBrLandingServer from "./dictionaries/landing-server/pt-BR";
 import svSeLandingServer from "./dictionaries/landing-server/sv-SE";
 import deDeMetadata from "./dictionaries/metadata/de-DE";
@@ -28,6 +32,8 @@ import frFrMetadata from "./dictionaries/metadata/fr-FR";
 import itItMetadata from "./dictionaries/metadata/it-IT";
 import nlNlMetadata from "./dictionaries/metadata/nl-NL";
 import plPlMetadata from "./dictionaries/metadata/pl-PL";
+import jaJpMetadata from "./dictionaries/metadata/ja-JP";
+import zhHansMetadata from "./dictionaries/metadata/zh-Hans";
 import ptBrMetadata from "./dictionaries/metadata/pt-BR";
 import svSeMetadata from "./dictionaries/metadata/sv-SE";
 import { SUPPORTED_LOCALES, type Locale } from "./index";
@@ -51,6 +57,8 @@ const metadataDictionaries: Record<Locale, MetadataDictionary> = {
   "it-IT": itItMetadata,
   "nl-NL": nlNlMetadata,
   "pl-PL": plPlMetadata,
+  "ja-JP": jaJpMetadata,
+  "zh-Hans": zhHansMetadata,
   "pt-BR": ptBrMetadata,
   "sv-SE": svSeMetadata,
 };
@@ -67,6 +75,8 @@ const landingServerDictionaries: Record<
   "it-IT": itItLandingServer,
   "nl-NL": nlNlLandingServer,
   "pl-PL": plPlLandingServer,
+  "ja-JP": jaJpLandingServer,
+  "zh-Hans": zhHansLandingServer,
   "pt-BR": ptBrLandingServer,
   "sv-SE": svSeLandingServer,
 };
@@ -80,6 +90,8 @@ const gameDictionaries: Record<Locale, GameDictionary> = {
   "it-IT": itItGame,
   "nl-NL": nlNlGame,
   "pl-PL": plPlGame,
+  "ja-JP": jaJpGame,
+  "zh-Hans": zhHansGame,
   "pt-BR": ptBrGame,
   "sv-SE": svSeGame,
 };

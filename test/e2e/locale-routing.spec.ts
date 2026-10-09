@@ -20,6 +20,17 @@ test("@smoke English URLs stay unprefixed and language changes are explicit", as
   await expect(page).toHaveURL(/\/fi-FI\/about$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "fi-FI");
   await page.getByRole("button", { name: "Kieli: Suomi", exact: true }).click();
+  await page.getByRole("link", { name: "日本語", exact: true }).click();
+  await expect(page).toHaveURL(/\/ja-JP\/about$/);
+  await expect(page.locator("html")).toHaveAttribute("lang", "ja-JP");
+  await expect(page.getByRole("heading", { name: "AI Hold'emについて", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "言語: 日本語", exact: true }).click();
+  await page.getByRole("link", { name: "简体中文", exact: true }).click();
+  await expect(page).toHaveURL(/\/zh-Hans\/about$/);
+  await expect(page.locator("html")).toHaveAttribute("lang", "zh-Hans");
+  await expect(page.getByRole("heading", { name: "关于 AI Hold'em", exact: true })).toBeVisible();
+  await expect(page.locator('meta[property="og:locale"]')).toHaveAttribute("content", "zh_CN");
+  await page.getByRole("button", { name: "语言: 简体中文", exact: true }).click();
   await page.getByRole("link", { name: "English", exact: true }).click();
   await expect(page).toHaveURL(/\/about$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "en-US");
@@ -28,7 +39,7 @@ test("@smoke English URLs stay unprefixed and language changes are explicit", as
   expect(legacy.status()).toBe(308);
   expect(new URL(legacy.headers().location, legacy.url()).pathname).toBe("/about");
   expect(new URL(legacy.headers().location, legacy.url()).search).toBe("?source=old");
-  const unknown = await page.request.get("/ja-JP/about");
+  const unknown = await page.request.get("/ko-KR/about");
   expect(unknown.status()).toBe(404);
   const sitemap = await page.request.get("/sitemap.xml");
   expect(await sitemap.text()).not.toContain("/en-US");

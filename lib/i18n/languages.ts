@@ -11,6 +11,8 @@ export const LANGUAGE_NAMES: Record<Locale, string> = {
   "it-IT": "Italiano",
   "nl-NL": "Nederlands",
   "pl-PL": "Polski",
+  "ja-JP": "日本語",
+  "zh-Hans": "简体中文",
 };
 
 export const LANGUAGE_LABELS: Record<Locale, string> = {
@@ -24,6 +26,8 @@ export const LANGUAGE_LABELS: Record<Locale, string> = {
   "it-IT": "Lingua",
   "nl-NL": "Taal",
   "pl-PL": "Język",
+  "ja-JP": "言語",
+  "zh-Hans": "语言",
 };
 
 export const SORTED_LOCALES = [...SUPPORTED_LOCALES].sort((left, right) =>

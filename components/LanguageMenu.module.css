@@ -4,7 +4,7 @@
   width: fit-content;
   margin-left: auto;
   color: #56716b;
-  font-family: var(--font-space-grotesk), sans-serif;
+  font-family: var(--font-space-grotesk), var(--font-cjk, sans-serif);
   font-size: 14px;
   text-align: center;
   font-weight: 700;

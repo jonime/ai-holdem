@@ -13,6 +13,11 @@ export function getLanguageAlternates(pathname = ""): Record<string, string> {
   ]);
 }
 
+// Open Graph requires language_TERRITORY rather than a script subtag.
+function openGraphLocale(locale: Locale): string {
+  return locale === "zh-Hans" ? "zh_CN" : locale.replace("-", "_");
+}
+
 export function getPageMetadata({
   locale,
   title,
@@ -49,10 +54,10 @@ export function getPageMetadata({
       url,
       siteName: "AI Hold'em",
       type: "website",
-      locale: locale.replace("-", "_"),
+      locale: openGraphLocale(locale),
       ...(translated
         ? { alternateLocale: SUPPORTED_LOCALES.filter((value) => value !== locale)
-            .map((value) => value.replace("-", "_")) }
+            .map(openGraphLocale) }
         : {}),
       images: [image],
     },
