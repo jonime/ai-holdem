@@ -13,12 +13,14 @@ async function create(page: Page, locale = "") {
   await page.goto(destination); return gameId;
 }
 async function join(context: BrowserContext, gameId: string, seat: number) {
-  const page = await context.newPage(); await page.goto(`/game/${gameId}`);
+  const page = await context.newPage();
+  // Establish identity before navigation starts browser reads, so concurrent
+  // first-time responses cannot overwrite the cookie used to claim the seat.
   const game = await read(page, gameId);
   const response = await page.request.post(`/api/games/${gameId}/seats/${seat}/claim`, {
     data: { expectedVersion: game.version, name: `Guest ${seat}` },
   });
-  expect(response.ok()).toBe(true); await page.reload();
+  expect(response.ok()).toBe(true); await page.goto(`/game/${gameId}`);
   return page;
 }
 async function start(page: Page, gameId: string) {

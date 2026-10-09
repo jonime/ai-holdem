@@ -1,9 +1,9 @@
 -- Disposable fixtures; preserve local games and fair-use counters.
 begin;
-create function pg_temp.removal_fixture(p_status text default 'waiting') returns uuid language plpgsql as $$
+create function pg_temp.removal_fixture(p_status text default 'waiting', p_updated_at timestamptz default now()) returns uuid language plpgsql as $$
 declare f uuid:=gen_random_uuid();
 begin
-  insert into public.games(id,status,current_state,hand_number) values(f,p_status,'{"engineState":{"hand":{"currentActorSeat":0,"players":[{"playerId":"a","seat":0},{"playerId":"b","seat":1}]}},"config":{"players":[]}}',1);
+  insert into public.games(id,status,current_state,hand_number,updated_at) values(f,p_status,'{"engineState":{"hand":{"currentActorSeat":0,"players":[{"playerId":"a","seat":0},{"playerId":"b","seat":1}]}},"config":{"players":[]}}',1,p_updated_at);
   insert into public.game_hosts(game_id,host_token) values(f,'removal-host');
   insert into public.game_players(game_id,seat,name,controller,stack,status,player_token,engine_player_id)
     values(f,0,'Host','human',1000,'claimed','removal-host','a'),(f,1,'Guest','human',1000,'claimed','removal-guest','b');
@@ -118,21 +118,23 @@ begin
   assert not exists(select 1 from public.personal_game_exclusions where game_id=f);
 
   -- Exclusion precedes the five-row limit; a successful new claim restores visibility.
+  -- Set distinct past timestamps on INSERT: games_set_updated_at overwrites UPDATE
+  -- values with transaction-stable now(). Reclaiming then makes the table newest.
   for i in 1..6 loop
-    f:=pg_temp.removal_fixture('playing');
+    f:=pg_temp.removal_fixture('playing',now()-(7-i)*interval '1 minute');
     update public.game_players set player_token='list-owner' where game_id=f and seat=1;
-    update public.games set updated_at=now()+i*interval '1 minute' where id=f;
     if i=1 then old:=f; end if;
     if i=6 then
       assert public.remove_game_if_version(f,0,'list-owner','leave_and_remove')->>'outcome'='ok';
     end if;
   end loop;
-  assert (select count(*) from public.list_my_games('list-owner'))=5;
-  assert exists(select 1 from public.list_my_games('list-owner') where game_id=old);
+  assert (select count(*) from public.list_my_games('list-owner'))=5, 'Exclusion must precede the five-row limit';
+  assert exists(select 1 from public.list_my_games('list-owner') where game_id=old), 'Exclusion must retain the oldest eligible table';
+  assert not exists(select 1 from public.list_my_games('list-owner') where game_id=f), 'Removed table must be excluded';
   update public.games set status='complete' where id=f;
   assert public.claim_game_seat_if_version(f,1,1,'list-owner',null)->>'outcome'='ok';
   assert not exists(select 1 from public.personal_game_exclusions where game_id=f and player_token='list-owner');
-  assert exists(select 1 from public.list_my_games('list-owner') where game_id=f);
+  assert (select game_id from public.list_my_games('list-owner') limit 1)=f, 'Reclaimed table must be the most recent';
 end; $$;
 set local role anon;
 do $$ begin
