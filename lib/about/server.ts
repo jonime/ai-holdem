@@ -23,6 +23,8 @@ const documents: Record<Locale, () => Promise<AboutDocument>> = {
   "it-IT": () => import("@/content/about/it-IT.mdx"),
   "nl-NL": () => import("@/content/about/nl-NL.mdx"),
   "pl-PL": () => import("@/content/about/pl-PL.mdx"),
+  "ja-JP": () => import("@/content/about/ja-JP.mdx"),
+  "zh-Hans": () => import("@/content/about/zh-Hans.mdx"),
 };
 
 export function getAboutDocument(locale: Locale): Promise<AboutDocument> {

@@ -24,7 +24,9 @@ describe("i18n routing helpers", () => {
     expect(hasLocale("it-IT")).toBe(true);
     expect(hasLocale("nl-NL")).toBe(true);
     expect(hasLocale("pl-PL")).toBe(true);
-    expect(hasLocale("ja-JP")).toBe(false);
+    expect(hasLocale("ja-JP")).toBe(true);
+    expect(hasLocale("zh-Hans")).toBe(true);
+    expect(hasLocale("ko-KR")).toBe(false);
     expect(addLocalePrefix("/game/example", DEFAULT_LOCALE)).toBe(
       "/game/example",
     );
@@ -35,6 +37,8 @@ describe("i18n routing helpers", () => {
     expect(addLocalePrefix("/fi-FI/about", DEFAULT_LOCALE)).toBe("/about");
     expect(removeLocalePrefix("/en-US/game/example")).toBe("/game/example");
     expect(removeLocalePrefix("/en-US")).toBe("/");
+    expect(addLocalePrefix("/ja-JP/about", "zh-Hans")).toBe("/zh-Hans/about");
+    expect(removeLocalePrefix("/zh-Hans/game/example")).toBe("/game/example");
   });
 
   it("provides a native name for every locale", () => {
@@ -44,6 +48,6 @@ describe("i18n routing helpers", () => {
     expect(Object.keys(LANGUAGE_LABELS).sort()).toEqual(
       [...SORTED_LOCALES].sort(),
     );
-    expect(SORTED_LOCALES).toHaveLength(10);
+    expect(SORTED_LOCALES).toHaveLength(12);
   });
 });

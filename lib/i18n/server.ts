@@ -19,10 +19,14 @@ const joinGameDictionaries: Record<Locale, () => Promise<JoinGameDictionary>> = 
   "it-IT": () => import("./dictionaries/join-game/it-IT").then((m) => m.default),
   "nl-NL": () => import("./dictionaries/join-game/nl-NL").then((m) => m.default),
   "pl-PL": () => import("./dictionaries/join-game/pl-PL").then((m) => m.default),
+  "ja-JP": () => import("./dictionaries/join-game/ja-JP").then((m) => m.default),
+  "zh-Hans": () => import("./dictionaries/join-game/zh-Hans").then((m) => m.default),
 };
 
 const metadataDictionaries: Record<Locale, () => Promise<MetadataDictionary>> =
   {
+    "ja-JP": () => import("./dictionaries/metadata/ja-JP").then((m) => m.default),
+    "zh-Hans": () => import("./dictionaries/metadata/zh-Hans").then((m) => m.default),
     "en-US": () =>
       import("./dictionaries/metadata/en-US").then((module) => module.default),
     "fi-FI": () =>
@@ -49,6 +53,8 @@ const landingServerDictionaries: Record<
   Locale,
   () => Promise<LandingServerDictionary>
 > = {
+  "ja-JP": () => import("./dictionaries/landing-server/ja-JP").then((m) => m.default),
+  "zh-Hans": () => import("./dictionaries/landing-server/zh-Hans").then((m) => m.default),
   "en-US": () =>
     import("./dictionaries/landing-server/en-US").then(
       (module) => module.default,
@@ -92,6 +98,8 @@ const landingServerDictionaries: Record<
 };
 
 const gameDictionaries: Record<Locale, () => Promise<GameDictionary>> = {
+  "ja-JP": () => import("./dictionaries/game/ja-JP").then((m) => m.default),
+  "zh-Hans": () => import("./dictionaries/game/zh-Hans").then((m) => m.default),
   "en-US": () =>
     import("./dictionaries/game/en-US").then((module) => module.default),
   "fi-FI": () =>
@@ -147,5 +155,7 @@ const playDictionaries: Record<Locale, () => Promise<import("./types").PlayDicti
   "it-IT": () => import("./dictionaries/play/it-IT").then(m => m.default),
   "nl-NL": () => import("./dictionaries/play/nl-NL").then(m => m.default),
   "pl-PL": () => import("./dictionaries/play/pl-PL").then(m => m.default),
+  "ja-JP": () => import("./dictionaries/play/ja-JP").then((m) => m.default),
+  "zh-Hans": () => import("./dictionaries/play/zh-Hans").then((m) => m.default),
 };
 export async function getPlayDictionary(locale: Locale) { return playDictionaries[locale](); }

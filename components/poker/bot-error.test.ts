@@ -11,7 +11,18 @@ it.each(SUPPORTED_LOCALES)("maps every failure to server-owned %s messages", asy
   Object.values(botFailureCodes).forEach((code, index) => {
     const t = (key: string) => dictionary.errors[key.slice(7) as keyof typeof dictionary.errors];
     expect(botErrorMessage(new HttpError("AI decision failed", 502, code), t)).toBe(dictionary.errors[keys[index]]);
-    expect(dictionary.errors[keys[index]].length).toBeGreaterThan(30);
+    // CJK messages convey the same guidance with fewer characters.
+    const minimumLength = locale === "ja-JP" || locale === "zh-Hans" ? 15 : 30;
+    const message = dictionary.errors[keys[index]];
+    expect(message.length).toBeGreaterThan(minimumLength);
+    if (locale === "ja-JP") {
+      expect(message).toContain("一時停止");
+      expect(message).toContain("再試行");
+    }
+    if (locale === "zh-Hans") {
+      expect(message).toContain("暂停");
+      expect(message).toContain("重试");
+    }
   });
 });
 

@@ -29,7 +29,7 @@
 
 .emptyState h1 {
   margin-bottom: 10px;
-  font-family: var(--font-space-grotesk), sans-serif;
+  font-family: var(--font-space-grotesk), var(--font-cjk, sans-serif);
   font-size: clamp(28px, 5vw, 46px);
   font-weight: 700;
 }
@@ -126,7 +126,7 @@
 .content h2,
 .content h3 {
   color: var(--felt-dark);
-  font-family: var(--font-space-grotesk), sans-serif;
+  font-family: var(--font-space-grotesk), var(--font-cjk, sans-serif);
   line-height: 1.35;
 }
 

@@ -18,7 +18,7 @@
   justify-content: space-between;
   gap: 18px;
   margin-bottom: 32px;
-  font-family: var(--font-space-grotesk), sans-serif;
+  font-family: var(--font-space-grotesk), var(--font-cjk, sans-serif);
   font-size: 14px;
   font-weight: 700;
 }
@@ -38,7 +38,7 @@
 .content h2,
 .content h3,
 .content h4 {
-  font-family: var(--font-space-grotesk), sans-serif;
+  font-family: var(--font-space-grotesk), var(--font-cjk, sans-serif);
 }
 
 .content h1 {

@@ -15,7 +15,7 @@
 .eyebrow {
   margin-bottom: 10px;
   color: var(--coral);
-  font-family: var(--font-space-grotesk), sans-serif;
+  font-family: var(--font-space-grotesk), var(--font-cjk, sans-serif);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -23,7 +23,7 @@
 
 .card h1,
 .card h2 {
-  font-family: var(--font-space-grotesk), sans-serif;
+  font-family: var(--font-space-grotesk), var(--font-cjk, sans-serif);
 }
 
 .card h1 {

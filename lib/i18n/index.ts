@@ -9,6 +9,8 @@ export const SUPPORTED_LOCALES = [
   "it-IT",
   "nl-NL",
   "pl-PL",
+  "ja-JP",
+  "zh-Hans",
 ] as const;
 export const DEFAULT_LOCALE = "en-US" as const;
 
