@@ -37,7 +37,6 @@ describe("machine-readable discovery", () => {
     expect(robots()).toEqual({
       rules: { userAgent: "*", allow: "/", disallow: "/api/" },
       sitemap: "https://example.test/sitemap.xml",
-      host: "https://example.test",
     });
   });
 
