@@ -22,9 +22,9 @@ export function MyTables({ locale, dictionary: d, initialGames, initialError }: 
     finally { setBusy(false); }
   }, []);
   async function remove(game: MyGameSummary, title: string) {
-    if (pending.current || busy || game.removal === "deletion_blocked") return;
-    const operation = game.removal;
-    if (!window.confirm((operation === "delete" ? d.confirmDelete : d.confirmLeave).replace("{title}", title))) return;
+    if (pending.current || busy) return;
+    const operation = game.removal === "deletion_blocked" ? "remove_from_list" : game.removal;
+    if (!window.confirm((operation === "delete" ? d.confirmDelete : operation === "remove_from_list" ? d.confirmRemove : d.confirmLeave).replace("{title}", title))) return;
     pending.current = true;
     setBusy(true);
     setRemovalError(null);
@@ -49,6 +49,8 @@ export function MyTables({ locale, dictionary: d, initialGames, initialError }: 
     {error && <div><p className={styles.warning} role="alert">{d.personalError}</p>
       <button className={styles.retryButton} type="button" disabled={busy} onClick={() => void refresh()}>{d.retry}</button></div>}
     <ul className={styles.list}>{games.map(game => {
+      const personalRemoval = game.removal === "remove_from_list" || game.removal === "deletion_blocked";
+      const label = personalRemoval ? d.removeFromList : game.removal === "leave_and_remove" ? d.leaveAndRemove : d.deleteTable;
       const title = game.title ?? d.fallbackTitle.replace("{id}", game.gameId.slice(0, 8));
       return <li key={game.gameId} className={styles.personalItem}>
         <Link className={`${styles.tableRow} ${styles.personalRow}`} href={addLocalePrefix(`/game/${game.gameId}`, locale)} aria-label={`${d.returnToTable}: ${title}`}>
@@ -56,12 +58,9 @@ export function MyTables({ locale, dictionary: d, initialGames, initialError }: 
           <div className={styles.facts}><span>{d.statuses[game.status]}</span>
             <span>{d.seats.replace("{occupied}", String(game.occupiedSeats)).replace("{total}", String(game.totalSeats))}</span></div>
         </Link>
-          <button type="button" className={styles.removalButton} disabled={busy || game.removal === "deletion_blocked"}
-            title={game.removal === "leave_and_remove" ? d.leaveAndRemove : d.deleteTable}
-            aria-label={`${game.removal === "leave_and_remove" ? d.leaveAndRemove : d.deleteTable}: ${title}`}
-            aria-describedby={game.removal === "deletion_blocked" ? `blocked-${game.gameId}` : undefined}
-            onClick={() => void remove(game, title)}>{game.removal === "leave_and_remove" ? <FiLogOut aria-hidden="true" /> : <FiTrash2 aria-hidden="true" />}</button>
-          {game.removal === "deletion_blocked" && <p id={`blocked-${game.gameId}`} className={styles.removalBlocked}>{d.deleteBlocked}</p>}
+          <button type="button" className={styles.removalButton} disabled={busy}
+            title={label} aria-label={`${label}: ${title}`}
+            onClick={() => void remove(game, title)}>{game.removal === "delete" ? <FiTrash2 aria-hidden="true" /> : <FiLogOut aria-hidden="true" />}</button>
       </li>;
     })}</ul>
   </section>;

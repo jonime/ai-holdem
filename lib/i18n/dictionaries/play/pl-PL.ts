@@ -7,6 +7,8 @@ const dictionary = {
   "createTable": "Utwórz stół",
   deleteTable: "Usuń stół",
   leaveAndRemove: "Opuść i usuń",
+  removeFromList: "Usuń z moich stołów",
+  confirmRemove: "Usunąć „{title}” z twoich stołów? Stół i historia pozostaną dostępne dla innych graczy. Jeśli zajmujesz miejsce, opuścisz je: zwolni się od razu w oczekiwaniu lub po zakończonym rozdaniu. Podczas rozdania wyjście jest nieodwracalne i spasujesz w następnej dozwolonej turze. Gracze all-in zachowują prawo do puli.",
   deleteBlocked: "Inni gracze nadal zajmują miejsca. Muszą je zwolnić przed usunięciem stołu.",
   confirmDelete: "Usunąć „{title}”? Historia i udostępniony adres zostaną trwale usunięte.",
   confirmLeave: "Opuścić i usunąć „{title}”? Podczas rozdania jest to nieodwracalne. Miejsca oczekujące lub po zakończonym rozdaniu zwalniają się od razu; aktywni gracze pasują w następnej dozwolonej turze. Gracze all-in zachowują prawo do puli.",

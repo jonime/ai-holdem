@@ -387,6 +387,15 @@ Apply `20261017000000_add_my_games.sql` before application deployment and run
 
 ## Personal table removal
 
+Apply `20261025000000_add_host_personal_removal.sql` before deploying host personal
+removal. Hosts with other claimed humans can use **Remove from my tables** without
+deleting shared history. This host-only `remove_from_list` operation atomically
+departs the caller’s own human seat, if any, and records a private exclusion.
+Unseated hosts only hide the row and keep the game version unchanged. Durable host
+authority remains; URL visits do not restore the row, but successful non-departing
+seat claims do. Whole-table deletion still blocks on every other claimed human.
+
+
 Deploy `20261020000000_add_table_removal.sql` and
 `20261021000000_grant_table_removal_reveal_delete.sql` before application code.
 The latter explicitly grants service-role DELETE on card reveals; local default

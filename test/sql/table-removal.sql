@@ -36,7 +36,7 @@ begin
   assert public.remove_game_if_version(f,0,'removal-guest','delete')->>'outcome'='forbidden';
   assert public.remove_game_if_version(f,1,'removal-host','delete')->>'outcome'='conflict';
   assert public.remove_game_if_version(f,0,'removal-host','delete')->>'outcome'='blocked';
-  assert exists(select 1 from public.list_my_games('removal-host') where game_id=f and removal='deletion_blocked' and version=0);
+  assert exists(select 1 from public.list_my_games('removal-host') where game_id=f and removal='remove_from_list' and version=0);
   -- Zero-stack/folded/eliminated assignments still block; leaving is not release.
   update public.game_players set stack=0,leaving=true where game_id=f and seat=1;
   assert public.remove_game_if_version(f,0,'removal-host','delete')->>'outcome'='blocked';
@@ -45,6 +45,47 @@ begin
   assert not exists(select 1 from public.list_my_games('removal-guest') where game_id=f);
   assert public.remove_game_if_version(f,1,'removal-host','delete')->>'outcome'='ok';
   assert not exists(select 1 from public.games where id=f);
+
+  -- Completed unseated host: preserve the guest, history, version and durable authority.
+  f:=pg_temp.removal_fixture('complete');
+  update public.game_players set status='open',player_token=null,engine_player_id=null where game_id=f and seat=0;
+  assert public.remove_game_if_version(f,0,'intruder','remove_from_list')->>'outcome'='forbidden';
+  assert public.remove_game_if_version(f,0,'removal-guest','remove_from_list')->>'outcome'='forbidden';
+  assert public.remove_game_if_version(f,1,'removal-host','remove_from_list')->>'outcome'='conflict';
+  assert not exists(select 1 from public.personal_game_exclusions where game_id=f);
+  assert public.remove_game_if_version(f,0,'removal-host','remove_from_list')->>'outcome'='ok';
+  assert public.remove_game_if_version(f,0,'removal-host','remove_from_list')->>'version'='0';
+  assert (select version=0 from public.games where id=f);
+  assert exists(select 1 from public.game_players where game_id=f and player_token='removal-guest' and status='claimed');
+  assert exists(select 1 from public.hands where game_id=f);
+  assert exists(select 1 from public.game_hosts where game_id=f and host_token='removal-host');
+  assert not exists(select 1 from public.list_my_games('removal-host') where game_id=f);
+  assert exists(select 1 from public.list_my_games('removal-guest') where game_id=f);
+  assert public.remove_game_if_version(f,0,'removal-host','delete')->>'outcome'='blocked';
+  assert public.claim_game_seat_if_version(f,0,0,'removal-host',null)->>'outcome'='ok';
+  assert exists(select 1 from public.list_my_games('removal-host') where game_id=f);
+
+  -- Waiting seated host departs only its own seat, atomically with exclusion.
+  f:=pg_temp.removal_fixture();
+  assert public.remove_game_if_version(f,0,'removal-host','remove_from_list')->>'version'='1';
+  assert exists(select 1 from public.game_players where game_id=f and seat=0 and status='open');
+  assert exists(select 1 from public.game_players where game_id=f and seat=1 and player_token='removal-guest');
+  assert not exists(select 1 from public.list_my_games('removal-host') where game_id=f);
+
+  -- Active host departures use the same fold validation and rollback guarantees.
+  f:=pg_temp.removal_fixture('playing');
+  begin
+    perform public.remove_game_if_version(f,0,'removal-host','remove_from_list','{"playerEngineId":"wrong"}');
+    raise exception 'invalid host fold accepted';
+  exception when others then
+    if sqlerrm='invalid host fold accepted' then raise; end if;
+  end;
+  assert (select version=0 from public.games where id=f);
+  assert not exists(select 1 from public.personal_game_exclusions where game_id=f);
+  assert not exists(select 1 from public.game_players where game_id=f and leaving);
+  assert public.remove_game_if_version(f,0,'removal-host','remove_from_list')->>'version'='1';
+  assert exists(select 1 from public.game_players where game_id=f and seat=0 and leaving);
+  assert not exists(select 1 from public.list_my_games('removal-host') where game_id=f);
 
   -- Active out-of-turn removal is irreversible and repeated pending removal is safe.
   f:=pg_temp.removal_fixture('playing');

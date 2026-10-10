@@ -8,7 +8,7 @@ function fixture() {
   const game: PersistedGame = { id: "game", version: 3, currentState: state, stateSchemaVersion: 1, handNumber: 1, status: "playing" };
   const seats = state.config.players.map(p => ({ gameId: "game", seat: p.seat, controller: "human" as const, status: "claimed" as const, playerToken: p.playerToken!, isHost: false, leaving: false, enginePlayerId: p.id }));
   return { state, seats, repository: { getGame: vi.fn(async () => game), getHostToken: vi.fn(async () => "host"),
-    getSeatAssignments: vi.fn(async () => seats), removeGameIfVersion: vi.fn(async (_input: RemovalInput) => ({ outcome: "ok", version: 4 })) } };
+    getSeatAssignments: vi.fn(async () => seats), removeGameIfVersion: vi.fn<(input: RemovalInput) => Promise<unknown>>(async () => ({ outcome: "ok", version: 4 })) } };
 }
 it("prepares a legal fold only for the departing actor and returns no private data", async () => {
   const f = fixture(); const actor = pokerEngineAdapter.snapshot(f.state).currentActorId!;
@@ -52,4 +52,30 @@ it("does not fold an all-in participant and preserves the engine state", async (
   await removeTable(f.repository,{ gameId:"game",expectedVersion:3,playerToken:seat.playerToken,operation:"leave_and_remove" });
   expect(f.repository.removeGameIfVersion.mock.calls[0][0]).not.toHaveProperty("fold");
   expect((await f.repository.getGame()).currentState).toEqual(allIn);
+});
+
+it("lets an unseated host hide a table without preparing an action", async () => {
+  const f = fixture();
+  expect(await removeTable(f.repository, { gameId: "game", expectedVersion: 3, playerToken: "host", operation: "remove_from_list" })).toEqual({ version: 4 });
+  expect(f.repository.getGame).not.toHaveBeenCalled();
+  expect(f.repository.removeGameIfVersion).toHaveBeenCalledWith({ gameId: "game", expectedVersion: 3, playerToken: "host", operation: "remove_from_list" });
+});
+it("prepares the seated host's legal departure before hiding the table", async () => {
+  const f = fixture(); const actor = pokerEngineAdapter.snapshot(f.state).currentActorId!;
+  const seat = f.seats.find(s => s.enginePlayerId === actor)!;
+  f.repository.getHostToken.mockResolvedValue(seat.playerToken);
+  await removeTable(f.repository, { gameId: "game", expectedVersion: 3, playerToken: seat.playerToken, operation: "remove_from_list" });
+  expect(f.repository.removeGameIfVersion).toHaveBeenCalledWith(expect.objectContaining({ fold: expect.objectContaining({ action: "fold", playerEngineId: actor }) }));
+});
+it.each(["owner0", "spectator"])("rejects host personal removal by %s before reading seats or state", async playerToken => {
+  const f = fixture();
+  await expect(removeTable(f.repository, { gameId: "game", expectedVersion: 3, playerToken, operation: "remove_from_list" })).rejects.toBeInstanceOf(TableRemovalError);
+  expect(f.repository.getSeatAssignments).not.toHaveBeenCalled();
+  expect(f.repository.getGame).not.toHaveBeenCalled();
+  expect(f.repository.removeGameIfVersion).not.toHaveBeenCalled();
+});
+it("rejects stale seated host removal before preparing a fold", async () => {
+  const f = fixture(); f.repository.getHostToken.mockResolvedValue("owner0");
+  await expect(removeTable(f.repository, { gameId: "game", expectedVersion: 2, playerToken: "owner0", operation: "remove_from_list" })).rejects.toBeInstanceOf(GameConflictError);
+  expect(f.repository.removeGameIfVersion).not.toHaveBeenCalled();
 });

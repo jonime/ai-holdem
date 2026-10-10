@@ -16,10 +16,10 @@ it.each([{}, { expectedVersion: 0 }, { expectedVersion: -1, operation: "delete" 
 it.each(["", "ai-holdem-player-id=%xx"])("requires valid cookie identity %s", async cookie => {
   expect((await POST(request({ expectedVersion: 0, operation: "delete" }, cookie), context)).status).toBe(403); expect(create).not.toHaveBeenCalled();
 });
-it("uses cookie identity and sends only the masked result and compact refresh", async () => {
-  const result = await POST(request({ expectedVersion: 3, operation: "leave_and_remove" }), context);
+it.each(["delete", "leave_and_remove", "remove_from_list"])("uses cookie identity and compact refresh for %s", async operation => {
+  const result = await POST(request({ expectedVersion: 3, operation }), context);
   expect(result.status).toBe(200); expect(await result.json()).toEqual({ version: 4 });
-  expect(remove).toHaveBeenCalledWith({}, { gameId: id, playerToken: "owner", expectedVersion: 3, operation: "leave_and_remove" });
+  expect(remove).toHaveBeenCalledWith({}, { gameId: id, playerToken: "owner", expectedVersion: 3, operation });
   expect(invalidate).toHaveBeenCalledOnce(); expect(schedule).toHaveBeenCalledWith(id, "seat_released");
 });
 it.each([["forbidden",403],["blocked",409],["conflict",409],["missing",404]] as const)("maps %s without notifications", async (outcome,status) => {

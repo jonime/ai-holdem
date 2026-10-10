@@ -7,6 +7,8 @@ const dictionary = {
   "createTable": "Tisch erstellen",
   deleteTable: "Tisch löschen",
   leaveAndRemove: "Verlassen und entfernen",
+  removeFromList: "Aus meinen Tischen entfernen",
+  confirmRemove: "„{title}“ aus deinen Tischen entfernen? Tisch und Verlauf bleiben für andere Spieler erhalten. Falls du sitzt, verlässt du den Tisch: wartende oder abgeschlossene Hände geben den Platz sofort frei. Während einer Hand ist der Austritt unwiderruflich und du passt beim nächsten zulässigen Zug. All-in-Spieler bleiben am Pot beteiligt.",
   deleteBlocked: "Andere Menschen haben noch belegte Plätze. Diese müssen freigegeben werden, bevor der Tisch gelöscht werden kann.",
   confirmDelete: "„{title}“ löschen? Verlauf und geteilter Link werden dauerhaft entfernt.",
   confirmLeave: "„{title}“ verlassen und entfernen? Während einer Hand ist das unwiderruflich. Wartende oder abgeschlossene Plätze werden sofort frei; aktive Spieler passen beim nächsten erlaubten Zug. All-in-Spieler behalten ihren Anspruch auf den Pot.",

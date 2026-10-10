@@ -243,3 +243,13 @@ and returns from hidden tabs update the title without a catch-up cue. Background
 notifications are best effort: browsers may suspend tabs or block audio. Separate
 open game tabs can each sound. No permissions, push service, or background worker
 is used, and polling behavior is unchanged.
+
+## Host personal removal
+
+Apply `20261025000000_add_host_personal_removal.sql` before deploying host personal
+removal. Hosts with other claimed humans can use **Remove from my tables** without
+deleting shared history. This host-only `remove_from_list` operation atomically
+departs the caller’s own human seat, if any, and records a private exclusion.
+Unseated hosts only hide the row and keep the game version unchanged. Durable host
+authority remains; URL visits do not restore the row, but successful non-departing
+seat claims do. Whole-table deletion still blocks on every other claimed human.

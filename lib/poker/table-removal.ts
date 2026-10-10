@@ -15,11 +15,12 @@ export interface RemovalRepository extends GameReader, GameHostReader, Pick<Seat
 }
 export async function removeTable(repository: RemovalRepository, input: RemovalInput) {
   let fold: DepartureFold | undefined;
-  if (input.operation === "leave_and_remove") {
-    if (await repository.getHostToken(input.gameId) === input.playerToken) throw new TableRemovalError("forbidden");
+  if (input.operation !== "delete") {
+    const isHost = await repository.getHostToken(input.gameId) === input.playerToken;
+    if (isHost !== (input.operation === "remove_from_list")) throw new TableRemovalError("forbidden");
     const seat = (await repository.getSeatAssignments(input.gameId)).find(s => s.controller === "human" && s.status === "claimed" && s.playerToken === input.playerToken);
-    if (!seat) throw new TableRemovalError("forbidden");
-    fold = await prepareSeatDeparture(repository, { ...input, seat: seat.seat });
+    if (!seat && !isHost) throw new TableRemovalError("forbidden");
+    if (seat) fold = await prepareSeatDeparture(repository, { ...input, seat: seat.seat });
   }
   const result = removalRpcResultSchema.parse(await repository.removeGameIfVersion({ ...input, ...(fold ? { fold } : {}) }));
   if (result.outcome !== "ok") throw new TableRemovalError(result.outcome);
