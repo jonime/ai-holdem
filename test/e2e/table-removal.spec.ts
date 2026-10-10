@@ -111,7 +111,9 @@ for (const polling of [false,true]) test(`@smoke Deleted-table recovery through 
     await observer.goto(`/game/${id}`); await expect(observer.getByText("Waiting room", { exact:true })).toBeVisible();
     if (!polling) {
       await expect.poll(()=>subscribed).toBe(true);
-      await observer.clock.install(); await observer.clock.pauseAt(new Date());
+      await observer.clock.install();
+      // The installed clock keeps advancing; pause ahead of its current time.
+      await observer.clock.pauseAt(await observer.evaluate(() => Date.now() + 1_000));
     }
     let steps=0; observer.on("request", request=>{ if (/\/(step|advance-departure)$/.test(request.url())) steps++; });
     await page.goto("/play"); page.once("dialog",dialog=>dialog.accept());
