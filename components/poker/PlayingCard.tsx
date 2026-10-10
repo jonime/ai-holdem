@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cardLabel } from "@/components/poker/view-model";
 import { useI18n } from "@/components/poker/I18nProvider";
 import styles from "@/components/poker/PlayingCard.module.css";
@@ -19,7 +20,14 @@ export function PlayingCard({
         data-playing-card
         aria-label={t("cards.hidden")}
       >
-        TS
+        <Image
+          className={styles.cardBackLogo}
+          src="/ai-holdem-logo.png"
+          alt=""
+          width={34}
+          height={34}
+          sizes="(max-width: 560px) 20px, 34px"
+        />
       </span>
     );
   }
