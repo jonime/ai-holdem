@@ -102,8 +102,8 @@ npm run test:e2e:ci
 All three production commands share one runner. `test:e2e:smoke` selects `@smoke`;
 `test:e2e:ui` selects `@ui-regression`; `test:e2e:ci` selects their union, building
 once and running one Playwright invocation with one combined HTML report. The UI
-suite contains twelve tests in `dialogs.spec.ts`, `betting-controls.spec.ts`,
-`hand-results-actions.spec.ts`, and `request-recovery.spec.ts`, preserving
+suite includes tests in `dialogs.spec.ts`, `betting-controls.spec.ts`,
+`hand-results-actions.spec.ts`, `request-recovery.spec.ts`, and `turn-notifications.spec.ts`, preserving
 desktop/mobile, focus/keyboard, betting validation, hand results, Actions feed,
 and stalled-request recovery coverage. CI runs the combined
 command after all SQL checks. Production UI setup seeds only its own waiting
@@ -738,3 +738,19 @@ modal is open. Timers, bot/departure advancement, Realtime and authoritative
 refreshes continue normally. Dismissing Join table does not cancel a submitted
 claim. Verify changes with `test/e2e/dialogs.spec.ts` alongside betting controls
 and Actions-feed regressions using the existing Chromium configuration.
+
+## Turn notifications
+
+An actionable owned human turn sets the browser tab to “🟢 Your turn · AI Hold’em”
+(localized). Pending mutations, unresolved recovery, offline state, departure, and
+turn expiry clear the indicator. Opening Actions leaves the turn indicator active.
+
+The game header’s **Sound** switch is off by default. A check with the thumb on
+the right means On; a cross with the thumb on the left means Off. It remembers only this
+preference in browser local storage and synchronizes it between tabs. Enabling it
+previews a quiet two-note cue. Browser audio requires a user gesture, including
+after loading a stored preference; missed cues are never replayed. Initial loads
+and returns from hidden tabs update the title without a catch-up cue. Background
+notifications are best effort: browsers may suspend tabs or block audio. Separate
+open game tabs can each sound. No permissions, push service, or background worker
+is used, and polling behavior is unchanged.

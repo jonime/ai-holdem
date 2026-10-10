@@ -4,6 +4,7 @@ import type { GameDictionary } from "../../types";
 
 const dictionary = {
   timer: {"retry": "Försök avsluta turen igen", "setting": "Tidsgräns för mänskliga turer", "off": "Av", "duration": "{seconds} sekunder", "multiplayer": "För händer som börjar med minst två människor.", "countdown": "Tid kvar: {seconds}s", "warning": "Tio sekunder kvar.", "expired": "Tiden är slut — bordet uppdateras"},
+  turnNotification: {"soundLabel": "Ljud", "title": "🟢 Din tur · AI Hold’em", "sound": "Turljud", "audioUnavailable": "Ljud är inte tillgängligt. Försök aktivera det igen i den här webbläsaren."},
   gameHeader: {
     retryDeparture: "Försök lämna igen",
     lobby: "Lobby",

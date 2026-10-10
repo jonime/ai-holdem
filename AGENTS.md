@@ -77,7 +77,7 @@ Local production browser verification requires an already-running migrated local
 Chromium (`npx playwright install chromium`). The shared production runner exposes
 `test:e2e:smoke` (`@smoke`), `test:e2e:ui` (`@ui-regression`), and `test:e2e:ci`
 (the union). CI builds once and runs one Playwright invocation/report. The UI suite
-contains dialog, betting-controls, hand-results/Actions, and request-recovery tests. Local
+contains dialog, betting-controls, hand-results/Actions, request-recovery, and turn-notification tests. Local
 smoke/UI commands retain file filters and explicit grep overrides; the combined
 command accepts only `--list` and rejects selection overrides. Empty selections
 must fail. Each command builds an
@@ -417,3 +417,13 @@ monotonic elapsed time, text warnings, explicit retry and navigation guards.
 Apply all three 20261022–20261024 timer migrations before application code, run
 `test:sql:turn-timers` and production timer browser smoke, and verify two-browser
 notifications on an authorized Vercel preview before release.
+
+## Turn notifications
+
+`useTurnNotifications` owns the localized steady tab title and optional Web Audio
+cue. `turn-notifications.ts` tracks observed game/hand/street/actor transitions
+(and server timer decision IDs) separately from temporary eligibility. Preserve
+initial-load/visibility-return suppression, ownership/departure/deadline checks,
+mutation/recovery/offline suppression, guarded title cleanup, gesture-only audio
+unlock, preference-only storage, and best-effort background behavior. Modals do
+not change turn eligibility. Separate tabs may each notify; do not change polling.

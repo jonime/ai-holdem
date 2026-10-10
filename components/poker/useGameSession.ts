@@ -448,6 +448,7 @@ export function useGameSession(gameId?: string) {
   }, []);
 
   return {
+    online,
     botCatalog,
     unavailable,
     game,

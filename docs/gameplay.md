@@ -152,3 +152,19 @@ shows a small numeric countdown only below ten seconds, with a single screen-rea
 warning and no additional border change. After expiry
 controls stop accepting that decision. A host or seated human browser processes
 expiry; if all eligible browsers close, processing resumes when one returns.
+
+## Turn notifications
+
+An actionable owned human turn sets the browser tab to “🟢 Your turn · AI Hold’em”
+(localized). Pending mutations, unresolved recovery, offline state, departure, and
+turn expiry clear the indicator. Opening Actions leaves the turn indicator active.
+
+The game header’s **Sound** switch is off by default. A check with the thumb on
+the right means On; a cross with the thumb on the left means Off. It remembers only this
+preference in browser local storage and synchronizes it between tabs. Enabling it
+previews a quiet two-note cue. Browser audio requires a user gesture, including
+after loading a stored preference; missed cues are never replayed. Initial loads
+and returns from hidden tabs update the title without a catch-up cue. Background
+notifications are best effort: browsers may suspend tabs or block audio. Separate
+open game tabs can each sound. No permissions, push service, or background worker
+is used, and polling behavior is unchanged.

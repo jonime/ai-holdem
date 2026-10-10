@@ -72,6 +72,7 @@ const gameTopLevelKeys = [
   "seat",
   "table",
   "timer",
+  "turnNotification",
 ];
 
 const TranslatingChild = () => {

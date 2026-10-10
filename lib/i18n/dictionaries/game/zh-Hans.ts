@@ -13,6 +13,7 @@ const dictionary = {
     "warning": "还剩十秒。",
     "expired": "时间已到，正在更新牌桌"
   },
+  turnNotification: {"soundLabel": "声音", "title": "🟢 轮到你了 · AI Hold’em", "sound": "回合提示音", "audioUnavailable": "声音不可用。请尝试在此浏览器中重新启用。"},
   "gameHeader": {
     "retryDeparture": "重试离开",
     "lobby": "大厅",
