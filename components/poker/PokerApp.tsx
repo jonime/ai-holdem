@@ -10,7 +10,7 @@ import { addLocalePrefix } from "@/lib/i18n";
 import { botErrorMessage } from "./bot-error";
 import { HttpError, api } from "@/lib/http/api";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import {
   ActionFeedModal,
@@ -37,7 +37,11 @@ import { adjustTarget, decisionScope, validatedTarget } from "@/components/poker
 const playerNameStorageKey = "ai-holdem-player-name";
 const feedCollapsedStorageKey = "ai-holdem-feed-collapsed";
 
-export default function PokerApp({ gameId }: { readonly gameId?: string }) {
+export default function PokerApp({ gameId, helpContent, helpTitle }: {
+  readonly gameId?: string;
+  readonly helpContent: ReactNode;
+  readonly helpTitle: string;
+}) {
   const { locale, t } = useI18n();
   const replayPending = useRef(false);
   const [replaying, setReplaying] = useState(false);
@@ -56,12 +60,14 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
   );
   const [playerNameEdited, setPlayerNameEdited] = useState(false);
   const [amountDraft, setAmountDraft] = useState({ scope: "", value: "" });
-  const [overlay, setOverlay] = useState<"none" | "actions" | "join">("none");
+  const [overlay, setOverlay] = useState<"none" | "actions" | "join" | "help">("none");
   const openerRef = useRef<HTMLElement | null>(null);
+  const helpCloseRef = useRef<HTMLButtonElement>(null);
+  const helpOpenerRef = useRef<HTMLButtonElement>(null);
   const tableRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const joinPending = useRef(false);
-  const openOverlay = (next: "actions" | "join", opener: HTMLElement) => {
+  const openOverlay = (next: "actions" | "join" | "help", opener: HTMLElement) => {
     openerRef.current = opener;
     setOverlay(next);
   };
@@ -318,7 +324,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
 
   return (
     <>
-    <GameHeader turnNotification={turnNotification} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={releaseSeat} />
+    <GameHeader helpRef={helpOpenerRef} onHelp={opener => openOverlay("help", opener)} turnNotification={turnNotification} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={releaseSeat} />
     <main className={styles.pokerApp}>
       {creationNotice ? <p className={styles.errorBanner} role="alert">{creationNotice.message} {t("errors.retryAvailable", { seconds: Math.ceil(creationWait / 1000) })}</p> : null}
       {error ? (
@@ -487,6 +493,19 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
         </div>
       )}
     </main>
+    {overlay === "help" ? (
+      <Modal open title={helpTitle} onDismiss={() => setOverlay("none")}
+        initialFocus={helpCloseRef} restoreFocus={openerRef} fallbackFocus={helpOpenerRef}
+        className={styles.helpDialog}>
+        <div className={styles.helpHeader}>
+          <h2>{helpTitle}</h2>
+          <Button ref={helpCloseRef} size="small" onClick={() => setOverlay("none")}>
+            {t("gameHeader.closeHelp")}
+          </Button>
+        </div>
+        <div className={styles.helpScroll} tabIndex={0}>{helpContent}</div>
+      </Modal>
+    ) : null}
     </>
   );
 }

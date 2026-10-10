@@ -1,0 +1,36 @@
+export const title = "Pelin ohje";
+
+Ohje ei pysäytä peliä. Botit, päivitykset ja moninpelin vuoroajastimet jatkavat lukemisen aikana; ajastettu ihmisvuoro voi umpeutua ja päättyä luovutukseen.
+
+## Käsien arvojärjestys
+
+Muodosta paras viiden kortin käsi kahdesta taskukortistasi ja viidestä yhteisestä kortista. Vahvimmasta heikoimpaan:
+
+1. **Värisuora: viisi peräkkäistä korttia samaa maata** — `9♠ 8♠ 7♠ 6♠ 5♠`.
+2. **Neloset: neljä samanarvoista korttia** — `A♠ A♥ A♦ A♣ K♠`.
+3. **Täyskäsi: kolmoset ja pari** — `K♠ K♥ K♦ 2♣ 2♥`.
+4. **Väri: viisi korttia samaa maata** — `A♥ J♥ 8♥ 5♥ 2♥`.
+5. **Suora: viisi peräkkäistä arvoa** — `9♠ 8♥ 7♦ 6♣ 5♠`.
+6. **Kolmoset: kolme samanarvoista korttia** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
+7. **Kaksi paria: kaksi eri paria** — `J♠ J♥ 4♦ 4♣ A♥`.
+8. **Pari: kaksi samanarvoista korttia** — `10♠ 10♥ A♦ 7♣ 3♥`.
+9. **Korkein kortti: ei yllä mainittuja yhdistelmiä** — `A♠ J♥ 8♦ 5♣ 2♥`.
+
+Kuningasvärisuora on korkein värisuora: A♠ K♠ Q♠ J♠ 10♠ (pataässä, -kuningas, -rouva, -jätkä ja -kymppi). Ässä voi olla myös pieni suorassa A–2–3–4–5. Suuremmat arvot ja sitten sivukortit ratkaisevat tasatilanteen; samat parhaat viisi korttia jakavat potin. Maat eivät ratkaise tasapeliä. Merkit: ♠ pata, ♥ hertta, ♦ ruutu, ♣ risti. A = ässä, K = kuningas, Q = rouva, J = jätkä.
+
+## Panostamisen perusteet
+
+- Kippaa (luovuta): luovu kädestä ja oikeudesta pottiin; jo maksetut merkit jäävät pottiin.
+- Sekkkaa (sökötä): siirrä vuoro maksamatta, kun vastattavaa panosta ei ole.
+- Maksa: vastaa nykyiseen panokseen maksamalla vain puuttuvat merkit, enintään jäljellä oleva pinosi.
+- Veto (panosta): avaa panostaminen, kun nykyistä panosta ei ole.
+- Korota: nosta nykyistä panosta. Määräkenttä tarkoittaa koko panostuskierroksesi yhteissummaa, ei lisämaksua. Esimerkki: olet maksanut 100, nykyinen panos on 200 ja korotat 600:aan. Maksat lisää 500 (600 − 100), et 600. Maksaminen maksaisi 100.
+- All-in: panosta koko jäljellä oleva pinosi. Voit voittaa vain potit, joihin olet osallistunut. Muiden lisämerkit muodostavat sivupotteja niiden osallistujille. All-in ei tarkoita putoamista ennen käden ratkaisua. Säätimet näyttävät sallitut toiminnot ja määrärajoitukset. All-in-määräpainike valitsee enimmäismäärän; lähetä se Veto/Korota-painikkeella tai D-näppäimellä.
+
+## Pikanäppäimet
+
+- A: Kippaa (luovuta). S: Sekkkaa (sökötä) tai Maksa. D: lähetä valittu panos tai korotus.
+- Q / ←: pienennä tavoitetta yhdellä isolla blindilla. E / →: suurenna yhdellä isolla blindilla. Shift muuttaa askelen viiteen isoon blindiin. Tavoite pysyy sallituissa rajoissa.
+- Käden päätyttyä S / Enter / välilyönti aloittaa seuraavan käden vain, jos se on sallittu; D näyttää korttisi vain, kun näyttäminen on mahdollista luovutuksilla päättyneen käden jälkeen. Näppäimet eivät aloita seuraavaa kättä automaattisesti.
+- Toiminnot ovat käytettävissä vain omalla sallitulla ihmisvuorollasi; seuraavan käden ja korttien näyttämisen ehdot ovat samat kuin painikkeilla. Odottavat pyynnöt, palautuminen ja umpeutunut vuoro estävät ne. Katsojat eivät voi toimia pelaajien puolesta.
+- Pikanäppäimet eivät toimi teksti- tai numerokentissä, tekstialueissa, valikoissa tai muokattavassa sisällössä (liukusäädin sallii ne), avoimessa dialogissa, Ctrl/Alt/Meta-näppäimen kanssa tai näppäintoistoissa. Enter ja välilyönti säilyttävät tavallisen toimintansa kohdistetuissa painikkeissa ja linkeissä.

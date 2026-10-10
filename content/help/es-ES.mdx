@@ -1,0 +1,36 @@
+export const title = "Ayuda del juego";
+
+La ayuda no pausa el juego. Los bots, las actualizaciones y los temporizadores multijugador continúan; un turno humano cronometrado puede vencer y provocar una retirada.
+
+## Clasificación de manos
+
+Forma la mejor mano de cinco cartas con tus dos cartas privadas y las cinco comunitarias. De mayor a menor:
+
+1. **Escalera de color: cinco cartas consecutivas del mismo palo** — `9♠ 8♠ 7♠ 6♠ 5♠`.
+2. **Póquer: cuatro cartas del mismo valor** — `A♠ A♥ A♦ A♣ K♠`.
+3. **Full: trío y pareja** — `K♠ K♥ K♦ 2♣ 2♥`.
+4. **Color: cinco cartas del mismo palo** — `A♥ J♥ 8♥ 5♥ 2♥`.
+5. **Escalera: cinco valores consecutivos** — `9♠ 8♥ 7♦ 6♣ 5♠`.
+6. **Trío: tres cartas del mismo valor** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
+7. **Doble pareja: dos parejas distintas** — `J♠ J♥ 4♦ 4♣ A♥`.
+8. **Pareja: dos cartas del mismo valor** — `10♠ 10♥ A♦ 7♣ 3♥`.
+9. **Carta alta: ninguna combinación anterior** — `A♠ J♥ 8♦ 5♣ 2♥`.
+
+La escalera real es la escalera de color más alta: A♠ K♠ Q♠ J♠ 10♠ (as, rey, reina, jota y diez de picas). El as también puede ser bajo en A–2–3–4–5. Los valores mayores y después las cartas de desempate deciden; manos idénticas de cinco cartas reparten el bote. Los palos no desempatan. Símbolos: ♠ picas, ♥ corazones, ♦ diamantes, ♣ tréboles. A = as, K = rey, Q = reina, J = jota.
+
+## Conceptos básicos de apuestas
+
+- Retirarse: renunciar a la mano y al bote; las fichas pagadas quedan en el bote.
+- Pasar: ceder el turno sin pagar cuando no hay apuesta pendiente.
+- Igualar: cubrir la apuesta actual pagando solo lo que falta, hasta el límite de tu pila.
+- Apostar: abrir las apuestas cuando no hay apuesta actual.
+- Subir: aumentar la apuesta actual. El campo indica tu aportación total en esta ronda, no las fichas adicionales. Ejemplo: has pagado 100, la apuesta es 200 y subes a 600. Pagas 500 más (600 − 100), no 600. Igualar costaría 100.
+- All-in: apostar toda tu pila restante. Solo puedes ganar los botes a los que has contribuido. Las fichas adicionales de otros jugadores forman botes secundarios para sus participantes. Un all-in no implica eliminación antes de resolver la mano. Los controles muestran las acciones y límites legales. El botón de tamaño All-in selecciona el máximo; confírmalo con Apostar/Subir o D.
+
+## Atajos de teclado
+
+- A: retirarse. S: pasar o igualar. D: enviar la apuesta o subida seleccionada.
+- Q / ←: reducir el objetivo en una ciega grande. E / →: aumentarlo en una ciega grande. Con Shift, el paso es de cinco ciegas grandes. Se respetan los límites legales.
+- Tras finalizar la mano, S / Enter / Espacio inicia la siguiente solo si está permitido; D muestra tus cartas solo cuando se permite mostrarlas tras una mano ganada por retiradas. No se inicia otra mano automáticamente.
+- Las acciones requieren tu turno válido en tu asiento humano; iniciar otra mano y mostrar cartas siguen las condiciones de sus botones. Se bloquean durante solicitudes pendientes, recuperación o un turno vencido. Los espectadores no actúan por los jugadores.
+- Se ignoran los atajos en campos de texto o números, áreas de texto, selectores y contenido editable (el deslizador los permite), con un diálogo abierto, con Ctrl/Alt/Meta o al repetir una tecla mantenida. Enter/Espacio conserva su función normal en botones y enlaces enfocados.

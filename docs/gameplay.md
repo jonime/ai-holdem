@@ -42,6 +42,17 @@ can continue without the departing browser. If every eligible browser closes,
 the table stays persisted and resumes when one returns. Closing a tab without
 Leave table or Stand up does not register departure; there are no disconnect timeouts.
 
+## In-game Help
+
+The header Help button opens optional reference material for players and spectators
+in waiting and active tables. It covers hand rankings with five-card examples,
+betting terminology and current keyboard shortcuts in the table’s language.
+Help never opens automatically. Its title and close button remain visible while
+the document scrolls; reopening starts at the top. Gameplay shortcuts are disabled
+while it is open. Bots, refreshes, turn notifications and multiplayer turn timers
+continue, so a human turn can expire while reading. Help remains available during
+pending requests and recovery without submitting or cancelling a game action.
+
 ## Betting controls
 
 Each new decision (game ID, authoritative version, or viewer change) starts at

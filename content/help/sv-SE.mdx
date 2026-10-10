@@ -1,0 +1,36 @@
+export const title = "Spelhjälp";
+
+Hjälpen pausar inte spelet. Bottar, uppdateringar och flerspelartimers fortsätter; en tidsbegränsad mänsklig tur kan löpa ut och handen läggas.
+
+## Handrankning
+
+Använd de bästa fem korten av dina två hålkort och de fem gemensamma korten. Starkast till svagast:
+
+1. **Färgstege: fem kort i följd av samma färg** — `9♠ 8♠ 7♠ 6♠ 5♠`.
+2. **Fyrtal: fyra kort av samma valör** — `A♠ A♥ A♦ A♣ K♠`.
+3. **Kåk: triss och par** — `K♠ K♥ K♦ 2♣ 2♥`.
+4. **Färg: fem kort av samma färg** — `A♥ J♥ 8♥ 5♥ 2♥`.
+5. **Stege: fem valörer i följd** — `9♠ 8♥ 7♦ 6♣ 5♠`.
+6. **Triss: tre kort av samma valör** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
+7. **Tvåpar: två olika par** — `J♠ J♥ 4♦ 4♣ A♥`.
+8. **Par: två kort av samma valör** — `10♠ 10♥ A♦ 7♣ 3♥`.
+9. **Högt kort: ingen kombination ovan** — `A♠ J♥ 8♦ 5♣ 2♥`.
+
+Royal flush är den högsta färgstegen: A♠ K♠ Q♠ J♠ 10♠ (ess, kung, dam, knekt och tia i spader). Ess kan också vara lågt i A–2–3–4–5. Högre valörer och sedan sidokort avgör; identiska bästa femkortshänder delar potten. Färger avgör inte lika händer. Symboler: ♠ spader, ♥ hjärter, ♦ ruter, ♣ klöver. A = ess, K = kung, Q = dam, J = knekt.
+
+## Grunder för satsningar
+
+- Lägg dig: ge upp handen och rätten till potten; betalda marker stannar i potten.
+- Passa (checka): lämna över utan att betala när ingen satsning behöver synas.
+- Syna: matcha aktuell satsning genom att betala bara det som saknas, högst din återstående stack.
+- Satsa: öppna satsningen när ingen aktuell satsning finns.
+- Höj: öka aktuell satsning. Beloppsfältet anger ditt totala bidrag under denna satsningsrunda, inte extra marker. Exempel: du har betalat 100, satsningen är 200 och du höjer till 600. Du betalar 500 till (600 − 100), inte 600. Att syna skulle kosta 100.
+- All-in: satsa hela din återstående stack. Du kan bara vinna potter du bidragit till. Andras extra marker bildar sidopotter för deltagarna i dem. All-in betyder inte att du är utslagen innan handen avgjorts. Kontrollerna visar tillåtna handlingar och beloppsgränser. Storleksknappen All-in väljer maxbeloppet; skicka med Satsa/Höj eller D.
+
+## Kortkommandon
+
+- A: lägg dig. S: Passa (checka) eller Syna. D: skicka valt satsnings- eller höjningsbelopp.
+- Q / ←: minska målet med en stor mörk. E / →: öka med en stor mörk. Håll Shift för fem stora mörkar. Målet hålls inom tillåtna gränser.
+- Efter handen startar S / Enter / mellanslag nästa hand endast när det är tillåtet; D visar dina kort endast när visning är möjlig efter en hand vunnen genom att andra lagt sig. Ingen hand startas automatiskt.
+- Handlingar kräver din giltiga tur på din egen mänskliga plats; nästa hand och kortvisning följer knapparnas villkor. Väntande förfrågningar, återställning eller en utgången tur blockerar dem. Åskådare spelar inte åt spelare.
+- Kortkommandon ignoreras i text- och nummerfält, textområden, listval och redigerbart innehåll (reglaget tillåter dem), med en öppen dialog, med Ctrl/Alt/Meta eller vid tangentupprepning. Enter/mellanslag behåller normal funktion på fokuserade knappar och länkar.

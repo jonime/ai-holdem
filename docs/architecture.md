@@ -385,3 +385,14 @@ ranks, evaluation inputs or new ownership identifiers are exposed. The result pa
 renders authoritative awards independently of the Actions feed, marks hole-card
 sources accessibly, stacks different recipients under Pot awards, and clears with
 the next hand while preserving result scrolling and next-hand controls.
+
+## In-game Help content
+
+Each supported locale has a complete Markdown-authored document in `content/help/`
+with an exported localized `title`. The explicit locale map in `lib/help/server.ts`
+is server-only and reuses the installed MDX configuration. The shared game Server
+Component loads only the selected locale and passes rendered content and its title
+into `PokerApp` through a React-node slot; unprefixed English routes use the same
+component with `en-US`. Client modules never import help documents or fetch them
+at runtime. Only Help and Close help interface labels live in game dictionaries.
+The single overlay state includes Help and uses the shared native `Modal` lifecycle.

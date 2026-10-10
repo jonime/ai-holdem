@@ -1,0 +1,36 @@
+export const title = "Spielhilfe";
+
+Die Hilfe pausiert das Spiel nicht. Bots, Aktualisierungen und Mehrspieler-Zugtimer laufen weiter; ein zeitbegrenzter menschlicher Zug kann ablaufen und gefoldet werden.
+
+## Rangfolge der Hände
+
+Bilde die besten fünf Karten aus deinen zwei verdeckten Karten und den fünf Gemeinschaftskarten. Von stark nach schwach:
+
+1. **Straight Flush: fünf aufeinanderfolgende Karten derselben Farbe** — `9♠ 8♠ 7♠ 6♠ 5♠`.
+2. **Vierling: vier Karten desselben Rangs** — `A♠ A♥ A♦ A♣ K♠`.
+3. **Full House: Drilling und Paar** — `K♠ K♥ K♦ 2♣ 2♥`.
+4. **Flush: fünf Karten derselben Farbe** — `A♥ J♥ 8♥ 5♥ 2♥`.
+5. **Straße: fünf aufeinanderfolgende Ränge** — `9♠ 8♥ 7♦ 6♣ 5♠`.
+6. **Drilling: drei Karten desselben Rangs** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
+7. **Zwei Paare: zwei unterschiedliche Paare** — `J♠ J♥ 4♦ 4♣ A♥`.
+8. **Paar: zwei Karten desselben Rangs** — `10♠ 10♥ A♦ 7♣ 3♥`.
+9. **Höchste Karte: keine der obigen Kombinationen** — `A♠ J♥ 8♦ 5♣ 2♥`.
+
+Der Royal Flush ist der höchste Straight Flush: A♠ K♠ Q♠ J♠ 10♠ (Ass, König, Dame, Bube und Zehn in Pik). Das Ass kann in A–2–3–4–5 auch niedrig sein. Höhere Ränge und danach Beikarten entscheiden; identische beste Fünf-Karten-Hände teilen den Pot. Farben brechen keinen Gleichstand. Zeichen: ♠ Pik, ♥ Herz, ♦ Karo, ♣ Kreuz. A = Ass, K = König, Q = Dame, J = Bube.
+
+## Grundlagen des Setzens
+
+- Passen (Fold): die Hand und den Anspruch auf den Pot aufgeben; bezahlte Chips bleiben im Pot.
+- Check: ohne Zahlung weitergeben, wenn kein Einsatz zu zahlen ist.
+- Mitgehen (Call): den aktuellen Einsatz mit den noch fehlenden Chips mitgehen, höchstens bis zur restlichen Stackgröße.
+- Setzen (Bet): die Einsätze eröffnen, wenn noch kein Einsatz besteht.
+- Erhöhen (Raise): den aktuellen Einsatz erhöhen. Das Betragsfeld zeigt deinen gesamten Einsatz dieser Setzrunde, keine zusätzlichen Chips. Beispiel: Du hast 100 bezahlt, der Einsatz ist 200, und du erhöhst auf 600. Du zahlst weitere 500 (600 − 100), nicht 600. Ein Call würde 100 kosten.
+- All-in: den gesamten restlichen Stack setzen. Du kannst nur Pots gewinnen, zu denen du beigetragen hast. Zusätzliche Chips anderer Spieler bilden Side Pots für deren Teilnehmer. All-in bedeutet vor der Auswertung nicht, dass du ausgeschieden bist. Die Steuerung zeigt erlaubte Aktionen und Betragsgrenzen. Die All-in-Betragsauswahl wählt das Maximum; bestätige es mit Setzen/Erhöhen oder D.
+
+## Tastenkürzel
+
+- A: Passen. S: Check oder Mitgehen. D: ausgewählten Bet- oder Raise-Betrag bestätigen.
+- Q / ←: Ziel um einen Big Blind senken. E / →: um einen Big Blind erhöhen. Mit Shift sind es fünf Big Blinds. Erlaubte Grenzen bleiben erhalten.
+- Nach Handende startet S / Enter / Leertaste die nächste Hand nur bei Berechtigung; D zeigt deine Karten nur, wenn dies nach einer durch Folds gewonnenen Hand möglich ist. Es startet keine Hand automatisch.
+- Aktionen gelten nur für deinen berechtigten Zug am eigenen menschlichen Platz; nächste Hand und Kartenzeigen folgen den Bedingungen ihrer Schaltflächen. Bei ausstehenden Anfragen, Wiederherstellung oder abgelaufenem Zug sind sie gesperrt. Zuschauer handeln nicht für Spieler.
+- Kürzel werden in Text- und Zahlenfeldern, Textbereichen, Auswahllisten und bearbeitbaren Inhalten ignoriert (der Schieberegler erlaubt sie), bei offenem Dialog, mit Ctrl/Alt/Meta oder bei Tastenwiederholung. Enter/Leertaste behält auf fokussierten Schaltflächen und Links die normale Funktion.

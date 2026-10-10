@@ -222,6 +222,11 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
   redirect to the unprefixed equivalent, preserving paths, queries and methods.
   Use `addLocalePrefix` for public URLs; English canonical URLs and `x-default`
   are unprefixed. Preserve page caching and `Vary: Accept` content negotiation.
+- In-game Help is optional server-only MDX in `content/help/`, loaded by the explicit
+  locale map in `lib/help/server.ts` and passed as rendered content into `PokerApp`.
+  Keep all locales complete and update relevant documents when controls or gameplay
+  terminology change. Only interface labels belong in game dictionaries. Help shares
+  the single overlay state and never pauses bots, timers, refreshes or notifications.
 - The About route is Markdown-authored but remains server-only. Load its MDX
 	through `lib/about/server`; do not add `use client`, client providers, runtime
 	content fetching, or imports from the About documents into client modules.

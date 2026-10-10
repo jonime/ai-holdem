@@ -6,6 +6,8 @@ const dictionary = {
   timer: {"retry": "Zeitüberschreitung erneut verarbeiten", "setting": "Zeitlimit für menschliche Züge", "off": "Aus", "duration": "{seconds} Sekunden", "multiplayer": "Gilt für Hände, die mit mindestens zwei Menschen beginnen.", "countdown": "Verbleibend: {seconds}s", "warning": "Noch zehn Sekunden.", "expired": "Zeit abgelaufen — Tisch wird aktualisiert"},
   turnNotification: {"soundLabel": "Ton", "title": "🟢 Du bist dran · AI Hold’em", "sound": "Zugton", "audioUnavailable": "Ton ist nicht verfügbar. Versuche, ihn in diesem Browser erneut zu aktivieren."},
   gameHeader: {
+    help: "Hilfe",
+    closeHelp: "Hilfe schließen",
     retryDeparture: "Erneut verlassen",
     lobby: "Lobby",
     leaveTable: "Tisch verlassen",

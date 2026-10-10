@@ -1,0 +1,36 @@
+export const title = "Game help";
+
+Help does not pause the game. Bots, updates and multiplayer turn timers continue while you read; a timed human turn can expire and fold.
+
+## Hand rankings
+
+Use the best five cards from your two hole cards and the five community cards. From strongest to weakest:
+
+1. **Straight flush: five consecutive cards of one suit** — `9♠ 8♠ 7♠ 6♠ 5♠`.
+2. **Four of a kind: four cards of the same rank** — `A♠ A♥ A♦ A♣ K♠`.
+3. **Full house: three of a kind and a pair** — `K♠ K♥ K♦ 2♣ 2♥`.
+4. **Flush: five cards of one suit** — `A♥ J♥ 8♥ 5♥ 2♥`.
+5. **Straight: five consecutive ranks** — `9♠ 8♥ 7♦ 6♣ 5♠`.
+6. **Three of a kind: three cards of the same rank** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
+7. **Two pair: two different pairs** — `J♠ J♥ 4♦ 4♣ A♥`.
+8. **One pair: two cards of the same rank** — `10♠ 10♥ A♦ 7♣ 3♥`.
+9. **High card: no combination above** — `A♠ J♥ 8♦ 5♣ 2♥`.
+
+A royal flush is the highest straight flush: A♠ K♠ Q♠ J♠ 10♠ (ace, king, queen, jack and ten of spades). A can also be low in A–2–3–4–5. Higher ranks and then the remaining cards (kickers) decide ties; identical best five-card hands split the pot. Suits do not break ties. Symbols: ♠ spades, ♥ hearts, ♦ diamonds, ♣ clubs. A = ace, K = king, Q = queen, J = jack.
+
+## Betting basics
+
+- Fold: give up your hand and any claim to the pot; chips already paid stay in the pot.
+- Check: pay nothing and pass the action when no bet needs calling.
+- Call: match the current bet, paying only the chips still owed, up to your remaining stack.
+- Bet: open the betting when there is no current bet.
+- Raise: increase the current bet. The amount field is your total contribution on this betting street, not extra chips to pay. Example: you have paid 100, the current bet is 200, and you raise to 600. You pay 500 more (600 − 100), not 600. Calling would cost 100.
+- All-in: commit your remaining stack. You can win only the pots you contributed to. Extra chips from other players form side pots for eligible contributors; going all-in does not mean being eliminated before the hand is resolved. The controls show the legal actions and sizing limits. The All-in sizing button selects the maximum; submit it with Bet/Raise or D.
+
+## Keyboard shortcuts
+
+- A: fold. S: check or call. D: submit the selected bet or raise amount.
+- Q / ←: decrease the target by one big blind. E / →: increase it by one big blind. Hold Shift for five big blinds. Targets stay within legal limits.
+- After a hand ends, S / Enter / Space starts the next hand only when eligible; D shows your cards only when showing is available after a hand won by folds. These keys do not automatically start another hand.
+- Actions work only on your eligible owned human turn; next-hand and show shortcuts follow their button eligibility. They are unavailable during pending requests, recovery, or an expired turn. Spectators cannot act for players.
+- Shortcuts are ignored in text or number inputs, text areas, selects and editable content (the range slider allows them), while a dialog is open, with Ctrl/Alt/Meta, or for repeated key presses. Enter/Space keeps its normal behavior on focused buttons and links.

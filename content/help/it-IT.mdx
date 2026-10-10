@@ -1,0 +1,36 @@
+export const title = "Aiuto del gioco";
+
+L’aiuto non mette in pausa il gioco. Bot, aggiornamenti e timer multigiocatore continuano; un turno umano a tempo può scadere e far passare la mano.
+
+## Classifica delle mani
+
+Usa le migliori cinque carte tra le tue due carte private e le cinque comuni. Dalla più forte alla più debole:
+
+1. **Scala colore: cinque carte consecutive dello stesso seme** — `9♠ 8♠ 7♠ 6♠ 5♠`.
+2. **Poker: quattro carte dello stesso valore** — `A♠ A♥ A♦ A♣ K♠`.
+3. **Full: un tris e una coppia** — `K♠ K♥ K♦ 2♣ 2♥`.
+4. **Colore: cinque carte dello stesso seme** — `A♥ J♥ 8♥ 5♥ 2♥`.
+5. **Scala: cinque valori consecutivi** — `9♠ 8♥ 7♦ 6♣ 5♠`.
+6. **Tris: tre carte dello stesso valore** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
+7. **Doppia coppia: due coppie diverse** — `J♠ J♥ 4♦ 4♣ A♥`.
+8. **Coppia: due carte dello stesso valore** — `10♠ 10♥ A♦ 7♣ 3♥`.
+9. **Carta alta: nessuna combinazione precedente** — `A♠ J♥ 8♦ 5♣ 2♥`.
+
+La scala reale è la scala colore più alta: A♠ K♠ Q♠ J♠ 10♠ (asso, re, donna, fante e dieci di picche). L’asso può anche essere basso in A–2–3–4–5. Valori maggiori e poi carte di spareggio decidono; mani identiche di cinque carte dividono il piatto. I semi non risolvono i pareggi. Simboli: ♠ picche, ♥ cuori, ♦ quadri, ♣ fiori. A = asso, K = re, Q = donna, J = fante.
+
+## Nozioni di puntata
+
+- Passa (passare la mano): rinunciare alla mano e al piatto; le fiches pagate restano nel piatto.
+- Check: cedere il turno senza pagare quando non c’è una puntata da coprire.
+- Vedi (chiamare): pareggiare la puntata pagando solo quanto manca, al massimo lo stack residuo.
+- Punta (puntare): aprire le puntate quando non ce n’è ancora una.
+- Rilancia (rilanciare): aumentare la puntata. Il campo indica il tuo contributo totale in questo giro, non le fiches aggiuntive. Esempio: hai pagato 100, la puntata è 200 e rilanci a 600. Paghi altri 500 (600 − 100), non 600. Chiamare costerebbe 100.
+- All-in: impegnare tutto lo stack residuo. Puoi vincere solo i piatti a cui hai contribuito. Le fiches aggiuntive degli altri formano piatti laterali per i loro partecipanti. All-in non significa eliminazione prima della risoluzione della mano. I controlli mostrano azioni e limiti consentiti. Il pulsante di importo All-in seleziona il massimo; conferma con Punta/Rilancia o D.
+
+## Scorciatoie da tastiera
+
+- A: Passa. S: Check o Vedi. D: inviare la puntata o il rilancio selezionato.
+- Q / ←: ridurre il totale di un grande buio. E / →: aumentarlo di un grande buio. Con Shift il passo è di cinque grandi bui. Il totale resta nei limiti consentiti.
+- Dopo la mano, S / Invio / Spazio avvia la successiva solo quando consentito; D mostra le tue carte solo se disponibile dopo una mano vinta per abbandoni. Nessuna mano parte automaticamente.
+- Le azioni richiedono il tuo turno valido sul tuo posto umano; nuova mano e mostra carte seguono le condizioni dei pulsanti. Richieste pendenti, recupero o turno scaduto le bloccano. Gli spettatori non agiscono per i giocatori.
+- Le scorciatoie sono ignorate in campi di testo o numeri, aree di testo, selettori e contenuti modificabili (il cursore le consente), con un dialogo aperto, con Ctrl/Alt/Meta o con ripetizione del tasto. Invio/Spazio mantiene il comportamento normale su pulsanti e link attivi.

@@ -15,6 +15,8 @@ const dictionary = {
   },
   turnNotification: {"soundLabel": "サウンド", "title": "🟢 あなたの番 · AI Hold’em", "sound": "ターン通知音", "audioUnavailable": "音声を利用できません。このブラウザーでもう一度有効にしてください。"},
   "gameHeader": {
+    "help": "ヘルプ",
+    "closeHelp": "ヘルプを閉じる",
     "retryDeparture": "退出を再試行",
     "lobby": "ロビー",
     "leaveTable": "テーブルを離れる",

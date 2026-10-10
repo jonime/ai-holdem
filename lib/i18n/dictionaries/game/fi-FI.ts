@@ -6,6 +6,8 @@ const dictionary = {
   timer: {"retry": "Yritä vuoron päättämistä uudelleen", "setting": "Pelaajan vuoroaika", "off": "Pois", "duration": "{seconds} sekuntia", "multiplayer": "Käytössä käsissä, joissa aloittaa vähintään kaksi ihmispelaajaa.", "countdown": "Aikaa jäljellä: {seconds} s", "warning": "Kymmenen sekuntia jäljellä.", "expired": "Aika loppui — päivitetään pöytää"},
   turnNotification: {"soundLabel": "Ääni", "title": "🟢 Sinun vuorosi · AI Hold’em", "sound": "Vuoroääni", "audioUnavailable": "Ääni ei ole käytettävissä. Kokeile ottaa se käyttöön uudelleen tässä selaimessa."},
   gameHeader: {
+    help: "Ohje",
+    closeHelp: "Sulje ohje",
     retryDeparture: "Yritä poistumista uudelleen",
     lobby: "Aula",
     leaveTable: "Poistu pöydästä",

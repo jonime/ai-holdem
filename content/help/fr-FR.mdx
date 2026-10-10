@@ -1,0 +1,36 @@
+export const title = "Aide du jeu";
+
+L’aide ne met pas le jeu en pause. Les bots, les mises à jour et les minuteurs multijoueurs continuent ; un tour humain chronométré peut expirer et entraîner un abandon.
+
+## Classement des mains
+
+Formez la meilleure main de cinq cartes avec vos deux cartes privées et les cinq cartes communes. De la plus forte à la plus faible :
+
+1. **Quinte flush : cinq cartes consécutives de la même couleur** — `9♠ 8♠ 7♠ 6♠ 5♠`.
+2. **Carré : quatre cartes de même rang** — `A♠ A♥ A♦ A♣ K♠`.
+3. **Full : un brelan et une paire** — `K♠ K♥ K♦ 2♣ 2♥`.
+4. **Couleur : cinq cartes de la même couleur** — `A♥ J♥ 8♥ 5♥ 2♥`.
+5. **Quinte : cinq rangs consécutifs** — `9♠ 8♥ 7♦ 6♣ 5♠`.
+6. **Brelan : trois cartes de même rang** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
+7. **Deux paires : deux paires différentes** — `J♠ J♥ 4♦ 4♣ A♥`.
+8. **Paire : deux cartes de même rang** — `10♠ 10♥ A♦ 7♣ 3♥`.
+9. **Carte haute : aucune combinaison ci-dessus** — `A♠ J♥ 8♦ 5♣ 2♥`.
+
+La quinte flush royale est la plus haute quinte flush : A♠ K♠ Q♠ J♠ 10♠ (as, roi, dame, valet et dix de pique). L’as peut aussi être bas dans A–2–3–4–5. Les rangs supérieurs puis les cartes restantes départagent ; des meilleures mains identiques de cinq cartes partagent le pot. Les couleurs ne départagent pas les égalités. Symboles : ♠ pique, ♥ cœur, ♦ carreau, ♣ trèfle. A = as, K = roi, Q = dame, J = valet.
+
+## Bases des mises
+
+- Se coucher : abandonner la main et le pot ; les jetons déjà payés restent dans le pot.
+- Parole (checker) : passer sans payer lorsqu’aucune mise n’est à suivre.
+- Suivre : égaler la mise en payant uniquement les jetons manquants, au maximum votre tapis restant.
+- Miser : ouvrir les mises lorsqu’il n’y a pas encore de mise.
+- Relancer : augmenter la mise. Le champ indique votre contribution totale sur ce tour d’enchères, pas les jetons supplémentaires. Exemple : vous avez payé 100, la mise est 200 et vous relancez à 600. Vous payez 500 de plus (600 − 100), pas 600. Suivre coûterait 100.
+- Tapis (all-in) : engager tout votre tapis restant. Vous ne pouvez gagner que les pots auxquels vous avez contribué. Les jetons supplémentaires des autres joueurs forment des pots secondaires pour leurs participants. Un all-in ne signifie pas une élimination avant la résolution de la main. Les commandes affichent les actions et montants autorisés. Le bouton de montant Tapis sélectionne le maximum ; validez avec Miser/Relancer ou D.
+
+## Raccourcis clavier
+
+- A : se coucher. S : Parole (checker) ou Suivre. D : valider le montant de mise ou de relance choisi.
+- Q / ← : diminuer la cible d’une grosse blind. E / → : l’augmenter d’une grosse blind. Avec Shift, le pas est de cinq grosses blinds. Les limites autorisées sont respectées.
+- Après la main, S / Entrée / Espace lance la suivante uniquement si vous y êtes autorisé ; D montre vos cartes seulement si cette option est disponible après une main gagnée par abandons. Aucune main ne démarre automatiquement.
+- Les actions nécessitent votre tour autorisé sur votre siège humain ; lancer la main suivante et montrer les cartes suivent les conditions des boutons. Elles sont bloquées pendant les requêtes, la récupération ou après expiration du tour. Les spectateurs ne jouent pas pour les joueurs.
+- Les raccourcis sont ignorés dans les champs de texte ou de nombres, zones de texte, listes et contenus modifiables (le curseur les accepte), avec une boîte de dialogue ouverte, avec Ctrl/Alt/Meta ou lors de répétitions de touches. Entrée/Espace conserve son comportement normal sur les boutons et liens ciblés.

@@ -1,0 +1,36 @@
+export const title = "Pomoc w grze";
+
+Pomoc nie wstrzymuje gry. Boty, aktualizacje i zegary gry wieloosobowej działają dalej; czas ludzkiej kolejki może upłynąć i spowodować pas.
+
+## Ranking układów
+
+Wybierz najlepsze pięć kart ze swoich dwóch kart własnych i pięciu wspólnych. Od najsilniejszego do najsłabszego:
+
+1. **Poker: pięć kolejnych kart w jednym kolorze** — `9♠ 8♠ 7♠ 6♠ 5♠`.
+2. **Kareta: cztery karty tej samej wartości** — `A♠ A♥ A♦ A♣ K♠`.
+3. **Full: trójka i para** — `K♠ K♥ K♦ 2♣ 2♥`.
+4. **Kolor: pięć kart w jednym kolorze** — `A♥ J♥ 8♥ 5♥ 2♥`.
+5. **Strit: pięć kolejnych wartości** — `9♠ 8♥ 7♦ 6♣ 5♠`.
+6. **Trójka: trzy karty tej samej wartości** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
+7. **Dwie pary: dwie różne pary** — `J♠ J♥ 4♦ 4♣ A♥`.
+8. **Para: dwie karty tej samej wartości** — `10♠ 10♥ A♦ 7♣ 3♥`.
+9. **Wysoka karta: brak powyższych układów** — `A♠ J♥ 8♦ 5♣ 2♥`.
+
+Poker królewski to najwyższy poker: A♠ K♠ Q♠ J♠ 10♠ (as, król, dama, walet i dziesiątka pik). As może być też niski w A–2–3–4–5. Wyższe wartości, a potem karty dodatkowe rozstrzygają remis; identyczne najlepsze układy pięciu kart dzielą pulę. Kolory nie rozstrzygają remisu. Symbole: ♠ pik, ♥ kier, ♦ karo, ♣ trefl. A = as, K = król, Q = dama, J = walet.
+
+## Podstawy licytacji
+
+- Pas: zrezygnuj z ręki i prawa do puli; wpłacone żetony pozostają w puli.
+- Czekaj: przekaż kolejkę bez płacenia, gdy nie ma zakładu do sprawdzenia.
+- Sprawdź: wyrównaj obecny zakład, płacąc tylko brakujące żetony, najwyżej cały pozostały stos.
+- Postaw: rozpocznij licytację, gdy nie ma jeszcze zakładu.
+- Podbij: zwiększ zakład. Pole kwoty oznacza cały twój wkład w tej rundzie, nie dodatkowe żetony. Przykład: wpłacono 100, zakład wynosi 200, a ty przebijasz do 600. Dopłacasz 500 (600 − 100), nie 600. Sprawdzenie kosztowałoby 100.
+- All-in: postaw cały pozostały stos. Możesz wygrać tylko pule, do których dołożono twoje żetony. Dodatkowe żetony innych tworzą pule boczne dla ich uczestników. All-in nie oznacza eliminacji przed rozstrzygnięciem ręki. Kontrolki pokazują legalne akcje i limity kwot. Przycisk kwoty All-in wybiera maksimum; zatwierdź przyciskiem Postaw/Podbij lub D.
+
+## Skróty klawiaturowe
+
+- A: pas. S: Czekaj lub Sprawdź. D: wyślij wybraną kwotę zakładu lub przebicia.
+- Q / ←: zmniejsz cel o jedną dużą ciemną. E / →: zwiększ o jedną dużą ciemną. Shift zmienia krok na pięć dużych ciemnych. Cel pozostaje w legalnych granicach.
+- Po ręce S / Enter / Spacja rozpoczyna następną tylko przy odpowiednich uprawnieniach; D pokazuje twoje karty tylko, gdy jest to dostępne po ręce wygranej przez pasy. Kolejna ręka nie rozpoczyna się automatycznie.
+- Akcje wymagają twojej dozwolonej kolejki na własnym ludzkim miejscu; kolejna ręka i pokazanie kart podlegają warunkom przycisków. Oczekujące żądania, odzyskiwanie stanu lub upływ czasu blokują je. Widzowie nie działają za graczy.
+- Skróty są ignorowane w polach tekstowych i liczbowych, obszarach tekstu, listach wyboru i edytowalnej treści (suwak je obsługuje), przy otwartym oknie, z Ctrl/Alt/Meta lub przy powtarzaniu klawisza. Enter/Spacja zachowuje normalną funkcję na przyciskach i linkach z fokusem.

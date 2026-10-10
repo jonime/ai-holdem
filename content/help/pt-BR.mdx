@@ -1,0 +1,36 @@
+export const title = "Ajuda do jogo";
+
+A ajuda não pausa o jogo. Bots, atualizações e temporizadores multijogador continuam; uma vez humana cronometrada pode expirar e causar uma desistência.
+
+## Classificação das mãos
+
+Use as melhores cinco cartas entre suas duas cartas fechadas e as cinco comunitárias. Da mais forte à mais fraca:
+
+1. **Straight flush: cinco cartas consecutivas do mesmo naipe** — `9♠ 8♠ 7♠ 6♠ 5♠`.
+2. **Quadra: quatro cartas do mesmo valor** — `A♠ A♥ A♦ A♣ K♠`.
+3. **Full house: uma trinca e um par** — `K♠ K♥ K♦ 2♣ 2♥`.
+4. **Flush: cinco cartas do mesmo naipe** — `A♥ J♥ 8♥ 5♥ 2♥`.
+5. **Sequência: cinco valores consecutivos** — `9♠ 8♥ 7♦ 6♣ 5♠`.
+6. **Trinca: três cartas do mesmo valor** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
+7. **Dois pares: dois pares diferentes** — `J♠ J♥ 4♦ 4♣ A♥`.
+8. **Par: duas cartas do mesmo valor** — `10♠ 10♥ A♦ 7♣ 3♥`.
+9. **Carta alta: nenhuma combinação acima** — `A♠ J♥ 8♦ 5♣ 2♥`.
+
+O royal flush é o straight flush mais alto: A♠ K♠ Q♠ J♠ 10♠ (ás, rei, dama, valete e dez de espadas). O ás também pode ser baixo em A–2–3–4–5. Valores maiores e depois as cartas de desempate decidem; mãos idênticas de cinco cartas dividem o pote. Naipes não desempatam mãos. Símbolos: ♠ espadas, ♥ copas, ♦ ouros, ♣ paus. A = ás, K = rei, Q = dama, J = valete.
+
+## Noções básicas de apostas
+
+- Desistir: abandonar a mão e o direito ao pote; fichas já pagas ficam no pote.
+- Passar: ceder a vez sem pagar quando não há aposta a cobrir.
+- Pagar: igualar a aposta atual pagando apenas o que falta, até o limite da sua pilha restante.
+- Apostar: abrir as apostas quando ainda não há aposta.
+- Aumentar: elevar a aposta atual. O campo indica sua contribuição total nesta rodada, não as fichas adicionais. Exemplo: você pagou 100, a aposta é 200 e aumenta para 600. Você paga mais 500 (600 − 100), não 600. Pagar custaria 100.
+- All-in: apostar toda a pilha restante. Você só pode ganhar potes para os quais contribuiu. As fichas extras dos outros formam potes paralelos para seus participantes. All-in não significa eliminação antes do resultado da mão. Os controles mostram ações e limites legais. O botão de valor All-in seleciona o máximo; envie com Apostar/Aumentar ou D.
+
+## Atalhos de teclado
+
+- A: desistir. S: passar ou pagar. D: enviar o valor selecionado de aposta ou aumento.
+- Q / ←: reduzir o alvo em um big blind. E / →: aumentar em um big blind. Segure Shift para cinco big blinds. O alvo respeita os limites legais.
+- Após a mão, S / Enter / Espaço inicia a próxima somente quando permitido; D mostra suas cartas somente quando disponível após uma mão vencida por desistências. Nenhuma mão começa automaticamente.
+- As ações exigem sua vez válida no seu próprio assento humano; próxima mão e mostrar cartas seguem as condições dos botões. Solicitações pendentes, recuperação ou uma vez expirada bloqueiam os atalhos. Espectadores não agem pelos jogadores.
+- Atalhos são ignorados em campos de texto ou números, áreas de texto, seletores e conteúdo editável (o controle deslizante os permite), com diálogo aberto, com Ctrl/Alt/Meta ou com repetição de tecla. Enter/Espaço mantém seu comportamento normal em botões e links com foco.

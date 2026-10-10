@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 
+import { getHelpDocument } from "@/lib/help/server";
+
 import PokerApp from "@/components/poker/PokerApp";
 import { hasLocale } from "@/lib/i18n";
 import { getPublicGame } from "@/lib/poker/game-service";
@@ -23,5 +25,6 @@ export async function GamePageContent({ params }: GamePageContentProps) {
     throw error;
   }
 
-  return <PokerApp gameId={gameId} />;
+  const { default: HelpContent, title } = await getHelpDocument(lang);
+  return <PokerApp gameId={gameId} helpContent={<HelpContent />} helpTitle={title} />;
 }

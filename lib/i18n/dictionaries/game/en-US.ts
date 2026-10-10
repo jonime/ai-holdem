@@ -4,6 +4,8 @@ const dictionary = {
   timer: {"retry": "Retry turn timeout", "setting": "Human turn timer", "off": "Off", "duration": "{seconds} seconds", "multiplayer": "Applies to hands starting with two or more humans.", "countdown": "Time left: {seconds}s", "warning": "Ten seconds remaining.", "expired": "Time expired—updating table"},
   turnNotification: {"soundLabel": "Sound", "title": "🟢 Your turn · AI Hold’em", "sound": "Turn sound", "audioUnavailable": "Sound is unavailable. Try enabling it again in this browser."},
   gameHeader: {
+    help: "Help",
+    closeHelp: "Close help",
     retryDeparture: "Retry departure",
     lobby: "Lobby",
     leaveTable: "Leave table",

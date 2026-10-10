@@ -83,3 +83,9 @@
   font-weight: 700;
 }
 .soundSwitch[aria-checked="true"] .soundSymbol { left: 4px; right: auto; }
+
+@media (max-width: 560px) {
+  .gameHeaderInner { flex-wrap: wrap; }
+  .controls { min-width: 0; max-width: 100%; }
+  .controls button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+}

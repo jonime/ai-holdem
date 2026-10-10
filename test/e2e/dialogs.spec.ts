@@ -222,3 +222,141 @@ test("turn advancement continues in Actions; unmount unlocks scroll without focu
   await expect(page).toHaveURL(/\/play$/);
   expect(await page.evaluate(() => document.activeElement?.isConnected)).toBe(true);
 });
+
+const helpDialog = (page: Page) => page.getByRole("dialog", { name: "Game help", exact: true });
+async function openHelp(page: Page) {
+  await page.getByRole("button", { name: "Help", exact: true }).click();
+  await expect(helpDialog(page)).toBeVisible();
+  await expect(helpDialog(page).getByRole("button", { name: "Close help", exact: true })).toBeFocused();
+}
+
+test("Help contains focus, preserves reading through updates, and blocks gameplay shortcuts", { tag: "@ui-regression" }, async ({ page }) => {
+  const f = await fixture(page);
+  const requests: string[] = [];
+  page.on("request", r => { if (/\/(action|reveal|next-hand)$/.test(r.url())) requests.push(r.url()); });
+  await openHelp(page);
+  const dialog = helpDialog(page);
+  await contained(page, dialog);
+  await expect(page.locator("html")).toHaveCSS("overflow", "hidden");
+  await expect(page.locator("body")).toHaveCSS("overflow", "hidden");
+  const scroll = dialog.locator('[class*="helpScroll"]');
+  await scroll.evaluate(n => { n.scrollTop = 300; });
+  const reading = await scroll.evaluate(n => n.scrollTop);
+  expect(reading).toBeGreaterThan(0);
+  await expect(dialog.getByRole("button", { name: "Close help" })).toBeInViewport();
+  await dialog.getByRole("heading", { name: "Game help" }).click();
+  for (const key of ["a", "s", "d", "q", "e", "ArrowLeft", "ArrowRight", "Shift+E", "Enter", "Space"]) await page.keyboard.press(key);
+  await expect(page.locator("#bet-target")).toHaveValue("200");
+  expect(requests).toEqual([]);
+  f.set({ ...f.current(), version: f.current().version + 1 });
+  await refresh(page);
+  await expect.poll(() => scroll.evaluate(n => n.scrollTop)).toBe(reading);
+  const before = await page.evaluate(() => window.scrollY);
+  await page.mouse.move(1, 1);
+  await page.mouse.wheel(0, 700);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(before);
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Help", exact: true })).toBeFocused();
+  await expect(page.locator("html")).not.toHaveCSS("overflow", "hidden");
+  await page.keyboard.press("e");
+  await expect(page.locator("#bet-target")).toHaveValue("300");
+  await openHelp(page);
+  await expect.poll(() => scroll.evaluate(n => n.scrollTop)).toBe(0);
+  await dialog.getByRole("button", { name: "Close help" }).click();
+  await expect(page.getByRole("button", { name: "Help", exact: true })).toBeFocused();
+  await openHelp(page);
+  await page.mouse.click(1, 1);
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Help", exact: true })).toBeFocused();
+});
+
+test("human turn expiry advances while Help stays open at the reading position", { tag: "@ui-regression" }, async ({ page }) => {
+  const f = await fixture(page);
+  await openHelp(page);
+  const scroll = helpDialog(page).locator('[class*="helpScroll"]');
+  await scroll.evaluate(n => { n.scrollTop = 300; });
+  const reading = await scroll.evaluate(n => n.scrollTop);
+  const game = f.current();
+  const now = Date.now();
+  f.set({ ...game, serverTime: new Date(now).toISOString(), turnTimer: { decisionId: "10000000-0000-4000-8000-000000000001",
+    actorEngineId: f.human.id, handNumber: game.poker.handNumber, deadline: new Date(now + 1500).toISOString() } });
+  let timeouts = 0;
+  await page.route(`**/api/games/${f.gameId}/advance-timeout`, route => {
+    timeouts++;
+    const current = f.current();
+    f.set({ ...current, version: current.version + 1, status: "complete", turnTimer: null,
+      poker: { ...current.poker, street: "complete", currentActorId: null, completionReason: "fold", legalActions: [] } });
+    return route.fulfill({ json: { game: f.current() } });
+  });
+  await refresh(page);
+  await expect.poll(() => timeouts).toBe(1);
+  await expect(helpDialog(page)).toBeVisible();
+  await expect.poll(() => scroll.evaluate(n => n.scrollTop)).toBe(reading);
+  let next = 0, reveals = 0;
+  await page.route(`**/api/games/${f.gameId}/next-hand`, route => { next++; return route.fulfill({ json: { game: f.current() } }); });
+  await page.route(`**/api/games/${f.gameId}/reveal`, route => { reveals++; return route.fulfill({ json: { game: f.current() } }); });
+  await helpDialog(page).getByRole("heading", { name: "Game help" }).click();
+  for (const key of ["d", "s", "Enter", "Space"]) await page.keyboard.press(key);
+  expect(next).toBe(0); expect(reveals).toBe(0);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("button", { name: "Next Hand", exact: true })).toBeEnabled();
+  await page.keyboard.press("s");
+  await expect.poll(() => next).toBe(1);
+});
+
+test("Help opens during a pending action and failed recovery without changing the request", { tag: "@ui-regression" }, async ({ page }) => {
+  const f = await fixture(page);
+  let submissions = 0;
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  await page.route(`**/api/games/${f.gameId}/action`, async route => {
+    submissions++;
+    await held;
+    await route.abort("failed");
+  });
+  await page.getByRole("button", { name: "Check", exact: true }).click();
+  await expect.poll(() => submissions).toBe(1);
+  await openHelp(page);
+  await page.route(`**/api/games/${f.gameId}`, route => route.abort("failed"));
+  release();
+  await expect(page.getByRole("button", { name: "Refresh table", exact: true })).toBeAttached();
+  await expect(helpDialog(page)).toBeVisible();
+  await page.keyboard.press("Escape");
+  await openHelp(page);
+  expect(submissions).toBe(1);
+});
+
+test("localized Help fits desktop and narrow screens for waiting players and spectators", { tag: "@ui-regression" }, async ({ page }) => {
+  const f = await fixture(page, true);
+  // Waiting tables use the same header and server slot; no active table is needed.
+  f.set({ ...f.current(), status: "waiting", poker: { ...f.current().poker, currentActorId: null, legalActions: [] } });
+  const locales = [
+    ["", "Help", "Game help"], ["fi-FI", "Ohje", "Pelin ohje"], ["es-ES", "Ayuda", "Ayuda del juego"],
+    ["de-DE", "Hilfe", "Spielhilfe"], ["sv-SE", "Hjälp", "Spelhjälp"], ["fr-FR", "Aide", "Aide du jeu"],
+    ["pt-BR", "Ajuda", "Ajuda do jogo"], ["it-IT", "Aiuto", "Aiuto del gioco"], ["nl-NL", "Help", "Spelhulp"],
+    ["pl-PL", "Pomoc", "Pomoc w grze"], ["ja-JP", "ヘルプ", "ゲームヘルプ"], ["zh-Hans", "帮助", "游戏帮助"],
+  ];
+  for (const [locale, label, title] of locales) {
+    await page.goto(`${locale ? `/${locale}` : ""}/game/${f.gameId}`);
+    const opener = page.getByRole("button", { name: label, exact: true });
+    for (const width of [320, 375, 430, 1280]) {
+      await page.setViewportSize({ width, height: 812 });
+      await expect(opener).toBeInViewport();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      await opener.click();
+      const dialog = page.getByRole("dialog", { name: title, exact: true });
+      await expect(dialog).toBeVisible();
+      await expect(dialog.getByRole("heading", { level: 2 })).toHaveCount(4);
+      if ((locale === "" || locale === "de-DE") && (width === 320 || width === 1280)) {
+        await page.screenshot({ path: `test-results/help-${locale || "en-US"}-${width}.png` });
+      }
+      const scroll = dialog.locator('[class*="helpScroll"]');
+      expect(await scroll.evaluate(n => n.scrollWidth <= n.clientWidth)).toBe(true);
+      await scroll.evaluate(n => { n.scrollTop = n.scrollHeight; });
+      await expect(dialog.getByRole("button")).toBeInViewport();
+      await page.keyboard.press("Escape");
+      await expect(opener).toBeFocused();
+    }
+  }
+});

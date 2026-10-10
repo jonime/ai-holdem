@@ -272,10 +272,12 @@ Translations are physically split by route and usage under `lib/i18n/dictionarie
 | `join-game/<locale>.ts` | reusable public-directory strings passed into the Play client island |
 | `game/<locale>.ts` | combined lobby/table/feed/cards/errors dictionary |
 
-The About route is the exception to the TypeScript dictionary layout: its long-form
+About and in-game Help use MDX for long-form content instead of TypeScript dictionaries. About
 content lives in `content/about/<locale>.mdx`, including a localized `metadata`
 export. `lib/about/server.ts` is the server-only locale loader. Keep the heading
 structure and links aligned across all twelve documents when changing About copy.
+Help lives in `content/help/<locale>.mdx` with an exported `title`, loaded only on
+the server through `lib/help/server.ts` and passed as rendered content to the game.
 
 There are twelve locales (`en-US`, `fi-FI`, `es-ES`, `de-DE`, `sv-SE`, `fr-FR`, `pt-BR`, `it-IT`, `nl-NL`, `pl-PL`, `ja-JP`, `zh-Hans`). The English module exports `as const`; every other locale uses `satisfies` with the corresponding type from `lib/i18n/types.ts`. Every dictionary module imports `server-only`. Japanese and Simplified Chinese use horizontal left-to-right layouts with system CJK font fallbacks. The `pt-BR` translation is Brazilian Portuguese and is labeled accordingly; Portugal Portuguese would require a separate `pt-PT` translation.
 
@@ -296,7 +298,7 @@ from the unlocalized game-creation API; it does not control page routing.
 - To add a key, add it to the English dictionary and to every other locale in the same directory; `lib/i18n/dictionaries/dictionaries.test.ts` compares leaf-key paths and placeholders against English.
 - Use `GameTranslationKey` and `GameTranslator` from `lib/i18n/types.ts` via type-only imports for game translation calls and helpers. Only dotted string-leaf paths are valid; sections and unrestricted strings are rejected. Keep dynamic keys narrowed to domain unions (street, difficulty, playstyle, lobby guidance), or use an explicit mapping checked with `satisfies Record<Domain, GameTranslationKey>`. Do not cast arbitrary strings or add string-accepting overloads. Interpolation values remain `string | number`; placeholder arguments are not typechecked.
 - Format displayed chip amounts explicitly with `formatChips(value, locale)` using the selected app locale, including lobby stacks and blind summaries. Keep numeric input values/parsing, API numbers, game IDs and hand numbers unchanged; do not format all interpolation values automatically.
-- To add a locale, add `<locale>.ts` to each dictionary directory, register it in `SUPPORTED_LOCALES` in `lib/i18n/index.ts`, register it in every dictionary-group test registry (each must satisfy `Record<Locale, GroupDictionary>` and cover `SUPPORTED_LOCALES`), and add its dynamic import entry to the matching map in `lib/i18n/server.ts`. Also register native language labels in `lib/i18n/languages.ts` and add the translated About MDX document and its loader in `lib/about/server.ts`. Script-based locales such as `zh-Hans` need a territory-based Open Graph locale in `lib/seo.ts`.
+- To add a locale, add `<locale>.ts` to each dictionary directory, register it in `SUPPORTED_LOCALES` in `lib/i18n/index.ts`, register it in every dictionary-group test registry (each must satisfy `Record<Locale, GroupDictionary>` and cover `SUPPORTED_LOCALES`), and add its dynamic import entry to the matching map in `lib/i18n/server.ts`. Also register native language labels in `lib/i18n/languages.ts` and add translated About and Help MDX documents with loader entries in `lib/about/server.ts` and `lib/help/server.ts`. Script-based locales such as `zh-Hans` need a territory-based Open Graph locale in `lib/seo.ts`.
 - Server Components load dictionaries directly through the loaders in `lib/i18n/server` (`getMetadataDictionary`, `getLandingServerDictionary`, `getGameDictionary`).
 - The landing page is cached server output: `LanguageMenu` uses locale links and the Quick Play control is a plain POST form. Keep request cookies and game creation in `app/[lang]/new-game/route.ts`, outside the cached page.
 - Keep the landing-page **Play** control a plain server-rendered anchor.
@@ -313,7 +315,7 @@ from the unlocalized game-creation API; it does not control page routing.
   localized game pathname; never copy query parameters, fragments, player
   tokens, or other credentials.
 - Never import dictionary values from client components or shared client utilities (such as `components/poker/view-model.ts`); pass the needed strings explicitly.
-- Long-form About content stays in MDX and is rendered directly by its Server Component route; do not register it in the game dictionary or any shared provider.
+- Long-form About and Help content stays in MDX and is rendered by Server Components; do not register it in the game dictionary or any shared provider.
 - A future shared interactive component receives its own narrow strings through props.
 
 The landing and About pages use a server-only language menu with a native
@@ -746,17 +748,27 @@ Preview verification uses ordinary durations and the existing Realtime two-brows
 smoke, because local DB fixture injection is intentionally unavailable for previews.
 
 The game UI owns a single active overlay in `PokerApp`: none, mobile Actions,
-or Join table. These overlays use `components/poker/Modal.tsx`, opened through
+Join table, or Help. These overlays use `components/poker/Modal.tsx`, opened through
 native `showModal()` for focus containment and inert background content. The
 wrapper owns Escape/backdrop dismissal, scroll locking, initial focus, and focus
 restoration to the opener or the stable table container. Restore only on the
 same page while the table remains mounted; content refreshes must not refocus or
 remount the feed. The Actions collapsed preference remains independent of modal
-ownership. Gameplay keyboard shortcuts must return immediately while either
+ownership. Gameplay keyboard shortcuts must return immediately while any
 modal is open. Timers, bot/departure advancement, Realtime and authoritative
 refreshes continue normally. Dismissing Join table does not cancel a submitted
 claim. Verify changes with `test/e2e/dialogs.spec.ts` alongside betting controls
 and Actions-feed regressions using the existing Chromium configuration.
+
+Help content lives in `content/help/<locale>.mdx`, with a localized exported title
+and three matching sections: hand rankings, betting basics and keyboard shortcuts.
+Update every relevant localized document whenever controls or gameplay terminology
+change. Keep examples valid five-card hands in strongest-to-weakest order, explain
+raise targets versus additional payment, and preserve the multiplayer timer warning.
+Keep prose out of game dictionaries and client imports. `lib/help/content.test.tsx`
+compiles all documents and validates examples through the poker adapter; game page
+tests cover locale composition, and tagged dialog regressions cover focus, scrolling,
+shortcuts, pending/recovery access, expiry and layouts from 320px to desktop.
 
 ## Turn notifications
 

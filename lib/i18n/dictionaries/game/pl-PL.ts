@@ -6,6 +6,8 @@ const dictionary = {
   timer: {"retry": "Ponów zakończenie tury", "setting": "Czas tury człowieka", "off": "Wyłączony", "duration": "{seconds} sekund", "multiplayer": "Dla rozdań rozpoczynanych przez co najmniej dwóch ludzi.", "countdown": "Pozostało: {seconds}s", "warning": "Zostało dziesięć sekund.", "expired": "Czas minął — aktualizowanie stołu"},
   turnNotification: {"soundLabel": "Dźwięk", "title": "🟢 Twoja kolej · AI Hold’em", "sound": "Dźwięk tury", "audioUnavailable": "Dźwięk jest niedostępny. Spróbuj włączyć go ponownie w tej przeglądarce."},
   gameHeader: {
+    help: "Pomoc",
+    closeHelp: "Zamknij pomoc",
     retryDeparture: "Ponów opuszczenie stołu",
     lobby: "Lobby",
     leaveTable: "Opuść stół",

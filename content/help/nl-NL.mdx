@@ -1,0 +1,36 @@
+export const title = "Spelhulp";
+
+Hulp pauzeert het spel niet. Bots, updates en timers voor meerdere spelers gaan door; een menselijke beurt met tijdslimiet kan verlopen en worden gefold.
+
+## Rangorde van handen
+
+Gebruik de beste vijf kaarten uit je twee eigen kaarten en de vijf gemeenschappelijke kaarten. Van sterk naar zwak:
+
+1. **Straight flush: vijf opeenvolgende kaarten van dezelfde soort** — `9♠ 8♠ 7♠ 6♠ 5♠`.
+2. **Four of a kind: vier kaarten van dezelfde waarde** — `A♠ A♥ A♦ A♣ K♠`.
+3. **Full house: drie gelijke kaarten en een paar** — `K♠ K♥ K♦ 2♣ 2♥`.
+4. **Flush: vijf kaarten van dezelfde soort** — `A♥ J♥ 8♥ 5♥ 2♥`.
+5. **Straight: vijf opeenvolgende waarden** — `9♠ 8♥ 7♦ 6♣ 5♠`.
+6. **Three of a kind: drie kaarten van dezelfde waarde** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
+7. **Twee paar: twee verschillende paren** — `J♠ J♥ 4♦ 4♣ A♥`.
+8. **Paar: twee kaarten van dezelfde waarde** — `10♠ 10♥ A♦ 7♣ 3♥`.
+9. **Hoogste kaart: geen bovenstaande combinatie** — `A♠ J♥ 8♦ 5♣ 2♥`.
+
+Een royal flush is de hoogste straight flush: A♠ K♠ Q♠ J♠ 10♠ (aas, heer, vrouw, boer en tien van schoppen). De aas kan ook laag zijn in A–2–3–4–5. Hogere waarden en daarna bijkaarten beslissen; identieke beste handen van vijf kaarten delen de pot. Kaartsoorten beslissen geen gelijkspel. Symbolen: ♠ schoppen, ♥ harten, ♦ ruiten, ♣ klaveren. A = aas, K = heer, Q = vrouw, J = boer.
+
+## Basis van inzetten
+
+- Folden: geef je hand en je recht op de pot op; betaalde fiches blijven in de pot.
+- Checken: geef de beurt door zonder te betalen als er geen inzet te volgen is.
+- Call: volg de huidige inzet met alleen de ontbrekende fiches, maximaal je resterende stack.
+- Inzetten (bet): open de inzetronde als er nog geen inzet is.
+- Verhogen (raise): verhoog de inzet. Het bedrag is je totale bijdrage in deze inzetronde, niet de extra fiches. Voorbeeld: je hebt 100 betaald, de inzet is 200 en je verhoogt naar 600. Je betaalt 500 extra (600 − 100), niet 600. Callen zou 100 kosten.
+- All-in: zet je hele resterende stack in. Je kunt alleen potten winnen waaraan je hebt bijgedragen. Extra fiches van anderen vormen zijpotten voor hun deelnemers. All-in betekent geen uitschakeling voordat de hand is beslist. De bediening toont toegestane acties en bedraggrenzen. De All-in-bedragknop kiest het maximum; verstuur met Inzetten/Verhogen of D.
+
+## Sneltoetsen
+
+- A: Folden. S: Checken of Call. D: verstuur het gekozen bet- of raise-bedrag.
+- Q / ←: verlaag het doel met één big blind. E / →: verhoog met één big blind. Met Shift is de stap vijf big blinds. Het doel blijft binnen toegestane grenzen.
+- Na de hand start S / Enter / Spatie de volgende hand alleen als dat mag; D toont je kaarten alleen als tonen mogelijk is na een door folds gewonnen hand. Een nieuwe hand start niet automatisch.
+- Acties vereisen jouw geldige beurt op je eigen menselijke stoel; volgende hand en kaarten tonen volgen de voorwaarden van hun knoppen. Lopende verzoeken, herstel of een verlopen beurt blokkeren ze. Toeschouwers handelen niet voor spelers.
+- Sneltoetsen worden genegeerd in tekst- of getalvelden, tekstvakken, keuzelijsten en bewerkbare inhoud (de schuifregelaar laat ze toe), bij een open dialoog, met Ctrl/Alt/Meta of bij toetsherhaling. Enter/Spatie behoudt de normale werking op knoppen en links met focus.

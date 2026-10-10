@@ -105,3 +105,42 @@
     display: none;
   }
 }
+
+.helpDialog {
+  width: min(680px, calc(100vw - 24px));
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #f8f7f0;
+  color: var(--ink);
+  box-shadow: 0 18px 60px #0005;
+}
+.helpHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #173a3426;
+  flex-shrink: 0;
+}
+.helpHeader h2 { margin: 0; font-size: 20px; overflow-wrap: anywhere; }
+.helpHeader button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.helpScroll {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px 20px 20px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.helpScroll h2 { font-size: 19px; line-height: 1.35; margin: 24px 0 12px; }
+.helpScroll ul, .helpScroll ol { padding-inline-start: 22px; }
+.helpScroll li { margin-block: 8px; }
+.helpScroll code { white-space: normal; font-size: 0.95em; }
+.helpScroll:focus-visible { outline: 2px solid #36765b; outline-offset: -4px; }
+.helpScroll ol { list-style-type: decimal; }
+.helpScroll ul { list-style-type: disc; }

@@ -1,5 +1,6 @@
 "use client";
 
+import type { RefObject } from "react";
 import Link from "next/link";
 import { addLocalePrefix } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
@@ -11,7 +12,9 @@ import { getClientPlayerToken } from "@/lib/identity/player-token-client";
 import { headerDepartureSeat } from "./header-navigation";
 import type { Game } from "./types";
 
-export function GameHeader({ turnNotification, game, loading, mutationsBlocked = false, onLeave }: {
+export function GameHeader({ helpRef, onHelp, turnNotification, game, loading, mutationsBlocked = false, onLeave }: {
+  readonly helpRef: RefObject<HTMLButtonElement | null>;
+  readonly onHelp: (opener: HTMLButtonElement) => void;
   readonly turnNotification: { enabled: boolean; toggle: () => Promise<void>; notice: string | null };
   readonly game: Game | null;
   readonly loading: boolean;
@@ -35,6 +38,9 @@ export function GameHeader({ turnNotification, game, loading, mutationsBlocked =
       <div className={styles.gameHeaderInner}>
         <Link href={addLocalePrefix("/", locale)} className={styles.gameHeaderTitle}>{APP_NAME}</Link>
         <div className={styles.controls}>
+        <Button ref={helpRef} variant="ghost" size="small" aria-haspopup="dialog" onClick={event => onHelp(event.currentTarget)}>
+          {t("gameHeader.help")}
+        </Button>
         <div className={styles.soundControl}>
           <span>{t("turnNotification.soundLabel")}</span>
           <button className={styles.soundSwitch} type="button" role="switch"
