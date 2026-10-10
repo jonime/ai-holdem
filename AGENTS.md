@@ -48,6 +48,16 @@ earlier state.
 	bug.
 - Keep `AGENTS.md`, `README.md`, `CONTRIBUTING.md`, and any other project docs
 	synchronized with the live codebase and current workflows.
+- Keep `README.md` focused on the project overview, essential local setup,
+  basic development/deployment commands, and links to deeper documentation.
+  Do not append a section for every new feature or use it as a changelog.
+  Update it only when a change affects that introductory scope; keeping docs
+  synchronized does not mean documenting every change in every file.
+- Document feature behavior in `docs/gameplay.md`, implementation details in
+  `docs/architecture.md`, rollout/migration prerequisites in `docs/deployment.md`,
+  and contributor workflows/checks in `CONTRIBUTING.md`. Use focused guides such
+  as `docs/fair-use.md` where appropriate. Extend the relevant existing section
+  instead of duplicating feature, migration, or test details in the README.
 - When a repo rule, setup step, environment variable, command, or workflow
 	changes, update the relevant docs in the same change.
 - Do not leave outdated instructions in place just because the code still works

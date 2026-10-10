@@ -328,6 +328,11 @@ and work without JavaScript.
 Docs are part of the implementation.
 
 - Keep [AGENTS.md](AGENTS.md), [README.md](README.md), and this file aligned with the live codebase.
+- Keep the README introductory: project overview, essential setup, basic commands,
+  and documentation links. New features do not automatically need README sections;
+  it is not a changelog. Update the relevant guide instead: gameplay for user
+  behavior, architecture for implementation, deployment for rollout prerequisites,
+  and this file for contributor workflows and checks.
 - When a repo rule, setup step, env variable, command, or workflow changes, update the relevant docs in the same change.
 - Do not leave stale instructions behind; stale guidance is a product bug.
 

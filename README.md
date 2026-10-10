@@ -45,15 +45,6 @@ Other spectators watch passively; new hands require explicit interaction.
 See the [gameplay guide](docs/gameplay.md) for betting controls, invitations,
 watching, results, and the Actions timeline.
 
-Every bot turn uses a 90-second Postgres claim so competing browsers quietly
-observe while one request infers. An abandoned turn requires explicit **Retry bot**
-after its wait expires. Claims fence late results and do not guarantee exactly-once
-provider billing. Apply the claim migration before deploying and drain old instances.
-TypeSafe and LLM requests share a 60-second deadline. Temporary failures pause
-play with a localized error and explicit **Retry bot**; polling does not retry
-the failed turn. See [provider behavior](docs/architecture.md) and the
-[bot-step duration release check](docs/deployment.md).
-
 ## Local setup
 
 Use Node.js 24 or newer (`.nvmrc` selects Node 24).
@@ -113,11 +104,6 @@ Reasoning defaults to `minimal` when omitted.
 LLM_BOT_MODELS='[{"id":"my-llm","label":"My LLM","modelId":"provider/model","reasoning":"low"}]'
 ```
 
-Jev and LLM bots share verified positions, action history, payment arithmetic and
-visible-card facts. LLMs receive advisory strategy guidance while preserving
-their playstyles and legal candidates. See [context evaluation](benchmarks/poker-context.md).
-Apply the additive bot-context migration before deploying this code.
-
 LLM playstyles (Balanced, Tight, Aggressive) are server-owned and selected
 independently of model configuration; custom prompt text is not accepted.
 
@@ -154,9 +140,6 @@ rendering, environment handling, or deployment behavior.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the contributor workflow, translations,
 local Supabase E2E and SQL checks, HTTP contracts, and deployed Realtime verification.
-Production browser CI runs `npm run test:e2e:ci`, combining lifecycle smoke with
-dialog, betting-controls, hand-results/Actions, request-recovery, and turn-notification regression tests in one
-build and report. Run `test:e2e:smoke` or `test:e2e:ui` for either suite separately.
 Bot evaluations and benchmarks are documented in [benchmarks/README.md](benchmarks/README.md).
 
 ## Deployment
@@ -176,80 +159,9 @@ the application includes its SDK with private table URLs redacted.
 - [Architecture](docs/architecture.md): bot advancement, Realtime, discovery,
   state reads, and feed synchronization.
 - [Deployment](docs/deployment.md): Vercel, migrations, and search metadata.
+- [Fair use](docs/fair-use.md): anonymous allowances, privacy, and configuration.
 - [Contributing](CONTRIBUTING.md): development rules and verification.
 - [Benchmarks](benchmarks/README.md): policy, scenario, and game-read evaluations.
 - [Agent guide](AGENTS.md): repository rules and code map.
 - [Design plans](plans/): design history; prefer current code and tests where
   plans describe an earlier implementation.
-
-## Anonymous fair-use admission
-
-See [docs/fair-use.md](docs/fair-use.md) for provisional server-owned allowances,
-privacy, proxy assumptions, and rollout. Deploy
-`20261016000000_add_usage_admission.sql` and the server-only
-`USAGE_LIMIT_HASH_SECRET` (at least 32 random bytes) before application code.
-All creation endpoints share owner/IP counters; external TypeSafe/LLM attempts
-charge the durable table host and game only after context validation and claim
-verification. Rules turns bypass inference allowances. Denials preserve tables
-and require explicit retry; rules-only Quick Play creates a separate private game.
-Run `npm run test:sql:usage` against migrated local Supabase; CI includes it before
-production browser smoke. The smoke suite also covers fair-use countdowns,
-explicit retry, rules replay, and localized HTML/typed JSON creation denials.
-
-### Remove tables
-
-On Play, hosts can delete tables once all other human assignments are released.
-Deletion permanently removes history and the shared URL; fair-use counters remain.
-Joined players can leave and hide a table from their personal list. Active-hand
-departures are irreversible; all-ins retain pot eligibility. A new successful seat
-claim restores a hidden table. Apply `20261020000000_add_table_removal.sql` before
-deploying this feature, followed by
-`20261021000000_grant_table_removal_reveal_delete.sql` to explicitly grant the
-server role permission to delete card reveals on hosted Supabase.
-See [gameplay](docs/gameplay.md#removing-tables-from-play).
-
-## Human turn timers
-
-New custom tables default to 60 seconds; hosts can select Off, 30, 60 or 90 seconds
-in the waiting lobby. Quick Play and existing tables remain Off. Timers apply only
-to hands starting with at least two dealt humans, with that eligibility frozen for
-the hand. At expiry the server checks if legal, otherwise folds; departing humans
-always fold. Seats remain claimed and all-ins retain pot eligibility. Bots are
-untimed, and starting the next hand remains an explicit action.
-
-Lobby settings are applied when the host starts the table. The current actor’s seat
-shows a small numeric countdown only below ten seconds, with a single screen-reader
-warning and no additional border change. After expiry
-controls stop accepting that decision. A host or seated human browser processes
-expiry; if all eligible browsers close, processing resumes when one returns.
-
-Gameplay requests recover from stalled connections with bounded client waiting and
-one authoritative refresh. Check the table before retrying an unconfirmed action;
-requests are never replayed automatically. If the refresh fails, use **Refresh
-table** to unlock controls. See [CONTRIBUTING.md](CONTRIBUTING.md) for deadline ownership.
-
-## Turn notifications
-
-An actionable owned human turn sets the browser tab to “🟢 Your turn · AI Hold’em”
-(localized). Pending mutations, unresolved recovery, offline state, departure, and
-turn expiry clear the indicator. Opening Actions leaves the turn indicator active.
-
-The game header’s **Sound** switch is off by default. A check with the thumb on
-the right means On; a cross with the thumb on the left means Off. It remembers only this
-preference in browser local storage and synchronizes it between tabs. Enabling it
-previews a quiet two-note cue. Browser audio requires a user gesture, including
-after loading a stored preference; missed cues are never replayed. Initial loads
-and returns from hidden tabs update the title without a catch-up cue. Background
-notifications are best effort: browsers may suspend tabs or block audio. Separate
-open game tabs can each sound. No permissions, push service, or background worker
-is used, and polling behavior is unchanged.
-
-## Host personal removal
-
-Apply `20261025000000_add_host_personal_removal.sql` before deploying host personal
-removal. Hosts with other claimed humans can use **Remove from my tables** without
-deleting shared history. This host-only `remove_from_list` operation atomically
-departs the caller’s own human seat, if any, and records a private exclusion.
-Unseated hosts only hide the row and keep the game version unchanged. Durable host
-authority remains; URL visits do not restore the row, but successful non-departing
-seat claims do. Whole-table deletion still blocks on every other claimed human.

@@ -132,6 +132,12 @@ folded, eliminated and departing humans still block deletion. Bots do not.
 Deletion permanently removes the shared URL and all game history, without
 refunding fair-use allowances.
 
+Hosts with other claimed humans can use **Remove from my tables** to hide the
+table privately while preserving its shared URL and history. If the host owns a
+human seat, this also registers departure; unseated hosts only hide the row.
+Host authority remains, and visiting the URL does not restore the row. A
+successful new seat claim restores it.
+
 Joined players can confirm **Leave and remove**. It registers the same irreversible
 departure as Leave table and privately hides the row only after acknowledgement.
 Older tables refill the five-row list. Visiting the URL does not restore a hidden
