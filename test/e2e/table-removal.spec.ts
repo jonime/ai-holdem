@@ -30,8 +30,20 @@ test("@smoke Hosted deletion blocks other humans, cancellation preserves history
     const guest = await guestContext.newPage(); await claim(guest,id);
     await page.goto("/play");
     const button = personal(page).getByRole("button", { name: /^Delete table:/ });
-    await expect(button).toBeDisabled();
-    await expect(personal(page)).toContainText("Other humans still have claimed seats.");
+    const hide = personal(page).getByRole("button", { name: /^Remove from my tables:/ });
+    await expect(hide).toBeEnabled();
+    page.once("dialog", dialog => { expect(dialog.message()).toContain("history remain available to other players"); return dialog.dismiss(); });
+    await hide.click();
+    await expect(hide).toBeEnabled();
+    page.once("dialog", dialog => dialog.accept());
+    await hide.click();
+    await expect(personal(page)).toHaveCount(0);
+    expect((await read(guest,id)).poker.players.find(p => p.seat === 1)?.status).toBe("claimed");
+    await page.goto(`/game/${id}`); await page.goto("/play");
+    await expect(personal(page)).toHaveCount(0);
+    // Reclaiming restores the hidden hosted table; deletion stays protected.
+    await claim(page,id,0); await page.goto("/play");
+    await expect(hide).toBeEnabled();
     await guest.goto("/play");
     guest.once("dialog", dialog => { expect(dialog.message()).toContain("irreversible during a hand"); return dialog.accept(); });
     await personal(guest).getByRole("button", { name: /^Leave and remove:/ }).click();
@@ -146,5 +158,42 @@ test("@smoke Joined active-hand removal registers departure before hiding the ro
     expect(departed.version).toBeGreaterThan(active.version);
     await guest.goto(`/game/${id}`); await guest.goto("/play");
     await expect(personal(guest)).toHaveCount(0);
+  } finally { await guestContext.close(); }
+});
+
+for (const completed of [false, true]) test(`@smoke Host personal removal preserves guests and history (${completed ? "completed unseated" : "active seated"})`, async ({ page, browser }) => {
+  const id = await create(page);
+  const guestContext = await browser.newContext();
+  try {
+    const guest = await guestContext.newPage(); await claim(guest, id);
+    const waiting = await read(page, id);
+    expect((await page.request.post(`/api/games/${id}/start`, { data: { expectedVersion: waiting.version } })).ok()).toBe(true);
+    if (completed) {
+      const active = await read(page, id);
+      const actorSeat = active.poker.players.find(p => p.id === active.poker.currentActorId)!.seat;
+      const actor = actorSeat === 0 ? page : guest;
+      expect((await actor.request.post(`/api/games/${id}/action`, { data: { expectedVersion: active.version, action: { type: "fold" } } })).ok()).toBe(true);
+      const complete = await read(page, id); expect(complete.status).toBe("complete");
+      expect((await page.request.post(`/api/games/${id}/seats/0/release`, { data: { expectedVersion: complete.version } })).ok()).toBe(true);
+    }
+    const before = await read(page, id);
+    const feed = await (await guest.request.get(`/api/games/${id}/feed`)).json();
+    await page.goto("/play"); page.once("dialog", dialog => dialog.accept());
+    await personal(page).getByRole("button", { name: /^Remove from my tables:/ }).click();
+    await expect(personal(page)).toHaveCount(0);
+    const after = await read(guest, id);
+    expect(after.poker.seats!.find(s => s.seat === 1)?.status).toBe("claimed");
+    if (completed) {
+      expect(after.version).toBe(before.version);
+      expect(await (await guest.request.get(`/api/games/${id}/feed`)).json()).toEqual(feed);
+    } else {
+      const host = after.poker.seats!.find(s => s.seat === 0)!;
+      expect(host.leaving || host.status === "open").toBe(true);
+      expect(after.version).toBeGreaterThan(before.version);
+    }
+    await guest.goto("/play");
+    await expect(personal(guest).getByRole("link", { name: new RegExp(id.slice(0, 8)) })).toBeVisible();
+    await page.goto(`/game/${id}`); await page.goto("/play");
+    await expect(personal(page)).toHaveCount(0);
   } finally { await guestContext.close(); }
 });

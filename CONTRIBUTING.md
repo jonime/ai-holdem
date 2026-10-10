@@ -690,12 +690,21 @@ verify departure and notification delivery on an authorized Vercel deployment.
 
 ## Table removal verification and rollout
 
+Apply `20261025000000_add_host_personal_removal.sql` before deploying host personal
+removal. Hosts with other claimed humans can use **Remove from my tables** without
+deleting shared history. This host-only `remove_from_list` operation atomically
+departs the caller’s own human seat, if any, and records a private exclusion.
+Unseated hosts only hide the row and keep the game version unchanged. Durable host
+authority remains; URL visits do not restore the row, but successful non-departing
+seat claims do. Whole-table deletion still blocks on every other claimed human.
+
+
 Apply `20261020000000_add_table_removal.sql` before deploying the application.
 Also apply `20261021000000_grant_table_removal_reveal_delete.sql`; removal requires
 an explicit service-role DELETE grant on card reveals. Broader local default
 privileges can mask a missing hosted grant.
 `POST /api/games/[gameId]/remove` accepts only `expectedVersion` and the explicit
-`delete` or `leave_and_remove` operation through discovery contracts and `api.discovery.remove`.
+`delete`, `leave_and_remove`, or `remove_from_list` operation through discovery contracts and `api.discovery.remove`.
 Cookie identity and service-role RPCs own authorization; no ownership tokens enter
 summaries or responses. All other claimed human assignments block host deletion,
 including folded, eliminated and departing players. The transaction deletes history
@@ -706,7 +715,8 @@ New claims restore excluded rows; visits and pending-departure claim retries do 
 Run `npm run test:sql:removal`, `test:sql:my-games`, `test:sql:departures` and
 `test:sql:seats` on migrated local Supabase, then `npm run check`, `npm run build`
 and `npm run test:e2e:smoke`. Removal SQL is included in CI after personal lists.
-The removal browser suite covers cancellation, blockers, list refill, explicit
+The removal browser suite covers seated and unseated host personal removal,
+shared history preservation, cancellation, deletion blockers, list refill, explicit
 conflict retry, duplicate prevention, keyboard/mobile controls and deletion recovery.
 Verify two-browser Realtime delivery on an authorized Vercel deployment containing
 this change; polling must still detect deletion if Broadcast fails.

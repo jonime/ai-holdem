@@ -7,6 +7,8 @@ const dictionary = {
   "createTable": "Skapa bord",
   deleteTable: "Radera bord",
   leaveAndRemove: "Lämna och ta bort",
+  removeFromList: "Ta bort från mina bord",
+  confirmRemove: "Ta bort ”{title}” från dina bord? Bordet och historiken finns kvar för andra spelare. Om du sitter lämnar du: platsen frigörs direkt vid väntan eller avslutad hand. Under en hand är avresan oåterkallelig och du lägger dig på nästa tillåtna tur. All-in-spelare behåller rätten till potten.",
   deleteBlocked: "Andra människor har fortfarande upptagna platser. Platserna måste frigöras innan bordet kan raderas.",
   confirmDelete: "Radera ”{title}”? Historiken och den delade länken tas bort permanent.",
   confirmLeave: "Lämna och ta bort ”{title}”? Det går inte att ångra under en hand. Väntande eller avslutade platser frigörs direkt; aktiva spelare lägger sig på nästa tillåtna tur. All-in-spelare behåller rätten till potten.",

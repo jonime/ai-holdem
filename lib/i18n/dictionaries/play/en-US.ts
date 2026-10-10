@@ -7,6 +7,8 @@ const dictionary = {
   "createTable": "Create table",
   deleteTable: "Delete table",
   leaveAndRemove: "Leave and remove",
+  removeFromList: "Remove from my tables",
+  confirmRemove: "Remove “{title}” from your tables? The table and its history remain available to other players. If seated, you will leave: waiting or completed seats release immediately; during a hand, departure is irreversible and folds on your next legal turn. All-in participants keep pot eligibility.",
   deleteBlocked: "Other humans still have claimed seats. They must release their seats before you can delete this table.",
   confirmDelete: "Delete “{title}”? Its history and shared URL will be permanently removed.",
   confirmLeave: "Leave and remove “{title}”? Departure is irreversible during a hand. Waiting or completed seats release immediately; active seats fold on their next legal turn. All-in participants keep pot eligibility.",

@@ -7,6 +7,8 @@ const dictionary = {
   "createTable": "Tafel maken",
   deleteTable: "Tafel verwijderen",
   leaveAndRemove: "Verlaten en verwijderen",
+  removeFromList: "Verwijder uit mijn tafels",
+  confirmRemove: "“{title}” uit je tafels verwijderen? De tafel en geschiedenis blijven beschikbaar voor andere spelers. Als je zit, vertrek je: wachtende of voltooide handen geven de stoel direct vrij. Tijdens een hand is vertrek onomkeerbaar en fold je op je volgende toegestane beurt. All-in-spelers behouden hun recht op de pot.",
   deleteBlocked: "Andere mensen hebben nog bezette plaatsen. Die moeten vrijkomen voordat je de tafel kunt verwijderen.",
   confirmDelete: "“{title}” verwijderen? De geschiedenis en gedeelde link worden permanent verwijderd.",
   confirmLeave: "“{title}” verlaten en verwijderen? Vertrek is onomkeerbaar tijdens een hand. Wachtende of voltooide plaatsen komen direct vrij; actieve spelers folden op hun volgende toegestane beurt. All-in-spelers behouden hun recht op de pot.",
