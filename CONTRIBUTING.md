@@ -715,6 +715,10 @@ New claims restore excluded rows; visits and pending-departure claim retries do 
 Run `npm run test:sql:removal`, `test:sql:my-games`, `test:sql:departures` and
 `test:sql:seats` on migrated local Supabase, then `npm run check`, `npm run build`
 and `npm run test:e2e:smoke`. Removal SQL is included in CI after personal lists.
+Host-removal test setup uses `createUITable` from `test/e2e/ui-fixtures.ts` so
+it does not spend the shared IP creation allowance needed by creation-limit tests.
+The helper restricts direct fixtures to local production Supabase and cleans them
+up after each test; browser removal mutations still use real application routes.
 The removal browser suite covers seated and unseated host personal removal,
 shared history preservation, cancellation, deletion blockers, list refill, explicit
 conflict retry, duplicate prevention, keyboard/mobile controls and deletion recovery.

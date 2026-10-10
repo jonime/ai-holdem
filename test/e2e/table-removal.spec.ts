@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import type { Game } from "../../components/poker/types";
+import { createUITable } from "./ui-fixtures";
 async function read(page: Page, id: string): Promise<Game> {
   const response = await page.request.get(`/api/games/${id}`);
   expect(response.ok()).toBe(true); return (await response.json()).game;
@@ -162,7 +163,8 @@ test("@smoke Joined active-hand removal registers departure before hiding the ro
 });
 
 for (const completed of [false, true]) test(`@smoke Host personal removal preserves guests and history (${completed ? "completed unseated" : "active seated"})`, async ({ page, browser }) => {
-  const id = await create(page);
+  await page.goto("/play");
+  const id = await createUITable(page);
   const guestContext = await browser.newContext();
   try {
     const guest = await guestContext.newPage(); await claim(guest, id);
