@@ -4,6 +4,7 @@ import { turnRemainingMs } from "./turn-clock";
 import Link from "next/link";
 
 import { hasAutomaticTurn } from "./bot-advancement";
+import { useTurnNotifications } from "./useTurnNotifications";
 import { GameHeader } from "./GameHeader";
 import { addLocalePrefix } from "@/lib/i18n";
 import { botErrorMessage } from "./bot-error";
@@ -107,6 +108,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     navigationLoading,
     requestBusy,
     recoveryBlocked,
+    online,
     refreshing,
     refreshGame,
     error,
@@ -129,6 +131,8 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
     game?.poker.players ?? [],
     viewerToken,
   );
+
+  const turnNotification = useTurnNotifications(game, viewerToken, loading || recoveryBlocked || replaying || unavailable, online);
 
   const canStartNextHand = game ? tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost, game.poker.seats).canStartNextHand : false;
   const newQuickPlay = async (botMode?: "rules") => {
@@ -314,7 +318,7 @@ export default function PokerApp({ gameId }: { readonly gameId?: string }) {
 
   return (
     <>
-    <GameHeader game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={releaseSeat} />
+    <GameHeader turnNotification={turnNotification} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={releaseSeat} />
     <main className={styles.pokerApp}>
       {creationNotice ? <p className={styles.errorBanner} role="alert">{creationNotice.message} {t("errors.retryAvailable", { seconds: Math.ceil(creationWait / 1000) })}</p> : null}
       {error ? (

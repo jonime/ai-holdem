@@ -4,6 +4,7 @@ import type { GameDictionary } from "../../types";
 
 const dictionary = {
   timer: {"retry": "Tentar encerrar turno novamente", "setting": "Tempo do turno humano", "off": "Desativado", "duration": "{seconds} segundos", "multiplayer": "Para mãos que começam com pelo menos dois humanos.", "countdown": "Tempo restante: {seconds}s", "warning": "Restam dez segundos.", "expired": "Tempo esgotado — atualizando a mesa"},
+  turnNotification: {"soundLabel": "Som", "title": "🟢 Sua vez · AI Hold’em", "sound": "Som de turno", "audioUnavailable": "O som está indisponível. Tente ativá-lo novamente neste navegador."},
   gameHeader: {
     retryDeparture: "Tentar sair novamente",
     lobby: "Lobby",

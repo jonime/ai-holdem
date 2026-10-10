@@ -11,7 +11,8 @@ import { getClientPlayerToken } from "@/lib/identity/player-token-client";
 import { headerDepartureSeat } from "./header-navigation";
 import type { Game } from "./types";
 
-export function GameHeader({ game, loading, mutationsBlocked = false, onLeave }: {
+export function GameHeader({ turnNotification, game, loading, mutationsBlocked = false, onLeave }: {
+  readonly turnNotification: { enabled: boolean; toggle: () => Promise<void>; notice: string | null };
   readonly game: Game | null;
   readonly loading: boolean;
   readonly mutationsBlocked?: boolean;
@@ -33,10 +34,22 @@ export function GameHeader({ game, loading, mutationsBlocked = false, onLeave }:
     <header className={styles.gameHeader}>
       <div className={styles.gameHeaderInner}>
         <Link href={addLocalePrefix("/", locale)} className={styles.gameHeaderTitle}>{APP_NAME}</Link>
+        <div className={styles.controls}>
+        <div className={styles.soundControl}>
+          <span>{t("turnNotification.soundLabel")}</span>
+          <button className={styles.soundSwitch} type="button" role="switch"
+            aria-label={t("turnNotification.sound")} aria-checked={turnNotification.enabled}
+            onClick={() => void turnNotification.toggle()}>
+            <span className={styles.soundSymbol} aria-hidden="true">{turnNotification.enabled ? "✓" : "×"}</span>
+            <span className={styles.soundThumb} aria-hidden="true" />
+          </button>
+        </div>
         <Button variant="primary" size="small" disabled={loading || (!!departing && mutationsBlocked)} onClick={handleExit}>
           {t(departing ? "gameHeader.leaveTable" : "gameHeader.lobby")}
         </Button>
+        </div>
       </div>
+      {turnNotification.notice ? <p className={styles.notice} role="status">{turnNotification.notice}</p> : null}
     </header>
   );
 }

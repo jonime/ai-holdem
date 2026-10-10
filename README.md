@@ -155,7 +155,7 @@ rendering, environment handling, or deployment behavior.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the contributor workflow, translations,
 local Supabase E2E and SQL checks, HTTP contracts, and deployed Realtime verification.
 Production browser CI runs `npm run test:e2e:ci`, combining lifecycle smoke with
-eight dialog, betting-controls, and hand-results/Actions regression tests in one
+dialog, betting-controls, hand-results/Actions, request-recovery, and turn-notification regression tests in one
 build and report. Run `test:e2e:smoke` or `test:e2e:ui` for either suite separately.
 Bot evaluations and benchmarks are documented in [benchmarks/README.md](benchmarks/README.md).
 
@@ -227,3 +227,19 @@ Gameplay requests recover from stalled connections with bounded client waiting a
 one authoritative refresh. Check the table before retrying an unconfirmed action;
 requests are never replayed automatically. If the refresh fails, use **Refresh
 table** to unlock controls. See [CONTRIBUTING.md](CONTRIBUTING.md) for deadline ownership.
+
+## Turn notifications
+
+An actionable owned human turn sets the browser tab to “🟢 Your turn · AI Hold’em”
+(localized). Pending mutations, unresolved recovery, offline state, departure, and
+turn expiry clear the indicator. Opening Actions leaves the turn indicator active.
+
+The game header’s **Sound** switch is off by default. A check with the thumb on
+the right means On; a cross with the thumb on the left means Off. It remembers only this
+preference in browser local storage and synchronizes it between tabs. Enabling it
+previews a quiet two-note cue. Browser audio requires a user gesture, including
+after loading a stored preference; missed cues are never replayed. Initial loads
+and returns from hidden tabs update the title without a catch-up cue. Background
+notifications are best effort: browsers may suspend tabs or block audio. Separate
+open game tabs can each sound. No permissions, push service, or background worker
+is used, and polling behavior is unchanged.
