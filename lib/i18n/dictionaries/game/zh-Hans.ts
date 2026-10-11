@@ -3,6 +3,13 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  tableLoading: {
+    missingTitle: "此牌桌已不可用",
+    missingGuidance: "请检查邀请链接是否正确，或返回大厅。",
+    errorTitle: "无法加载此牌桌",
+    errorGuidance: "请重试，或返回大厅。",
+    retry: "重试",
+  },
   "timer": {
     "retry": "重试超时处理",
     "setting": "真人行动时限",

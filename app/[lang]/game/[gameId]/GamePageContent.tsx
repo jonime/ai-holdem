@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
+import { z } from "zod";
 
 import { getHelpDocument } from "@/lib/help/server";
 
 import PokerApp from "@/components/poker/PokerApp";
 import { hasLocale } from "@/lib/i18n";
 import { getPublicGame } from "@/lib/poker/game-service";
+import { GameNotFoundError } from "@/lib/poker/game-errors";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 
 interface GamePageContentProps {
@@ -13,12 +15,12 @@ interface GamePageContentProps {
 
 export async function GamePageContent({ params }: GamePageContentProps) {
   const { lang, gameId } = await params;
-  if (!hasLocale(lang)) notFound();
+  if (!hasLocale(lang) || !z.uuid().safeParse(gameId).success) notFound();
 
   try {
     await getPublicGame(createSupabaseGameRepository(), gameId);
   } catch (error) {
-    if (error instanceof Error && error.name === "GameNotFoundError") {
+    if (error instanceof GameNotFoundError) {
       notFound();
       return null;
     }

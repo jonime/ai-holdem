@@ -42,6 +42,7 @@ vi.mock("@/components/poker/PokerApp", () => ({
   ),
 }));
 
+import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { getHelpDocument } from "@/lib/help/server";
 
 import { GamePageContent } from "./GamePageContent";
@@ -49,23 +50,39 @@ import { GamePageContent } from "./GamePageContent";
 describe("GamePageContent", () => {
   beforeEach(() => {
     notFoundMock.mockReset();
+    notFoundMock.mockImplementation(() => { throw new Error("NEXT_NOT_FOUND"); });
     getPublicGameMock.mockReset();
+    vi.mocked(createSupabaseGameRepository).mockClear();
     vi.mocked(getHelpDocument).mockClear();
   });
 
   it.each(SUPPORTED_LOCALES)("passes only selected %s server content into the client slot", async lang => {
-    const html = renderToStaticMarkup(await GamePageContent({ params: Promise.resolve({ lang, gameId: "test" }) }));
+    const html = renderToStaticMarkup(await GamePageContent({ params: Promise.resolve({ lang, gameId: "00000000-0000-4000-8000-000000000001" }) }));
+    expect(getPublicGameMock).toHaveBeenCalledExactlyOnceWith(expect.any(Object), "00000000-0000-4000-8000-000000000001");
+    expect(notFoundMock).not.toHaveBeenCalled();
     expect(getHelpDocument).toHaveBeenCalledExactlyOnceWith(lang);
     expect(html).toContain(`<h1>Title ${lang}</h1><h2>Document ${lang}</h2>`);
   });
 
-  it("redirects to notFound for an unknown game id", async () => {
+  it("uses notFound for an unknown game id", async () => {
     getPublicGameMock.mockRejectedValue(new GameNotFoundErrorMock("missing"));
 
-    await GamePageContent({
-      params: Promise.resolve({ lang: "en-US", gameId: "missing" }),
-    });
+    await expect(GamePageContent({
+      params: Promise.resolve({ lang: "en-US", gameId: "00000000-0000-4000-8000-000000000001" }),
+    })).rejects.toThrow("NEXT_NOT_FOUND");
 
     expect(notFoundMock).toHaveBeenCalledTimes(1);
   });
+  it("rejects malformed IDs before constructing persistence", async () => {
+    await expect(GamePageContent({ params: Promise.resolve({ lang: "en-US", gameId: "bad-id" }) })).rejects.toThrow("NEXT_NOT_FOUND");
+    expect(getPublicGameMock).not.toHaveBeenCalled();
+    expect(createSupabaseGameRepository).not.toHaveBeenCalled();
+  });
+
+  it.each([new Error("database unavailable"), Object.assign(new Error("impostor"), { name: "GameNotFoundError" })])("propagates repository failures: %s", async error => {
+    getPublicGameMock.mockRejectedValue(error);
+    await expect(GamePageContent({ params: Promise.resolve({ lang: "en-US", gameId: "00000000-0000-4000-8000-000000000001" }) })).rejects.toBe(error);
+    expect(notFoundMock).not.toHaveBeenCalled();
+  });
+
 });

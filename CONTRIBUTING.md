@@ -103,7 +103,8 @@ All three production commands share one runner. `test:e2e:smoke` selects `@smoke
 `test:e2e:ui` selects `@ui-regression`; `test:e2e:ci` selects their union, building
 once and running one Playwright invocation with one combined HTML report. The UI
 suite includes tests in `dialogs.spec.ts`, `betting-controls.spec.ts`,
-`hand-results-actions.spec.ts`, `request-recovery.spec.ts`, and `turn-notifications.spec.ts`, preserving
+`hand-results-actions.spec.ts`, `request-recovery.spec.ts`, `table-loading.spec.ts`,
+and `turn-notifications.spec.ts`, preserving
 desktop/mobile, focus/keyboard, betting validation, hand results, Actions feed,
 and stalled-request recovery coverage. CI runs the combined
 command after all SQL checks. Production UI setup seeds only its own waiting
@@ -179,6 +180,24 @@ assertion and verify a green run. Keep `npm run check` and the normal
 This local production suite does **not** replace the deployed Vercel two-browser
 smoke test for notification lifecycle changes. Broader coverage and branch
 protection configuration are outside this job.
+
+### Game route fallback verification
+
+Page unit tests distinguish malformed IDs, absent tables, successful reads and
+repository errors. Component tests cover all game dictionaries, Lobby paths and
+error-detail privacy. The production UI suite includes `table-loading.spec.ts`:
+English/Finnish missing and malformed links, keyboard Lobby navigation, mobile
+layout and noindex, plus keyboard retry through repeated render failures into a
+successful table with URL and identity preserved.
+
+The production runner instruments only its disposable source copy with
+`scripts/e2e/table-read-fault.mjs`. Tests control per-table file markers in that
+copy; the checkout and normal production build contain no fault endpoint or
+runtime flag. Screenshot artifacts are in `test-results/table-loading/`.
+Route-render retry refetches the segment and never replays gameplay actions;
+existing in-game unknown-outcome recovery and removed-table handling are tested
+separately.
+
 
 ## Seat-mutation checks
 

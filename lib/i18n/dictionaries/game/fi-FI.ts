@@ -3,6 +3,13 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  tableLoading: {
+    missingTitle: "Tämä pöytä ei ole enää saatavilla",
+    missingGuidance: "Tarkista, että kutsulinkki on oikein, tai palaa aulaan.",
+    errorTitle: "Pöydän lataaminen epäonnistui",
+    errorGuidance: "Yritä uudelleen tai palaa aulaan.",
+    retry: "Yritä uudelleen",
+  },
   timer: {"retry": "Yritä vuoron päättämistä uudelleen", "setting": "Pelaajan vuoroaika", "off": "Pois", "duration": "{seconds} sekuntia", "multiplayer": "Käytössä käsissä, joissa aloittaa vähintään kaksi ihmispelaajaa.", "countdown": "Aikaa jäljellä: {seconds} s", "warning": "Kymmenen sekuntia jäljellä.", "expired": "Aika loppui — päivitetään pöytää"},
   turnNotification: {"soundLabel": "Ääni", "title": "🟢 Sinun vuorosi · AI Hold’em", "sound": "Vuoroääni", "audioUnavailable": "Ääni ei ole käytettävissä. Kokeile ottaa se käyttöön uudelleen tässä selaimessa."},
   gameHeader: {

@@ -1,6 +1,13 @@
 import "server-only";
 
 const dictionary = {
+  tableLoading: {
+    missingTitle: "This table is no longer available",
+    missingGuidance: "Check that the invitation link is correct, or return to the Lobby.",
+    errorTitle: "We couldn’t load this table",
+    errorGuidance: "Please try again, or return to the Lobby.",
+    retry: "Try again",
+  },
   timer: {"retry": "Retry turn timeout", "setting": "Human turn timer", "off": "Off", "duration": "{seconds} seconds", "multiplayer": "Applies to hands starting with two or more humans.", "countdown": "Time left: {seconds}s", "warning": "Ten seconds remaining.", "expired": "Time expired—updating table"},
   turnNotification: {"soundLabel": "Sound", "title": "🟢 Your turn · AI Hold’em", "sound": "Turn sound", "audioUnavailable": "Sound is unavailable. Try enabling it again in this browser."},
   gameHeader: {

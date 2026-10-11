@@ -3,6 +3,13 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  tableLoading: {
+    missingTitle: "Deze tafel is niet meer beschikbaar",
+    missingGuidance: "Controleer of de uitnodigingslink klopt of ga terug naar de lobby.",
+    errorTitle: "We konden deze tafel niet laden",
+    errorGuidance: "Probeer het opnieuw of ga terug naar de lobby.",
+    retry: "Opnieuw proberen",
+  },
   timer: {"retry": "Beurttijd opnieuw verwerken", "setting": "Beurttijd voor mensen", "off": "Uit", "duration": "{seconds} seconden", "multiplayer": "Voor handen die met minstens twee mensen beginnen.", "countdown": "Resterend: {seconds}s", "warning": "Nog tien seconden.", "expired": "Tijd verstreken — tafel wordt bijgewerkt"},
   turnNotification: {"soundLabel": "Geluid", "title": "🟢 Jij bent aan de beurt · AI Hold’em", "sound": "Beurtgeluid", "audioUnavailable": "Geluid is niet beschikbaar. Probeer het opnieuw in deze browser in te schakelen."},
   gameHeader: {

@@ -3,6 +3,13 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  tableLoading: {
+    missingTitle: "Esta mesa não está mais disponível",
+    missingGuidance: "Confira se o link do convite está correto ou volte ao lobby.",
+    errorTitle: "Não foi possível carregar esta mesa",
+    errorGuidance: "Tente novamente ou volte ao lobby.",
+    retry: "Tentar novamente",
+  },
   timer: {"retry": "Tentar encerrar turno novamente", "setting": "Tempo do turno humano", "off": "Desativado", "duration": "{seconds} segundos", "multiplayer": "Para mãos que começam com pelo menos dois humanos.", "countdown": "Tempo restante: {seconds}s", "warning": "Restam dez segundos.", "expired": "Tempo esgotado — atualizando a mesa"},
   turnNotification: {"soundLabel": "Som", "title": "🟢 Sua vez · AI Hold’em", "sound": "Som de turno", "audioUnavailable": "O som está indisponível. Tente ativá-lo novamente neste navegador."},
   gameHeader: {

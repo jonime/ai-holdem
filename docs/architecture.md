@@ -220,6 +220,24 @@ isolated fixtures. See [contributor testing instructions](../CONTRIBUTING.md).
 See [deployment prerequisites](deployment.md#migration-prerequisites) for the
 required database migrations.
 
+## Game route loading failures
+
+The localized and unprefixed English game segments share branded missing-table and
+render-error fallbacks under the game layout’s I18nProvider. Malformed UUIDs are
+rejected before constructing the repository; only GameNotFoundError uses
+Next.js notFound(). Repository failures remain render errors. Streaming is
+preserved, so a missing-table response can have HTTP 200; game metadata retains
+noindex. Missing-table guidance does not assume deletion.
+
+The render-error fallback exposes an explicit Next.js boundary retry(), which
+refetches and rerenders the current segment with its locale, query and identity
+cookies intact. Pending retries are guarded; repeated failures leave the fallback
+usable. Error details are never rendered or logged by the fallback. Layout
+failures and unrelated unmatched routes are outside this boundary. These initial
+render failures are separate from in-game request recovery and the terminal
+removed-table state after loading; those workflows remain unchanged.
+
+
 ## Quick Play endpoint
 
 Quick Play atomically creates an already-playing private six-seat game with

@@ -87,7 +87,7 @@ Local production browser verification requires an already-running migrated local
 Chromium (`npx playwright install chromium`). The shared production runner exposes
 `test:e2e:smoke` (`@smoke`), `test:e2e:ui` (`@ui-regression`), and `test:e2e:ci`
 (the union). CI builds once and runs one Playwright invocation/report. The UI suite
-contains dialog, betting-controls, hand-results/Actions, request-recovery, and turn-notification tests. Local
+contains dialog, betting-controls, hand-results/Actions, request-recovery, table-loading fallback, and turn-notification tests. Local
 smoke/UI commands retain file filters and explicit grep overrides; the combined
 command accepts only `--list` and rejects selection overrides. Empty selections
 must fail. Each command builds an

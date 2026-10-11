@@ -3,6 +3,13 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  tableLoading: {
+    missingTitle: "このテーブルは利用できません",
+    missingGuidance: "招待リンクが正しいか確認するか、ロビーに戻ってください。",
+    errorTitle: "テーブルを読み込めませんでした",
+    errorGuidance: "もう一度試すか、ロビーに戻ってください。",
+    retry: "もう一度試す",
+  },
   "timer": {
     "retry": "タイムアウト処理を再試行",
     "setting": "人間の持ち時間",
