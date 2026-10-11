@@ -237,6 +237,16 @@ failures and unrelated unmatched routes are outside this boundary. These initial
 render failures are separate from in-game request recovery and the terminal
 removed-table state after loading; those workflows remain unchanged.
 
+Unmatched URLs use `app/global-not-found.tsx`, enabled by Next.js’s experimental
+`globalNotFound` option because the app has separate English and localized root
+layouts. This static server-rendered document returns HTTP 404, uses English
+fallback copy and an unprefixed Lobby link, and shares the table failure panel’s
+styles. It imports global styles directly because the global boundary bypasses
+layouts. Next.js adds `noindex`; the game-specific missing-table boundary remains
+localized.
+The root `app/not-found.tsx` reuses the document for invalid locale segments
+rejected with `notFound()` before a root layout can render.
+
 
 ## Quick Play endpoint
 

@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     imageSizes: [32, 48, 64, 96, 128, 256, 384, 540],
   },
   experimental: {
+    globalNotFound: true,
     cssChunking: "graph",
   },
 };
