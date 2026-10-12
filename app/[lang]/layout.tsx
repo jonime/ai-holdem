@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Space_Grotesk } from "next/font/google";
 
+import { FEEDBACK_FORM_URL } from "@/lib/constants";
+import styles from "./layout.module.css";
+
 import { PerformanceInsights } from "@/components/PerformanceInsights";
 import { hasLocale, SUPPORTED_LOCALES } from "@/lib/i18n";
-import { getMetadataDictionary } from "@/lib/i18n/server";
+import { getLandingServerDictionary, getMetadataDictionary } from "@/lib/i18n/server";
 import { getSiteOrigin } from "@/lib/site";
 import { getPageMetadata } from "@/lib/seo";
 
@@ -58,10 +61,23 @@ export default async function LocaleLayout({
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
 
+  const dictionary = await getLandingServerDictionary(lang);
+
   return (
     <html lang={lang}>
       <body className={spaceGrotesk.variable}>
         {children}
+        <footer className={styles.footer}>
+          <a
+            href={FEEDBACK_FORM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${dictionary.feedback} (${dictionary.feedbackNewTab})`}
+            title={dictionary.feedbackNewTab}
+          >
+            {dictionary.feedback} <span aria-hidden="true">↗</span>
+          </a>
+        </footer>
         <PerformanceInsights />
       </body>
     </html>

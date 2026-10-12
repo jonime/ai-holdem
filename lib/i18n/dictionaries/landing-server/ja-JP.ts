@@ -3,6 +3,8 @@ import "server-only";
 import type { LandingServerDictionary } from "../../types";
 
 const dictionary = {
+  feedback: "フィードバックを送信",
+  feedbackNewTab: "新しいタブで開きます",
   "startRegion": "遊び方を選ぶ",
   "title": "AI Hold'em",
   "intro": "AIボットとテキサスホールデムで対戦したり、友達を招待したり、ボットの対戦を観戦したりできます。",

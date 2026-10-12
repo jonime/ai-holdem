@@ -26,6 +26,11 @@ seat, including the last human, folded players and eliminated players. Spectator
 unseated hosts and already-departing players see **Lobby**, which returns to the
 localized **Play** page without changing seats. The application title links home.
 
+Every page includes a localized **Send feedback** footer link to the hosted Tally
+form. It opens in a new tab without leaving your seat or submitting a game action.
+The game tab remains open; normal timers and bot advancement behavior still apply
+when it is in the background.
+
 Leave table confirms before submitting. Cancellation changes nothing. Navigation
 happens only after server acknowledgement; a stale version refreshes the table
 and requires another click. Waiting or completed hands release the seat immediately.

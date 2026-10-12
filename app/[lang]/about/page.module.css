@@ -1,6 +1,5 @@
 .page {
-  min-height: 100vh;
-  padding: clamp(18px, 4vw, 64px);
+  padding: clamp(18px, 4vw, 64px) clamp(18px, 4vw, 64px) 12px;
 }
 
 .card {
@@ -89,7 +88,7 @@
 
 @media (max-width: 560px) {
   .page {
-    padding: 10px 8px 16px;
+    padding: 10px 8px 12px;
   }
 
   .card {

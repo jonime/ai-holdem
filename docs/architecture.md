@@ -429,3 +429,12 @@ into `PokerApp` through a React-node slot; unprefixed English routes use the sam
 component with `en-US`. Client modules never import help documents or fetch them
 at runtime. Only Help and Close help interface labels live in game dictionaries.
 The single overlay state includes Help and uses the shared native `Modal` lifecycle.
+
+## Feedback link
+
+The shared locale layout renders a plain external feedback link using server-owned
+labels from the landing-server dictionaries. Its public URL is centralized in
+`lib/constants.ts`; no environment variable is needed. `target="_blank"` and
+`rel="noopener noreferrer"` keep the game tab open and suppress the referrer
+(including game URLs). The app loads no Tally script, iframe, or cookie and appends
+no player identity, game state, or tracking parameters to the form URL.

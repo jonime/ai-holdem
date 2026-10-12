@@ -3,6 +3,8 @@ import "server-only";
 import type { LandingServerDictionary } from "../../types";
 
 const dictionary = {
+  feedback: "发送反馈",
+  feedbackNewTab: "在新标签页中打开",
   "startRegion": "选择玩法",
   "title": "AI Hold'em",
   "intro": "与 AI 机器人玩德州扑克，邀请朋友，或观看机器人对局。",

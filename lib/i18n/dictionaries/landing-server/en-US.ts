@@ -1,6 +1,8 @@
 import "server-only";
 
 const dictionary = {
+  feedback: "Send feedback",
+  feedbackNewTab: "Opens in a new tab",
   startRegion: "Choose how to play",
   title: "AI Hold'em",
   intro: "Play Texas Hold’em against AI bots, invite friends, or watch bots play.",

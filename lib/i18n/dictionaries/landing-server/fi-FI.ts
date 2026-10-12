@@ -3,6 +3,8 @@ import "server-only";
 import type { LandingServerDictionary } from "../../types";
 
 const dictionary = {
+  feedback: "Anna palautetta",
+  feedbackNewTab: "Avautuu uuteen välilehteen",
   startRegion: "Valitse pelitapa",
   title: "AI Hold'em",
   intro: "Pelaa Texas Hold’emia tekoälybotteja vastaan, kutsu ystäviä tai katso bottien peliä.",

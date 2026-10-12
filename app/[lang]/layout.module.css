@@ -1,0 +1,26 @@
+.footer {
+  padding: 0 18px 24px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 12px;
+  color: var(--felt-dark);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
+.footer a:hover {
+  color: var(--coral);
+}
+
+.footer a:focus-visible {
+  outline: 2px solid var(--felt-dark);
+  outline-offset: 3px;
+  border-radius: 4px;
+}

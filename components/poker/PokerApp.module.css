@@ -1,6 +1,5 @@
 .pokerApp {
-  min-height: 100vh;
-  padding: 28px clamp(18px, 4vw, 64px) 48px;
+  padding: 28px clamp(18px, 4vw, 64px) 12px;
 }
 
 .errorBanner {

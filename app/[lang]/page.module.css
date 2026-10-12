@@ -1,6 +1,5 @@
 .home {
-  min-height: 100vh;
-  padding: 28px clamp(18px, 4vw, 64px) 48px;
+  padding: 28px clamp(18px, 4vw, 64px) 12px;
 }
 
 .emptyState {
@@ -165,7 +164,7 @@
 
 @media (max-width: 560px) {
   .home {
-    padding: 10px 8px 16px;
+    padding: 10px 8px 12px;
   }
 
   .emptyState {

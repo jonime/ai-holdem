@@ -3,6 +3,8 @@ import "server-only";
 import type { LandingServerDictionary } from "../../types";
 
 const dictionary = {
+  feedback: "Feedback geven",
+  feedbackNewTab: "Opent in een nieuw tabblad",
   startRegion: "Kies hoe je speelt",
   title: "AI Hold'em",
   intro: "Speel Texas Hold’em tegen AI-bots, nodig vrienden uit of kijk hoe bots spelen.",
