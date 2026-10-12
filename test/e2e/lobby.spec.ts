@@ -9,8 +9,8 @@ async function waitForPlayableHuman(page: Page) {
   return actionButton;
 }
 
-test("starts six-seat Quick Play and advances the opening bot turns", { tag: "@smoke" }, async ({
-  page,
+test("starts six-seat Quick Play and advances the opening bot turns", { tag: ["@smoke", "@compatibility"] }, async ({
+  page, isMobile,
 }) => {
   test.setTimeout(30_000);
   await page.goto("/");
@@ -25,10 +25,11 @@ test("starts six-seat Quick Play and advances the opening bot turns", { tag: "@s
 
   await expect(page).toHaveURL(/\/game\/[0-9a-f-]+$/);
   await expect(page.getByText("WAITING ROOM")).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Preflop", exact: true })).toBeVisible();
-  await expect(
-    page.getByText(/^EQUITY RULES #/).first(),
-  ).toBeVisible();
+  // Mobile collapses Actions, whose street heading is only visible on desktop.
+  if (isMobile) await expect(page.getByText("Preflop", { exact: true }).first()).toBeVisible();
+  else await expect(page.getByRole("heading", { name: "Preflop", exact: true })).toBeVisible();
+  const botLabels = page.getByText(/^EQUITY RULES #/);
+  await expect((isMobile ? botLabels.filter({ visible: true }) : botLabels).first()).toBeVisible();
   await firstBotStep;
   await waitForPlayableHuman(page);
 });
@@ -136,7 +137,7 @@ test("shows the localized LLM bot playstyles", async ({ page }) => {
     "Aggressive",
   ]);
   await page.screenshot({
-    path: "test-results/llm-playstyle-selector.png",
+    path: test.info().outputPath("llm-playstyle-selector.png"),
     fullPage: true,
   });
 });

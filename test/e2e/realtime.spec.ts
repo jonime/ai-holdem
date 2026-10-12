@@ -75,7 +75,7 @@ test("actual Realtime delivers committed game and same-version seat changes befo
     await expect.poll(() => received.notifications, { timeout: 4000 }).toContainEqual({ type: "seat_name_updated", gameId });
     await second.clock.runFor(100);
     await expect(second.getByText("Realtime Smoke", { exact: true })).toBeVisible({ timeout: 4000 });
-    await second.screenshot({ path: "test-results/realtime-two-browser.png", fullPage: true });
+    await second.screenshot({ path: test.info().outputPath("realtime-two-browser.png"), fullPage: true });
     // A separate browser is a spectator even though it observes notifications.
     expect((await second.request.post(`/api/games/${gameId}/step`, { data: { expectedVersion: committed.version } })).status()).toBe(403);
   } finally {

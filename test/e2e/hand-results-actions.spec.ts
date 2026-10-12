@@ -88,7 +88,7 @@ test("persists public hand results through feed failure and refresh, preserves c
   await page.setViewportSize({ width: 375, height: 812 });
   expect(await trayGeometry(page)).toEqual(playingMobileTray);
   await expect(result).toBeVisible();
-  await page.screenshot({ path: "test-results/completed-hand-mobile.png", fullPage: true });
+  await page.screenshot({ path: test.info().outputPath("completed-hand-mobile.png"), fullPage: true });
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.evaluate(() => {
     const region = document.querySelector('[data-hand-result]')!.parentElement!;
@@ -160,7 +160,7 @@ test("persists public hand results through feed failure and refresh, preserves c
     expect(fits).toBe(true);
   }
   await result.evaluate(node => { node.scrollTop = 0; });
-  await page.screenshot({ path: "test-results/completed-hand-desktop.png", fullPage: true });
+  await page.screenshot({ path: test.info().outputPath("completed-hand-desktop.png"), fullPage: true });
   await page.setViewportSize({ width: 375, height: 812 });
   await expect(result).toBeVisible();
   for (const row of await rows.all()) {
@@ -171,7 +171,7 @@ test("persists public hand results through feed failure and refresh, preserves c
     expect(cards.every(c => c.left >= 0 && c.right <= 375 && c.width >= 32)).toBe(true);
   }
   await expect(page.getByRole("button", { name: "Next Hand", exact: true })).toBeInViewport();
-  await page.screenshot({ path: "test-results/winning-five-mobile.png", fullPage: true });
+  await page.screenshot({ path: test.info().outputPath("winning-five-mobile.png"), fullPage: true });
   await page.getByRole("button", { name: "Next Hand", exact: true }).click();
   await expect(result).toHaveCount(0);
   await spectatorContext.close();
@@ -252,7 +252,7 @@ test("follows within 24px, pauses older reading, handles legacy identity, and re
   await sheet.getByRole("button", { name: "Close actions panel" }).click();
   await page.getByRole("button", { name: "Expand actions panel" }).click();
   await expect.poll(() => bottomDistance(sheet)).toBeLessThanOrEqual(1);
-  await page.screenshot({ path: "test-results/actions-mobile.png", fullPage: true });
+  await page.screenshot({ path: test.info().outputPath("actions-mobile.png"), fullPage: true });
   await guestContext.close();
 });
 

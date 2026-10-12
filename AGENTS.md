@@ -74,7 +74,7 @@ routing, rendering, environment handling, or deployment behavior.
 Pull requests and pushes to `main` retain the fast check/build job with non-secret
 placeholder values; unit tests must not depend on live Supabase or TypeSafe.
 An independent 30-minute integration job uses Docker, pinned Supabase CLI 2.119.0,
-and the installed Playwright Chromium with system dependencies. Supabase registry
+and the installed Playwright Chromium and WebKit with system dependencies. Supabase registry
 images are pulled normally during startup; do not cache Docker image archives,
 containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
@@ -84,9 +84,9 @@ disposable database, then runs `test:sql:game-reads`, `test:sql:my-games`, `test
 health checks. Preserve workflow cancellation for superseded commits.
 
 Local production browser verification requires an already-running migrated local Supabase and
-Chromium (`npx playwright install chromium`). The shared production runner exposes
-`test:e2e:smoke` (`@smoke`), `test:e2e:ui` (`@ui-regression`), and `test:e2e:ci`
-(the union). CI builds once and runs one Playwright invocation/report. The UI suite
+Chromium and WebKit (`npx playwright install chromium webkit`). The shared production runner exposes
+`test:e2e:smoke` (`@smoke`), `test:e2e:ui` (`@ui-regression`), `test:e2e:webkit` (`@compatibility` on desktop/mobile WebKit), and `test:e2e:ci`
+(Chromium smoke/UI plus both focused WebKit projects). CI builds once and runs one Playwright invocation/report. The UI suite
 contains dialog, betting-controls, hand-results/Actions, request-recovery, table-loading fallback, and turn-notification tests. Local
 smoke/UI commands retain file filters and explicit grep overrides; the combined
 command accepts only `--list` and rejects selection overrides. Empty selections
@@ -98,8 +98,9 @@ mask credentials, disable external inference, and clear provider credentials.
 Reject `E2E_BASE_URL` in CI; keep development and explicit preview modes outside
 CI. The lifecycle `@smoke` tests cover Quick Play, unseated host seat authority,
 Equity Rules completion/Actions feed/next hand, real two-browser Realtime game/seat
-events, and intentionally blocked WebSocket polling recovery. Use Chromium with
-one worker and no retries. Ordinary local production browser/SQL commands never reset the DB.
+events, and intentionally blocked WebSocket polling recovery. Keep Chromium coverage unchanged and WebKit limited to compatibility tags, with
+one worker and no retries. WebKit emulation is not physical-iPhone Safari
+certification; record the real-device checklist in CONTRIBUTING.md separately. Ordinary local production browser/SQL commands never reset the DB.
 
 Keep failure traces/screenshots, HTML reports, and sanitized application/startup
 logs in `test-results/`, `playwright-report/`, and `integration-logs/`; upload CI

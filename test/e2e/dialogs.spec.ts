@@ -349,7 +349,7 @@ test("localized Help fits desktop and narrow screens for waiting players and spe
       await expect(dialog).toBeVisible();
       await expect(dialog.getByRole("heading", { level: 2 })).toHaveCount(4);
       if ((locale === "" || locale === "de-DE") && (width === 320 || width === 1280)) {
-        await page.screenshot({ path: `test-results/help-${locale || "en-US"}-${width}.png` });
+        await page.screenshot({ path: test.info().outputPath(`help-${locale || "en-US"}-${width}.png`) });
       }
       const scroll = dialog.locator('[class*="helpScroll"]');
       expect(await scroll.evaluate(n => n.scrollWidth <= n.clientWidth)).toBe(true);

@@ -58,7 +58,7 @@ test("turn title, cue counts, persisted accessible toggle and mobile header", { 
   await expect(page).toHaveTitle("🟢 Your turn · AI Hold’em"); expect(await counts(page)).toBe(0);
   f.set({ ...f.get(), version: f.get().version + 1, poker: { ...f.get().poker, legalActions: [] } });
   await refresh(page); await expect(page).not.toHaveTitle(/Your turn/);
-  await page.screenshot({ path: "test-results/turn-notifications-mobile.png", fullPage: true });
+  await page.screenshot({ path: test.info().outputPath("turn-notifications-mobile.png"), fullPage: true });
   await page.goto("/play"); await expect(page).not.toHaveTitle(/Your turn/);
 });
 

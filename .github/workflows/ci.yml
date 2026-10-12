@@ -73,9 +73,9 @@ jobs:
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
 
-      - name: Install Chromium and system dependencies
+      - name: Install Chromium, WebKit and system dependencies
         timeout-minutes: 8
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Start disposable Supabase and apply migrations
         timeout-minutes: 12

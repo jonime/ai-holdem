@@ -6,7 +6,7 @@ rejectCIOverride();
 
 const externalBaseURL = process.env.E2E_BASE_URL;
 const production = process.env.E2E_PRODUCTION === "true";
-if (production && (!process.env.E2E_WORKSPACE || externalBaseURL)) throw new Error("Use npm run test:e2e:smoke, test:e2e:ui, or test:e2e:ci for local production mode.");
+if (production && (!process.env.E2E_WORKSPACE || externalBaseURL)) throw new Error("Use npm run test:e2e:smoke, test:e2e:ui, test:e2e:webkit, or test:e2e:ci for local production mode.");
 
 export default defineConfig({
   testDir: "./test/e2e",
@@ -19,7 +19,11 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "chromium", testIgnore: "**/compatibility.spec.ts", use: { ...devices["Desktop Chrome"] } },
+    { name: "webkit-desktop", grep: /@compatibility/, use: { ...devices["Desktop Safari"] } },
+    { name: "webkit-mobile", grep: /@compatibility/, use: { ...devices["iPhone 13"] } },
+  ],
   webServer: externalBaseURL ? undefined : {
     command: production ? "node scripts/e2e/server.mjs" : "npx next dev",
     url: "http://localhost:3002",

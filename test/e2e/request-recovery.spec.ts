@@ -29,11 +29,13 @@ test("stalled action reconciles once without duplicate click or keyboard submiss
   await expect(page.locator("main").getByRole("alert")).toContainText("Check the table before trying again", { timeout: 20_000 });
   await expect(page.getByRole("button", { name: "Check", exact: true })).toBeEnabled();
   expect(submissions).toBe(1);
-  await page.screenshot({ path: "test-results/recovery-reconciled.png", fullPage: true });
+  await page.screenshot({ path: test.info().outputPath("recovery-reconciled.png"), fullPage: true });
 });
 
-test("committed action with lost response shows authoritative progress without resubmission", { tag: "@ui-regression" }, async ({ page }) => {
+test("committed action with lost response shows authoritative progress without resubmission", { tag: ["@ui-regression", "@compatibility"] }, async ({ page }) => {
   const f = await table(page);
+  // Reconciliation reads the actual persisted state, not the controlled initial view.
+  await page.unroute(`**/api/games/${f.id}`);
   let submissions = 0;
   await page.route(`**/api/games/${f.id}/action`, async route => {
     submissions++;
@@ -42,9 +44,19 @@ test("committed action with lost response shows authoritative progress without r
     f.set((await response.json()).game);
     await route.abort("failed");
   });
+  const originalVersion = f.game().version;
+  const reconciled = page.waitForResponse(async r =>
+    new URL(r.url()).pathname === `/api/games/${f.id}` && r.request().method() === "GET" &&
+    (await r.json()).game.version > originalVersion);
   // Fold is legal for the real persisted human turn as well as the controlled view.
   await page.getByRole("button", { name: "Fold", exact: true }).click();
+  const authoritative = (await (await reconciled).json()).game;
+  expect(authoritative.version).toBeGreaterThan(originalVersion);
+  expect(authoritative.poker.players.find((p: { controller: string }) => p.controller === "human").folded).toBe(true);
   await expect(page.locator("main").getByRole("alert")).toContainText("Check the table before trying again");
+  await expect(page.getByRole("button", { name: "Fold", exact: true }).and(page.locator(":enabled"))).toHaveCount(0);
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await expect(page.getByRole("button", { name: "Fold", exact: true }).and(page.locator(":enabled"))).toHaveCount(0);
   expect(submissions).toBe(1);
 });
 
@@ -59,7 +71,7 @@ test("seat departure blocks mutations after failed recovery and remains on the t
   await expect(page.getByRole("button", { name: "Refresh table", exact: true })).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/game/${f.id}$`));
   await expect(page.getByRole("button", { name: "Check", exact: true })).toBeDisabled();
-  await page.screenshot({ path: "test-results/recovery-refresh-table.png", fullPage: true });
+  await page.screenshot({ path: test.info().outputPath("recovery-refresh-table.png"), fullPage: true });
   f.failRead(false);
   await page.getByRole("button", { name: "Refresh table", exact: true }).click();
   await expect(page.getByRole("button", { name: "Check", exact: true })).toBeEnabled();
