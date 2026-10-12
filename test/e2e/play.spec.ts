@@ -82,3 +82,79 @@ test("@smoke Play directory pagination, join conflict, redirects, mobile and key
   expect(centered).toBe(true);
   await page.screenshot({ path: testInfo.outputPath("play-mobile.png"), fullPage: true });
 });
+
+for (const locale of ["", "/fi-FI"]) {
+  test(`@smoke Play submits visible names during both creations (${locale || "English"})`, async ({ page }, testInfo) => {
+    let renames = 0;
+    page.on("request", request => { if (/\/seats\/\d+\/name$/.test(request.url())) renames++; });
+    await page.goto(`${locale}/play`);
+    const input = page.locator('input[name="hostName"]');
+    await input.fill("  Ada Quick  ");
+    await input.press("Enter");
+    await expect(page).toHaveURL(new RegExp(`${locale}/game/[0-9a-f-]+$`));
+    const quickId = new URL(page.url()).pathname.split("/").at(-1);
+    const read = async () => (await (await page.request.get(`/api/games/${quickId}`)).json()).game;
+    const quick = await read();
+    expect(quick.poker.players.find((player: { controller: string }) => player.controller === "human").name).toBe("Ada Quick");
+    expect(quick.poker.players.find((seat: { playerToken: string | null }) => seat.playerToken)?.name).toBe("Ada Quick");
+    await expect.poll(async () => {
+      const game = await read();
+      return game.poker.currentActorId === game.poker.players.find((player: { controller: string }) => player.controller === "human").id;
+    }).toBe(true);
+    const turn = await read();
+    const fold = await page.request.post(`/api/games/${quickId}/action`, { data: { expectedVersion: turn.version, action: { type: "fold" } } });
+    expect(fold.ok()).toBe(true);
+    const feed = await (await page.request.get(`/api/games/${quickId}/feed`)).json();
+    expect(feed.feed.events).toContainEqual(expect.objectContaining({ type: "action", handNumber: 1, player: "Ada Quick", controller: "human", action: "fold" }));
+    await page.goto(`${locale}/play`);
+    await expect(input).toHaveValue("  Ada Quick  ");
+    await input.fill("Ada Custom");
+    await page.screenshot({ path: testInfo.outputPath("play-name.png"), fullPage: true });
+    await page.locator('button[formaction]').click();
+    await expect(page).toHaveURL(new RegExp(`${locale}/game/[0-9a-f-]+$`));
+    const customId = new URL(page.url()).pathname.split("/").at(-1);
+    const custom = (await (await page.request.get(`/api/games/${customId}`)).json()).game;
+    expect(custom.poker.players.find((seat: { playerToken: string | null }) => seat.playerToken)?.name).toBe("Ada Custom");
+    expect(renames).toBe(0);
+    await page.screenshot({ path: testInfo.outputPath("named-custom-table.png"), fullPage: true });
+    await page.goto(`${locale || "/"}`);
+    await page.locator('form[action$="/quick-game"] button').click();
+    await expect(page).toHaveURL(new RegExp(`${locale}/game/[0-9a-f-]+$`));
+    const landingId = new URL(page.url()).pathname.split("/").at(-1);
+    const landing = (await (await page.request.get(`/api/games/${landingId}`)).json()).game;
+    expect(landing.poker.players.find((player: { controller: string }) => player.controller === "human").name).toBe("Player 1");
+    expect(renames).toBe(0);
+  });
+}
+
+for (const failure of ["getItem", "setItem"] as const) {
+  test(`@smoke Play typing and native submission tolerate storage ${failure} failure`, async ({ page }) => {
+    await page.addInitScript(method => {
+      Storage.prototype[method] = () => { throw new Error("Storage unavailable"); };
+    }, failure);
+    await page.goto("/play");
+    const input = page.locator('input[name="hostName"]');
+    await input.fill("Storage Ada");
+    await expect(input).toHaveValue("Storage Ada");
+    await page.route("**/quick-game", async route => {
+      expect(new URLSearchParams(route.request().postData()!).get("hostName")).toBe("Storage Ada");
+      await route.fulfill({ contentType: "text/html", body: "<h1>Submitted</h1>" });
+    });
+    await input.press("Enter");
+    await expect(page.getByRole("heading", { name: "Submitted" })).toBeVisible();
+  });
+}
+
+test("@smoke Play submits names without JavaScript", async ({ browser }, testInfo) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, baseURL: testInfo.project.use.baseURL });
+  try {
+    const page = await context.newPage();
+    await page.goto("/play");
+    await page.locator('input[name="hostName"]').fill("Native Ada");
+    await page.locator('button[formaction]').click();
+    await expect(page).toHaveURL(/\/game\/[0-9a-f-]+$/);
+    const gameId = new URL(page.url()).pathname.split("/").at(-1);
+    const game = (await (await context.request.get(`/api/games/${gameId}`)).json()).game;
+    expect(game.poker.players.find((seat: { playerToken: string | null }) => seat.playerToken)?.name).toBe("Native Ada");
+  } finally { await context.close(); }
+});

@@ -47,6 +47,27 @@ describe("localized anonymous game creation", () => {
     expect(response.headers.get("location")).toBe("https://example.test/game/game-123");
   });
 
+  it.each(["Ada", "  Ada  ", "", "   ", "A".repeat(40)])("passes string form name %j to the existing server sanitizer", async hostName => {
+    const body = new URLSearchParams({ hostName });
+    const response = await POST(new Request("https://example.test/fi-FI/new-game", {
+      method: "POST", body, headers: { cookie: "ai-holdem-player-id=host-token" },
+    }), { params: Promise.resolve({ lang: "fi-FI" }) });
+    expect(response.status).toBe(303);
+    expect(createDemoGame).toHaveBeenCalledWith(repository, { hostToken: "host-token", hostName });
+  });
+
+  it.each(["missing", "file", "malformed", "json", "query"])("keeps %s names anonymous", async kind => {
+    const form = new FormData();
+    if (kind === "file") form.set("hostName", new Blob(["Ada"]), "name.txt");
+    const response = await POST(new Request(`https://example.test/new-game${kind === "query" ? "?hostName=Ada" : ""}`, {
+      method: "POST",
+      body: kind === "malformed" ? "invalid" : kind === "json" ? JSON.stringify({ hostName: "Ada" }) : form,
+      headers: { cookie: "ai-holdem-player-id=host-token", ...(kind === "malformed" ? { "content-type": "multipart/form-data" } : kind === "json" ? { "content-type": "application/json" } : {}) },
+    }), { params: Promise.resolve({ lang: "en-US" }) });
+    expect(response.status).toBe(303);
+    expect(createDemoGame).toHaveBeenCalledWith(repository, { hostToken: "host-token" });
+  });
+
   it("rejects an unsupported locale without creating a game", async () => {
     const response = await POST(
       new Request("https://example.test/xx-XX/new-game", { method: "POST" }),

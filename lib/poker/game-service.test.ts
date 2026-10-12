@@ -25,6 +25,21 @@ import type {
 } from "@/lib/supabase/queries";
 import type { SystemOneRequest } from "@/lib/typesafe/types";
 
+describe.each([createDemoGame, createQuickPlayGame])("creation name persistence (%s)", create => {
+  it.each([
+    ["  Ada  ", "Ada"], ["", "Player 1"], ["   ", "Player 1"],
+    [undefined, "Player 1"], ["A".repeat(40), "A".repeat(30)],
+  ])("persists sanitized name %j in the seat and initial configuration", async (hostName, expected) => {
+    const createGameSession = vi.fn().mockResolvedValue({ id: "named-game", version: 0 });
+    await create({ createGameSession }, { hostToken: "host", hostName });
+    const input = createGameSession.mock.calls[0][0];
+    expect(input.players[0].name).toBe(expected);
+    expect(input.currentState.config.players[0].name).toBe(expected);
+    expect(input.handNumber).toBe(create === createQuickPlayGame ? 1 : 0);
+    expect(createGameSession).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("createDemoGame", () => {
   it("creates and persists a waiting lobby with the host seated", async () => {
     const createGameSession = vi.fn().mockResolvedValue({

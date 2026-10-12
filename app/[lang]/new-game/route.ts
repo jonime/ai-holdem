@@ -1,3 +1,4 @@
+import { readCreationHostName } from "@/lib/http/creation-form";
 import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { admitGameCreation } from "@/lib/usage/creation";
 import { usageCreationResponse } from "@/lib/usage/response";
@@ -21,10 +22,12 @@ export async function POST(
   }
 
   try {
+    const hostName = await readCreationHostName(request);
     const hostToken = getOrCreatePlayerToken(request);
     await admitGameCreation(request, hostToken);
     const game = await createDemoGame(createSupabaseGameRepository(), {
       hostToken,
+      ...(hostName !== undefined ? { hostName } : {}),
     });
     const response = NextResponse.redirect(
       new URL(addLocalePrefix(`/game/${game.gameId}`, lang), request.url),

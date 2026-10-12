@@ -47,11 +47,11 @@ export default async function PlayPage({ params }: PageProps<"/[lang]/play">) {
   const [d, directory] = await Promise.all([getPlayDictionary(lang), getJoinGameDictionary(lang)]);
   return <main className={styles.page}><div className={styles.panel}>
     <div className={styles.headingRow}><div><h1>{d.title}</h1><p>{d.intro}</p></div><Link href={addLocalePrefix("/", lang)}>{directory.back}</Link></div>
-    <div className={styles.controls}>
+    <form className={styles.controls} method="post" action={addLocalePrefix("/quick-game", lang)}>
       <PlayerName dictionary={directory} />
-      <form method="post" action={addLocalePrefix("/quick-game", lang)}><Button type="submit">{d.quickPlay}</Button></form>
-      <form method="post" action={addLocalePrefix("/new-game", lang)}><Button type="submit">{d.createTable}</Button></form>
-    </div>
+      <Button type="submit">{d.quickPlay}</Button>
+      <Button type="submit" formAction={addLocalePrefix("/new-game", lang)}>{d.createTable}</Button>
+    </form>
       <Suspense fallback={<p role="status">{d.loadingPersonal}</p>}><PersonalContent lang={lang} dictionary={d} /></Suspense>
       <section className={`${styles.section} ${styles.publicSection}`} aria-labelledby="public-tables-heading"><h2 id="public-tables-heading">{d.publicTables}</h2>
         <Suspense fallback={<p role="status">{d.loadingPublic}</p>}><DirectoryContent lang={lang} dictionary={directory} /></Suspense>

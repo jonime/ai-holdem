@@ -136,7 +136,11 @@ and offers retry; the refresh icon beside **Open public tables** refreshes publi
 automatic refresh on Play. Public joining retains optional player names and pagination.
 Quick Play still starts a separate private six-seat game in one click.
 
-The optional name field sits at the top of Play and is remembered for public joins.
+The optional name field at the top of Play applies to Quick Play, custom table
+creation, and public joins. The submitted name is used immediately for your seat
+and hand identities. Names are remembered when browser storage is available.
+Pressing Enter in the name field starts Quick Play. Landing-page Quick Play
+remains anonymous, even if this browser has a remembered name.
 Select a personal row to return, or a public row to join. Rows support keyboard
 activation; the refresh icon has a localized accessible label.
 

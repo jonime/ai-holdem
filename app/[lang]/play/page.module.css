@@ -5,7 +5,7 @@
 .headingRow p { margin: 0; color: #526560; }
 .headingRow a { color: var(--felt-dark); font-weight: 700; padding-top: 8px; }
 .controls { display: flex; align-items: end; gap: 24px; margin: 26px 0 30px; padding-bottom: 26px; border-bottom: 1px solid #c6d2cb; }
-.controls form { margin-left: auto; flex-shrink: 0; }
+.controls > button { margin-left: auto; flex-shrink: 0; }
 .nameField { display: grid; gap: 7px; width: min(360px, 100%); font-size: 14px; font-weight: 700; }
 .nameField input { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid #78978e; border-radius: 4px; background: #fffef9; font: inherit; font-weight: 400; }
 .section { position: relative; margin-top: 28px; }
@@ -38,7 +38,7 @@ button:disabled { cursor: wait; opacity: .6; }
   .headingRow { gap: 12px; }
   .controls { flex-wrap: wrap; gap: 14px; margin: 22px 0; padding-bottom: 22px; }
   .nameField { width: 100%; }
-  .controls form { margin-left: 0; }
+  .controls > button { margin-left: 0; }
   .personalRow { grid-template-columns: minmax(0, 1fr); }
   .personalRow .facts { grid-column: 1; grid-row: 2; }
 }

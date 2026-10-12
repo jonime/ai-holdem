@@ -14,7 +14,15 @@ function subscribe(onChange: () => void) {
     window.removeEventListener(nameChanged, onChange);
   };
 }
-function snapshot() { return window.localStorage.getItem(nameKey) ?? ""; }
+let memoryName = "";
+let memoryOnly = false;
+function snapshot() {
+  if (!memoryOnly) {
+    try { memoryName = window.localStorage.getItem(nameKey) ?? ""; }
+    catch { memoryOnly = true; }
+  }
+  return memoryName;
+}
 function serverSnapshot() { return ""; }
 export function usePlayerName() {
   return useSyncExternalStore(subscribe, snapshot, serverSnapshot);
@@ -22,8 +30,10 @@ export function usePlayerName() {
 export function PlayerName({ dictionary }: { dictionary: JoinGameDictionary }) {
   const name = usePlayerName();
   return <label className={styles.nameField}>{dictionary.playerName}
-    <input maxLength={30} autoComplete="nickname" value={name} placeholder={dictionary.namePlaceholder} onChange={event => {
-      window.localStorage.setItem(nameKey, event.target.value);
+    <input name="hostName" maxLength={30} autoComplete="nickname" value={name} placeholder={dictionary.namePlaceholder} onChange={event => {
+      memoryName = event.target.value;
+      try { window.localStorage.setItem(nameKey, memoryName); }
+      catch { memoryOnly = true; }
       window.dispatchEvent(new Event(nameChanged));
     }} />
   </label>;
