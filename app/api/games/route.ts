@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { admitGameCreation } from "@/lib/usage/creation";
 import { usageCreationResponse } from "@/lib/usage/response";
 import { negotiateLocale } from "@/lib/i18n/negotiation";
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
   } catch (error) {
     const limited = await usageCreationResponse(error, !request.headers.get("content-type")?.includes("application/x-www-form-urlencoded"), negotiateLocale(request.headers.get("accept-language")));
     if (limited) return limited;
-    console.error("Unable to create game", error);
+    logApplicationFailure({ operation: "create_game", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
       { error: "Unable to create game" },
       { status: 500 },

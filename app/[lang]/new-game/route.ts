@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { admitGameCreation } from "@/lib/usage/creation";
 import { usageCreationResponse } from "@/lib/usage/response";
 import { NextResponse } from "next/server";
@@ -39,7 +40,7 @@ export async function POST(
   } catch (error) {
     const limited = await usageCreationResponse(error, request.headers.get("accept")?.includes("application/json") ?? false, lang);
     if (limited) return limited;
-    console.error("Unable to create game", error);
+    logApplicationFailure({ operation: "create_game_html", category: classifyApplicationFailure(error), status: 500 });
     return new NextResponse("Unable to create game", { status: 500 });
   }
 }

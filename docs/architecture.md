@@ -346,6 +346,38 @@ that outcome. Other bot failures use
 responses, headers, keys or cards. LLM passive actions require null
 sizing; their schema advertises only null when no aggressive action remains.
 
+## Application failure logging
+
+Server game, seat, discovery and creation route failure branches use
+`lib/logging/application-failure.ts`. `logApplicationFailure` emits a single object
+with exactly `event: "application_request_failed"`, an allowlisted `operation`,
+a server-generated UUID `requestReference`, fixed `category`, and numeric HTTP
+`status` (400–599). The reference is generated at logging time and stays internal.
+`classifyApplicationFailure` selects `invalid_data` for Zod errors, `poker_rule`
+for engine rule errors, `usage_unavailable` for usage admission outages, and
+`unexpected` otherwise, without reading exception properties. Recognized classes
+that reach an existing failure branch retain its HTTP response; categories do not
+change status or handling. Expected validation, missing-game, authorization,
+conflict and usage-denial branches return before this logger. Personal-table
+reads intentionally remain silent.
+
+The logger accepts no metadata and rejects extra or invalid fields silently.
+Validation, UUID generation and sink failures never replace the original response.
+It never serializes exceptions, stacks, causes, arbitrary messages, request data,
+URLs, headers, cookies, identities, cards, or provider/database payloads.
+Provider failures continue through `lib/bots/provider-logging.ts` without a generic
+duplicate. Realtime publishing/scheduling retain their compact identifiers,
+phases and timing; bot-claim cleanup retains its fixed notice. Browser Realtime
+failures log fixed text without exception data or table identifiers.
+
+Search server runtime logs for `application_request_failed`, filter by operation
+or status, then use the exact `requestReference` UUID to locate that event. The
+reference is absent from HTTP responses and is not propagated into service,
+provider or publication logs; it cannot correlate an entire request lifecycle.
+This covers application-authored diagnostics only. Automatic framework and
+hosting logs are outside this boundary. There is no external monitoring service,
+database migration, feedback integration or response-contract change.
+
 ## Play and personal table discovery
 
 `/[lang]/play` streams personal tables and the public directory through independent

@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { startRequestSchema, gameParamsSchema, type GameResponseEnvelope } from "@/lib/http/gameplay-contracts";
 import { NextResponse } from "next/server";
 
@@ -50,7 +51,7 @@ export async function POST(request: Request, context: StartRouteContext) {
     ) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
-    console.error("Unable to start game", error);
+    logApplicationFailure({ operation: "start", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
       { error: "Unable to start game" },
       { status: 500 },

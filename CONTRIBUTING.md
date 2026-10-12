@@ -450,6 +450,29 @@ Docs are part of the implementation.
   Seat claims, moves, bot assignments, releases, start, and settings changes
   must retain the shared game lock and expected-version ordering.
 
+## Safe application diagnostics
+
+Use `classifyApplicationFailure` and `logApplicationFailure` from
+`lib/logging/application-failure.ts` for existing unexpected server-route failure
+branches. Add operations to its typed allowlist when adding a route. The exact
+schema is `event: "application_request_failed"`, `operation`, UUID
+`requestReference`, fixed `category`, and numeric response `status`; see
+[application failure logging](docs/architecture.md#application-failure-logging).
+Never pass arbitrary metadata or exception data to a sink. Preserve expected-error
+returns and specialized provider logging without duplicate events. ESLint forbids
+direct route `console.error`/`console.warn`; approved server entry points are the
+application logger, `lib/bots/provider-logging.ts`, the Realtime
+publish/schedule helpers, and the existing bot-claim cleanup notice in the bot
+service. Browser Realtime diagnostics must remain fixed text without table IDs.
+
+In server runtime logs, search `application_request_failed`, narrow by operation
+or status, and search the exact `requestReference` UUID for a particular event.
+References stay internal and do not link provider/publication events. Keep privacy
+tests for hostile exception properties and serializers, rejected logger fields,
+sink failures, unchanged route responses and browser Realtime failures. Run
+`npx vitest run lib/logging lib/realtime app/api/games 'app/[lang]/new-game' 'app/[lang]/quick-game'`
+with `npm run check` and `npm run build`; no paid inference is needed.
+
 ## Pull requests
 
 - Keep PRs small, focused, and easy to review.

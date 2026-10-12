@@ -81,6 +81,7 @@ describe("localized quick-play creation", () => {
 
     expect(response.status).toBe(500);
     expect(await response.text()).toBe("Unable to create quick game");
+    expect(consoleError).toHaveBeenCalledExactlyOnceWith({ event: "application_request_failed", operation: "create_quick_game_html", category: "unexpected", status: 500, requestReference: expect.stringMatching(/^[0-9a-f-]{36}$/) });
     consoleError.mockRestore();
   });
 });

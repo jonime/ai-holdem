@@ -25,6 +25,18 @@ const eslintConfig = defineConfig([
       "no-restricted-globals": ["error", { name: "fetch", message: "Use named methods from lib/http/api.ts." }],
     },
   },
+  {
+    files: ["app/**/route.{ts,tsx,js,jsx}"],
+    rules: {
+      "no-restricted-syntax": ["error", {
+        selector: "CallExpression[callee.object.name='console']:matches([callee.property.name=/^(error|warn)$/], [callee.property.value=/^(error|warn)$/])",
+        message: "Server routes must use approved application or provider logging helpers.",
+      }, {
+        selector: "CallExpression[callee.object.property.name='console']:matches([callee.property.name=/^(error|warn)$/], [callee.property.value=/^(error|warn)$/])",
+        message: "Server routes must use approved application or provider logging helpers.",
+      }],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

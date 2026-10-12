@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { gameParamsSchema, type GameResponseEnvelope } from "@/lib/http/gameplay-contracts";
 import { NextResponse } from "next/server";
 
@@ -35,7 +36,7 @@ export async function GET(request: Request, context: GameRouteContext) {
       return response;
     }
 
-    console.error("Unable to load game", error);
+    logApplicationFailure({ operation: "read_game", category: classifyApplicationFailure(error), status: 500 });
     const response = NextResponse.json(
       { error: "Unable to load game" },
       { status: 500 },

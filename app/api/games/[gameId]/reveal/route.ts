@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { revealRequestSchema, gameParamsSchema, type GameResponseEnvelope } from "@/lib/http/gameplay-contracts";
 import { NextResponse } from "next/server";
 
@@ -49,7 +50,7 @@ export async function POST(request: Request, context: RevealRouteContext) {
     ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    console.error("Unable to reveal human cards", error);
+    logApplicationFailure({ operation: "reveal", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
       { error: "Unable to reveal human cards" },
       { status: 500 },

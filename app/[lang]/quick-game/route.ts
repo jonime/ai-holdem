@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { addLocalePrefix } from "@/lib/i18n";
 import { admitGameCreation } from "@/lib/usage/creation";
 import { usageCreationResponse } from "@/lib/usage/response";
@@ -50,7 +51,7 @@ export async function POST(
   } catch (error) {
     const limited = await usageCreationResponse(error, wantsJson, parsed.data.lang);
     if (limited) return limited;
-    console.error("Unable to create quick game", error);
+    logApplicationFailure({ operation: "create_quick_game_html", category: classifyApplicationFailure(error), status: 500 });
     return failure("Unable to create quick game", 500);
   }
 }

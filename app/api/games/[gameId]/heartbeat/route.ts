@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { gameParamsSchema } from "@/lib/http/common-contracts";
 import type { HeartbeatResponse } from "@/lib/http/discovery-contracts";
 import { NextResponse } from "next/server";
@@ -14,7 +15,7 @@ export async function POST(request: Request, context: { readonly params: Promise
       ? NextResponse.json({ renewed: true } satisfies HeartbeatResponse)
       : NextResponse.json({ error: "Listing is not renewable", code: "LISTING_NOT_RENEWABLE" }, { status: 409 });
   } catch (error) {
-    console.error("Unable to renew listing", error);
+    logApplicationFailure({ operation: "heartbeat", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json({ error: "Unable to renew listing" }, { status: 500 });
   }
 }

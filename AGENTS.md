@@ -165,6 +165,13 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
   only bots use claims/providers/allowances. No background worker or disconnect
   timeout exists. Run `test:sql:departures` and production departure browser smoke;
   CI includes departure SQL coverage. Verify notifications on authorized Vercel.
+- Server-route failure logs use `lib/logging/application-failure.ts` with only
+  allowlisted operation/category, numeric response status and an internal generated
+  UUID reference. Never log exceptions or arbitrary metadata. Preserve expected
+  error returns, silent personal-list reads and specialized provider diagnostics
+  without duplicate events. Direct route `console.error`/`console.warn` is linted;
+  browser Realtime diagnostics use fixed text without table IDs. See the logging
+  sections in `docs/architecture.md` and `CONTRIBUTING.md`.
 - Each mutation applies at most one action and uses the expected game version.
 	Preserve optimistic-concurrency conflict handling in service and API layers.
 - Game refreshes use one uncached, service-role-only `get_game_read_snapshot`

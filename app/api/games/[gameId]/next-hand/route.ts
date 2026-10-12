@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { nextHandRequestSchema, gameParamsSchema, type GameResponseEnvelope } from "@/lib/http/gameplay-contracts";
 import { NextResponse } from "next/server";
 
@@ -49,7 +50,7 @@ export async function POST(request: Request, context: NextHandRouteContext) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    console.error("Unable to start next hand", error);
+    logApplicationFailure({ operation: "next_hand", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
       { error: "Unable to start next hand" },
       { status: 500 },

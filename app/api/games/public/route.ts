@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { directoryRouteQuerySchema, type DirectoryResponse } from "@/lib/http/discovery-contracts";
 import { NextResponse } from "next/server";
 
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (error) {
-    console.error("Unable to list public games", error);
+    logApplicationFailure({ operation: "public", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json({ error: "Unable to load public games" }, { status: 500 });
   }
 }

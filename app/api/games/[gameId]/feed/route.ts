@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { gameParamsSchema } from "@/lib/http/common-contracts";
 import { feedRouteQuerySchema, type FeedResponse } from "@/lib/http/feed-contracts";
 import { NextResponse } from "next/server";
@@ -26,7 +27,7 @@ export async function GET(request: Request, context: FeedRouteContext) {
     );
     return NextResponse.json({ feed } satisfies FeedResponse);
   } catch (error) {
-    console.error("Unable to load game feed", error);
+    logApplicationFailure({ operation: "feed", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
       { error: "Unable to load game feed" },
       { status: 500 },

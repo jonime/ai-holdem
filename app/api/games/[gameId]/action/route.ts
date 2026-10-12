@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { TurnTimerError } from "@/lib/poker/turn-timer";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { gameParamsSchema } from "@/lib/http/common-contracts";
@@ -65,7 +66,7 @@ export async function POST(request: Request, context: ActionRouteContext) {
       );
     }
 
-    console.error("Unable to submit human action", error);
+    logApplicationFailure({ operation: "action", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
       { error: "Unable to submit human action" },
       { status: 500 },

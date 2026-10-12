@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { gameParamsSchema } from "@/lib/http/common-contracts";
 import { seatCountSchema, type GameResponseEnvelope } from "@/lib/http/gameplay-contracts";
 import { versionSchema } from "@/lib/http/common-contracts";
@@ -71,7 +72,7 @@ export async function PATCH(request: Request, context: SeatCountRouteContext) {
     ) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
-    console.error("Unable to update seat count", error);
+    logApplicationFailure({ operation: "seat_count", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
       { error: "Unable to update seat count" },
       { status: 500 },

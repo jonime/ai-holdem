@@ -32,5 +32,5 @@ it("masks unexpected database failures", async () => {
   remove.mockRejectedValue(new Error("private-token-and-cards"));
   const result = await POST(request({ expectedVersion: 0, operation: "delete" }),context);
   expect(result.status).toBe(500); expect(await result.text()).not.toContain("private-token");
-  expect(log).toHaveBeenCalledWith("Unable to remove table", { gameId: id }); log.mockRestore();
+  expect(log).toHaveBeenCalledExactlyOnceWith({ event: "application_request_failed", operation: "remove", category: "unexpected", status: 500, requestReference: expect.stringMatching(/^[0-9a-f-]{36}$/) }); log.mockRestore();
 });

@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { assignBotRequestSchema, seatPathParamsSchema, type SeatResponse } from "@/lib/http/seat-contracts";
 import { NextResponse } from "next/server";
 
@@ -78,7 +79,7 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
-    console.error("Unable to assign bot seat", error);
+    logApplicationFailure({ operation: "assign_bot", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
       { error: "Unable to assign bot seat" },
       { status: 500 },

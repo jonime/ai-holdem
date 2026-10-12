@@ -90,18 +90,18 @@ export function useGameChannel(
         }
         if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
           setStatus("error");
-          console.error(`Realtime channel ${gameId} is unavailable`);
+          console.error("Game Realtime channel is unavailable");
           return;
         }
         if (status === "CLOSED") {
           setStatus("closed");
         }
       });
-    } catch (error) {
+    } catch {
       queueMicrotask(() => {
         if (active) setStatus("error");
       });
-      console.error("Unable to connect to game Realtime channel", error);
+      console.error("Unable to connect to game Realtime channel");
       return;
     }
 

@@ -68,6 +68,7 @@ describe("localized anonymous game creation", () => {
 
     expect(response.status).toBe(500);
     expect(await response.text()).toBe("Unable to create game");
+    expect(consoleError).toHaveBeenCalledExactlyOnceWith({ event: "application_request_failed", operation: "create_game_html", category: "unexpected", status: 500, requestReference: expect.stringMatching(/^[0-9a-f-]{36}$/) });
     consoleError.mockRestore();
   });
 });

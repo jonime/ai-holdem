@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { releaseSeatRequestSchema, seatPathParamsSchema, type SeatResponse } from "@/lib/http/seat-contracts";
 import { NextResponse } from "next/server";
 
@@ -47,7 +48,7 @@ export async function POST(request: Request, context: ReleaseSeatRouteContext) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
-    console.error("Unable to release seat", { gameId, seat });
+    logApplicationFailure({ operation: "release", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
       { error: "Unable to release seat" },
       { status: 500 },

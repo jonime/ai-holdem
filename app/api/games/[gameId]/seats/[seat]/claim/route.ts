@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { claimSeatRouteRequestSchema, seatPathParamsSchema, type SeatResponse } from "@/lib/http/seat-contracts";
 import { NextResponse } from "next/server";
 
@@ -51,7 +52,7 @@ export async function POST(request: Request, context: ClaimSeatRouteContext) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
-    console.error("Unable to claim seat", error);
+    logApplicationFailure({ operation: "claim", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
       { error: "Unable to claim seat" },
       { status: 500 },

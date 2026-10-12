@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { gameParamsSchema } from "@/lib/http/common-contracts";
 import { joinRequestSchema, type JoinResponse } from "@/lib/http/discovery-contracts";
 import { NextResponse } from "next/server";
@@ -40,7 +41,7 @@ export async function POST(request: Request, context: { readonly params: Promise
     const joined = NextResponse.json({ gameId, seat: result.seat, version: result.version } satisfies JoinResponse);
     return setPlayerTokenCookie(joined, playerToken);
   } catch (error) {
-    console.error("Unable to join public game", error);
+    logApplicationFailure({ operation: "join", category: classifyApplicationFailure(error), status: 500 });
     const failed = NextResponse.json({ error: "Unable to join game" }, { status: 500 });
     return setPlayerTokenCookie(failed, playerToken);
   }

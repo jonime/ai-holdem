@@ -1,3 +1,4 @@
+import { classifyApplicationFailure, logApplicationFailure } from "@/lib/logging/application-failure";
 import { invalidatePublicDirectory } from "@/lib/poker/public-directory-cache";
 import { usageJsonResponse } from "@/lib/usage/response";
 import { BotStepInProgressError, BotStepClaimLostError } from "@/lib/poker/bot-step-claims";
@@ -96,7 +97,7 @@ export async function POST(request: Request, context: StepRouteContext) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
 
-    console.error("Unable to step bot", error);
+    logApplicationFailure({ operation: "step", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json({ error: "AI decision failed" }, { status: 500 });
   }
 }
