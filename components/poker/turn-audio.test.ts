@@ -1,11 +1,5 @@
 import { expect, it, vi } from "vitest";
-import { createTurnAudio, readTurnSound, writeTurnSound } from "./turn-audio";
-it("defaults off and tolerates failed storage", () => {
-  expect(readTurnSound({ getItem: () => null })).toBe(false);
-  expect(readTurnSound({ getItem: () => "true" })).toBe(true);
-  expect(readTurnSound({ getItem: () => { throw Error(); } })).toBe(false);
-  expect(() => writeTurnSound({ setItem: () => { throw Error(); } }, true)).not.toThrow();
-});
+import { createTurnAudio } from "./turn-audio";
 it("does not initialize audio for a cue and isolates blocked audio", async () => {
   const factory = vi.fn(() => { throw Error(); });
   const player = createTurnAudio(factory);

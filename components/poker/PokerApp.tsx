@@ -4,6 +4,8 @@ import { turnRemainingMs } from "./turn-clock";
 import Link from "next/link";
 
 import { hasAutomaticTurn } from "./bot-advancement";
+import { useSettings } from "./useSettings";
+import { SettingsModal } from "./SettingsModal";
 import { useTurnNotifications } from "./useTurnNotifications";
 import { GameHeader } from "./GameHeader";
 import { addLocalePrefix } from "@/lib/i18n";
@@ -43,6 +45,9 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   readonly helpTitle: string;
 }) {
   const { locale, t } = useI18n();
+  const settings = useSettings();
+  const shortcuts = settings.ready && settings.preferences.gameplayShortcuts;
+  const [languageNavigating, setLanguageNavigating] = useState(false);
   const replayPending = useRef(false);
   const [replaying, setReplaying] = useState(false);
   const [creationNotice, setCreationNotice] = useState<{ until: number; message: string } | null>(null);
@@ -60,14 +65,15 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   );
   const [playerNameEdited, setPlayerNameEdited] = useState(false);
   const [amountDraft, setAmountDraft] = useState({ scope: "", value: "" });
-  const [overlay, setOverlay] = useState<"none" | "actions" | "join" | "help">("none");
+  const [overlay, setOverlay] = useState<"none" | "actions" | "join" | "help" | "settings">("none");
   const openerRef = useRef<HTMLElement | null>(null);
+  const settingsOpenerRef = useRef<HTMLButtonElement>(null);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
   const helpOpenerRef = useRef<HTMLButtonElement>(null);
   const tableRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const joinPending = useRef(false);
-  const openOverlay = (next: "actions" | "join" | "help", opener: HTMLElement) => {
+  const openOverlay = (next: "actions" | "join" | "help" | "settings", opener: HTMLElement) => {
     openerRef.current = opener;
     setOverlay(next);
   };
@@ -138,7 +144,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     viewerToken,
   );
 
-  const turnNotification = useTurnNotifications(game, viewerToken, loading || recoveryBlocked || replaying || unavailable, online);
+  const turnNotification = useTurnNotifications(game, viewerToken, loading || recoveryBlocked || replaying || unavailable, online, settings.preferences.turnSound);
 
   const canStartNextHand = game ? tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost, game.poker.seats).canStartNextHand : false;
   const newQuickPlay = async (botMode?: "rules") => {
@@ -216,6 +222,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   );
 
   useEffect(() => {
+    if (!shortcuts) return;
     function handleShortcut(event: KeyboardEvent) {
       if (overlay !== "none") return;
       const completedHand = game?.poker.street === "complete";
@@ -306,6 +313,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
   }, [
+    shortcuts,
     overlay,
     selectedAmount,
     amountScope,
@@ -324,7 +332,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
 
   return (
     <>
-    <GameHeader helpRef={helpOpenerRef} onHelp={opener => openOverlay("help", opener)} turnNotification={turnNotification} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={releaseSeat} />
+    <GameHeader helpRef={helpOpenerRef} onHelp={opener => openOverlay("help", opener)} settingsRef={settingsOpenerRef} onSettings={opener => openOverlay("settings", opener)} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={releaseSeat} />
     <main className={styles.pokerApp}>
       {creationNotice ? <p className={styles.errorBanner} role="alert">{creationNotice.message} {t("errors.retryAvailable", { seconds: Math.ceil(creationWait / 1000) })}</p> : null}
       {error ? (
@@ -383,6 +391,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
             className={`${styles.tableRow} ${feedCollapsed ? styles.feedCollapsed : ""}`}
           >
             <PokerTable
+              shortcuts={shortcuts}
               busy={requestBusy}
               game={game}
               seatRows={seatRows}
@@ -493,6 +502,13 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
         </div>
       )}
     </main>
+    {overlay === "settings" ? (
+      <SettingsModal preferences={settings.preferences} onUpdate={settings.update}
+        onSound={turnNotification.preview} notice={turnNotification.notice}
+        languageBlocked={loading || recoveryBlocked || replaying || languageNavigating || unavailable || !game}
+        onNavigate={() => setLanguageNavigating(true)} gameId={game?.id ?? gameId ?? ""}
+        onClose={() => setOverlay("none")} restoreFocus={openerRef} fallbackFocus={settingsOpenerRef} />
+    ) : null}
     {overlay === "help" ? (
       <Modal open title={helpTitle} onDismiss={() => setOverlay("none")}
         initialFocus={helpCloseRef} restoreFocus={openerRef} fallbackFocus={helpOpenerRef}

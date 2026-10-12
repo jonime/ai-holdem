@@ -12,10 +12,11 @@ import { getClientPlayerToken } from "@/lib/identity/player-token-client";
 import { headerDepartureSeat } from "./header-navigation";
 import type { Game } from "./types";
 
-export function GameHeader({ helpRef, onHelp, turnNotification, game, loading, mutationsBlocked = false, onLeave }: {
+export function GameHeader({ helpRef, onHelp, settingsRef, onSettings, game, loading, mutationsBlocked = false, onLeave }: {
   readonly helpRef: RefObject<HTMLButtonElement | null>;
   readonly onHelp: (opener: HTMLButtonElement) => void;
-  readonly turnNotification: { enabled: boolean; toggle: () => Promise<void>; notice: string | null };
+  readonly settingsRef: RefObject<HTMLButtonElement | null>;
+  readonly onSettings: (opener: HTMLButtonElement) => void;
   readonly game: Game | null;
   readonly loading: boolean;
   readonly mutationsBlocked?: boolean;
@@ -41,21 +42,14 @@ export function GameHeader({ helpRef, onHelp, turnNotification, game, loading, m
         <Button ref={helpRef} variant="ghost" size="small" aria-haspopup="dialog" onClick={event => onHelp(event.currentTarget)}>
           {t("gameHeader.help")}
         </Button>
-        <div className={styles.soundControl}>
-          <span>{t("turnNotification.soundLabel")}</span>
-          <button className={styles.soundSwitch} type="button" role="switch"
-            aria-label={t("turnNotification.sound")} aria-checked={turnNotification.enabled}
-            onClick={() => void turnNotification.toggle()}>
-            <span className={styles.soundSymbol} aria-hidden="true">{turnNotification.enabled ? "✓" : "×"}</span>
-            <span className={styles.soundThumb} aria-hidden="true" />
-          </button>
-        </div>
+        <Button ref={settingsRef} variant="ghost" size="small" aria-haspopup="dialog" onClick={event => onSettings(event.currentTarget)}>
+          {t("settings.title")}
+        </Button>
         <Button variant="primary" size="small" disabled={loading || (!!departing && mutationsBlocked)} onClick={handleExit}>
           {t(departing ? "gameHeader.leaveTable" : "gameHeader.lobby")}
         </Button>
         </div>
       </div>
-      {turnNotification.notice ? <p className={styles.notice} role="status">{turnNotification.notice}</p> : null}
     </header>
   );
 }

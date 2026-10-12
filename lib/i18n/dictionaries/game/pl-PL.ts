@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  settings: {"title": "Ustawienia", "close": "Zamknij", "shortcuts": "Skróty gry", "language": "Język", "continues": "Gra trwa dalej, gdy ustawienia są otwarte.", "languageBlocked": "Język można zmienić po zakończeniu żądania lub odzyskiwania stołu."},
   tableLoading: {
     missingTitle: "Ten stół nie jest już dostępny",
     missingGuidance: "Sprawdź, czy link zaproszenia jest poprawny, lub wróć do lobby.",

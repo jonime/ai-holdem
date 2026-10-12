@@ -179,14 +179,36 @@ expiry; if all eligible browsers close, processing resumes when one returns.
 
 An actionable owned human turn sets the browser tab to “🟢 Your turn · AI Hold’em”
 (localized). Pending mutations, unresolved recovery, offline state, departure, and
-turn expiry clear the indicator. Opening Actions leaves the turn indicator active.
+turn expiry clear the indicator. Opening a dialog leaves the turn indicator active.
 
-The game header’s **Sound** switch is off by default. A check with the thumb on
-the right means On; a cross with the thumb on the left means Off. It remembers only this
-preference in browser local storage and synchronizes it between tabs. Enabling it
+The **Turn sound** switch in **Settings** is off by default. A check with the thumb on
+the right means On; a cross with the thumb on the left means Off. It shares the
+versioned `ai-holdem-settings` local-storage entry with **Gameplay shortcuts**, which defaults to On. Changes apply immediately and synchronize between
+tabs; removed, malformed, or unsupported entries reset to defaults. Legacy sound
+entries are ignored. Storage failures leave the controls usable in memory. Enabling it
 previews a quiet two-note cue. Browser audio requires a user gesture, including
 after loading a stored preference; missed cues are never replayed. Initial loads
 and returns from hidden tabs update the title without a catch-up cue. Background
 notifications are best effort: browsers may suspend tabs or block audio. Separate
 open game tabs can each sound. No permissions, push service, or background worker
 is used, and polling behavior is unchanged.
+
+## In-game Settings
+
+The header offers Help, Settings, and Leave table/Lobby. Settings uses the shared
+Modal with initial focus on Close, Escape/backdrop dismissal, focus restoration,
+and independently scrolling content. It remains available during pending requests
+and recovery. The game, timers, bots, refreshes, and turn notifications continue
+while it is open; gameplay shortcuts are suppressed by the overlay.
+
+Turning off Gameplay shortcuts removes action badges, Q/E/Shift hints and custom
+`aria-keyshortcuts`, and restores native slider keyboard behavior. Tab navigation,
+Enter/Space on focused buttons, numeric editing and dialog keys remain available.
+Shortcut listeners attach only after saved settings have been read after hydration.
+
+Language uses the supported locales’ native names and the current route locale.
+Switching navigates to the same game with its query string and fragment, retaining
+seat identity; English uses the unprefixed URL. The selector is disabled during
+game mutations, bot advancement, replay creation, unresolved recovery and language
+navigation. The handler rechecks this guard. Language and player identity are never
+stored in settings. Cross-tab sound changes never preview or unlock audio.

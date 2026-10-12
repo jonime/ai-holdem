@@ -1,6 +1,7 @@
 import "server-only";
 
 const dictionary = {
+  settings: {"title": "Settings", "close": "Close", "shortcuts": "Gameplay shortcuts", "language": "Language", "continues": "The game continues while Settings is open.", "languageBlocked": "Language is available after the current request or table recovery finishes."},
   tableLoading: {
     missingTitle: "This table is no longer available",
     missingGuidance: "Check that the invitation link is correct, or return to the Lobby.",

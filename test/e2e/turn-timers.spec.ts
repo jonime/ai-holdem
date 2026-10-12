@@ -65,8 +65,11 @@ test("@smoke multiplayer deadlines survive reload and repeat without removing se
     await page.reload();
     expect((await read(page,id)).turnTimer).toEqual(first);
     shorten(id); await page.reload(); await guest.reload();
+    await page.getByRole("button", { name: "Settings", exact: true }).click();
     await expect(page.locator("[data-turn-countdown]").filter({visible:true}).first()).toHaveText(/^[0-9]+$/);
     await expect.poll(async () => (await read(page,id)).status,{timeout:12000}).toBe("complete");
+    await expect(page.getByRole("dialog", { name: "Settings", exact: true })).toBeVisible();
+    await page.keyboard.press("Escape");
     game = await read(page,id);
     expect(game.poker.players.filter(player => player.status === "claimed")).toHaveLength(2);
     expect(game.poker.players.every(player => !player.leaving)).toBe(true);

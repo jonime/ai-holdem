@@ -449,5 +449,19 @@ cue. `turn-notifications.ts` tracks observed game/hand/street/actor transitions
 (and server timer decision IDs) separately from temporary eligibility. Preserve
 initial-load/visibility-return suppression, ownership/departure/deadline checks,
 mutation/recovery/offline suppression, guarded title cleanup, gesture-only audio
-unlock, preference-only storage, and best-effort background behavior. Modals do
+unlock, shared versioned Settings preference storage, and best-effort background behavior. Modals do
 not change turn eligibility. Separate tabs may each notify; do not change polling.
+
+## In-game Settings
+
+Settings shares the single overlay and Modal with Help, Join and mobile Actions.
+`useSettings` owns `ai-holdem-settings` version 1 with turnSound false and
+gameplayShortcuts true by default. Read after hydration before attaching gameplay
+shortcuts; validate storage and synchronize storage events, including removal.
+Ignore legacy sound storage. `useTurnNotifications` receives sound preference
+and previews only explicit user enabling, never storage changes. Disabled gameplay
+shortcuts hide custom hints and aria-keyshortcuts and preserve native controls.
+Language remains URL-owned; use native locale names and addLocalePrefix for the
+same game, preserving query/fragment and identity. Guard language changes during
+mutations, bot advancement, replay, recovery and navigation. Settings stays usable
+and never pauses game updates, timers or notifications.

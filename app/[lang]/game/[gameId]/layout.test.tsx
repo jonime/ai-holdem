@@ -70,6 +70,7 @@ const gameTopLevelKeys = [
   "lobby",
   "result",
   "seat",
+  "settings",
   "table",
   "tableLoading",
   "timer",

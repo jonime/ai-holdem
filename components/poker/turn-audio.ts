@@ -1,10 +1,3 @@
-export const turnSoundStorageKey = "ai-holdem-turn-sound";
-export function readTurnSound(storage: Pick<Storage, "getItem">): boolean {
-  try { return storage.getItem(turnSoundStorageKey) === "true"; } catch { return false; }
-}
-export function writeTurnSound(storage: Pick<Storage, "setItem">, enabled: boolean) {
-  try { storage.setItem(turnSoundStorageKey, String(enabled)); } catch { /* Optional preference. */ }
-}
 export function createTurnAudio(factory: () => AudioContext) {
   let context: AudioContext | null = null;
   let disposed = false;

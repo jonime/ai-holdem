@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  settings: {"title": "设置", "close": "关闭", "shortcuts": "游戏快捷键", "language": "语言", "continues": "设置打开时，游戏仍会继续。", "languageBlocked": "当前请求或牌桌恢复完成后即可切换语言。"},
   tableLoading: {
     missingTitle: "此牌桌已不可用",
     missingGuidance: "请检查邀请链接是否正确，或返回大厅。",

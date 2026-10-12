@@ -30,27 +30,31 @@ test("turn title, cue counts, persisted accessible toggle and mobile header", { 
     };
   });
   const f = await controlledTable(page);
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
   const toggle = page.getByRole("switch", { name: "Turn sound", exact: true });
   expect(await counts(page)).toBe(0);
   await expect(toggle).toHaveAttribute("aria-checked", "false");
   await toggle.focus(); await page.keyboard.press("Space");
   await expect(toggle).toHaveAttribute("aria-checked", "true");
   expect(await counts(page)).toBe(2);
+  await page.keyboard.press("Escape");
   // Actions is a modal at mobile sizes and never invalidates the underlying turn.
   await page.setViewportSize({ width: 375, height: 812 });
   await page.getByRole("button", { name: /actions panel/i }).click();
   await expect(page).toHaveTitle("🟢 Your turn · AI Hold’em");
   await page.keyboard.press("Escape");
-  const header = page.locator("header");
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  const header = page.getByRole("dialog");
   const bounds = await header.boundingBox(); const button = await toggle.boundingBox();
   expect(bounds).not.toBeNull(); expect(button).not.toBeNull();
   expect(button!.x + button!.width).toBeLessThanOrEqual(375);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(375);
+  await page.keyboard.press("Escape");
   f.set({ ...f.get(), version: f.get().version + 1 }); await refresh(page);
   await expect.poll(() => counts(page)).toBe(2);
   f.set({ ...f.get(), version: f.get().version + 1, poker: { ...f.get().poker, handNumber: f.get().poker.handNumber + 1 } });
   await refresh(page); await expect.poll(() => counts(page)).toBe(4);
-  await page.reload(); await expect(toggle).toHaveAttribute("aria-checked", "true");
+  await page.reload(); await page.getByRole("button", { name: "Settings", exact: true }).click(); await expect(toggle).toHaveAttribute("aria-checked", "true");
   await expect(page).toHaveTitle("🟢 Your turn · AI Hold’em"); expect(await counts(page)).toBe(0);
   f.set({ ...f.get(), version: f.get().version + 1, poker: { ...f.get().poker, legalActions: [] } });
   await refresh(page); await expect(page).not.toHaveTitle(/Your turn/);
@@ -63,6 +67,7 @@ test("spectators never receive the turn title", { tag: "@ui-regression" }, async
   const context = await browser.newContext();
   try {
     const spectator = await context.newPage(); await spectator.goto(`/game/${f.id}`);
+    await spectator.getByRole("button", { name: "Settings", exact: true }).click();
     await expect(spectator.getByRole("switch", { name: "Turn sound", exact: true })).toBeVisible();
     await expect(spectator).not.toHaveTitle(/Your turn/);
   } finally { await context.close(); }

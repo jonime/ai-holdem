@@ -10,23 +10,24 @@ vi.mock("react", () => ({
 }));
 vi.mock("./I18nProvider", () => ({ useI18n: () => ({ t: (key: string) => key === "turnNotification.title" ? "🟢 Your turn · AI Hold’em" : key }) }));
 import { useTurnNotifications } from "./useTurnNotifications";
-import { turnSoundStorageKey } from "./turn-audio";
+
 let doc: EventTarget & { title: string; hidden: boolean };
 let win: EventTarget & { localStorage: Storage };
 let starts: ReturnType<typeof vi.fn>;
 let close: ReturnType<typeof vi.fn>;
 let blockedAudio: boolean;
+let enabled: boolean;
 const game: Game = { ...gameplayGame, poker: { ...gameplayGame.poker, currentActorId: "human" } };
 function render(value: Game | null = game, blocked = false, online = true) {
   h.index = 0; h.effects = [];
-  const result = useTurnNotifications(value, "owner", blocked, online);
+  const result = useTurnNotifications(value, "owner", blocked, online, enabled);
   h.effects.forEach(effect => { const cleanup = effect(); if (cleanup) h.cleanups.push(cleanup); });
   vi.advanceTimersByTime(100);
   return result;
 }
 beforeEach(() => {
   vi.useFakeTimers(); h.slots = []; h.deps = []; h.cleanups = [];
-  starts = vi.fn(); close = vi.fn(async () => {}); blockedAudio = false;
+  starts = vi.fn(); close = vi.fn(async () => {}); blockedAudio = false; enabled = false;
   doc = Object.assign(new EventTarget(), { title: "Route title", hidden: false });
   win = Object.assign(new EventTarget(), { localStorage: { getItem: vi.fn(() => null), setItem: vi.fn() } as unknown as Storage });
   vi.stubGlobal("document", doc); vi.stubGlobal("window", win);
@@ -47,7 +48,7 @@ it("updates title on load, suppresses pending/offline, and guards navigation cle
   expect(doc.title).toBe("Next page"); expect(vi.getTimerCount()).toBe(0);
 });
 it("previews once, sounds once on new turns, and never repeats after UI recovery", async () => {
-  const toggle = render(); await toggle.toggle(); expect(starts).toHaveBeenCalledTimes(2);
+  const toggle = render(); enabled = true; await toggle.preview(true); expect(starts).toHaveBeenCalledTimes(2);
   const next = { ...game, poker: { ...game.poker, handNumber: 2 } };
   render(next); expect(starts).toHaveBeenCalledTimes(4);
   render({ ...next, version: 100 }); render(next, true); render(next);
@@ -56,24 +57,21 @@ it("previews once, sounds once on new turns, and never repeats after UI recovery
   const third = { ...next, poker: { ...next.poker, handNumber: 3 } };
   doc.hidden = false; doc.dispatchEvent(new Event("visibilitychange")); render(third);
   expect(starts).toHaveBeenCalledTimes(4);
-  await render(third).toggle(); render(next); expect(starts).toHaveBeenCalledTimes(4);
+  enabled = false; await render(third).preview(false); render(next); expect(starts).toHaveBeenCalledTimes(4);
   h.cleanups.forEach(fn => fn()); h.cleanups = []; expect(close).toHaveBeenCalledOnce();
 });
 it("stored preference requires a gesture and never catches up missed cues", async () => {
-  vi.mocked(win.localStorage.getItem).mockReturnValue("true");
+  enabled = true;
   render(); render({ ...game, poker: { ...game.poker, handNumber: 2 } });
   expect(starts).not.toHaveBeenCalled();
   win.dispatchEvent(new Event("pointerdown")); await Promise.resolve(); await Promise.resolve();
   expect(starts).not.toHaveBeenCalled();
   render({ ...game, poker: { ...game.poker, handNumber: 3 } }); expect(starts).toHaveBeenCalledTimes(2);
-  vi.mocked(win.localStorage.getItem).mockReturnValue("false");
-  win.dispatchEvent(Object.assign(new Event("storage"), { key: turnSoundStorageKey }));
-  expect(render().enabled).toBe(false);
+  enabled = false; render();
+  expect(starts).toHaveBeenCalledTimes(2);
 });
-it("blocked audio and unavailable storage remain non-blocking", async () => {
-  vi.mocked(win.localStorage.getItem).mockImplementation(() => { throw Error(); });
-  vi.mocked(win.localStorage.setItem).mockImplementation(() => { throw Error(); });
-  blockedAudio = true; await render().toggle();
+it("blocked audio remains non-blocking", async () => {
+  blockedAudio = true; enabled = true; await render().preview(true);
   expect(render().notice).toBe("turnNotification.audioUnavailable");
   expect(doc.title).toContain("Your turn"); expect(starts).not.toHaveBeenCalled();
 });
@@ -85,7 +83,7 @@ it("restores the title at timed expiry without a server refresh", async () => {
   vi.advanceTimersByTime(1100); expect(doc.title).toBe("Route title");
 });
 it("suppresses the returning refresh but permits a later new turn", async () => {
-  await render().toggle();
+  enabled = true; await render().preview(true);
   doc.hidden = true; doc.dispatchEvent(new Event("visibilitychange"));
   doc.hidden = false; doc.dispatchEvent(new Event("visibilitychange"));
   // The visibility event precedes the authoritative response by a network round trip.
@@ -94,4 +92,11 @@ it("suppresses the returning refresh but permits a later new turn", async () => 
   expect(doc.title).toContain("Your turn");
   render({ ...returned, version: 4, poker: { ...returned.poker, handNumber: 3 } });
   expect(starts).toHaveBeenCalledTimes(4);
+});
+
+it("preference changes alone never unlock audio or preview", async () => {
+  render(); enabled = true; render(); await Promise.resolve();
+  expect(starts).not.toHaveBeenCalled();
+  render({ ...game, poker: { ...game.poker, handNumber: 2 } });
+  expect(starts).not.toHaveBeenCalled();
 });

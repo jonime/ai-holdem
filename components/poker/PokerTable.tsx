@@ -17,6 +17,7 @@ import { tableFlow, formatChips } from "@/components/poker/view-model";
 import { useI18n } from "@/components/poker/I18nProvider";
 
 export function PokerTable({
+  shortcuts = true,
   game,
   seatRows,
   linearSeats,
@@ -42,6 +43,7 @@ export function PokerTable({
   onToggleFeed,
   latestActions,
 }: {
+  readonly shortcuts?: boolean;
   readonly game: Game;
   readonly seatRows: {
     readonly top: readonly PublicPokerPlayer[];
@@ -247,7 +249,7 @@ export function PokerTable({
             {!gameOver ? <Button variant="outline" disabled={loading || !canStartNextHand} onClick={onBeginNextHand}>
               {t("table.watchNextHand")}
             </Button> : null}
-            {canRevealCards ? <Button variant="amber" disabled={loading} onClick={onRevealCards} shortcut="D">
+            {canRevealCards ? <Button variant="amber" disabled={loading} onClick={onRevealCards} shortcut={shortcuts ? "D" : undefined}>
               {t("table.show")}
             </Button> : null}
           </div>
@@ -282,7 +284,7 @@ export function PokerTable({
               <Button
                 variant="muted"
                 size="action"
-                shortcut={legalAction("fold") ? "A" : undefined}
+                shortcut={shortcuts && legalAction("fold") ? "A" : undefined}
                 disabled={!canAct || loading || !legalAction("fold")}
                 onClick={() => submitFixedAction("fold")}
               >
@@ -291,7 +293,7 @@ export function PokerTable({
               <Button
                 variant="green"
                 size="action"
-                shortcut={canStartNextHand || checkCallAction ? "S" : undefined}
+                shortcut={shortcuts && (canStartNextHand || checkCallAction) ? "S" : undefined}
                 disabled={
                   loading ||
                   gameOver ||
@@ -320,7 +322,7 @@ export function PokerTable({
               <Button
                 variant="amber"
                 size="action"
-                shortcut={isFoldEndedHand || sizedAction ? "D" : undefined}
+                shortcut={shortcuts && (isFoldEndedHand || sizedAction) ? "D" : undefined}
                 disabled={
                   loading ||
                   (isFoldEndedHand
@@ -363,11 +365,11 @@ export function PokerTable({
             </label>
             <div className={styles.amountInputs}>
               <div className={styles.sliderControl}>
-                <div className={styles.sliderShortcuts} aria-hidden="true">
+                {shortcuts ? <div className={styles.sliderShortcuts} aria-hidden="true">
                   <kbd>Q −</kbd>
                   <kbd>Shift ×5</kbd>
                   <kbd>E +</kbd>
-                </div>
+                </div> : null}
               <input
                 type="range"
                 min={sizedAction?.minAmount ?? 0}
@@ -377,9 +379,9 @@ export function PokerTable({
                 disabled={!sizedAction || !canAct || loading}
                 onChange={(event) => setAmount(event.target.value)}
                 aria-label={t("table.betAmount")}
-                aria-keyshortcuts="Q E ArrowLeft ArrowRight Shift+Q Shift+E Shift+ArrowLeft Shift+ArrowRight"
+                aria-keyshortcuts={shortcuts ? "Q E ArrowLeft ArrowRight Shift+Q Shift+E Shift+ArrowLeft Shift+ArrowRight" : undefined}
                 onKeyDown={(event) => {
-                  if (!sizedAction || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+                  if (!shortcuts || !sizedAction || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
                   event.preventDefault();
                   setAmount(String(adjustTarget(
                     sizedAction,

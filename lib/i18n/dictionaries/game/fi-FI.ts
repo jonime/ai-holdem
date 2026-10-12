@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  settings: {"title": "Asetukset", "close": "Sulje", "shortcuts": "Pelin pikanäppäimet", "language": "Kieli", "continues": "Peli jatkuu asetusten ollessa auki.", "languageBlocked": "Kielen voi vaihtaa, kun käynnissä oleva pyyntö tai pöydän palautus on valmis."},
   tableLoading: {
     missingTitle: "Tämä pöytä ei ole enää saatavilla",
     missingGuidance: "Tarkista, että kutsulinkki on oikein, tai palaa aulaan.",

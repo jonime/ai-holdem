@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  settings: {"title": "設定", "close": "閉じる", "shortcuts": "ゲームのショートカット", "language": "言語", "continues": "設定を開いている間もゲームは続行します。", "languageBlocked": "リクエストまたはテーブルの復旧が完了すると言語を変更できます。"},
   tableLoading: {
     missingTitle: "このテーブルは利用できません",
     missingGuidance: "招待リンクが正しいか確認するか、ロビーに戻ってください。",

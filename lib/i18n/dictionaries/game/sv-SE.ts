@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  settings: {"title": "Inställningar", "close": "Stäng", "shortcuts": "Spelgenvägar", "language": "Språk", "continues": "Spelet fortsätter medan inställningarna är öppna.", "languageBlocked": "Språket kan ändras när begäran eller återställningen av bordet är klar."},
   tableLoading: {
     missingTitle: "Det här bordet är inte längre tillgängligt",
     missingGuidance: "Kontrollera att inbjudningslänken är korrekt eller återvänd till lobbyn.",

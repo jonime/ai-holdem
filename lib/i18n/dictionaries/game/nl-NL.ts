@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  settings: {"title": "Instellingen", "close": "Sluiten", "shortcuts": "Spelsneltoetsen", "language": "Taal", "continues": "Het spel gaat door terwijl de instellingen open zijn.", "languageBlocked": "Je kunt de taal wijzigen nadat het verzoek of tafelherstel is afgerond."},
   tableLoading: {
     missingTitle: "Deze tafel is niet meer beschikbaar",
     missingGuidance: "Controleer of de uitnodigingslink klopt of ga terug naar de lobby.",
