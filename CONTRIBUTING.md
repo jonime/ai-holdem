@@ -414,7 +414,9 @@ If a project rule or workflow is unclear, prefer the current code and project do
 ## Bot decision scenarios
 
 Run `npm run test:bots` for reproducible engine-backed legality and obvious-blunder
-checks against Equity Rules. Each bot/model has a separate test group. LLMs
+checks against Equity Rules across twenty preflop, flop, turn and river fixtures.
+Debatable ranges and sizing remain informational; passing does not establish
+overall playing strength. Each bot/model has a separate test group. LLMs
 include every supported playstyle (`balanced`, `tight`, `aggressive`) as nested
 groups. Filter a profile with `-t 'my-llm.*tight'`, or select an entire bot with
 `npm run test:bots -- -t 'equity-rules-v2'`. The same fixtures

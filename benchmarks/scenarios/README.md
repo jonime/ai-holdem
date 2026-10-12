@@ -1,7 +1,7 @@
 # Bot decision scenarios
 
-Run `npm run test:bots` to evaluate the offline equity bot on eight reproducible
-river positions at easy, medium, and hard difficulty. Each bot has its own named
+Run `npm run test:bots` to evaluate the offline equity bot on twenty reproducible
+preflop, flop, turn, and river positions at easy, medium, and hard difficulty. Each bot has its own named
 `describe` group, each difficulty a nested group, and each scenario its own `it`
 test. Configured LLMs have a group showing their bot id and model id, with nested
 `balanced`, `tight`, and `aggressive` playstyle groups instead of difficulty.
@@ -43,13 +43,13 @@ npm run test:bots -- -t 'equity-rules-v2'
 npm run test:bots -- -t 'equity-rules-v2.*hard'
 npm run test:bots -- -t 'equity-rules-v2.*free-check'
 
-# Live TypeSafe only: 24 decisions per repetition (8 cases x 3 difficulties)
+# Live TypeSafe only: 60 decisions per repetition (20 cases x 3 difficulties)
 BOT_DECISION_CALL_CAP=100 EXTERNAL_INFERENCE_ENABLED=true BOT_SCENARIO_LIVE=true npm run test:bots -- -t 'jev'
 
-# One live LLM, all profiles: 24 decisions per repetition (8 cases x 3 profiles)
+# One live LLM, all profiles: 60 decisions per repetition (20 cases x 3 profiles)
 BOT_DECISION_CALL_CAP=100 EXTERNAL_INFERENCE_ENABLED=true BOT_SCENARIO_LIVE=true npm run test:bots -- -t 'my-llm'
 
-# One LLM profile: 8 decisions per repetition
+# One LLM profile: 20 decisions per repetition
 BOT_DECISION_CALL_CAP=100 EXTERNAL_INFERENCE_ENABLED=true BOT_SCENARIO_LIVE=true npm run test:bots -- -t 'my-llm.*tight'
 
 # All bots, including TypeSafe and every configured LLM
@@ -84,34 +84,63 @@ odds and sizing before inference, and share Jev's exact river candidate safeguar
 
 ## Reproducible states and extending the suite
 
-`harness.ts` creates a real 1/2 blind, 200-chip heads-up hand with a fixed deck,
-replays the preflop call and checks through the turn, then checks or bets the
-river before asking seat 0 to act. The engine builds every pot and legal action.
-The normal AI projection computes hand strength and deterministic sampled equity,
-and includes the complete replay history without exposing opponent hole cards.
+`harness.ts` supports 2–6 seats, individual starting stacks, deterministic decks,
+explicit seat/action sequences, and a specified decision-making seat. Every
+transition goes through the production poker adapter. Before evaluation it checks
+the actor, street, remaining stacks, live pot, hero cards, board, legal action
+types and the committed bounds in `legal-actions.json`. The two short/side-pot
+turn fixtures also assert the actual call and contestable pot amounts. Expectations
+are stored fixture facts, never bot predictions or eventual runout grades.
 
-Add a named fixture to `scenarios`, with a unique deck prefix, river action,
-forbidden actions, and a defensible explanation. Prefix order is seat 1's first
-card, seat 0's first card, seat 1's second card, seat 0's second card, burn,
-three flop cards, burn, turn, burn, river. Add fixture assertions for the intended
-hand/equity and accepted/rejected decisions in `scenarios.test.ts`. Expand the
-builder for other streets or stacks using adapter transitions, never by editing
-engine internals or inventing analysis values.
+`everyday.ts` adds four cases per street:
 
-`npm run check` verifies the fixtures and grading logic, including deliberately
-bad fake decisions. `npm run test:bots` separately evaluates real bot quality and
-may fail on existing weaknesses. Do not weaken expectations to make it green.
+| Street | Cases | Visible features |
+| --- | --- | --- |
+| Preflop | Unopened six-seat, opening raise, multiway raised pot, short stack | Early position suited broadway, medium pair, suited connector, short ace-high; 6–100bb starting depths |
+| Flop | Free check, made hand facing bet, draw facing bet, multiway | Dry weak hand, top pair, flush draw with overcards, middle pair on connected board |
+| Turn | Draw improvement, missed draw under pressure, short call with unmatched chips, multiway side pot | Made flush, unpaired draw, capped call, all-in opponent plus side-pot action |
 
-Equity Rules passes all eight scenarios at every difficulty. Its call decisions
-use the legal call amount divided by the projected contestable pot, including
-live bets and excluding unmatched chips. The shared legacy projection is left
-unchanged for other providers. On heads-up rivers, the engine adapter checks all
-990 unseen opponent holdings to establish a guaranteed minimum pot share;
-unbeatable calls bypass heuristic safety margins. Sampled equity alone is never
-used as proof that a hand cannot lose. Pressure counts opponent aggression only,
-and semi-bluffs are disabled on the river. These safeguards do not turn the
-random-hand equity estimate into an opponent range model or establish overall
-playing strength.
+The original eight river expectations remain unchanged. The new free-check case
+forbids folding. All other new choices are informational: calls, folds and legal
+aggression are accepted, with no mandated ranges, bluff frequencies or sizing.
+Each case records its purpose and a strategy observation separately from grading.
+`illegal`, `blunder`, and `provider-error` remain separate failures; a `pass` means
+only that no specified invariant failed. The grader applies the decision through
+the engine before checking strategy restrictions.
+
+Context construction matches `bot-turn-service.ts`: 5,000 deterministic random-hand
+equity samples; complete adapter-replayed history projected with `projectBotHistory`;
+Rules uses `legacyDecisionHistory`, legacy pot/call projection and
+`createLegacySizingOptions`; Jev/LLM use enriched history, corrected projection and
+`createSizingOptions`, followed by their ordinary provider wrappers. Fixed opponent
+holdings and undealt cards never enter context or equity sampling. Regression tests
+change hidden/burn/undealt cards while preserving hero/board and require identical
+contexts for all three provider paths.
+
+Add fixtures with explicit expected visible facts and legal bounds; update the
+committed bounds only after inspecting the adapter result. Do not grade using
+fixed opponent cards or a later runout. `npm run check` covers fixture assertions,
+privacy and fake illegal/bad/acceptable decisions. `npm run test:bots` evaluates
+real bots separately. Live opt-ins, the shared call cap, model/profile filters
+and sanitized reporting apply to all twenty fixtures; no live calls were made
+for this expansion.
+
+The [offline evaluation report](evaluation.md) explains the baseline and why no
+strategy correction was justified. To regenerate its per-decision records:
+
+```sh
+BOT_SCENARIO_LIVE=false BOT_SCENARIO_REPORT=true npm run test:bots -- -t 'equity-rules-v2'
+```
+
+This writes `equity-rules-baseline.json` with the Git revision, context settings,
+action amounts, sizing labels, matched rules, equity and grading outcomes. Use
+the complete single-repeat Rules suite when recording; normal runs write no files.
+
+Equity Rules still uses the legal call amount divided by the contestable pot,
+including live bets and excluding unmatched chips. Heads-up river safeguards use
+exact minimum pot shares over all unseen holdings; sampled equity never proves
+a guaranteed outcome. These checks do not establish an opponent range model or
+overall playing strength.
 
 Jev policy `typesafe-poker-v2.1` also passed all 24 decisions in a live run.
 The prior wrapper failed 4/24 in the baseline run; prompt clarification alone

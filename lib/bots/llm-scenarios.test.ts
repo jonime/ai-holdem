@@ -22,7 +22,7 @@ describe("LLM scenario safeguards", () => {
   for (const profile of ["balanced", "tight", "aggressive"] as const) {
     for (const scenario of scenarios) {
       it(`${profile}: ${scenario.id} constrains schema and context consistently`, async () => {
-        const fixture = buildScenario(scenario);
+        const fixture = buildScenario(scenario, { provider: "llm" });
         const original = structuredClone(fixture.context);
         const fetcher = vi.fn(async (_url: string, init: RequestInit) => {
           const request = JSON.parse(String(init.body));
@@ -51,14 +51,15 @@ describe("LLM scenario safeguards", () => {
     ["free-check", "fold"],
   ])("rejects an excluded provider action: %s / %s", async (id, action) => {
     const scenario = scenarios.find((scenario) => scenario.id === id)!;
-    const { context } = buildScenario(scenario);
+    const { context } = buildScenario(scenario, { provider: "llm" });
     await expect(new LlmPokerBot("test-model", async () => response(action, "all_in"))
       .decide(context)).rejects.toThrow("illegal action");
   });
 
   it("corrects pot odds and raise sizing from live street commitments", async () => {
     const scenario = scenarios.find((scenario) => scenario.id === "royal-flush-facing-bet")!;
-    const fixture = buildScenario(scenario);
+    // Retain the wrapper regression for legacy callers; scenario evaluations use production LLM inputs.
+    const fixture = buildScenario(scenario, { provider: "rules" });
     const fetcher = vi.fn(async (_url: string, init: RequestInit) => {
       const request = JSON.parse(String(init.body));
       const visible = JSON.parse(request.messages[1].content);
@@ -75,8 +76,9 @@ describe("LLM scenario safeguards", () => {
   it("keeps uncertain river calls and folds available even when sampled equity is 1", async () => {
     const { context } = buildScenario({
       ...scenarios[2],
+      expected: { ...scenarios[2].expected, hole: ["As", "2d"], board: ["9s", "8s", "7s", "6s", "Kh"] },
       deck: ["Kc", "As", "Kd", "2d", "3c", "9s", "8s", "7s", "4c", "6s", "5c", "Kh"],
-    });
+    }, { provider: "llm" });
     const fetcher = vi.fn(async (_url: string, init: RequestInit) => {
       const request = JSON.parse(String(init.body));
       expect(request.response_format.json_schema.schema.properties.action.enum).toEqual(["fold", "call"]);

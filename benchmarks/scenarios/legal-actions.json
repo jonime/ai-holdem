@@ -1,0 +1,250 @@
+{
+  "free-check": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "check"
+    },
+    {
+      "type": "bet",
+      "minAmount": 2,
+      "maxAmount": 198
+    }
+  ],
+  "royal-flush-facing-bet": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 2
+    },
+    {
+      "type": "raise",
+      "minAmount": 4,
+      "maxAmount": 198
+    }
+  ],
+  "royal-flush-facing-all-in": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 198
+    }
+  ],
+  "royal-board-facing-all-in": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 198
+    }
+  ],
+  "quads-facing-all-in": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 198
+    }
+  ],
+  "broadway-board-facing-all-in": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 198
+    }
+  ],
+  "royal-board-facing-small-bet": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 2
+    },
+    {
+      "type": "raise",
+      "minAmount": 4,
+      "maxAmount": 198
+    }
+  ],
+  "board-quads-low-kicker-facing-all-in": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 198
+    }
+  ],
+  "preflop-unopened-six": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 2
+    },
+    {
+      "type": "raise",
+      "minAmount": 4,
+      "maxAmount": 100
+    }
+  ],
+  "preflop-facing-open": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 4
+    },
+    {
+      "type": "raise",
+      "minAmount": 10,
+      "maxAmount": 100
+    }
+  ],
+  "preflop-multiway-raised": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 6
+    },
+    {
+      "type": "raise",
+      "minAmount": 14,
+      "maxAmount": 120
+    }
+  ],
+  "preflop-short-stack": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 5
+    },
+    {
+      "type": "raise",
+      "minAmount": 10,
+      "maxAmount": 12
+    }
+  ],
+  "flop-free-check": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "check"
+    },
+    {
+      "type": "bet",
+      "minAmount": 2,
+      "maxAmount": 98
+    }
+  ],
+  "flop-made-facing-bet": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 3
+    },
+    {
+      "type": "raise",
+      "minAmount": 6,
+      "maxAmount": 98
+    }
+  ],
+  "flop-draw-facing-bet": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 4
+    },
+    {
+      "type": "raise",
+      "minAmount": 8,
+      "maxAmount": 148
+    }
+  ],
+  "flop-multiway": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 4
+    },
+    {
+      "type": "raise",
+      "minAmount": 8,
+      "maxAmount": 98
+    }
+  ],
+  "turn-draw-improvement": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 4
+    },
+    {
+      "type": "raise",
+      "minAmount": 8,
+      "maxAmount": 148
+    }
+  ],
+  "turn-missed-draw-pressure": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 12
+    },
+    {
+      "type": "raise",
+      "minAmount": 24,
+      "maxAmount": 98
+    }
+  ],
+  "turn-short-unmatched": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 6
+    }
+  ],
+  "turn-multiway-side-pot": [
+    {
+      "type": "fold"
+    },
+    {
+      "type": "call",
+      "amount": 20
+    },
+    {
+      "type": "raise",
+      "minAmount": 30,
+      "maxAmount": 30
+    }
+  ]
+}

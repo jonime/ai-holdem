@@ -21,6 +21,7 @@ describe("Jev river candidate safeguards", () => {
   it("keeps fold and call available for a beatable ace-high flush even if sampled equity says 1", () => {
     const fixture = buildScenario({
       ...scenarios[2],
+      expected: { ...scenarios[2].expected, hole: ["As", "2d"], board: ["9s", "8s", "7s", "6s", "Kh"] },
       deck: ["Kc", "As", "Kd", "2d", "3c", "9s", "8s", "7s", "4c", "6s", "5c", "Kh"],
     }, { typesafePolicyV2: true });
     const context = { ...fixture.context, analysis: { ...fixture.context.analysis, showdownEquity: 1 } };

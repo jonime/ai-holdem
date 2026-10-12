@@ -1,0 +1,1016 @@
+{
+  "revision": "f336989e699d819367f04a98e0940c77e9ef0259",
+  "workingTree": "Expanded scenario harness; no production strategy changes",
+  "context": {
+    "equitySamples": 5000,
+    "correctedContext": false,
+    "history": "legacyDecisionHistory(projectBotHistory)",
+    "sizing": "createLegacySizingOptions",
+    "equityBasis": "random_opponent_hands"
+  },
+  "records": [
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "free-check",
+      "action": {
+        "type": "check"
+      },
+      "status": "pass",
+      "reason": "Checking costs nothing and preserves the chance to win; folding gives it up.",
+      "matchedRule": "rules-check",
+      "sizing": null,
+      "observation": null,
+      "equity": 0.1025,
+      "callCost": 0,
+      "contestablePotAfterCall": 4
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "royal-flush-facing-bet",
+      "action": {
+        "type": "raise",
+        "amount": 8
+      },
+      "status": "pass",
+      "reason": "Hero holds the exclusive royal flush on the river and cannot lose. Never fold.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "full_pot",
+      "observation": null,
+      "equity": 1,
+      "callCost": 2,
+      "contestablePotAfterCall": 8
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "royal-flush-facing-all-in",
+      "action": {
+        "type": "call",
+        "amount": 198
+      },
+      "status": "pass",
+      "reason": "Even an all-in cannot justify folding the exclusive river nuts.",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 1,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "royal-board-facing-all-in",
+      "action": {
+        "type": "call",
+        "amount": 198
+      },
+      "status": "pass",
+      "reason": "The board is a royal flush: calling guarantees a split and recovers the existing investment (no rake).",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 0.5,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "quads-facing-all-in",
+      "action": {
+        "type": "call",
+        "amount": 198
+      },
+      "status": "pass",
+      "reason": "Four aces cannot lose on this unconnected river board.",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 1,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "broadway-board-facing-all-in",
+      "action": {
+        "type": "call",
+        "amount": 198
+      },
+      "status": "pass",
+      "reason": "The rainbow broadway board guarantees a split; no flush is possible.",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 0.5,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "royal-board-facing-small-bet",
+      "action": {
+        "type": "call",
+        "amount": 2
+      },
+      "status": "pass",
+      "reason": "Call the guaranteed split; raising cannot win more chips on a royal board.",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 0.5,
+      "callCost": 2,
+      "contestablePotAfterCall": 8
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "board-quads-low-kicker-facing-all-in",
+      "action": {
+        "type": "fold"
+      },
+      "status": "pass",
+      "reason": "Hero plays four twos with the board's three kicker: every possible opponent holding wins or ties, so an enormous call is unjustified.",
+      "matchedRule": "rules-fold",
+      "sizing": null,
+      "observation": null,
+      "equity": 0,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "preflop-unopened-six",
+      "action": {
+        "type": "fold"
+      },
+      "status": "pass",
+      "reason": "Early-position suited broadway in an unopened six-seat pot.",
+      "matchedRule": "rules-fold",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.28,
+      "callCost": 2,
+      "contestablePotAfterCall": 5
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "preflop-facing-open",
+      "action": {
+        "type": "raise",
+        "amount": 10
+      },
+      "status": "pass",
+      "reason": "Big blind with a medium pair facing a button open at 50bb.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.7021,
+      "callCost": 4,
+      "contestablePotAfterCall": 13
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "preflop-multiway-raised",
+      "action": {
+        "type": "call",
+        "amount": 6
+      },
+      "status": "pass",
+      "reason": "Suited connector in the big blind after a raise and a caller.",
+      "matchedRule": "rules-call",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.3984,
+      "callCost": 6,
+      "contestablePotAfterCall": 24
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "preflop-short-stack",
+      "action": {
+        "type": "fold"
+      },
+      "status": "pass",
+      "reason": "Short small blind holding ace-high against an open.",
+      "matchedRule": "rules-fold",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.3849,
+      "callCost": 5,
+      "contestablePotAfterCall": 14
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "flop-free-check",
+      "action": {
+        "type": "check"
+      },
+      "status": "pass",
+      "reason": "Weak unpaired holding can check for free on a dry flop.",
+      "matchedRule": "rules-check",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.1889,
+      "callCost": 0,
+      "contestablePotAfterCall": 4
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "flop-made-facing-bet",
+      "action": {
+        "type": "raise",
+        "amount": 6
+      },
+      "status": "pass",
+      "reason": "Top pair with a good kicker facing a small flop bet.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.8801,
+      "callCost": 3,
+      "contestablePotAfterCall": 10
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "flop-draw-facing-bet",
+      "action": {
+        "type": "raise",
+        "amount": 8
+      },
+      "status": "pass",
+      "reason": "Flush draw with overcards facing a pot-sized bet.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.6999,
+      "callCost": 4,
+      "contestablePotAfterCall": 12
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "flop-multiway",
+      "action": {
+        "type": "raise",
+        "amount": 10
+      },
+      "status": "pass",
+      "reason": "Middle pair on a connected flop after a bet and a call.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.5295,
+      "callCost": 4,
+      "contestablePotAfterCall": 18
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "turn-draw-improvement",
+      "action": {
+        "type": "raise",
+        "amount": 8
+      },
+      "status": "pass",
+      "reason": "A flop flush draw improves to a flush on the turn; further cards can still change the result.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.9808,
+      "callCost": 4,
+      "contestablePotAfterCall": 12
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "turn-missed-draw-pressure",
+      "action": {
+        "type": "fold"
+      },
+      "status": "pass",
+      "reason": "Unpaired flush draw misses the turn and faces a large bet.",
+      "matchedRule": "rules-fold",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.4245,
+      "callCost": 12,
+      "contestablePotAfterCall": 28
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "turn-short-unmatched",
+      "action": {
+        "type": "call",
+        "amount": 6
+      },
+      "status": "pass",
+      "reason": "Short top-pair caller cannot win the bettor's unmatched chips.",
+      "matchedRule": "rules-call",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.8482,
+      "callCost": 6,
+      "contestablePotAfterCall": 24
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "easy",
+      "scenario": "turn-multiway-side-pot",
+      "action": {
+        "type": "raise",
+        "amount": 30
+      },
+      "status": "pass",
+      "reason": "One opponent is all-in; hero faces a bet into an additional side pot with a medium made hand.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.6456,
+      "callCost": 20,
+      "contestablePotAfterCall": 70
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "free-check",
+      "action": {
+        "type": "check"
+      },
+      "status": "pass",
+      "reason": "Checking costs nothing and preserves the chance to win; folding gives it up.",
+      "matchedRule": "rules-check",
+      "sizing": null,
+      "observation": null,
+      "equity": 0.1025,
+      "callCost": 0,
+      "contestablePotAfterCall": 4
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "royal-flush-facing-bet",
+      "action": {
+        "type": "raise",
+        "amount": 8
+      },
+      "status": "pass",
+      "reason": "Hero holds the exclusive royal flush on the river and cannot lose. Never fold.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "full_pot",
+      "observation": null,
+      "equity": 1,
+      "callCost": 2,
+      "contestablePotAfterCall": 8
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "royal-flush-facing-all-in",
+      "action": {
+        "type": "call",
+        "amount": 198
+      },
+      "status": "pass",
+      "reason": "Even an all-in cannot justify folding the exclusive river nuts.",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 1,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "royal-board-facing-all-in",
+      "action": {
+        "type": "call",
+        "amount": 198
+      },
+      "status": "pass",
+      "reason": "The board is a royal flush: calling guarantees a split and recovers the existing investment (no rake).",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 0.5,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "quads-facing-all-in",
+      "action": {
+        "type": "call",
+        "amount": 198
+      },
+      "status": "pass",
+      "reason": "Four aces cannot lose on this unconnected river board.",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 1,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "broadway-board-facing-all-in",
+      "action": {
+        "type": "call",
+        "amount": 198
+      },
+      "status": "pass",
+      "reason": "The rainbow broadway board guarantees a split; no flush is possible.",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 0.5,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "royal-board-facing-small-bet",
+      "action": {
+        "type": "call",
+        "amount": 2
+      },
+      "status": "pass",
+      "reason": "Call the guaranteed split; raising cannot win more chips on a royal board.",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 0.5,
+      "callCost": 2,
+      "contestablePotAfterCall": 8
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "board-quads-low-kicker-facing-all-in",
+      "action": {
+        "type": "fold"
+      },
+      "status": "pass",
+      "reason": "Hero plays four twos with the board's three kicker: every possible opponent holding wins or ties, so an enormous call is unjustified.",
+      "matchedRule": "rules-fold",
+      "sizing": null,
+      "observation": null,
+      "equity": 0,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "preflop-unopened-six",
+      "action": {
+        "type": "fold"
+      },
+      "status": "pass",
+      "reason": "Early-position suited broadway in an unopened six-seat pot.",
+      "matchedRule": "rules-fold",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.28,
+      "callCost": 2,
+      "contestablePotAfterCall": 5
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "preflop-facing-open",
+      "action": {
+        "type": "raise",
+        "amount": 10
+      },
+      "status": "pass",
+      "reason": "Big blind with a medium pair facing a button open at 50bb.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.7021,
+      "callCost": 4,
+      "contestablePotAfterCall": 13
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "preflop-multiway-raised",
+      "action": {
+        "type": "call",
+        "amount": 6
+      },
+      "status": "pass",
+      "reason": "Suited connector in the big blind after a raise and a caller.",
+      "matchedRule": "rules-call",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.3984,
+      "callCost": 6,
+      "contestablePotAfterCall": 24
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "preflop-short-stack",
+      "action": {
+        "type": "fold"
+      },
+      "status": "pass",
+      "reason": "Short small blind holding ace-high against an open.",
+      "matchedRule": "rules-fold",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.3849,
+      "callCost": 5,
+      "contestablePotAfterCall": 14
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "flop-free-check",
+      "action": {
+        "type": "check"
+      },
+      "status": "pass",
+      "reason": "Weak unpaired holding can check for free on a dry flop.",
+      "matchedRule": "rules-check",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.1889,
+      "callCost": 0,
+      "contestablePotAfterCall": 4
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "flop-made-facing-bet",
+      "action": {
+        "type": "raise",
+        "amount": 6
+      },
+      "status": "pass",
+      "reason": "Top pair with a good kicker facing a small flop bet.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.8801,
+      "callCost": 3,
+      "contestablePotAfterCall": 10
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "flop-draw-facing-bet",
+      "action": {
+        "type": "raise",
+        "amount": 8
+      },
+      "status": "pass",
+      "reason": "Flush draw with overcards facing a pot-sized bet.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.6999,
+      "callCost": 4,
+      "contestablePotAfterCall": 12
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "flop-multiway",
+      "action": {
+        "type": "raise",
+        "amount": 10
+      },
+      "status": "pass",
+      "reason": "Middle pair on a connected flop after a bet and a call.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.5295,
+      "callCost": 4,
+      "contestablePotAfterCall": 18
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "turn-draw-improvement",
+      "action": {
+        "type": "raise",
+        "amount": 8
+      },
+      "status": "pass",
+      "reason": "A flop flush draw improves to a flush on the turn; further cards can still change the result.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.9808,
+      "callCost": 4,
+      "contestablePotAfterCall": 12
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "turn-missed-draw-pressure",
+      "action": {
+        "type": "fold"
+      },
+      "status": "pass",
+      "reason": "Unpaired flush draw misses the turn and faces a large bet.",
+      "matchedRule": "rules-fold",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.4245,
+      "callCost": 12,
+      "contestablePotAfterCall": 28
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "turn-short-unmatched",
+      "action": {
+        "type": "call",
+        "amount": 6
+      },
+      "status": "pass",
+      "reason": "Short top-pair caller cannot win the bettor's unmatched chips.",
+      "matchedRule": "rules-call",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.8482,
+      "callCost": 6,
+      "contestablePotAfterCall": 24
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "medium",
+      "scenario": "turn-multiway-side-pot",
+      "action": {
+        "type": "raise",
+        "amount": 30
+      },
+      "status": "pass",
+      "reason": "One opponent is all-in; hero faces a bet into an additional side pot with a medium made hand.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.6456,
+      "callCost": 20,
+      "contestablePotAfterCall": 70
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "free-check",
+      "action": {
+        "type": "check"
+      },
+      "status": "pass",
+      "reason": "Checking costs nothing and preserves the chance to win; folding gives it up.",
+      "matchedRule": "rules-check",
+      "sizing": null,
+      "observation": null,
+      "equity": 0.1025,
+      "callCost": 0,
+      "contestablePotAfterCall": 4
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "royal-flush-facing-bet",
+      "action": {
+        "type": "raise",
+        "amount": 8
+      },
+      "status": "pass",
+      "reason": "Hero holds the exclusive royal flush on the river and cannot lose. Never fold.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "full_pot",
+      "observation": null,
+      "equity": 1,
+      "callCost": 2,
+      "contestablePotAfterCall": 8
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "royal-flush-facing-all-in",
+      "action": {
+        "type": "call",
+        "amount": 198
+      },
+      "status": "pass",
+      "reason": "Even an all-in cannot justify folding the exclusive river nuts.",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 1,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "royal-board-facing-all-in",
+      "action": {
+        "type": "call",
+        "amount": 198
+      },
+      "status": "pass",
+      "reason": "The board is a royal flush: calling guarantees a split and recovers the existing investment (no rake).",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 0.5,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "quads-facing-all-in",
+      "action": {
+        "type": "call",
+        "amount": 198
+      },
+      "status": "pass",
+      "reason": "Four aces cannot lose on this unconnected river board.",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 1,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "broadway-board-facing-all-in",
+      "action": {
+        "type": "call",
+        "amount": 198
+      },
+      "status": "pass",
+      "reason": "The rainbow broadway board guarantees a split; no flush is possible.",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 0.5,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "royal-board-facing-small-bet",
+      "action": {
+        "type": "call",
+        "amount": 2
+      },
+      "status": "pass",
+      "reason": "Call the guaranteed split; raising cannot win more chips on a royal board.",
+      "matchedRule": "rules-unbeatable-call",
+      "sizing": null,
+      "observation": null,
+      "equity": 0.5,
+      "callCost": 2,
+      "contestablePotAfterCall": 8
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "board-quads-low-kicker-facing-all-in",
+      "action": {
+        "type": "fold"
+      },
+      "status": "pass",
+      "reason": "Hero plays four twos with the board's three kicker: every possible opponent holding wins or ties, so an enormous call is unjustified.",
+      "matchedRule": "rules-fold",
+      "sizing": null,
+      "observation": null,
+      "equity": 0,
+      "callCost": 198,
+      "contestablePotAfterCall": 400
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "preflop-unopened-six",
+      "action": {
+        "type": "fold"
+      },
+      "status": "pass",
+      "reason": "Early-position suited broadway in an unopened six-seat pot.",
+      "matchedRule": "rules-fold",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.28,
+      "callCost": 2,
+      "contestablePotAfterCall": 5
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "preflop-facing-open",
+      "action": {
+        "type": "raise",
+        "amount": 10
+      },
+      "status": "pass",
+      "reason": "Big blind with a medium pair facing a button open at 50bb.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.7021,
+      "callCost": 4,
+      "contestablePotAfterCall": 13
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "preflop-multiway-raised",
+      "action": {
+        "type": "call",
+        "amount": 6
+      },
+      "status": "pass",
+      "reason": "Suited connector in the big blind after a raise and a caller.",
+      "matchedRule": "rules-call",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.3984,
+      "callCost": 6,
+      "contestablePotAfterCall": 24
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "preflop-short-stack",
+      "action": {
+        "type": "call",
+        "amount": 5
+      },
+      "status": "pass",
+      "reason": "Short small blind holding ace-high against an open.",
+      "matchedRule": "rules-call",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.3849,
+      "callCost": 5,
+      "contestablePotAfterCall": 14
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "flop-free-check",
+      "action": {
+        "type": "check"
+      },
+      "status": "pass",
+      "reason": "Weak unpaired holding can check for free on a dry flop.",
+      "matchedRule": "rules-check",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.1889,
+      "callCost": 0,
+      "contestablePotAfterCall": 4
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "flop-made-facing-bet",
+      "action": {
+        "type": "raise",
+        "amount": 6
+      },
+      "status": "pass",
+      "reason": "Top pair with a good kicker facing a small flop bet.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.8801,
+      "callCost": 3,
+      "contestablePotAfterCall": 10
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "flop-draw-facing-bet",
+      "action": {
+        "type": "raise",
+        "amount": 8
+      },
+      "status": "pass",
+      "reason": "Flush draw with overcards facing a pot-sized bet.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.6999,
+      "callCost": 4,
+      "contestablePotAfterCall": 12
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "flop-multiway",
+      "action": {
+        "type": "raise",
+        "amount": 10
+      },
+      "status": "pass",
+      "reason": "Middle pair on a connected flop after a bet and a call.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.5295,
+      "callCost": 4,
+      "contestablePotAfterCall": 18
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "turn-draw-improvement",
+      "action": {
+        "type": "raise",
+        "amount": 8
+      },
+      "status": "pass",
+      "reason": "A flop flush draw improves to a flush on the turn; further cards can still change the result.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.9808,
+      "callCost": 4,
+      "contestablePotAfterCall": 12
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "turn-missed-draw-pressure",
+      "action": {
+        "type": "fold"
+      },
+      "status": "pass",
+      "reason": "Unpaired flush draw misses the turn and faces a large bet.",
+      "matchedRule": "rules-fold",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.4245,
+      "callCost": 12,
+      "contestablePotAfterCall": 28
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "turn-short-unmatched",
+      "action": {
+        "type": "call",
+        "amount": 6
+      },
+      "status": "pass",
+      "reason": "Short top-pair caller cannot win the bettor's unmatched chips.",
+      "matchedRule": "rules-call",
+      "sizing": null,
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.8482,
+      "callCost": 6,
+      "contestablePotAfterCall": 24
+    },
+    {
+      "bot": "equity-rules-v2",
+      "difficulty": "hard",
+      "scenario": "turn-multiway-side-pot",
+      "action": {
+        "type": "raise",
+        "amount": 30
+      },
+      "status": "pass",
+      "reason": "One opponent is all-in; hero faces a bet into an additional side pot with a medium made hand.",
+      "matchedRule": "rules-value-bet",
+      "sizing": "one_third_pot",
+      "observation": "Legal calls, folds and aggression may be reasonable depending on ranges; sizing and sampled random-hand equity are informational.",
+      "equity": 0.6456,
+      "callCost": 20,
+      "contestablePotAfterCall": 70
+    }
+  ]
+}

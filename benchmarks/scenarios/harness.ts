@@ -1,11 +1,13 @@
-import { projectBotHistory, type BotHandContext } from "@/lib/poker/bot-history";
+import legalActionExpectations from "./legal-actions.json";
+import { everydayScenarios } from "./everyday";
+import { legacyDecisionHistory, projectBotHistory, type BotHandContext } from "@/lib/poker/bot-history";
 import type { BotContext, PokerBot } from "@/lib/bots/types";
 import { createDeterministicDeck, pokerEngineAdapter as engine } from "@/lib/poker/adapter";
 import { createPokerAIState } from "@/lib/poker/ai-state";
 import type { AIDifficulty, PokerAction } from "@/lib/poker/types";
-import { createSizingOptions } from "@/lib/typesafe/questions";
+import { createSizingOptions, createLegacySizingOptions } from "@/lib/typesafe/questions";
 
-export interface Scenario {
+interface RiverScenario {
   readonly id: string;
   readonly reason: string;
   /** Deck prefix: seat 1, seat 0, seat 1, seat 0, burn, flop, burn, turn, burn, river. */
@@ -16,7 +18,7 @@ export interface Scenario {
 }
 
 const nuts = ["9c", "As", "9d", "Ks", "2c", "Qs", "Js", "Ts", "3c", "4d", "5c", "7h"];
-export const scenarios: readonly Scenario[] = [
+export const riverScenarios: readonly RiverScenario[] = [
   {
     id: "free-check",
     reason: "Checking costs nothing and preserves the chance to win; folding gives it up.",
@@ -83,47 +85,87 @@ export const scenarios: readonly Scenario[] = [
   },
 ];
 
-/** Replay actual engine transitions; never fabricate pots, legal actions, or equity. */
+export interface Scenario {
+  readonly id: string;
+  readonly reason: string;
+  readonly deck: readonly string[];
+  readonly stacks: readonly number[];
+  readonly actions: readonly { seat: number; action: PokerAction }[];
+  readonly hero: number;
+  readonly expected: {
+    street: "preflop" | "flop" | "turn" | "river";
+    stacks: readonly number[];
+    pot: number;
+    legal: readonly string[];
+    hole: readonly string[];
+    board: readonly string[];
+    callCost?: number;
+    contestablePotAfterCall?: number;
+  };
+  readonly forbidden: readonly PokerAction["type"][];
+  readonly observation?: string;
+}
+
+export const scenarios: readonly Scenario[] = [
+  ...riverScenarios.map((river): Scenario => ({
+    ...river, stacks: [200, 200], hero: 0,
+    actions: [
+      { seat: 0, action: { type: "call", amount: 1 } },
+      ...[1, 1, 0, 1, 0].map(seat => ({ seat, action: { type: "check" as const } })),
+      { seat: 1, action: river.riverAction === "check" ? { type: "check" } : { type: "bet", amount: river.riverAction === "shove" ? 198 : 2 } },
+    ],
+    expected: { street: "river", stacks: [198, river.riverAction === "shove" ? 0 : river.riverAction === "bet" ? 196 : 198],
+      pot: river.riverAction === "shove" ? 202 : river.riverAction === "bet" ? 6 : 4,
+      legal: river.riverAction === "check" ? ["fold", "check", "bet"] : river.riverAction === "shove" ? ["fold", "call"] : ["fold", "call", "raise"],
+      hole: [river.deck[1], river.deck[3]], board: [river.deck[5], river.deck[6], river.deck[7], river.deck[9], river.deck[11]] },
+  })),
+  ...everydayScenarios,
+];
+
+/** Replay explicit legal transitions through the same adapter as production. */
 export function buildScenario(scenario: Scenario, options: {
   difficulty?: AIDifficulty;
   typesafePolicyV2?: boolean;
+  provider?: "rules" | "typesafe" | "llm";
 } = {}) {
+  if (scenario.stacks.length < 2 || scenario.stacks.length > 6) throw new Error("Expected 2–6 seats");
   let state = engine.startHand(engine.createGame({
-    smallBlind: 1,
-    bigBlind: 2,
-    players: [0, 1].map((seat) => ({
-      id: `seat-${seat}`, name: `Seat ${seat}`, controller: "bot" as const, seat, stack: 200,
+    smallBlind: 1, bigBlind: 2,
+    players: scenario.stacks.map((stack, seat) => ({
+      id: `seat-${seat}`, name: `Seat ${seat}`, controller: "bot" as const, seat, stack,
     })),
   }), createDeterministicDeck(scenario.deck));
   const initialState = state;
   const history: BotHandContext["actions"][number][] = [];
-  function act(action: PokerAction) {
-    const snapshot = engine.snapshot(state);
-    if (!snapshot.currentActorId || !snapshot.street || snapshot.street === "complete") {
-      throw new Error("Scenario ended before its decision point");
-    }
-    const player = state.config.players.find((entry) => entry.id === snapshot.currentActorId)!;
-    const before=state;
-    state = engine.applyAction(state, player.id, action);
-    history.push({ sequence:history.length+1,action,stateBefore:before });
-  }
-  for (let step = 0; engine.snapshot(state).street !== "river"; step++) {
-    if (step >= 12) throw new Error("Could not reach scenario river");
-    const action = engine.getLegalActions(state).find((entry) => entry.type === "check" || entry.type === "call");
-    if (!action || (action.type !== "check" && action.type !== "call")) throw new Error("Cannot passively reach river");
-    act(action);
-  }
-  if (scenario.riverAction === "check") act({ type: "check" });
-  else {
-    const bet = engine.getLegalActions(state).find((entry) => entry.type === "bet");
-    if (!bet || bet.type !== "bet") throw new Error("Expected river bet");
-    act({ type: "bet", amount: scenario.riverAction === "shove" ? bet.maxAmount : 2 });
+  for (const step of scenario.actions) {
+    if (engine.snapshot(state).currentActorId !== `seat-${step.seat}`) throw new Error(`${scenario.id}: unexpected replay actor`);
+    const before = state;
+    state = engine.applyAction(state, `seat-${step.seat}`, step.action);
+    history.push({ sequence: history.length + 1, action: step.action, stateBefore: before });
   }
   const heroId = engine.snapshot(state).currentActorId;
-  if (heroId !== "seat-0") throw new Error("Unexpected scenario hero");
+  if (heroId !== `seat-${scenario.hero}`) throw new Error("Unexpected scenario hero");
   const projected=projectBotHistory({ version:0,handNumber:engine.snapshot(state).handNumber,initialState,actions:history },state,heroId);
-  const aiState = createPokerAIState(state, heroId, { ...options, decisionHistory:projected.actions,historyStatus:projected.status,equitySamples:500 });
-  const context: BotContext = { ...aiState, sizingOptions: createSizingOptions(aiState) };
+  const provider = options.provider ?? (options.typesafePolicyV2 ? "typesafe" : "rules");
+  const aiState = createPokerAIState(state, heroId, {
+    difficulty: options.difficulty,
+    correctedContext: provider !== "rules",
+    decisionHistory: provider === "rules" ? legacyDecisionHistory(projected.actions) : projected.actions,
+    historyStatus: projected.status,
+  });
+  const context: BotContext = { ...aiState, sizingOptions: provider === "rules" ? createLegacySizingOptions(aiState) : createSizingOptions(aiState) };
+  const legalExpected = Object.entries(legalActionExpectations).find(([id]) => id === scenario.id)?.[1];
+  if (!legalExpected) throw new Error(`${scenario.id}: missing legal action bounds`);
+  if (JSON.stringify(context.legalActions) !== JSON.stringify(legalExpected)) throw new Error(`${scenario.id}: legal action bounds differ`);
+  const view = engine.decisionView(state)!;
+  const actual = { street: view.street, stacks: view.players.map(p => p.stack), pot: view.pot,
+    legal: context.legalActions.map(a => a.type), hole: context.hero.holeCards, board: view.communityCards };
+  for (const key of ["street", "stacks", "pot", "legal", "hole", "board"] as const) {
+    if (JSON.stringify(actual[key]) !== JSON.stringify(scenario.expected[key])) throw new Error(`${scenario.id}: ${key}: ${JSON.stringify(actual[key])}`);
+  }
+  for (const key of ["callCost", "contestablePotAfterCall"] as const) {
+    if (scenario.expected[key] !== undefined && context.analysis[key] !== scenario.expected[key]) throw new Error(`${scenario.id}: ${key}: ${context.analysis[key]}`);
+  }
   return { state, heroId, context };
 }
 
@@ -144,7 +186,7 @@ export async function evaluateScenario(bot: PokerBot, scenario: Scenario, option
   try {
     const decision = await bot.decide(structuredClone(fixture.context));
     return { scenario: scenario.id, ...gradeAction(scenario, fixture, decision.action),
-      action: decision.action, context: fixture.context, durationMs: Math.round(performance.now() - started) };
+      action: decision.action, matchedRule: decision.diagnostics.matchedRule, sizing: decision.diagnostics.sizing?.choice ?? null, observation: scenario.observation ?? null, context: fixture.context, durationMs: Math.round(performance.now() - started) };
   } catch {
     // Do not print provider exceptions or raw responses: they may contain credentials or private data.
     return { scenario: scenario.id, status: "provider-error" as const,
