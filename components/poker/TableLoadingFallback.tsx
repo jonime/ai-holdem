@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import logo from "@/public/ai-holdem-logo.png";
 import Link from "next/link";
 import { useRef, useTransition } from "react";
 
@@ -19,7 +20,7 @@ function TableLoadingPanel({ failure, pending = false, onRetry }: {
       <section className={styles.panel} aria-labelledby="table-loading-title">
         <Image
           className={styles.icon}
-          src="/ai-holdem-logo.png"
+          src={logo}
           alt=""
           width={200}
           height={200}

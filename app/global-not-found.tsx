@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import logo from "@/public/ai-holdem-logo.png";
 import Link from "next/link";
 
 import styles from "@/components/poker/TableLoadingFallback.module.css";
@@ -20,7 +21,7 @@ export default function GlobalNotFound() {
           <section className={styles.panel} aria-labelledby="not-found-title">
             <Image
               className={styles.icon}
-              src="/ai-holdem-logo.png"
+              src={logo}
               alt=""
               width={200}
               height={200}

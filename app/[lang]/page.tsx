@@ -1,4 +1,5 @@
 import Image from "next/image";
+import logo from "@/public/ai-holdem-logo.png";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -63,7 +64,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
         <LanguageMenu locale={lang} />
         <Image
           className={styles.mark}
-          src="/ai-holdem-logo.png"
+          src={logo}
           alt={metadata.logoAlt}
           width={270}
           height={270}

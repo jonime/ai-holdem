@@ -1,4 +1,5 @@
 import Image from "next/image";
+import logo from "@/public/ai-holdem-logo.png";
 import { cardLabel } from "@/components/poker/view-model";
 import { useI18n } from "@/components/poker/I18nProvider";
 import styles from "@/components/poker/PlayingCard.module.css";
@@ -22,7 +23,7 @@ export function PlayingCard({
       >
         <Image
           className={styles.cardBackLogo}
-          src="/ai-holdem-logo.png"
+          src={logo}
           alt=""
           width={34}
           height={34}
