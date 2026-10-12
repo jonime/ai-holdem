@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import type { Game } from "../../components/poker/types";
 
 // Public-state fixtures exercise rare settled outcomes without controlling the engine.

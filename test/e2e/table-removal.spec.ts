@@ -1,5 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import type { Game } from "../../components/poker/types";
+import { observeRealtime } from "./realtime-observer";
 import { createUITable } from "./ui-fixtures";
 async function read(page: Page, id: string): Promise<Game> {
   const response = await page.request.get(`/api/games/${id}`);
@@ -108,22 +109,11 @@ for (const polling of [false,true]) test(`@smoke Deleted-table recovery through 
   const id=await create(page); const observerContext=await browser.newContext();
   try {
     const observer=await observerContext.newPage();
-    let subscribed=false;
-    const notifications: unknown[]=[];
-    observer.on("websocket",socket=>socket.on("framereceived",({ payload })=>{
-      try {
-        const frame=JSON.parse(String(payload));
-        const event=Array.isArray(frame)?frame[3]:frame.event;
-        const body=Array.isArray(frame)?frame[4]:frame.payload;
-        const topic=Array.isArray(frame)?frame[2]:frame.topic;
-        if (topic?.startsWith("realtime:game:") && event==="phx_reply" && body.status==="ok") subscribed=true;
-        if (event==="broadcast") notifications.push(body.payload);
-      } catch { /* Ignore transport control frames. */ }
-    }));
+    const received = observeRealtime(observer);
     if (polling) await observer.routeWebSocket(/\/realtime\//,socket=>socket.close());
     await observer.goto(`/game/${id}`); await expect(observer.getByText("Waiting room", { exact:true })).toBeVisible();
     if (!polling) {
-      await expect.poll(()=>subscribed).toBe(true);
+      await expect.poll(received.subscribed).toBe(true);
       await observer.clock.install();
       // The installed clock keeps advancing; pause ahead of its current time.
       await observer.clock.pauseAt(await observer.evaluate(() => Date.now() + 1_000));
@@ -132,7 +122,7 @@ for (const polling of [false,true]) test(`@smoke Deleted-table recovery through 
     await page.goto("/play"); page.once("dialog",dialog=>dialog.accept());
     await personal(page).getByRole("button", { name:/^Delete table:/ }).click();
     if (!polling) {
-      await expect.poll(()=>notifications,{ timeout:4000 }).toContainEqual({ type:"seat_released",gameId:id });
+      await expect.poll(() => received.notifications,{ timeout:4000 }).toContainEqual({ type:"seat_released",gameId:id });
       await observer.clock.runFor(100);
     }
     await expect(observer.locator("main").getByRole("alert")).toContainText("This table is no longer available.",{ timeout:20_000 });

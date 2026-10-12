@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { createUITable } from "./ui-fixtures";
 
 for (const locale of ["en-US", "fi-FI"]) {

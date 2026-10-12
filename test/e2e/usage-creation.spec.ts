@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test("shared creation allowance returns localized HTML and typed JSON denials", { tag: "@smoke" }, async ({ page }) => {
   // A new context owns only these fixtures; custom/mixed/rules admissions share one key.

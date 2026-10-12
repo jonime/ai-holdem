@@ -1,5 +1,5 @@
 import { createUITable } from "./ui-fixtures";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 
 async function submit(page: Page, type: string, amount?: number, keyboard = false) {
   const response = page.waitForResponse(r => r.url().endsWith("/action") && r.request().method() === "POST");

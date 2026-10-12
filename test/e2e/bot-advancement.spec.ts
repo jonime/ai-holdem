@@ -1,4 +1,4 @@
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "./fixtures";
 import type { AIDecision, Game } from "../../components/poker/types";
 
 const gameplayDecision: AIDecision = {

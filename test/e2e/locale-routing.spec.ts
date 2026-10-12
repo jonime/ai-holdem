@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test("@smoke English URLs stay unprefixed and language changes are explicit", async ({ page }) => {
   await page.setExtraHTTPHeaders({ "Accept-Language": "fi-FI,fi;q=0.9" });

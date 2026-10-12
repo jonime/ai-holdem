@@ -1,4 +1,4 @@
-import { expect, test, type Page, type BrowserContext } from "@playwright/test";
+import { expect, test, type Page, type BrowserContext } from "./fixtures";
 import type { Game } from "../../components/poker/types";
 
 async function read(page: Page, gameId: string): Promise<Game> {

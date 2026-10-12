@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import type { Game } from "../../components/poker/types";
 import { createUITable } from "./ui-fixtures";
 

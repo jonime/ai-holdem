@@ -121,6 +121,16 @@ creation/fair-use smoke tests continue through the real creation routes with
 all protections enabled. Development/explicit preview UI setup keeps using
 normal creation routes.
 
+Every browser case uses `test/e2e/fixtures.ts`. In isolated local production
+runs, its automatic fixture clears only the runner's HMAC-scoped creation IP
+bucket before and after each case, including failures. Owner counters and all
+within-case limits remain active, so the creation-denial smoke still exercises
+real admission. This requires one worker and the runner's fresh hash secret;
+it never clears other usage rows or runs against development/preview servers.
+Use the shared fixture's `test` export for new browser cases. Realtime observers
+share `realtime-observer.ts`, which decodes both JSON and SDK binary broadcasts
+from the browser's actual socket.
+
 The focused compatibility suite runs six cases per WebKit project: real rules-only
 Quick Play to an actionable human turn; input edits, presets and a legal raise;
 Help/Settings scrolling, background scroll locks and restored focus (desktop

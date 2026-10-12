@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "./fixtures";
 import { createUITable } from "./ui-fixtures";
 
 async function activate(control: Locator, mobile: boolean) {

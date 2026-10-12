@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test("@smoke publishes, refreshes, reports unavailable, preserves a name, and joins", async ({ browser, page }) => {
   test.setTimeout(60_000);

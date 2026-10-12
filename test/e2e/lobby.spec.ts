@@ -1,5 +1,5 @@
 import type { Game } from "../../components/poker/types";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 
 async function waitForPlayableHuman(page: Page) {
   const actionButton = page.getByRole("button", { name: /^(Call|Check)/ });

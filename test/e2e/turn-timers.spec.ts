@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { randomUUID } from "node:crypto";
 import lobbyFixture from "../fixtures/turn-timer-lobby.json";
 import { execFileSync } from "node:child_process";

@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test("@smoke Play navigation, empty state, custom creation, return and identity isolation", async ({ page, browser }) => {
   await page.goto("/");

@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Page } from "./fixtures";
 import { createUITable } from "./ui-fixtures";
 import type { Game } from "../../components/poker/types";
 async function table(page: Page) {

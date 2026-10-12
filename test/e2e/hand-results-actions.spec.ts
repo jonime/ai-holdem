@@ -1,5 +1,5 @@
 import { createUITable } from "./ui-fixtures";
-import { expect, test, type Browser, type Page, type Locator } from "@playwright/test";
+import { expect, test, type Browser, type Page, type Locator } from "./fixtures";
 import type { Game, GameFeedEvent } from "../../components/poker/types";
 
 test.use({ screenshot: "only-on-failure" });
