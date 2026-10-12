@@ -66,7 +66,7 @@ test("@smoke Joined removal refills five rows, restores only on a new claim, and
   try {
     const guest = await guestContext.newPage(); const target=await create(page); await claim(guest,target);
     const ids=Array.from({ length:5 },(_,i)=>`11111111-1111-4111-8111-11111111111${i}`);
-    const older=ids.map(gameId=>({ gameId,title:`Older table ${gameId}`,status:"waiting",version:0,removal:"leave_and_remove",updatedAt:"2026-10-06T12:00:00Z",occupiedSeats:2,totalSeats:6 }));
+    const older=ids.map(gameId=>({ gameId,title:`Older table ${gameId}`,status:"waiting",version:0,removal:"leave_and_remove",updatedAt:"2026-10-06T12:00:00Z",occupiedSeats:2,totalSeats:6,humanCount:2,botCount:0,viewerSeated:true }));
     await guest.setViewportSize({ width:390,height:844 }); await guest.goto("/play");
     await expect(personal(guest).getByRole("link")).toHaveCount(1);
     // SQL verifies exclusion-before-limit ordering; here verify UI consumes the refill.

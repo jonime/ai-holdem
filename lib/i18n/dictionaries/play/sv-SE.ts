@@ -22,6 +22,14 @@ const dictionary = {
   "refreshing": "Uppdaterar…",
   "loadingPersonal": "Laddar dina bord…",
   "loadingPublic": "Laddar offentliga bord…",
+  tableWithBots: "Bord med botar",
+  pokerTable: "Pokerbord",
+  you: "Du",
+  otherPlayers: {"zero": "{count} andra spelare", "one": "{count} annan spelare", "two": "{count} andra spelare", "few": "{count} andra spelare", "many": "{count} andra spelare", "other": "{count} andra spelare"},
+  players: {"zero": "{count} spelare", "one": "{count} spelare", "two": "{count} spelare", "few": "{count} spelare", "many": "{count} spelare", "other": "{count} spelare"},
+  bots: {"zero": "{count} botar", "one": "{count} bot", "two": "{count} botar", "few": "{count} botar", "many": "{count} botar", "other": "{count} botar"},
+  updated: "Uppdaterat {time}",
+  updatedJustNow: "Uppdaterat just nu",
   fallbackTitle: directory.fallbackTitle, seats: directory.seats,
   statuses: {"waiting": "Väntar", "playing": "Spelar", "complete": "Handen avslutad", "error": "Fel"}
 } as const;

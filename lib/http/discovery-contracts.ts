@@ -29,9 +29,14 @@ export const myGameSummarySchema = z.object({
   title: z.string().min(1).max(60).nullable(),
   status: z.enum(["waiting", "playing", "complete", "error"]),
   updatedAt: z.iso.datetime({ offset: true }),
+  humanCount: z.number().int().nonnegative().max(6),
+  botCount: z.number().int().nonnegative().max(6),
+  viewerSeated: z.boolean(),
   occupiedSeats: z.number().int().min(0).max(6),
   totalSeats: z.number().int().min(2).max(6),
-}).strict().refine(game => game.occupiedSeats <= game.totalSeats);
+}).strict().refine(game => game.occupiedSeats <= game.totalSeats)
+  .refine(game => game.humanCount + game.botCount === game.occupiedSeats)
+  .refine(game => !game.viewerSeated || game.humanCount >= 1);
 export const myGamesResponseSchema = z.object({ games: z.array(myGameSummarySchema).max(5) }).strict();
 export type MyGameSummary = Immutable<z.infer<typeof myGameSummarySchema>>;
 export type MyGamesResponse = Immutable<z.infer<typeof myGamesResponseSchema>>;

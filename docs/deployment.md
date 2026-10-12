@@ -48,6 +48,16 @@ changing telemetry. See Vercel's [privacy documentation](https://vercel.com/docs
 for the performance data it collects. Web Analytics is not enabled by this
 integration.
 
+## Personal summary rollout
+
+Apply `20261026000000_add_personal_summary_composition.sql` before the matching
+application code. It drops and recreates the service-role-only `list_my_games(text)`
+RPC with human/bot counts and caller seat ownership; it does not change stored rows.
+Coordinate the application rollout because the old return signature is replaced.
+Run `test:sql:my-games`, `test:sql:removal` and `test:e2e:ci` against the migrated
+local stack. Personal responses remain private/no-store and excluded from logs,
+shared caches and Realtime.
+
 ## Migration prerequisites
 
 Apply every SQL file in [supabase/migrations](../supabase/migrations) in filename

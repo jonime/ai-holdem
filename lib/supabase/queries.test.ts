@@ -745,10 +745,10 @@ it("external admission charges the persisted host, regardless of the seated driv
 });
 
 it("parses only summary fields from the personal RPC", async () => {
-  const { client, rpc } = createClient({ updateResult: [{ game_id: "11111111-1111-4111-8111-111111111111", title: null, status: "complete", updated_at: "2026-10-06T12:00:00+00:00", occupied_seats: 1, total_seats: 6, version: 0, removal: "delete", current_state: { cards: ["As"] } }] });
+  const { client, rpc } = createClient({ updateResult: [{ game_id: "11111111-1111-4111-8111-111111111111", title: null, status: "complete", updated_at: "2026-10-06T12:00:00+00:00", occupied_seats: 1, total_seats: 6, human_count: 1, bot_count: 0, viewer_seated: true, version: 0, removal: "delete", current_state: { cards: ["As"] } }] });
   const result = await new SupabaseGameRepository(client).listMyGames("owner");
   expect(rpc).toHaveBeenCalledWith("list_my_games", { p_player_token: "owner" });
-  expect(result[0]).toEqual({ gameId: "11111111-1111-4111-8111-111111111111", title: null, status: "complete", updatedAt: "2026-10-06T12:00:00+00:00", occupiedSeats: 1, totalSeats: 6, version: 0, removal: "delete" });
+  expect(result[0]).toEqual({ gameId: "11111111-1111-4111-8111-111111111111", title: null, status: "complete", updatedAt: "2026-10-06T12:00:00+00:00", occupiedSeats: 1, totalSeats: 6, humanCount: 1, botCount: 0, viewerSeated: true, version: 0, removal: "delete" });
 });
 it.each([null, {}, [null], [{ game_id: "invalid" }]])("rejects invalid personal RPC data %j", async data => {
   const { client, rpc } = createClient({}); rpc.mockResolvedValue({ data, error: null });
@@ -763,4 +763,9 @@ it("uses the removal transaction with a private server-prepared fold and no foll
   const { client, rpc } = createClient({ updateResult: { outcome: "ok", version: 5 } });
   expect(await new SupabaseGameRepository(client).removeGameIfVersion({ gameId: "game", expectedVersion: 4, operation: "delete", playerToken: "owner" })).toEqual({ outcome: "ok", version: 5 });
   expect(rpc).toHaveBeenCalledWith("remove_game_if_version", { p_game_id: "game", p_expected_version: 4, p_operation: "delete", p_player_token: "owner", p_fold: null });
+});
+
+it.each([{ human_count: -1 }, { bot_count: 3 }, { viewer_seated: null }, { human_count: 0, bot_count: 1, viewer_seated: true }])("rejects inconsistent personal RPC composition %j", async fields => {
+  const { client } = createClient({ updateResult: [{ game_id: "11111111-1111-4111-8111-111111111111", title: null, status: "waiting", updated_at: "2026-10-06T12:00:00Z", occupied_seats: 1, total_seats: 6, version: 0, removal: "delete", human_count: 1, bot_count: 0, viewer_seated: true, ...fields }] });
+  await expect(new SupabaseGameRepository(client).listMyGames("owner")).rejects.toThrow();
 });

@@ -22,6 +22,14 @@ const dictionary = {
   "refreshing": "Odświeżanie…",
   "loadingPersonal": "Wczytywanie twoich stołów…",
   "loadingPublic": "Wczytywanie publicznych stołów…",
+  tableWithBots: "Stół z botami",
+  pokerTable: "Stół pokerowy",
+  you: "Ty",
+  otherPlayers: {"zero": "{count} innych graczy", "one": "{count} inny gracz", "two": "{count} innych graczy", "few": "{count} innych graczy", "many": "{count} innych graczy", "other": "{count} innych graczy"},
+  players: {"zero": "{count} graczy", "one": "{count} gracz", "two": "{count} graczy", "few": "{count} graczy", "many": "{count} graczy", "other": "{count} graczy"},
+  bots: {"zero": "{count} botów", "one": "{count} bot", "two": "{count} botów", "few": "{count} boty", "many": "{count} botów", "other": "{count} botów"},
+  updated: "Zaktualizowano {time}",
+  updatedJustNow: "Zaktualizowano przed chwilą",
   fallbackTitle: directory.fallbackTitle, seats: directory.seats,
   statuses: {"waiting": "Oczekiwanie", "playing": "Gra trwa", "complete": "Rozdanie zakończone", "error": "Błąd"}
 } as const;

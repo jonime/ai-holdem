@@ -14,6 +14,10 @@ insert into public.game_hosts(game_id,host_token)
 select id, 'mine-sql-owner' from mine_fixture where n in (2,3);
 insert into public.game_listings(game_id,is_public,title)
 select id, n=1, 'Listing fixture' from mine_fixture where n in (1,2);
+insert into public.game_players(game_id,seat,name,controller,stack,status,bot_id,bot_label,bot_provider,ai_difficulty)
+select id,2,'Fixture bot','bot',1000,'bot','equity-rules','Equity Rules','rules','medium' from mine_fixture;
+-- Claimed departures/eliminations still belong to the assignment snapshot.
+update public.game_players set leaving=true,stack=0 where game_id=(select id from mine_fixture where n=3) and seat=0;
 set local role service_role;
 do $$
 begin
@@ -22,7 +26,10 @@ begin
   if (select count(distinct game_id) from public.list_my_games('mine-sql-owner')) <> 5 then raise exception 'Host and seat not deduplicated'; end if;
   if not exists(select 1 from public.list_my_games('mine-sql-owner') where status='complete' and title='Listing fixture') then raise exception 'Completed seated table missing'; end if;
   if not exists(select 1 from public.list_my_games('mine-sql-owner') where status='error' and title is null) then raise exception 'Unseated host or private title filtering failed'; end if;
-  if exists(select 1 from public.list_my_games('mine-sql-owner') where occupied_seats<>1 or total_seats<>2) then raise exception 'Actual assignment counts'; end if;
+  if exists(select 1 from public.list_my_games('mine-sql-owner') where occupied_seats<>2 or total_seats<>3 or human_count<>1 or bot_count<>1) then raise exception 'Actual assignment counts'; end if;
+  if not exists(select 1 from public.list_my_games('mine-sql-owner') where status='error' and not viewer_seated) then raise exception 'Unseated host ownership flag'; end if;
+  if exists(select 1 from public.list_my_games('mine-sql-owner') where status<>'error' and not viewer_seated) then raise exception 'Claimed ownership flag'; end if;
+  if not exists(select 1 from public.list_my_games('mine-sql-owner') where status='playing' and viewer_seated and human_count=1 and bot_count=1) then raise exception 'Departing eliminated assignment missing'; end if;
 end $$;
 reset role;
 do $$
@@ -33,6 +40,14 @@ begin
     case when n<4 then 10 else n end desc, id desc limit 5) sorted;
   if actual is distinct from expected then raise exception 'Stable activity ordering'; end if;
 end $$;
+-- Exclusions must apply before the five-row limit, keeping the oldest eligible row.
+insert into public.personal_game_exclusions(game_id,player_token)
+select id,'mine-sql-owner' from mine_fixture where n<4;
+do $$ begin
+  if (select count(*) from public.list_my_games('mine-sql-owner'))<>4 then raise exception 'Exclusion before limit'; end if;
+  if not exists(select 1 from public.list_my_games('mine-sql-owner') where game_id=(select id from mine_fixture where n=4)) then raise exception 'Oldest eligible game omitted'; end if;
+end $$;
+delete from public.personal_game_exclusions where player_token='mine-sql-owner';
 -- Released seat with a stale token is not ownership.
 update public.game_players set status='open' where game_id=(select id from mine_fixture where n=1) and seat=0;
 do $$ begin

@@ -22,6 +22,14 @@ const dictionary = {
   "refreshing": "Refreshing…",
   "loadingPersonal": "Loading your tables…",
   "loadingPublic": "Loading public tables…",
+  tableWithBots: "Table with bots",
+  pokerTable: "Poker table",
+  you: "You",
+  otherPlayers: {"zero": "{count} other players", "one": "{count} other player", "two": "{count} other players", "few": "{count} other players", "many": "{count} other players", "other": "{count} other players"},
+  players: {"zero": "{count} players", "one": "{count} player", "two": "{count} players", "few": "{count} players", "many": "{count} players", "other": "{count} players"},
+  bots: {"zero": "{count} bots", "one": "{count} bot", "two": "{count} bots", "few": "{count} bots", "many": "{count} bots", "other": "{count} bots"},
+  updated: "Updated {time}",
+  updatedJustNow: "Updated just now",
   fallbackTitle: directory.fallbackTitle, seats: directory.seats,
   statuses: {"waiting": "Waiting", "playing": "Playing", "complete": "Hand complete", "error": "Error"}
 } as const;

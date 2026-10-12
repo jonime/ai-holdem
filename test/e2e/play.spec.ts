@@ -158,3 +158,58 @@ test("@smoke Play submits names without JavaScript", async ({ browser }, testInf
     expect(game.poker.players.find((seat: { playerToken: string | null }) => seat.playerToken)?.name).toBe("Native Ada");
   } finally { await context.close(); }
 });
+
+for (const locale of ["", "/fi-FI"]) {
+  test(`@smoke Play recognizable assignment summaries and activity (${locale || "English"})`, async ({ page, browser }, testInfo) => {
+    const errors: string[] = [];
+    page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
+    const create = async (path: string) => {
+      const response = await page.request.post(path, { maxRedirects: 0 });
+      expect(response.status()).toBe(303);
+      return new URL(response.headers().location).pathname.split("/").at(-1)!;
+    };
+    const quick = await create(`${locale}/quick-game`);
+    const custom = await create(`${locale}/new-game`);
+    const titled = await create(`${locale}/new-game`);
+    const read = async (id: string) => (await (await page.request.get(`/api/games/${id}`)).json()).game;
+    const publish = await page.request.patch(`/api/games/${titled}/publication`, { data: { expectedVersion: (await read(titled)).version, isPublic: true, title: "Friday friends" } });
+    expect(publish.ok()).toBe(true);
+    const mineResponse = await page.request.get("/api/games/mine");
+    expect(mineResponse.headers()["cache-control"]).toContain("private, no-store");
+    const summaries = (await mineResponse.json()).games;
+    expect(summaries.find((g: { gameId: string }) => g.gameId === quick)).toMatchObject({ humanCount: 1, botCount: 5, viewerSeated: true, occupiedSeats: 6 });
+    const regionName = locale ? "Omat pöytäsi" : "Your tables";
+    // Confirm the server-rendered UTC output with JavaScript disabled and the same identity.
+    const nativeContext = await browser.newContext({ javaScriptEnabled: false, baseURL: testInfo.project.use.baseURL });
+    try {
+      await nativeContext.addCookies(await page.context().cookies());
+      const native = await nativeContext.newPage(); await native.goto(`${locale}/play`);
+      // PPR streams the personal section in a hidden segment before its reveal script runs.
+      const time = native.locator('section[aria-labelledby="my-tables-heading"] time').first();
+      await expect(time).toContainText("UTC");
+      expect(await time.textContent()).toBe(await time.getAttribute("aria-label"));
+    } finally { await nativeContext.close(); }
+    await page.goto(`${locale}/play`);
+    const mine = page.getByRole("region", { name: regionName });
+    const row = (id: string) => mine.getByRole("listitem").filter({ has: page.locator(`a[href$="/game/${id}"]`) });
+    await expect(row(quick)).toContainText(locale ? "Pöytä bottien kanssa" : "Table with bots");
+    await expect(row(quick)).toContainText(locale ? "Sinä · 5 bottia" : "You · 5 bots");
+    await expect(row(custom)).toContainText(locale ? "Pokeripöytä" : "Poker table");
+    await expect(row(custom)).toContainText(custom.slice(0, 8));
+    await expect(row(titled).getByRole("heading")).toHaveText("Friday friends");
+    const time = row(custom).locator("time");
+    await expect(time).toHaveText(locale ? "Päivitetty juuri nyt" : "Updated just now");
+    expect(await time.getAttribute("title")).toContain("UTC");
+    expect(await time.getAttribute("title")).toBe(await time.getAttribute("aria-label"));
+    expect(errors.filter(message => /hydrat/i.test(message))).toEqual([]);
+    await page.screenshot({ path: testInfo.outputPath(`your-tables-${locale ? "fi" : "en"}-desktop.png`), fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`your-tables-${locale ? "fi" : "en"}-mobile.png`), fullPage: true });
+    await row(custom).getByRole("link").click(); await expect(page).toHaveURL(new RegExp(`/game/${custom}$`));
+    await page.goto(`${locale}/play`);
+    page.once("dialog", dialog => { expect(dialog.message()).toContain(custom.slice(0, 8)); return dialog.accept(); });
+    await row(custom).getByRole("button").click();
+    await expect(row(custom)).toHaveCount(0); await expect(row(quick)).toBeVisible();
+  });
+}

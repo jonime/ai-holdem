@@ -22,6 +22,14 @@ const dictionary = {
   "refreshing": "Päivitetään…",
   "loadingPersonal": "Ladataan omia pöytiä…",
   "loadingPublic": "Ladataan julkisia pöytiä…",
+  tableWithBots: "Pöytä bottien kanssa",
+  pokerTable: "Pokeripöytä",
+  you: "Sinä",
+  otherPlayers: {"zero": "{count} muuta pelaajaa", "one": "{count} muu pelaaja", "two": "{count} muuta pelaajaa", "few": "{count} muuta pelaajaa", "many": "{count} muuta pelaajaa", "other": "{count} muuta pelaajaa"},
+  players: {"zero": "{count} pelaajaa", "one": "{count} pelaaja", "two": "{count} pelaajaa", "few": "{count} pelaajaa", "many": "{count} pelaajaa", "other": "{count} pelaajaa"},
+  bots: {"zero": "{count} bottia", "one": "{count} botti", "two": "{count} bottia", "few": "{count} bottia", "many": "{count} bottia", "other": "{count} bottia"},
+  updated: "Päivitetty {time}",
+  updatedJustNow: "Päivitetty juuri nyt",
   fallbackTitle: directory.fallbackTitle, seats: directory.seats,
   statuses: {"waiting": "Odottaa", "playing": "Peli käynnissä", "complete": "Jako päättynyt", "error": "Virhe"}
 } as const;

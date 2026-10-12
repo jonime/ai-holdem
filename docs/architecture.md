@@ -393,7 +393,11 @@ and excluded from the sitemap. No polling or Realtime runs on Play.
 The service-role-only `list_my_games(text)` RPC unions durable host ownership and
 claimed human seat ownership before sorting by `games.updated_at DESC, id DESC`
 and limiting to five. It returns only ID, public listing title, status, timestamp,
-and counts from actual seat assignments. Completed and error games remain visible;
+version, removal capability, and occupied/total, human and bot counts from actual seat
+assignments, plus `viewerSeated`. Claimed humans include departing/eliminated assignments;
+bots count only occupied assignments. Counts must sum to occupied seats, stay nonnegative,
+and `viewerSeated` requires at least one human. No names, tokens, cards or gameplay
+snapshots are returned. The repository makes one RPC without per-game queries. Completed and error games remain visible;
 the game route still decides permissions and next-hand eligibility. No visitor history,
 last-visited cookie, local storage, snapshots or provider records authorize discovery.
 
@@ -401,7 +405,14 @@ last-visited cookie, local storage, snapshots or provider records authorize disc
 and sends `private, no-store` on success and failure. Its summaries are defensively
 validated against browser-safe contracts and never logged or shared-cached. Deploy
 `20261017000000_add_my_games.sql` before application code; it adds the RPC and
-host-token/claimed-human-seat indexes without changing existing rows.
+host-token/claimed-human-seat indexes without changing existing rows. Apply
+`20261026000000_add_personal_summary_composition.sql` before the matching application:
+it replaces `list_my_games` with the extended return signature, retaining membership,
+private exclusions before the five-item limit, deduplication, ordering and removal rules.
+There is no compatibility RPC. Client activity labels use the app locale with
+`Intl.RelativeTimeFormat`, a hydration-safe absolute UTC initial value, and exact UTC
+accessible labels/tooltips. They recompute on mount, new summaries and visibility return,
+without polling, subscriptions to table events, presence tracking or repeating timers.
 
 ## Human turn timer transactions
 

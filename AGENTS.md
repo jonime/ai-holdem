@@ -402,6 +402,11 @@ explicit retry, rules replay, and localized HTML/typed JSON creation denials.
 request-time Suspense boundaries. Keep cookies out of the cached landing page.
 `list_my_games` is service-role-only and discovers durable hosts or claimed human
 seats in SQL, deduplicating before activity ordering and the five-item limit.
+Apply `20261026000000_add_personal_summary_composition.sql` before the matching
+application: it replaces `list_my_games` with human/bot assignment counts and
+`viewerSeated`, without a compatibility RPC. Claimed departing/eliminated humans count
+until release. Personal rows preserve public custom titles, use descriptive unnamed
+labels with short IDs, and show hydration-safe UTC/relative update text without timers.
 Personal API responses, including errors, are private/no-store; never log lists or
 repository errors or put personal summaries in shared caches or Realtime. No polling
 or subscriptions run on Play. Localized `/join-game` permanently redirects to Play.

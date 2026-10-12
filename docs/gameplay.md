@@ -131,6 +131,15 @@ public tables, **Quick Play vs AI**, or **Create table**. **Your tables** shows 
 tables where this browser owns a claimed human seat or is the durable host, including
 unseated hosts and completed hands. Spectator visits do not add tables. Activity is
 game activity, not visit history; returning does not promise another hand can start.
+Rows show human/bot composition from live assignments, including departing or eliminated
+humans until their claimed assignments release. “You” means this browser owns a claimed
+human seat; these snapshots never indicate who is online. Custom public titles are
+preserved. Unnamed tables show “Table with bots” when all other occupied seats are bots,
+otherwise “Poker table”, with a short table ID to distinguish them. The label does not
+identify how a table was created. The update time reflects game activity, with an exact
+localized UTC timestamp in its tooltip and accessible label. It starts as absolute UTC
+text, then becomes relative on mount, summary changes, or return to the visible tab;
+future clock skew shows “Updated just now”. No timer refreshes these labels.
 A successfully empty personal section is hidden. Each section reports its own failures
 and offers retry; the refresh icon beside **Open public tables** refreshes public availability. There is no
 automatic refresh on Play. Public joining retains optional player names and pagination.

@@ -52,3 +52,7 @@ button:disabled { cursor: wait; opacity: .6; }
 .removalButton:focus-visible { outline: 2px solid #285f52; outline-offset: -2px; }
 .removalButton:disabled { cursor: not-allowed; }
 .removalBlocked { grid-column: 1 / -1; margin: 0; padding: 0 14px 12px; color: #526560; font-size: 13px; line-height: 1.5; }
+
+.shortId { font-size: 12px; font-weight: 400; color: #526560; }
+.personalRow .personalMetadata { grid-column: 1 / -1; grid-row: 2; line-height: 1.5; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .personalRow .personalMetadata { grid-row: 3; } }

@@ -858,6 +858,7 @@ export class SupabaseGameRepository {
       if (!isRecord(row)) throw new Error("Invalid personal table summary");
       return { gameId: row.game_id, title: row.title, status: row.status,
         version: row.version, removal: row.removal,
+        humanCount: row.human_count, botCount: row.bot_count, viewerSeated: row.viewer_seated,
         updatedAt: row.updated_at, occupiedSeats: row.occupied_seats, totalSeats: row.total_seats };
     });
     return myGamesResponseSchema.parse({ games }).games;

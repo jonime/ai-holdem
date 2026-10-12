@@ -606,7 +606,7 @@ The endpoint-to-contract/client checklist is complete:
 | `POST /:lang/quick-game` (JSON) | `quickPlayParamsSchema` | `quickPlayResponseSchema` | `creation.quickPlay` |
 | `GET /api/bots` | no parameters | `botCatalogResponseSchema` | `bots.catalog` |
 | `GET /api/games/:gameId/feed?sinceHand=N` | game params / `feedRouteQuerySchema` | `feedResponseSchema` | `games.feed` |
-| `GET /api/games/mine` | cookie identity only | `myGamesResponseSchema` | `discovery.mine` |
+| `GET /api/games/mine` | cookie identity only | `myGamesResponseSchema` (strict assignment counts and `viewerSeated`) | `discovery.mine` |
 | `GET /api/games/public?cursor=...` | `directoryRouteQuerySchema`, `directoryCursorSchema` | `directoryResponseSchema` | `discovery.list` |
 | `POST /api/games/:gameId/join` | game params / `joinRequestSchema` | `joinResponseSchema` | `discovery.join` |
 | `PATCH /api/games/:gameId/publication` | game params / `publicationRequestSchema`, `listingTitleSchema` | `publicationResponseSchema` | `discovery.publication` |
@@ -754,11 +754,15 @@ See [extraction characterization notes](docs/bot-lifecycle-characterization.md).
 
 ## Personal table verification and rollout
 
-Apply `20261017000000_add_my_games.sql` before deploying Play application code.
+Apply `20261017000000_add_my_games.sql` and
+`20261026000000_add_personal_summary_composition.sql` before deploying matching Play
+application code. The latter replaces `list_my_games` in place, with no compatibility
+RPC. It returns only public summary fields with nonnegative composition counts that
+sum to occupied seats and a validated ownership boolean.
 With the migrated local stack running, `npm run test:sql:my-games` checks seated
 owners, unseated hosts, host/seat deduplication, released seats, unrelated visitors,
 completed/error games, assignment counts, stable ordering, five-item limits and
-restricted SQL roles. Fixtures roll back; the runner never reads application `.env`
+restricted SQL roles, departing/eliminated claimed assignments and exclusion-before-limit behavior. Fixtures roll back; the runner never reads application `.env`
 or resets the database. CI runs it before production browser smoke.
 
 `npm run test:e2e:smoke -- test/e2e/play.spec.ts test/e2e/public-lobby.spec.ts`
@@ -771,7 +775,11 @@ directory, with request-specific host/seated exclusions. Play never polls or sub
 to Realtime. Personal tables load on page entry and offer Retry after failure; the
 public section has an accessible refresh icon. The optional joining name appears at
 the top. Compact personal rows have separate links and removal buttons; public rows are native buttons, retaining
-keyboard activation and pending join protection. Both creation forms use their existing localized POST routes.
+keyboard activation and pending join protection. Personal metadata wraps on mobile;
+relative update labels use the selected locale, start as absolute UTC for SSR/hydration,
+and update only on mount, changed summaries and visibility return. Exact UTC remains in
+the time label/tooltip. Verify title/composition variants, relative boundaries, skew,
+hydration and production screenshots in the Play/component tests. Both creation forms use their existing localized POST routes.
 
 
 ## Departure verification and rollout
