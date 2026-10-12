@@ -38,6 +38,7 @@
     "test:sql:usage": "node scripts/local-usage-limits.mjs",
     "test:sql:turn-timers": "node scripts/local-turn-timers.mjs",
     "test:e2e:ui": "node scripts/e2e/production.mjs ui",
+    "test:e2e:webkit": "node scripts/e2e/production.mjs webkit",
     "test:e2e:ci": "node scripts/e2e/production.mjs ci"
   },
   "dependencies": {

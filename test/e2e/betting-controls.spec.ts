@@ -47,7 +47,7 @@ test("synchronizes targets, validates edits, resets decisions, and fits mobile",
   await expect(slider).toHaveValue("300");
   await expect(page.getByText("+250", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Raise to 300", exact: true })).toBeEnabled();
-  await page.screenshot({ path: "test-results/betting-desktop.png", fullPage: true });
+  await page.screenshot({ path: test.info().outputPath("betting-desktop.png"), fullPage: true });
   const callButton = page.getByRole("button", { name: "Call 50", exact: true });
   const colors = () => callButton.evaluate(element => {
     const style = getComputedStyle(element);
@@ -158,7 +158,7 @@ test("synchronizes targets, validates edits, resets decisions, and fits mobile",
   await expect(guest.getByRole("spinbutton")).toBeVisible();
   expect(await guest.getByRole("spinbutton").getAttribute("inputmode")).toBe("numeric");
   const layout = await guest.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth, targets: [...document.querySelector("#bet-target")!.closest("section")!.querySelectorAll("input, button")].map(e => e.getBoundingClientRect().height) }));
-  await guest.screenshot({ path: "test-results/betting-mobile.png", fullPage: true });
+  await guest.screenshot({ path: test.info().outputPath("betting-mobile.png"), fullPage: true });
   expect(layout.scrollWidth).toBeLessThanOrEqual(layout.width);
   expect(layout.targets.every(height => height >= 44)).toBe(true);
   await guestContext.close();

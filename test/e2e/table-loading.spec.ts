@@ -18,10 +18,10 @@ for (const locale of ["en-US", "fi-FI"]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.locator("main img").evaluate(image => { if (image instanceof HTMLImageElement) return image.decode(); });
       mkdirSync("test-results/table-loading", { recursive: true });
-      await page.screenshot({ path: `test-results/table-loading/missing-${locale}-${malformed ? "malformed" : "unknown"}.png`, fullPage: true });
+      await page.screenshot({ path: test.info().outputPath(`table-loading/missing-${locale}-${malformed ? "malformed" : "unknown"}.png`), fullPage: true });
       if (locale === "en-US" && !malformed) {
         await page.setViewportSize({ width: 1280, height: 800 });
-        await page.screenshot({ path: "test-results/table-loading/missing-desktop.png", fullPage: true });
+        await page.screenshot({ path: test.info().outputPath("table-loading/missing-desktop.png"), fullPage: true });
       }
       await lobby.focus();
       await page.keyboard.press("Enter");
@@ -49,9 +49,9 @@ for (const locale of ["en-US", "fi-FI"]) {
       await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
       await page.locator("main img").evaluate(image => { if (image instanceof HTMLImageElement) return image.decode(); });
       mkdirSync("test-results/table-loading", { recursive: true });
-      await page.screenshot({ path: `test-results/table-loading/error-${locale}-desktop.png`, fullPage: true });
+      await page.screenshot({ path: test.info().outputPath(`table-loading/error-${locale}-desktop.png`), fullPage: true });
       await page.setViewportSize({ width: 375, height: 812 });
-      await page.screenshot({ path: `test-results/table-loading/error-${locale}-mobile.png`, fullPage: true });
+      await page.screenshot({ path: test.info().outputPath(`table-loading/error-${locale}-mobile.png`), fullPage: true });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       const retry = page.getByRole("button", { name: locale === "en-US" ? "Try again" : "Yritä uudelleen", exact: true });
       await retry.focus();

@@ -35,10 +35,10 @@ test("settled elimination persists, watches manually with expected version, and 
   await expect(page.getByRole("complementary", { name: "Actions", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Fold", exact: true })).toHaveCount(0);
   await fits(page);
-  await page.screenshot({ path: "test-results/elimination-desktop.png", fullPage: true });
+  await page.screenshot({ path: test.info().outputPath("elimination-desktop.png"), fullPage: true });
   await page.setViewportSize({ width: 375, height: 812 });
   await fits(page);
-  await page.screenshot({ path: "test-results/elimination-mobile.png", fullPage: true });
+  await page.screenshot({ path: test.info().outputPath("elimination-mobile.png"), fullPage: true });
   await page.reload();
   await expect(page.getByText("You’re out of chips", { exact: true })).toBeVisible();
   let nextRequests = 0;
@@ -130,7 +130,7 @@ test("table winners and spectators retain results while all next-hand shortcuts 
   await expect(page.locator("[data-hand-result]")).toBeVisible();
   await page.setViewportSize({ width: 375, height: 812 });
   await fits(page);
-  await page.screenshot({ path: "test-results/table-winner-mobile.png", fullPage: true });
+  await page.screenshot({ path: test.info().outputPath("table-winner-mobile.png"), fullPage: true });
   await expect(page.getByRole("button", { name: "Show", exact: true })).toBeEnabled();
   let reveals = 0;
   await page.route(`**/api/games/${fixture.gameId}/reveal`, route => {

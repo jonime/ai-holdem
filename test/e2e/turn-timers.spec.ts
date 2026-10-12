@@ -89,7 +89,7 @@ test("@smoke multiplayer deadlines survive reload and repeat without removing se
     expect(game.poker.players.every(player => !player.folded && !player.leaving)).toBe(true);
     const feed = await (await page.request.get(`/api/games/${id}/feed`)).json();
     expect(feed.feed.events.some((event:{type:string;action?:string}) => event.type==="action" && event.action==="check")).toBe(true);
-    await page.screenshot({path:"test-results/turn-timer-multiplayer.png",fullPage:true});
+    await page.screenshot({path:test.info().outputPath("turn-timer-multiplayer.png"),fullPage:true});
   } finally { await guestContext.close(); await spectatorContext.close(); cleanup(id); }
 });
 

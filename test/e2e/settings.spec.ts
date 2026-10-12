@@ -24,7 +24,7 @@ test("Settings focus, scrolling, shortcuts, native controls and mobile layout", 
   await open(page);
   await page.keyboard.press("s"); expect(actions).toBe(0);
   await expect(page).toHaveTitle(/Your turn/);
-  await page.screenshot({ path: "test-results/settings-desktop.png" });
+  await page.screenshot({ path: test.info().outputPath("settings-desktop.png") });
   for (const key of ["Shift+Tab", "Tab", "Tab", "Tab", "Tab", "Tab", "Tab"]) {
     await page.keyboard.press(key);
     expect(await page.getByRole("dialog").evaluate(d => d.contains(document.activeElement) || document.activeElement === document.body)).toBe(true);
@@ -41,7 +41,7 @@ test("Settings focus, scrolling, shortcuts, native controls and mobile layout", 
   await amount.fill("300"); await page.keyboard.press("q"); await expect(amount).toHaveValue("300");
   await open(page);
   await page.setViewportSize({ width: 375, height: 812 });
-  await page.screenshot({ path: "test-results/settings-mobile.png" });
+  await page.screenshot({ path: test.info().outputPath("settings-mobile.png") });
   await page.setViewportSize({ width: 320, height: 568 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   const dialog = page.getByRole("dialog"); const rect = await dialog.boundingBox();
@@ -52,7 +52,7 @@ test("Settings focus, scrolling, shortcuts, native controls and mobile layout", 
   await page.reload(); await expect(slider).toHaveAttribute("aria-keyshortcuts", /Q E/);
   await open(page); await page.mouse.click(1,1); await expect(dialog).not.toBeVisible();
 });
-test("language keeps table, ownership, query and fragment, and English is unprefixed", { tag: "@ui-regression" }, async ({ page }) => {
+test("language keeps table, ownership, query and fragment, and English is unprefixed", { tag: ["@ui-regression", "@compatibility"] }, async ({ page }) => {
   const f = await table(page);
   const before = await page.context().cookies();
   await page.goto(`/game/${f.id}?test=settings#table`); await open(page);

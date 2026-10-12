@@ -69,7 +69,8 @@ CI runs an independent integration job alongside the unchanged
 lint/typecheck/unit-test/build job on pull requests and pushes to `main`. It has a
 30-minute limit and preserves cancellation of superseded commits. It uses Node
 from `.nvmrc`, `npm ci`, Supabase CLI **2.119.0**, and the installed Playwright
-version's Chromium (`npx playwright install --with-deps chromium` on Ubuntu).
+version's Chromium and WebKit (`npx playwright install --with-deps chromium webkit` on Ubuntu;
+`npx playwright install chromium webkit` on macOS).
 Docker and a healthy local Supabase stack including Realtime are prerequisites.
 Setup follows the official [Supabase CI guide](https://supabase.com/docs/guides/deployment/ci/testing)
 and [Playwright CI guide](https://playwright.dev/docs/ci).
@@ -99,8 +100,12 @@ npm run test:sql:usage
 npm run test:e2e:ci
 ```
 
-All three production commands share one runner. `test:e2e:smoke` selects `@smoke`;
-`test:e2e:ui` selects `@ui-regression`; `test:e2e:ci` selects their union, building
+All four production commands share one runner. `test:e2e:smoke` selects `@smoke`
+and `test:e2e:ui` selects `@ui-regression`, both Chromium-only by default.
+`test:e2e:webkit` selects `@compatibility` in `webkit-desktop` (Desktop Safari)
+and `webkit-mobile` (iPhone 13), using the installed Playwright device profiles.
+WebKit projects only collect compatibility-tagged tests. `test:e2e:ci` explicitly
+selects Chromium smoke/UI coverage and both focused WebKit projects, building
 once and running one Playwright invocation with one combined HTML report. The UI
 suite includes tests in `dialogs.spec.ts`, `betting-controls.spec.ts`,
 `hand-results-actions.spec.ts`, `request-recovery.spec.ts`, `table-loading.spec.ts`,
@@ -115,6 +120,25 @@ This keeps UI setup from exhausting the shared local IP creation allowance;
 creation/fair-use smoke tests continue through the real creation routes with
 all protections enabled. Development/explicit preview UI setup keeps using
 normal creation routes.
+
+The focused compatibility suite runs six cases per WebKit project: real rules-only
+Quick Play to an actionable human turn; input edits, presets and a legal raise;
+Help/Settings scrolling, background scroll locks and restored focus (desktop
+Escape/mobile touch dismissal); disabled shortcuts with native focused controls
+and reload persistence; language changes preserving ownership and unprefixed
+English; and a committed mutation with a lost response and no automatic replay.
+Mobile automation uses touch taps for controls and dismissal and checks scroll
+containers; physical swipes and the on-screen keyboard remain device checks.
+UI cases reuse isolated fixtures; fair-use protections remain enabled. Chromium
+keeps its existing cases; the new focused-only file is excluded there. Keep one
+worker, zero retries and existing timeouts; record combined execution duration
+before release rather than hiding failures with skips or retries.
+
+Playwright WebKit is neither branded Safari nor a physical iPhone. Automated
+passes establish focused engine/emulation coverage, not complete Safari
+certification. See [Playwright browser documentation](https://playwright.dev/docs/browsers).
+Firefox, a full device matrix, paid device services and visual redesign are outside
+this coverage.
 
 Each command builds an isolated temporary source/dependency copy that excludes
 application `.env*` files. It uses the normal Turbopack production build with
@@ -134,9 +158,9 @@ retries. To inspect selection without building, use
 these commands with local Supabase running (no production build):
 
 ```sh
-npm run test:e2e -- --grep @smoke --list
-npm run test:e2e -- --grep @ui-regression --list
-npm run test:e2e -- --grep '@smoke|@ui-regression' --list
+npm run test:e2e -- --project=chromium --grep @smoke --list
+npm run test:e2e -- --project=chromium --grep @ui-regression --list
+npm run test:e2e -- --project=chromium --project=webkit-desktop --project=webkit-mobile --grep '@smoke|@ui-regression|@compatibility' --list
 ```
 
 The production commands also accept `--list` (after their isolated build).
@@ -152,7 +176,7 @@ npm run test:e2e:ui -- test/e2e/betting-controls.spec.ts --grep ''
 
 The combined command accepts only `--list`; other arguments are rejected before
 building so filters, sharding, alternative configs, or last-failed selection
-cannot silently omit either suite. Empty selections fail in all three commands;
+cannot silently omit any required project or suite. Empty selections fail in all four commands;
 `--pass-with-no-tests` is forbidden.
 
 The CI setup script starts the full stack with health checks enabled and resets
@@ -164,7 +188,8 @@ workflow step stops Supabase without a backup. Local production verification lea
 running Supabase available.
 
 HTML reports are generated in `playwright-report/`; failure traces/screenshots
-are retained in `test-results/`. Sanitized build/application/startup logs go to
+are retained in `test-results/`. Explicit screenshots use project-qualified
+`test.info().outputPath()` paths so projects cannot overwrite each other. Sanitized build/application/startup logs go to
 `integration-logs/`. CI uploads these paths as `integration-diagnostics` with
 seven-day retention even on failure. Do not upload environment dumps, raw
 Supabase status, database dumps, or production data. Browser artifacts may
@@ -193,11 +218,27 @@ successful table with URL and identity preserved.
 The production runner instruments only its disposable source copy with
 `scripts/e2e/table-read-fault.mjs`. Tests control per-table file markers in that
 copy; the checkout and normal production build contain no fault endpoint or
-runtime flag. Screenshot artifacts are in `test-results/table-loading/`.
+runtime flag. Screenshot artifacts are in each project-qualified test directory under `test-results/`.
 Route-render retry refetches the segment and never replays gameplay actions;
 existing in-game unknown-outcome recovery and removed-table handling are tested
 separately.
 
+### Physical iPhone Safari verification
+
+Use an explicitly authorized preview with external inference disabled. Record
+device model, iOS version, Safari version, deployment URL/revision, verification
+date and pass/fail notes for each item:
+
+- Start and play a hand; edit betting inputs with the on-screen keyboard.
+- Open, scroll and dismiss Help and Settings in portrait and landscape.
+- Enable sound through a gesture; confirm the preview and a subsequent turn cue.
+- Background and resume the tab; confirm usable recovery. Background sound is
+  best-effort and is not required to be guaranteed.
+- Reload and switch language; confirm settings and owned seat persist, then
+  return to unprefixed English.
+
+Physical-device verification is **outstanding** for this change until a recorded
+real-device run is available. An emulated iPhone pass does not complete it.
 
 ## Seat-mutation checks
 
@@ -837,4 +878,4 @@ Tagged `test/e2e/settings.spec.ts` covers accessibility, mobile layout, preferen
 synchronization, native keyboard controls, language ownership and busy/recovery
 guards. Turn-notification tests cover preview and cue behavior; timer smoke verifies
 expiry while Settings remains open. Desktop/mobile screenshots are saved under
-`test-results/settings-*.png`.
+each project-qualified Settings test directory under `test-results/`.
