@@ -13,6 +13,11 @@ import {
 import { getSiteOrigin } from "@/lib/site";
 import styles from "./page.module.css";
 
+// Unknown first segments also match this route. Allow the root layout to reject
+// them before streaming, preserving HTTP 404 instead of an empty Suspense shell.
+// Supported locales still prerender with generateStaticParams and use cache.
+export const instant = false;
+
 export default async function Home({ params }: PageProps<"/[lang]">) {
   "use cache";
   const { lang } = await params;

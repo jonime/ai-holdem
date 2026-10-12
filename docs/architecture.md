@@ -246,6 +246,11 @@ layouts. Next.js adds `noindex`; the game-specific missing-table boundary remain
 localized.
 The root `app/not-found.tsx` reuses the document for invalid locale segments
 rejected with `notFound()` before a root layout can render.
+The localized landing page exports `instant = false` because unknown first path
+segments also match `/[lang]`. This allows the root layout to reject invalid
+locales before streaming with HTTP 404, without development instant-navigation
+validation errors. Supported locale landing pages remain cached and prerendered
+through `generateStaticParams` and `use cache`.
 
 
 ## Quick Play endpoint
