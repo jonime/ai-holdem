@@ -84,7 +84,10 @@ RPC. Apply it before deploying code that uses the snapshot reader. It is additiv
 and requires no game backfill. See the [game-state read checks](../CONTRIBUTING.md#game-state-read-checks)
 for local SQL, benchmark, and browser verification.
 
-Broadcast requires no additional SQL migration. Realtime lifecycle changes also
+Broadcast requires no additional SQL migration. Server publication uses
+`channel.httpSend()`, which requires Realtime server v2.97.0 or newer. Ensure
+local and self-hosted stacks meet this prerequisite before deploying.
+Realtime lifecycle changes also
 require the [deployed two-browser smoke test](../CONTRIBUTING.md#realtime-lifecycle-changes).
 
 `20261015000000_add_bot_step_claims.sql` adds the service-role-only claim table,

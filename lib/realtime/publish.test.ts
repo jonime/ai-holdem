@@ -5,12 +5,12 @@ const { createClient, readGame } = vi.hoisted(() => ({ createClient: vi.fn(), re
 vi.mock("@/lib/supabase/server", () => ({ createSupabaseServerClient: createClient, createSupabaseGameRepository: readGame }));
 
 describe("publishNotification", () => {
-  const send = vi.fn();
+  const httpSend = vi.fn();
   const removeChannel = vi.fn();
-  const channel = { send };
+  const channel = { httpSend };
   beforeEach(() => {
     vi.resetAllMocks();
-    send.mockResolvedValue("ok");
+    httpSend.mockResolvedValue({ success: true });
     removeChannel.mockResolvedValue("ok");
     createClient.mockReturnValue({ channel: vi.fn(() => channel), removeChannel });
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -27,7 +27,7 @@ describe("publishNotification", () => {
     const publication = publishNotification(event).then(result => { finished = true; return result; });
     await vi.waitFor(() => expect(removeChannel).toHaveBeenCalledWith(channel));
     expect(finished).toBe(false);
-    expect(send).toHaveBeenCalledExactlyOnceWith({ type: "broadcast", event: event.type, payload: event }, { timeout: 5_000 });
+    expect(httpSend).toHaveBeenCalledExactlyOnceWith(event.type, event, { timeout: 5_000 });
     expect(createClient().channel).toHaveBeenCalledWith("game:game-1");
     expect(readGame).not.toHaveBeenCalled();
     finishCleanup();
@@ -46,11 +46,11 @@ describe("publishNotification", () => {
     expect(createClient).not.toHaveBeenCalled();
   });
 
-  it.each(["timed out", "error", "throw"])("handles %s with one attempt and cleanup, without leaking errors", async (result) => {
-    if (result === "throw") send.mockRejectedValue(new Error("secret-key and game contents"));
-    else send.mockResolvedValue(result);
+  it.each(["timed out", "error", "throw", "unsuccessful"])("handles %s with one attempt and cleanup, without leaking errors", async (result) => {
+    if (result === "unsuccessful") httpSend.mockResolvedValue({ success: false, status: 500, error: "secret-key and game contents" });
+    else httpSend.mockRejectedValue(new Error(`${result}: secret-key and game contents`));
     expect((await publishNotification({ type: "player_action", gameId: "game-1", version: 2 })).ok).toBe(false);
-    expect(send).toHaveBeenCalledOnce();
+    expect(httpSend).toHaveBeenCalledOnce();
     expect(removeChannel).toHaveBeenCalledOnce();
     expect(console.error).toHaveBeenCalledExactlyOnceWith("Realtime notification failed", {
       phase: "publish", type: "player_action", gameId: "game-1", version: 2, elapsedMs: expect.any(Number),
@@ -69,8 +69,8 @@ describe("publishNotification", () => {
 });
 
  it("logs non-ok channel removal without throwing", async () => {
-  const send = vi.fn().mockResolvedValue("ok");
-  createClient.mockReturnValue({ channel: () => ({ send }), removeChannel: vi.fn().mockResolvedValue("timed out") });
+  const httpSend = vi.fn().mockResolvedValue({ success: true });
+  createClient.mockReturnValue({ channel: () => ({ httpSend }), removeChannel: vi.fn().mockResolvedValue("timed out") });
   vi.spyOn(console, "error").mockImplementation(() => {});
   expect(await publishNotification({ type: "seat_released", gameId: "game-1" })).toEqual({ ok: true });
   expect(console.error).toHaveBeenLastCalledWith("Realtime notification failed", {

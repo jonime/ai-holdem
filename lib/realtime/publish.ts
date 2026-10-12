@@ -35,12 +35,8 @@ export async function publishNotification(input: RealtimeNotification): Promise<
     event = realtimeNotificationSchema.parse(input);
     client = createSupabaseServerClient();
     channel = client.channel(`game:${event.gameId}`);
-    const result = await channel.send({
-      type: "broadcast",
-      event: event.type,
-      payload: event,
-    }, { timeout: REALTIME_SEND_TIMEOUT_MS });
-    if (result !== "ok") throw new Error("Realtime delivery failed");
+    const result = await channel.httpSend(event.type, event, { timeout: REALTIME_SEND_TIMEOUT_MS });
+    if (!result.success) throw new Error("Realtime delivery failed");
     return { ok: true };
   } catch {
     // Invalid input is never logged; only validated notification fields are safe.

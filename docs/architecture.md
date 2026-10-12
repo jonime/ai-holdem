@@ -141,8 +141,10 @@ a crash; fencing protects commits. Full deduplication requires old instances to 
 
 Game updates use Supabase Realtime Broadcast as a refetch signal. Successful
 mutations schedule one send through Next.js `after()` so publication and cleanup
-survive the HTTP response within the function's execution limit. Sends use a
-five-second timeout; scheduling or delivery failures preserve mutation success.
+survive the HTTP response within the function's execution limit. The server uses
+explicit REST delivery through `channel.httpSend()` without subscribing to a
+WebSocket channel, checks its `success` result, and awaits channel removal. Sends
+use a five-second timeout; scheduling or delivery failures preserve mutation success.
 Strict game notifications contain only `{ type, gameId, version }` with the
 committed version; seat notifications contain only `{ type, gameId }` and always
 prompt a refetch, including same-version name changes. No game, seat, or AI
