@@ -85,6 +85,10 @@ jobs:
         timeout-minutes: 3
         run: npm run test:sql:game-reads
 
+      - name: Verify SQL creation attempts
+        timeout-minutes: 3
+        run: npm run test:sql:creation
+
       - name: Verify SQL personal tables
         timeout-minutes: 3
         run: npm run test:sql:my-games

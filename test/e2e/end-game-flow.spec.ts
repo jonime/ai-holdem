@@ -28,7 +28,7 @@ async function fits(page: Page) {
   await expect(page.getByRole("button", { name: "New Quick Play", exact: true })).toBeVisible();
 }
 
-test("settled elimination persists, watches manually with expected version, and protects pending replay", async ({ page }) => {
+test("settled elimination persists, watches manually with expected version, and protects pending replay", { tag: "@ui-regression" }, async ({ page }) => {
   const fixture = await tableFixture(page);
   await expect(page.getByText("You’re out of chips", { exact: true })).toBeVisible();
   await expect(page.locator("[data-hand-result]")).toContainText("wins 200");
@@ -83,12 +83,12 @@ test("settled elimination persists, watches manually with expected version, and 
   expect(requests).toBe(1);
   expect(nextRequests).toBe(1);
   release();
-  await expect(page.locator("main").getByRole("alert")).toContainText("Unable to start Quick Play. Please try again.");
-  await expect(page.getByRole("button", { name: "New Quick Play", exact: true })).toBeEnabled();
+  await expect(page.getByText("The result could not be confirmed. Retry creation to recover the same table.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "New Quick Play", exact: true })).toBeDisabled();
   expect(page.url()).toContain(fixture.gameId);
   await expect(page.getByText("private-provider-detail")).toHaveCount(0);
   await page.unroute("**/quick-game");
-  await page.getByRole("button", { name: "New Quick Play", exact: true }).click();
+  await page.getByRole("button", { name: "Retry creation", exact: true }).click();
   await expect(page).not.toHaveURL(new RegExp(fixture.gameId));
   await expect(page).toHaveURL(/\/game\/[a-f0-9-]+$/);
   const newId = page.url().split("/").at(-1)!;

@@ -83,8 +83,9 @@ function createGameDatabaseClient(client: SupabaseClient): GameDatabaseClient {
   };
 }
 
-export function createSupabaseGameRepository(): SupabaseGameRepository {
+export function createSupabaseGameRepository(creationAttempt?: Record<string, unknown>): SupabaseGameRepository {
   return new SupabaseGameRepository(
     createGameDatabaseClient(createSupabaseServerClient()),
+    creationAttempt,
   );
 }

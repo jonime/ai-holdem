@@ -1,3 +1,4 @@
+import { CreationForm } from "@/components/creation/CreationForm";
 import Image from "next/image";
 import logo from "@/public/ai-holdem-logo.png";
 import Link from "next/link";
@@ -8,6 +9,7 @@ import { Button } from "@/components/Button";
 import { APP_NAME } from "@/lib/constants";
 import { addLocalePrefix, hasLocale } from "@/lib/i18n";
 import {
+  getGameDictionary,
   getLandingServerDictionary,
   getMetadataDictionary,
 } from "@/lib/i18n/server";
@@ -23,9 +25,10 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
   "use cache";
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
-  const [metadata, landing] = await Promise.all([
+  const [metadata, landing, gameDictionary] = await Promise.all([
     getMetadataDictionary(lang),
     getLandingServerDictionary(lang),
+    getGameDictionary(lang),
   ]);
   const structuredData = {
     "@context": "https://schema.org",
@@ -76,11 +79,11 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
         <p className={styles.intro}>{landing.intro}</p>
         <p className={styles.supportingCopy}>{landing.supportingCopy}</p>
         <div className={styles.actions}>
-          <form method="post" action={addLocalePrefix("/quick-game", lang)}>
+          <CreationForm locale={lang} labels={gameDictionary.creation} action={addLocalePrefix("/quick-game", lang)}>
             <Button variant="primary" size="large" type="submit">
               {landing.quickPlay}
             </Button>
-          </form>
+          </CreationForm>
           <Link className={styles.joinGame} href={addLocalePrefix("/play", lang)}>{landing.play}</Link>
         </div>
       </section>

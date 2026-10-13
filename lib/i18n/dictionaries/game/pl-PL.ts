@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  creation: {"wait": "Ponowna próba za {seconds} sekund.", "creating": "Tworzenie stołu…", "retry": "Ponów tworzenie", "recovery": "Tworzenie jest w toku. Ponów, aby odzyskać ten sam stół.", "memoryOnly": "Pamięć sesji jest niedostępna. Odświeżenie strony uniemożliwi odzyskanie tej próby.", "cookiesRequired": "Tworzenie stołu wymaga plików cookie. Włącz je i spróbuj ponownie.", "identityChanged": "Twoja anonimowa tożsamość się zmieniła. Nie można bezpiecznie wznowić tej próby.", "failed": "Nie udało się potwierdzić wyniku. Ponów, aby odzyskać ten sam stół.", "unavailable": "Nie można wznowić tej próby. Stół mógł zostać usunięty lub dane zmienione.", "denied": "Osiągnięto limit tworzenia. Poczekaj przed ponowieniem.", "dismiss": "Odrzuć próbę"},
   settings: {"title": "Ustawienia", "close": "Zamknij", "shortcuts": "Skróty gry", "language": "Język", "continues": "Gra trwa dalej, gdy ustawienia są otwarte.", "languageBlocked": "Język można zmienić po zakończeniu żądania lub odzyskiwania stołu."},
   tableLoading: {
     missingTitle: "Ten stół nie jest już dostępny",

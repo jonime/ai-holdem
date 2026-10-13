@@ -89,6 +89,7 @@ migrations, then run these commands in order:
 
 ```sh
 npm run test:sql:game-reads
+npm run test:sql:creation
 npm run test:sql:my-games
 npm run test:sql:removal
 npm run test:sql:bot-context
@@ -370,7 +371,7 @@ from the unlocalized game-creation API; it does not control page routing.
 - Format displayed chip amounts explicitly with `formatChips(value, locale)` using the selected app locale, including lobby stacks and blind summaries. Keep numeric input values/parsing, API numbers, game IDs and hand numbers unchanged; do not format all interpolation values automatically.
 - To add a locale, add `<locale>.ts` to each dictionary directory, register it in `SUPPORTED_LOCALES` in `lib/i18n/index.ts`, register it in every dictionary-group test registry (each must satisfy `Record<Locale, GroupDictionary>` and cover `SUPPORTED_LOCALES`), and add its dynamic import entry to the matching map in `lib/i18n/server.ts`. Also register native language labels in `lib/i18n/languages.ts` and add translated About and Help MDX documents with loader entries in `lib/about/server.ts` and `lib/help/server.ts`. Script-based locales such as `zh-Hans` need a territory-based Open Graph locale in `lib/seo.ts`.
 - Server Components load dictionaries directly through the loaders in `lib/i18n/server` (`getMetadataDictionary`, `getLandingServerDictionary`, `getGameDictionary`).
-- The landing page is cached server output: `LanguageMenu` uses locale links and the Quick Play control is a plain POST form. Keep request cookies and game creation in `app/[lang]/new-game/route.ts`, outside the cached page.
+- The landing page is cached server output: `LanguageMenu` uses locale links and Quick Play retains a native POST form with client-only enhancement. Keep request cookies and game creation in route handlers, outside cached rendering; client identity/attempt initialization runs only in the browser.
 - Keep the landing-page **Play** control a plain server-rendered anchor.
   Keep the directory heading and navigation in the server-rendered shell and
   stream its initial data through a Suspense-wrapped request-time Server
@@ -392,7 +393,7 @@ The landing and About pages use a server-only language menu with a native
 `<dialog popover="auto">`. Outside clicks and Escape dismiss it; ordinary locale
 links navigate to a new document. CSS anchor positioning places it below the
 trigger with a centered fallback. Browsers without popover support show the links
-inline. Landing-page Quick Play and Play-page custom-table creation use plain HTML forms
+inline. Landing-page Quick Play and Play-page custom-table creation retain native HTML forms with progressive enhancement
 and work without JavaScript.
 
 ## Documentation standards
@@ -603,7 +604,7 @@ The endpoint-to-contract/client checklist is complete:
 | `PATCH /api/games/:gameId/seats/:seat/name` | seat params / `renameSeatRequestSchema` | `seatResponseSchema` | `seats.rename` |
 | `POST /api/games/:gameId/seats/:seat/assign-bot` | seat params / `assignBotRequestSchema` | `seatResponseSchema` | `seats.assignBot` |
 | `POST /api/games` | `createGameRouteRequestSchema` | `createGameResponseSchema` | `creation.custom` |
-| `POST /:lang/quick-game` (JSON) | `quickPlayParamsSchema` | `quickPlayResponseSchema` | `creation.quickPlay` |
+| `POST /:lang/quick-game` (JSON) | `quickPlayParamsSchema` + `quickPlayRequestSchema` | `quickPlayResponseSchema` | `creation.quickPlay` |
 | `GET /api/bots` | no parameters | `botCatalogResponseSchema` | `bots.catalog` |
 | `GET /api/games/:gameId/feed?sinceHand=N` | game params / `feedRouteQuerySchema` | `feedResponseSchema` | `games.feed` |
 | `GET /api/games/mine` | cookie identity only | `myGamesResponseSchema` (strict assignment counts and `viewerSeated`) | `discovery.mine` |
@@ -779,7 +780,7 @@ keyboard activation and pending join protection. Personal metadata wraps on mobi
 relative update labels use the selected locale, start as absolute UTC for SSR/hydration,
 and update only on mount, changed summaries and visibility return. Exact UTC remains in
 the time label/tooltip. Verify title/composition variants, relative boundaries, skew,
-hydration and production screenshots in the Play/component tests. Both creation forms use their existing localized POST routes.
+hydration and production screenshots in the Play/component tests. Both creation forms retain localized native POST routes; initialized JavaScript uses the typed custom JSON API or Quick Play JSON-response path.
 
 
 ## Departure verification and rollout
@@ -920,3 +921,17 @@ synchronization, native keyboard controls, language ownership and busy/recovery
 guards. Turn-notification tests cover preview and cue behavior; timer smoke verifies
 expiry while Settings remains open. Desktop/mobile screenshots are saved under
 each project-qualified Settings test directory under `test-results/`.
+
+## Creation retry verification
+
+Run `npm run test:sql:creation` with migrated local Supabase. Isolated fixtures
+check concurrent identical attempts, single owner/IP charge, differing intent,
+rollback, denial, independent owners, deletion tombstones and restricted roles.
+CI runs it before usage and production browser checks. Run `npm run test:e2e:ci`
+for repeated clicks, committed lost responses, explicit retry, reload recovery,
+first-visit identity, unavailable storage/cookies, identity changes and subsequent
+intentional creation. Preserve Play names in initial configuration/hand history
+and anonymous landing Quick Play. The controller owns a 15-second creation
+deadline; native forms remain usable without duplicate-safe retry guarantees.
+Pending session records must never contain tokens, and creation diagnostics must
+never log attempt IDs, fingerprints, submitted names or payloads.

@@ -769,3 +769,23 @@ it.each([{ human_count: -1 }, { bot_count: 3 }, { viewer_seated: null }, { human
   const { client } = createClient({ updateResult: [{ game_id: "11111111-1111-4111-8111-111111111111", title: null, status: "waiting", updated_at: "2026-10-06T12:00:00Z", occupied_seats: 1, total_seats: 6, version: 0, removal: "delete", human_count: 1, bot_count: 0, viewer_seated: true, ...fields }] });
   await expect(new SupabaseGameRepository(client).listMyGames("owner")).rejects.toThrow();
 });
+
+describe("atomic creation attempt persistence", () => {
+  const input = { currentState: {}, stateSchemaVersion: 1, handNumber: 0, status: "waiting" as const, hostToken: "owner", players: [] };
+  it("uses one transaction RPC and decodes the existing game", async () => {
+    const { client, rpc } = createClient({ updateResult: { outcome: "created", games: [persistedGame] } });
+    const repository = new SupabaseGameRepository(client, { p_attempt_id: "attempt" });
+    const result = await repository.createGameSession(input);
+    expect(result.id).toBe(persistedGame.id);
+    expect(rpc).toHaveBeenCalledExactlyOnceWith("create_game_with_attempt", expect.objectContaining({ p_attempt_id: "attempt", p_arguments: expect.objectContaining({ p_host_token: "owner" }), p_transition: null }));
+  });
+  it.each([
+    [{ outcome: "conflict" }, "CREATION_ATTEMPT_CONFLICT"],
+    [{ outcome: "unavailable" }, "CREATION_ATTEMPT_UNAVAILABLE"],
+    [{ outcome: "denied", code: "GAME_CREATION_LIMIT", retryAfterMs: 1000 }, "GAME_CREATION_LIMIT"],
+  ])("surfaces structured failures without falling back to legacy creation", async (data, code) => {
+    const { client, rpc } = createClient({ updateResult: data });
+    await expect(new SupabaseGameRepository(client, {}).createGameSession(input)).rejects.toMatchObject({ code });
+    expect(rpc).toHaveBeenCalledTimes(1);
+  });
+});

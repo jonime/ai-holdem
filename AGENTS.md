@@ -79,7 +79,7 @@ images are pulled normally during startup; do not cache Docker image archives,
 containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
-disposable database, then runs `test:sql:game-reads`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
+disposable database, then runs `test:sql:game-reads`, `test:sql:creation`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
 `test:sql:departures`, `test:sql:turn-timers`, `test:sql:bot-claims`, `test:sql:usage`, and `test:e2e:ci` in order. Startup/migration errors fail the job; never ignore
 health checks. Preserve workflow cancellation for superseded commits.
 
@@ -478,3 +478,16 @@ Language remains URL-owned; use native locale names and addLocalePrefix for the
 same game, preserving query/fragment and identity. Guard language changes during
 mutations, bot advancement, replay, recovery and navigation. Settings stays usable
 and never pauses game updates, timers or notifications.
+
+## Duplicate-safe creation
+
+Initialized JavaScript creation captures a UUID and inputs, verifies the anonymous
+cookie, and offers explicit same-attempt retry/reload recovery with a 15-second
+deadline. Pending session records contain only inputs and a one-way identity
+fingerprint, never ownership tokens. Keep cached landing HTML visitor-independent
+and preserve native forms (without duplicate-safe retry guarantees). Deploy
+`20261027000000_add_creation_attempts.sql` first. Its service-role-only atomic RPC
+returns matching results before charging allowance, conflicts on changed intent,
+rolls back failed creation, and retains permanent deletion tombstones. No automatic
+retention expiry; never log attempt IDs, fingerprints, names, tokens or payloads.
+Run `test:sql:creation`, `test:sql:usage` and `test:e2e:ci`.

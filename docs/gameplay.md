@@ -145,6 +145,18 @@ and offers retry; the refresh icon beside **Open public tables** refreshes publi
 automatic refresh on Play. Public joining retains optional player names and pagination.
 Quick Play still starts a separate private six-seat game in one click.
 
+With JavaScript initialized, landing Quick Play, Play creation, and New Quick Play
+capture one creation attempt and disable competing buttons. **Retry creation**
+recovers the same table after a 15-second timeout, network failure, or invalid
+response; it never automatically starts another attempt. Reloading offers recovery
+without submitting. Session storage holds the chosen inputs and a one-way identity
+fingerprint, never your ownership token. If storage is unavailable, recovery remains
+in memory and a notice explains that reloading loses it. Cookies are required for
+enhanced creation. Changing your anonymous identity prevents resuming an old attempt.
+Acknowledged creation clears the record; a later intentional creation gets a fresh ID.
+Native POST forms remain usable without JavaScript but cannot guarantee duplicate-safe
+retries. A deleted table cannot be recreated by retrying its original attempt.
+
 The optional name field at the top of Play applies to Quick Play, custom table
 creation, and public joins. The submitted name is used immediately for your seat
 and hand identities. Names are remembered when browser storage is available.

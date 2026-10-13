@@ -208,3 +208,13 @@ newly-created fixture deadlines directly in the local database; no application
 production-duration override exists. Verify two-browser timeout notifications on
 an authorized Vercel preview containing the change before release. Local tests
 cannot prove Vercel's post-response notification lifecycle.
+
+## Duplicate-safe creation rollout
+
+Apply `20261027000000_add_creation_attempts.sql` before application code. It adds
+a service-role-only attempt store and atomic admission/creation RPC; existing
+persistence entry points remain available during rolling deployment. Completed
+attempt records have no automatic expiry. Keep deletion tombstones and do not
+truncate this store: doing so would allow old retries to create replacement tables.
+Retention changes need a separate replay-safety design. Run `test:sql:creation`,
+`test:sql:usage` and `test:e2e:ci` against the migrated local stack.

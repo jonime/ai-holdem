@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  creation: {"wait": "Nova tentativa disponível em {seconds} segundos.", "creating": "Criando mesa…", "retry": "Tentar criação novamente", "recovery": "Há uma criação pendente. Tente novamente para recuperar a mesma mesa.", "memoryOnly": "O armazenamento da sessão está indisponível. Recarregar perde esta recuperação.", "cookiesRequired": "Cookies são necessários para criar uma mesa. Ative-os e tente novamente.", "identityChanged": "Sua identidade anônima mudou. Esta tentativa não pode ser retomada com segurança.", "failed": "Não foi possível confirmar o resultado. Tente novamente para recuperar a mesma mesa.", "unavailable": "Esta tentativa não pode ser retomada. A mesa pode ter sido excluída ou os dados alterados.", "denied": "Limite de criação atingido. Aguarde antes de tentar novamente.", "dismiss": "Descartar tentativa"},
   settings: {"title": "Configurações", "close": "Fechar", "shortcuts": "Atalhos de jogo", "language": "Idioma", "continues": "O jogo continua enquanto as configurações estão abertas.", "languageBlocked": "O idioma pode ser alterado após a solicitação ou recuperação da mesa."},
   tableLoading: {
     missingTitle: "Esta mesa não está mais disponível",

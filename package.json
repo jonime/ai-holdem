@@ -39,7 +39,8 @@
     "test:sql:turn-timers": "node scripts/local-turn-timers.mjs",
     "test:e2e:ui": "node scripts/e2e/production.mjs ui",
     "test:e2e:webkit": "node scripts/e2e/production.mjs webkit",
-    "test:e2e:ci": "node scripts/e2e/production.mjs ci"
+    "test:e2e:ci": "node scripts/e2e/production.mjs ci",
+    "test:sql:creation": "node scripts/local-creation-attempts.mjs"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",

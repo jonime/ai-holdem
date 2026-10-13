@@ -1,4 +1,6 @@
 "use client";
+import { useCreation } from "@/components/creation/useCreation";
+import { CreationFeedback } from "@/components/creation/CreationFeedback";
 import { Modal } from "./Modal";
 import { turnRemainingMs } from "./turn-clock";
 import Link from "next/link";
@@ -9,8 +11,6 @@ import { SettingsModal } from "./SettingsModal";
 import { useTurnNotifications } from "./useTurnNotifications";
 import { GameHeader } from "./GameHeader";
 import { addLocalePrefix } from "@/lib/i18n";
-import { botErrorMessage } from "./bot-error";
-import { HttpError, api } from "@/lib/http/api";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
@@ -45,19 +45,18 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   readonly helpTitle: string;
 }) {
   const { locale, t } = useI18n();
+  const creationLabels = {
+    wait: t("creation.wait"), creating: t("creation.creating"), retry: t("creation.retry"), recovery: t("creation.recovery"), memoryOnly: t("creation.memoryOnly"),
+    cookiesRequired: t("creation.cookiesRequired"), identityChanged: t("creation.identityChanged"), failed: t("creation.failed"),
+    unavailable: t("creation.unavailable"), denied: t("creation.denied"), dismiss: t("creation.dismiss"),
+  };
+  const creation = useCreation(locale, creationLabels);
   const settings = useSettings();
   const shortcuts = settings.ready && settings.preferences.gameplayShortcuts;
   const [languageNavigating, setLanguageNavigating] = useState(false);
   const replayPending = useRef(false);
-  const [replaying, setReplaying] = useState(false);
-  const [creationNotice, setCreationNotice] = useState<{ until: number; message: string } | null>(null);
-  const [creationWait, setCreationWait] = useState(0);
-  useEffect(() => {
-    if (!creationNotice) return;
-    const timer = setInterval(() => setCreationWait(Math.max(0, creationNotice.until - Date.now())), 250);
-    return () => clearInterval(timer);
-  }, [creationNotice]);
-  const [replayError, setReplayError] = useState(false);
+  const [requestReplaying, setReplaying] = useState(false);
+  const replaying = requestReplaying || creation.working;
   const [playerName, setPlayerName] = useState(() =>
     typeof window === "undefined"
       ? ""
@@ -148,24 +147,11 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
 
   const canStartNextHand = game ? tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost, game.poker.seats).canStartNextHand : false;
   const newQuickPlay = async (botMode?: "rules") => {
-    if (loading || replayPending.current || (creationNotice?.until ?? 0) > Date.now()) return;
+    if (loading || replayPending.current || creation.hasPending) return;
     replayPending.current = true;
     setReplaying(true);
-    setReplayError(false);
-    setCreationNotice(null);
-    setCreationWait(0);
-    try {
-      const body = await api.creation.quickPlay({ lang: locale, botMode });
-      // Full navigation installs the new table with the refreshed identity cookies.
-      window.location.assign(addLocalePrefix(`/game/${body.gameId}`, locale));
-    } catch (requestError) {
-      if (requestError instanceof HttpError && requestError.code === "GAME_CREATION_LIMIT" && requestError.retryAfterMs) {
-        setCreationNotice({ until: Date.now() + requestError.retryAfterMs, message: botErrorMessage(requestError, t) });
-        setCreationWait(requestError.retryAfterMs);
-      } else setReplayError(true);
-      replayPending.current = false;
-      setReplaying(false);
-    }
+    try { await creation.begin({ mode: "quick", botMode, settings: {} }); }
+    finally { replayPending.current = false; setReplaying(false); }
   };
 
   const displayedPlayerName =
@@ -332,14 +318,14 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
 
   return (
     <>
+    <CreationFeedback creation={creation} labels={creationLabels} />
     <GameHeader helpRef={helpOpenerRef} onHelp={opener => openOverlay("help", opener)} settingsRef={settingsOpenerRef} onSettings={opener => openOverlay("settings", opener)} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={releaseSeat} />
     <main className={styles.pokerApp}>
-      {creationNotice ? <p className={styles.errorBanner} role="alert">{creationNotice.message} {t("errors.retryAvailable", { seconds: Math.ceil(creationWait / 1000) })}</p> : null}
       {error ? (
         <p className={styles.errorBanner} role="alert">
           {error}
           {recoveryBlocked ? <Button className={styles.recoveryButton} size="small" disabled={refreshing} onClick={refreshGame}>{t("errors.refreshTable")}</Button> : null}
-          {usageLimited ? <> <span>{t("errors.retryAvailable", { seconds: Math.ceil(usageRetryAfterMs / 1000) })}</span> <Button size="small" disabled={loading || replaying || creationWait > 0} onClick={() => void newQuickPlay("rules")}>{t("errors.rulesOnlyGame")}</Button></> : null}
+          {usageLimited ? <> <span>{t("errors.retryAvailable", { seconds: Math.ceil(usageRetryAfterMs / 1000) })}</span> <Button size="small" disabled={loading || replaying || creation.hasPending} onClick={() => void newQuickPlay("rules")}>{t("errors.rulesOnlyGame")}</Button></> : null}
           {game && canAdvanceBots(game, viewerToken) && hasAutomaticTurn(game) ? (
             <Button
               size="small"
@@ -401,12 +387,13 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
               isSpectator={isSpectator}
               canStartNextHand={canStartNextHand}
               replaying={replaying}
-              replayError={replayError}
+              creationBlocked={creation.hasPending}
+              replayError={false}
               onNewQuickPlay={() => void newQuickPlay()}
               isHumanTurn={isHumanTurn}
               sizedAction={sizedAction}
               amount={amount}
-              loading={loading || replaying || creationWait > 0}
+              loading={loading || replaying}
               setAmount={setAmount}
               onClaimFirstOpenSeat={(opener) => {
                 openOverlay("join", opener);

@@ -147,7 +147,7 @@ export const api = {
     },
     quickPlay(params: QuickPlayParams, options: Options = {}) {
       const parsed = quickPlayParamsSchema.parse(params);
-      return send(addLocalePrefix(`/quick-game${queryString({ botMode: parsed.botMode })}`, parsed.lang), quickPlayResponseSchema, { method: "POST", headers: { Accept: "application/json" }, signal: options.signal });
+      return send(addLocalePrefix(`/quick-game${queryString({ botMode: parsed.botMode })}`, parsed.lang), quickPlayResponseSchema, { method: "POST", headers: { Accept: "application/json", ...(parsed.creationAttemptId ? { "Content-Type": "application/json" } : {}) }, ...(parsed.creationAttemptId ? { body: JSON.stringify({ creationAttemptId: parsed.creationAttemptId, hostName: parsed.hostName }) } : {}), signal: options.signal });
     },
   },
   seats: {

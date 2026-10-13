@@ -1,6 +1,7 @@
 import { TurnTimerError } from "@/lib/poker/turn-timer";
 import { turnTimerSchema, humanTurnSecondsSchema } from "@/lib/http/schemas";
-import { UsageUnavailableError } from "@/lib/usage/errors";
+import { CreationAttemptError } from "@/lib/poker/creation-attempt-errors";
+import { UsageLimitError, UsageUnavailableError } from "@/lib/usage/errors";
 import { admitInference } from "@/lib/usage/admission";
 import { BotStepClaimLostError } from "@/lib/poker/bot-step-claims";
 import { z } from "zod";
@@ -212,6 +213,7 @@ export interface GameDatabaseClient {
       | "apply_ai_action_if_version"
       | "apply_ai_action_and_leave_if_version"
       | "create_game_session"
+      | "create_game_with_attempt"
       | "get_game_read_snapshot"
       | "get_bot_hand_context"
       | "get_game_feed"
@@ -518,7 +520,7 @@ function toGameListing(data: unknown): GameListing {
 }
 
 export class SupabaseGameRepository {
-  constructor(private readonly client: GameDatabaseClient) {}
+  constructor(private readonly client: GameDatabaseClient, private readonly creationAttempt?: Record<string, unknown>) {}
 
   private async timerRpc(operation: Parameters<GameDatabaseClient["rpc"]>[0], args: Record<string, unknown>,
     timeout?: { decisionId: string; driverToken: string }): Promise<DatabaseResult> {
@@ -527,6 +529,22 @@ export class SupabaseGameRepository {
     const configured = isRecord(raw) && isRecord(raw.config) && raw.config.humanTurnSeconds != null;
     const state = configured ? pokerEngineAdapter.restore(raw as unknown as import("@/lib/poker/types").PokerGameState) : null;
     const transition = state ? pokerEngineAdapter.timerTransition(state) : null;
+    if (operation === "create_game_session" && this.creationAttempt) {
+      const result = await this.client.rpc("create_game_with_attempt", {
+        ...this.creationAttempt, p_arguments: args, p_transition: transition,
+      });
+      if (result.error) return result;
+      const parsed = z.discriminatedUnion("outcome", [
+        z.object({ outcome: z.literal("created"), games: z.array(z.unknown()).length(1) }),
+        z.object({ outcome: z.literal("denied"), code: z.literal("GAME_CREATION_LIMIT"), retryAfterMs: z.number().int().min(1).max(3_600_000) }),
+        z.object({ outcome: z.enum(["conflict", "unavailable"]) }),
+      ]).parse(result.data);
+      if (parsed.outcome === "denied") throw new UsageLimitError(parsed.code, parsed.retryAfterMs);
+      if (parsed.outcome === "conflict") throw new CreationAttemptError("CREATION_ATTEMPT_CONFLICT");
+      if (parsed.outcome === "unavailable") throw new CreationAttemptError("CREATION_ATTEMPT_UNAVAILABLE");
+      if (parsed.outcome !== "created") throw new UsageUnavailableError();
+      return { data: parsed.games, error: null };
+    }
     // Untimed operations keep their established SQL protocol. Timed transitions,
     // timeout commits and read-only-version mutations use the shared boundary.
     if (!timeout && raw != null && !configured) return this.client.rpc(operation, args);

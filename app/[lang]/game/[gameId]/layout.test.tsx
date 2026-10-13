@@ -64,6 +64,7 @@ const gameTopLevelKeys = [
   "actions",
   "cards",
   "connection",
+  "creation",
   "errors",
   "feed",
   "gameHeader",

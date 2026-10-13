@@ -1,3 +1,4 @@
+import { CreationForm } from "@/components/creation/CreationForm";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
@@ -5,7 +6,7 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { PLAYER_TOKEN_COOKIE_NAME } from "@/lib/identity/player-token";
 import { addLocalePrefix, hasLocale, type Locale } from "@/lib/i18n";
-import { getPlayDictionary, getJoinGameDictionary } from "@/lib/i18n/server";
+import { getGameDictionary, getPlayDictionary, getJoinGameDictionary } from "@/lib/i18n/server";
 import type { PlayDictionary, JoinGameDictionary } from "@/lib/i18n/types";
 import { getPublicDirectoryPage } from "@/lib/poker/public-directory-cache";
 import { listMyGames } from "@/lib/poker/my-games";
@@ -44,14 +45,14 @@ export async function DirectoryContent({ lang, dictionary }: { lang: Locale; dic
 export default async function PlayPage({ params }: PageProps<"/[lang]/play">) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
-  const [d, directory] = await Promise.all([getPlayDictionary(lang), getJoinGameDictionary(lang)]);
+  const [d, directory, gameDictionary] = await Promise.all([getPlayDictionary(lang), getJoinGameDictionary(lang), getGameDictionary(lang)]);
   return <main className={styles.page}><div className={styles.panel}>
     <div className={styles.headingRow}><div><h1>{d.title}</h1><p>{d.intro}</p></div><Link href={addLocalePrefix("/", lang)}>{directory.back}</Link></div>
-    <form className={styles.controls} method="post" action={addLocalePrefix("/quick-game", lang)}>
+    <CreationForm locale={lang} labels={gameDictionary.creation} className={styles.controls} action={addLocalePrefix("/quick-game", lang)}>
       <PlayerName dictionary={directory} />
       <Button type="submit">{d.quickPlay}</Button>
       <Button type="submit" formAction={addLocalePrefix("/new-game", lang)}>{d.createTable}</Button>
-    </form>
+    </CreationForm>
       <Suspense fallback={<p role="status">{d.loadingPersonal}</p>}><PersonalContent lang={lang} dictionary={d} /></Suspense>
       <section className={`${styles.section} ${styles.publicSection}`} aria-labelledby="public-tables-heading"><h2 id="public-tables-heading">{d.publicTables}</h2>
         <Suspense fallback={<p role="status">{d.loadingPublic}</p>}><DirectoryContent lang={lang} dictionary={directory} /></Suspense>

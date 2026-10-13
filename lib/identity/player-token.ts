@@ -2,8 +2,8 @@ import { randomUUID } from "node:crypto";
 
 import type { NextResponse } from "next/server";
 
-export const PLAYER_TOKEN_COOKIE_NAME = "ai-holdem-player-id";
-const PLAYER_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 365 * 5;
+import { PLAYER_TOKEN_COOKIE_NAME, PLAYER_TOKEN_MAX_AGE_SECONDS } from "./cookie-policy";
+export { PLAYER_TOKEN_COOKIE_NAME } from "./cookie-policy";
 
 interface CookieValue {
   readonly value?: string;

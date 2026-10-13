@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  creation: {"wait": "Nouvel essai possible dans {seconds} secondes.", "creating": "Création de la table…", "retry": "Réessayer la création", "recovery": "Une création est en attente. Réessayez pour retrouver la même table.", "memoryOnly": "Le stockage de session est indisponible. Recharger la page perd cette récupération.", "cookiesRequired": "Les cookies sont nécessaires pour créer une table. Activez-les et réessayez.", "identityChanged": "Votre identité anonyme a changé. Cette tentative ne peut pas reprendre en toute sécurité.", "failed": "Le résultat n’a pas pu être confirmé. Réessayez pour retrouver la même table.", "unavailable": "Cette tentative ne peut pas reprendre. La table a peut-être été supprimée ou les données modifiées.", "denied": "Limite de création atteinte. Attendez avant de réessayer.", "dismiss": "Abandonner la tentative"},
   settings: {"title": "Paramètres", "close": "Fermer", "shortcuts": "Raccourcis de jeu", "language": "Langue", "continues": "La partie continue pendant que les paramètres sont ouverts.", "languageBlocked": "La langue peut être modifiée après la requête ou la récupération de la table."},
   tableLoading: {
     missingTitle: "Cette table n’est plus disponible",

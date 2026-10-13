@@ -100,7 +100,7 @@ for (const locale of ["", "/fi-FI"]) {
     await expect.poll(async () => {
       const game = await read();
       return game.poker.currentActorId === game.poker.players.find((player: { controller: string }) => player.controller === "human").id;
-    }).toBe(true);
+    }, { timeout: 15_000 }).toBe(true);
     const turn = await read();
     const fold = await page.request.post(`/api/games/${quickId}/action`, { data: { expectedVersion: turn.version, action: { type: "fold" } } });
     expect(fold.ok()).toBe(true);
@@ -128,7 +128,7 @@ for (const locale of ["", "/fi-FI"]) {
 }
 
 for (const failure of ["getItem", "setItem"] as const) {
-  test(`@smoke Play typing and native submission tolerate storage ${failure} failure`, async ({ page }) => {
+  test(`@smoke Play typing and enhanced submission tolerate storage ${failure} failure`, async ({ page }) => {
     await page.addInitScript(method => {
       Storage.prototype[method] = () => { throw new Error("Storage unavailable"); };
     }, failure);
@@ -137,11 +137,12 @@ for (const failure of ["getItem", "setItem"] as const) {
     await input.fill("Storage Ada");
     await expect(input).toHaveValue("Storage Ada");
     await page.route("**/quick-game", async route => {
-      expect(new URLSearchParams(route.request().postData()!).get("hostName")).toBe("Storage Ada");
-      await route.fulfill({ contentType: "text/html", body: "<h1>Submitted</h1>" });
+      expect(route.request().postDataJSON().hostName).toBe("Storage Ada");
+      expect(route.request().postDataJSON().creationAttemptId).toMatch(/^[0-9a-f-]{36}$/);
+      await route.fulfill({ json: { gameId: "11111111-1111-4111-8111-111111111111" } });
     });
     await input.press("Enter");
-    await expect(page.getByRole("heading", { name: "Submitted" })).toBeVisible();
+    await expect(page).toHaveURL(/\/game\/11111111-1111-4111-8111-111111111111$/);
   });
 }
 

@@ -26,6 +26,7 @@ export function PokerTable({
   isSpectator,
   canStartNextHand,
   replaying,
+  creationBlocked = false,
   replayError,
   onNewQuickPlay,
   isHumanTurn,
@@ -55,6 +56,7 @@ export function PokerTable({
   readonly isSpectator: boolean;
   readonly canStartNextHand: boolean;
   readonly replaying: boolean;
+  readonly creationBlocked?: boolean;
   readonly replayError: boolean;
   readonly onNewQuickPlay: () => void;
   readonly isHumanTurn: boolean;
@@ -243,7 +245,7 @@ export function PokerTable({
         {replayError ? <p className={styles.replayError} role="alert">{t("table.replayError")}</p> : null}
         {endActions ? (
           <div className={`${styles.actionControls} ${styles.endControls}`}>
-            <Button variant="primary" disabled={loading} onClick={onNewQuickPlay}>
+            <Button variant="primary" disabled={loading || creationBlocked} onClick={onNewQuickPlay}>
               {replaying ? t("table.starting") : t("table.newQuickPlay")}
             </Button>
             {!gameOver ? <Button variant="outline" disabled={loading || !canStartNextHand} onClick={onBeginNextHand}>

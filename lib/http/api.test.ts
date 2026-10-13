@@ -236,3 +236,12 @@ it("validates removal requests and responses at the shared transport boundary", 
   mockResponse({ version: 8, playerToken: "secret" });
   await expect(api.discovery.remove({ gameId: "game", expectedVersion: 7, operation: "leave_and_remove" })).rejects.toThrow("Invalid response payload");
 });
+
+it("enhanced creation transports captured IDs and names through both named methods", async () => {
+  const id = "a1111111-1111-4111-8111-111111111111";
+  vi.stubGlobal("fetch", vi.fn().mockImplementation(async () => new Response(JSON.stringify({ gameId: "game-id" }), { status: 201 })));
+  await api.creation.quickPlay({ lang: "fi-FI", botMode: "rules", creationAttemptId: id, hostName: "Ada" });
+  expect(fetch).toHaveBeenLastCalledWith("/fi-FI/quick-game?botMode=rules", expect.objectContaining({ body: JSON.stringify({ creationAttemptId: id, hostName: "Ada" }), headers: { Accept: "application/json", "Content-Type": "application/json" } }));
+  await api.creation.custom({ creationAttemptId: id, hostName: "Ada", seatCount: 4, humanTurnSeconds: null });
+  expect(fetch).toHaveBeenLastCalledWith("/api/games", expect.objectContaining({ body: JSON.stringify({ creationAttemptId: id, humanTurnSeconds: null, seatCount: 4, hostName: "Ada" }) }));
+});

@@ -255,6 +255,35 @@ validation errors. Supported locale landing pages remain cached and prerendered
 through `generateStaticParams` and `use cache`.
 
 
+## Duplicate-safe creation
+
+Enhanced creation supplies an optional UUID `creationAttemptId` through the typed
+custom JSON API or Quick Play JSON path. Plain forms and bodyless callers retain
+legacy admission/persistence. `creationAttemptArguments` hashes normalized mode,
+sanitized name and accepted settings; locale, randomized bot selections and cards
+are excluded. Owner scope uses a domain-separated SHA-256 cookie-token hash,
+independent of IP and the rotating allowance HMAC secret. Cookie ownership remains
+anonymous seat ownership, not authentication.
+
+`create_game_with_attempt` takes a transaction advisory lock for owner/attempt,
+returns an existing result before admission, and rejects different intent with
+`CREATION_ATTEMPT_CONFLICT` (409). New attempts charge owner/IP allowance, call
+existing `commit_with_turn_timer`/`create_game_session` persistence, and record the
+result in one transaction. Failures roll back charge and record; denials create
+neither a game nor an attempt. The service-role-only `creation_attempts` table retains
+completed records indefinitely. Deletion nulls its game foreign key, preserving a
+permanent tombstone returning `CREATION_ATTEMPT_UNAVAILABLE` (410). Retention changes
+require a separate design preserving replay safety. Legacy entry points remain for
+rolling deployment. Never log attempt IDs, fingerprints, names, tokens or payloads.
+
+The shared progressive controller establishes the existing five-year, path `/`,
+SameSite=Lax ownership cookie client-side when absent and reads it back before
+submission. Cached HTML contains no user identity or attempt ID. It records inputs
+and a browser SHA-256 identity fingerprint in session storage, with memory fallback,
+uses a 15-second header/body deadline, and fences late results on navigation. Explicit
+retry reuses captured inputs/ID; reload only offers recovery. Identity changes stop
+replay. An acknowledged JSON success clears the record and navigates.
+
 ## Quick Play endpoint
 
 Quick Play atomically creates an already-playing private six-seat game with
@@ -382,7 +411,7 @@ database migration, feedback integration or response-contract change.
 
 `/[lang]/play` streams personal tables and the public directory through independent
 Suspense request-time boundaries. Cookies are read only inside those boundaries.
-The cached landing page links to Play and retains its anonymous Quick Play form.
+The cached landing page links to Play and retains its anonymous Quick Play POST form with client-only progressive enhancement.
 Localized `/join-game` permanently redirects to `/play` in the same language;
 English uses unprefixed URLs through `app/(english)` wrappers that reuse
 the shared locale pages, layouts and POST handlers with `en-US` params. Old `/en-US` URLs permanently redirect to unprefixed equivalents.

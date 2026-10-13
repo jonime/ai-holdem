@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  creation: {"wait": "Opnieuw proberen kan over {seconds} seconden.", "creating": "Tafel maken…", "retry": "Opnieuw maken", "recovery": "Een aanmaakpoging staat open. Probeer opnieuw om dezelfde tafel te herstellen.", "memoryOnly": "Sessieopslag is niet beschikbaar. Bij herladen gaat dit herstel verloren.", "cookiesRequired": "Cookies zijn nodig om een tafel te maken. Schakel ze in en probeer opnieuw.", "identityChanged": "Je anonieme identiteit is gewijzigd. Deze poging kan niet veilig worden hervat.", "failed": "Het resultaat kon niet worden bevestigd. Probeer opnieuw om dezelfde tafel te herstellen.", "unavailable": "Deze poging kan niet worden hervat. De tafel is mogelijk verwijderd of de invoer gewijzigd.", "denied": "Aanmaaklimiet bereikt. Wacht voordat je opnieuw probeert.", "dismiss": "Poging verwijderen"},
   settings: {"title": "Instellingen", "close": "Sluiten", "shortcuts": "Spelsneltoetsen", "language": "Taal", "continues": "Het spel gaat door terwijl de instellingen open zijn.", "languageBlocked": "Je kunt de taal wijzigen nadat het verzoek of tafelherstel is afgerond."},
   tableLoading: {
     missingTitle: "Deze tafel is niet meer beschikbaar",
