@@ -12,7 +12,8 @@ export function useSettings() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setReady(true);
     function storage(event: StorageEvent) {
-      if (event.storageArea && event.storageArea !== window.localStorage) return;
+      try { if (event.storageArea && event.storageArea !== window.localStorage) return; }
+      catch { return; }
       if (event.key === settingsStorageKey) apply(parseSettings(event.newValue));
       else if (event.key === null) apply(defaultSettings);
     }

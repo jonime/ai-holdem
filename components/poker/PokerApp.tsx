@@ -37,8 +37,8 @@ import {
 
 import { adjustTarget, decisionScope, validatedTarget } from "@/components/poker/bet-sizing";
 
-const playerNameStorageKey = "ai-holdem-player-name";
-const feedCollapsedStorageKey = "ai-holdem-feed-collapsed";
+import { usePlayerName } from "@/lib/browser/player-name";
+import { useActionsPreference } from "./useActionsPreference";
 
 export default function PokerApp({ gameId, helpContent, helpTitle }: {
   readonly gameId?: string;
@@ -58,11 +58,8 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const replayPending = useRef(false);
   const [requestReplaying, setReplaying] = useState(false);
   const replaying = requestReplaying || creation.working;
-  const [playerName, setPlayerName] = useState(() =>
-    typeof window === "undefined"
-      ? ""
-      : (window.localStorage.getItem(playerNameStorageKey) ?? ""),
-  );
+  const preferredName = usePlayerName();
+  const [playerName, setPlayerName] = useState("");
   const [playerNameEdited, setPlayerNameEdited] = useState(false);
   const [amountDraft, setAmountDraft] = useState({ scope: "", value: "" });
   const [overlay, setOverlay] = useState<"none" | "actions" | "join" | "help" | "settings">("none");
@@ -77,20 +74,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     openerRef.current = opener;
     setOverlay(next);
   };
-  const [feedCollapsed, setFeedCollapsed] = useState(() =>
-    typeof window === "undefined"
-      ? false
-      : window.matchMedia("(max-width: 900px)").matches ||
-        window.localStorage.getItem(feedCollapsedStorageKey) === "true",
-  );
-
-  const toggleFeedCollapsed = () => {
-    setFeedCollapsed((current) => {
-      const next = !current;
-      window.localStorage.setItem(feedCollapsedStorageKey, String(next));
-      return next;
-    });
-  };
+  const { collapsed: feedCollapsed, change: setFeedCollapsed, toggle: toggleFeedCollapsed } = useActionsPreference();
 
   const toggleFeed = (opener: HTMLButtonElement) => {
     if (window.matchMedia("(max-width: 900px)").matches) {
@@ -98,7 +82,6 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
       if (next) openOverlay("actions", opener);
       else setOverlay("none");
       setFeedCollapsed(!next);
-      window.localStorage.setItem(feedCollapsedStorageKey, String(!next));
       return;
     }
     toggleFeedCollapsed();
@@ -107,7 +90,6 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const closeFeedModal = () => {
     setOverlay("none");
     setFeedCollapsed(true);
-    window.localStorage.setItem(feedCollapsedStorageKey, "true");
   };
 
   const {
@@ -164,7 +146,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const displayedPlayerName =
     viewerPlayer?.controller === "human" && !playerNameEdited
       ? viewerPlayer.name
-      : playerName;
+      : playerNameEdited ? playerName : preferredName;
   const sizedAction = game?.poker.legalActions.find(
     (
       action,

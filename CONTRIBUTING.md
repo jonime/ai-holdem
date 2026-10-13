@@ -211,6 +211,7 @@ empty grep selects every test in the supplied files:
 
 ```sh
 npm run test:e2e:smoke -- test/e2e/realtime.spec.ts
+npm run test:e2e:ui -- test/e2e/storage-preferences.spec.ts
 npm run test:e2e:ui -- test/e2e/dialogs.spec.ts
 npm run test:e2e:ui -- test/e2e/betting-controls.spec.ts --grep ''
 ```
@@ -251,7 +252,9 @@ protection configuration are outside this job.
 
 Page unit tests distinguish malformed IDs, absent tables, successful reads and
 repository errors. Component tests cover all game dictionaries, Lobby paths and
-error-detail privacy. The production UI suite includes `table-loading.spec.ts`:
+error-detail privacy. The production UI suite includes `storage-preferences.spec.ts` for pre-initialization
+storage-object/read/write failures, desktop/mobile Actions controls, name drafts,
+reload persistence and hydration errors. It also includes `table-loading.spec.ts`:
 English/Finnish missing and malformed links, keyboard Lobby navigation, mobile
 layout and noindex, plus keyboard retry through repeated render failures into a
 successful table with URL and identity preserved.

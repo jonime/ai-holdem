@@ -1,10 +1,12 @@
 "use client";
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+// Use the existing lockfile-installed Realtime transport directly: the umbrella
+// SDK imports Auth, whose module-level debug read can throw before React mounts.
+import { RealtimeClient } from "@supabase/realtime-js";
 
-let client: SupabaseClient | null = null;
+let client: RealtimeClient | null = null;
 
-export function createSupabaseBrowserClient(): SupabaseClient {
+export function createSupabaseBrowserClient(): RealtimeClient {
   if (client) return client;
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -15,8 +17,11 @@ export function createSupabaseBrowserClient(): SupabaseClient {
     );
   }
 
-  client = createClient(url, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
+  const endpoint = new URL("realtime/v1", url.endsWith("/") ? url : `${url}/`);
+  endpoint.protocol = endpoint.protocol.replace("http", "ws");
+  client = new RealtimeClient(endpoint.href, {
+    params: { apikey: key },
+    accessToken: async () => key,
   });
   return client;
 }

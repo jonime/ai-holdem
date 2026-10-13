@@ -2,6 +2,17 @@
 
 ## Lobby and invitations
 
+Play and the table share a preferred player name. Play edits save immediately;
+seat claims remember the submitted name, and successful renames remember the new
+name. Existing seated names remain authoritative until you edit them. Preference
+updates in another tab never rename your seat or replace a draft you are editing.
+Removing the saved preference clears the preferred name.
+
+Name, Actions and Settings persistence is best-effort. If browser storage is
+unavailable or full, controls still work and changes remain in memory for the
+current page. There is no storage warning. Actions opens on desktop by default
+unless saved as collapsed; its mobile overlay starts closed.
+
 While a game is waiting, the lobby shows one contextual next step based on the
 authoritative seat state, host permissions, and the host's current settings.
 Hosts can start with any two occupied seats, including bots, and may stand up

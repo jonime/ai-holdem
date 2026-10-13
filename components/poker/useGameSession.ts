@@ -1,4 +1,5 @@
 "use client";
+import { savePlayerName } from "@/lib/browser/player-name";
 import { connectionNotice } from "./connection-notice";
 import { observeTurnClock, turnRemainingMs } from "./turn-clock";
 
@@ -304,7 +305,6 @@ export function useGameSession(gameId?: string) {
     botLifecycle.current?.clearNotice();
     try {
       const body = await api.creation.custom();
-      window.localStorage.setItem("ai-holdem-game-id", body.gameId);
       router.push(addLocalePrefix(`/game/${body.gameId}`, locale));
     } catch (requestError) {
       setError(
@@ -370,14 +370,14 @@ export function useGameSession(gameId?: string) {
   const claimSeatAt = useCallback(async (seat: number, playerName: string) => {
     if (!game) return false;
     const name = playerName.trim();
-    window.localStorage.setItem("ai-holdem-player-name", name);
+    savePlayerName(name);
     return postSeatAction(signal => api.seats.claim({ gameId: game.id, seat, ...(name ? { name } : {}), expectedVersion: game.version }, { signal }));
   }, [game, postSeatAction]);
   const updatePlayerName = useCallback(async (seat: number, playerName: string) => {
     if (!game) return false;
     const name = playerName.trim();
     const updated = await postSeatAction(signal => api.seats.rename({ gameId: game.id, seat, name }, { signal }));
-    if (updated) window.localStorage.setItem("ai-holdem-player-name", name);
+    if (updated) savePlayerName(name);
     return updated;
   }, [game, postSeatAction]);
   const releaseSeat = useCallback(async (seat: number, navigate = false) => mutate(async (signal, current) => {

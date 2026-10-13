@@ -72,3 +72,11 @@ it("loads, synchronizes and updates current-hand display even without storage", 
   render().update({ showCurrentHand: false });
   expect(render().preferences.showCurrentHand).toBe(false);
 });
+
+it("guards storage object access in the storage-event handler", () => {
+  const area = win.localStorage;
+  render(); render().update({ turnSound: true });
+  Object.defineProperty(win, "localStorage", { get() { throw Error(); } });
+  expect(() => win.dispatchEvent(Object.assign(new Event("storage"), { key: settingsStorageKey, newValue: null, storageArea: area }))).not.toThrow();
+  expect(render().preferences.turnSound).toBe(true);
+});

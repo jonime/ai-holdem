@@ -218,6 +218,22 @@ revalidation window; host/seated exclusions remain uncached and request-specific
 
 ## Action-feed synchronization
 
+Optional browser preferences never gate rendering or server mutations.
+`lib/browser/player-name.ts` shares hydration-safe name reads, guarded writes,
+in-memory snapshots and same-tab/cross-tab subscriptions between Play and the game.
+Its cache exists only for browser windows; server snapshots are always empty.
+Failed writes retain the latest memory value instead of rereading stale storage.
+Game drafts remain separate from the preference and server-owned seat names.
+Claims save before the request; renames save only after success.
+`useActionsPreference` starts with the same server/client render and loads storage
+and the responsive default after hydration, without replacing an early user action.
+It persists booleans best-effort outside rendering and state updater callbacks;
+it adds no resize or cross-tab synchronization. Settings storage-event filtering
+also guards access to the storage object. The browser Broadcast client uses the
+already lockfile-installed `@supabase/realtime-js` transport with the same public
+key and WebSocket endpoint, avoiding Auth's module-level storage debug read. Identity cookies and duplicate-safe
+creation session-storage recovery retain their separate safety behavior.
+
 Actions is the player-facing timeline on desktop and in the mobile sheet. The
 browser initially loads the latest 50 hands, then requests `/feed?sinceHand=N`
 from the last cached hand, inclusive. It replaces that hand and any newer hands,

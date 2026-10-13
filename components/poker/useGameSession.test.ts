@@ -6,7 +6,7 @@ import { TransportError } from "@/lib/http/api";
 
 // Minimal hook driver: preserve hook slots across renders and execute only session
 // ownership effects. Network operations and lifecycle callbacks remain explicit.
-const h = vi.hoisted(() => ({ slots: [] as unknown[], index: 0, passive: [] as (() => void | (() => void))[], effects: [] as (() => void | (() => void))[], cleanups: [] as (() => void)[], push: vi.fn(), read: vi.fn(), settings: vi.fn(), start: vi.fn(), action: vi.fn(), release: vi.fn(), suspend: vi.fn() }));
+const h = vi.hoisted(() => ({ slots: [] as unknown[], index: 0, passive: [] as (() => void | (() => void))[], effects: [] as (() => void | (() => void))[], cleanups: [] as (() => void)[], push: vi.fn(), read: vi.fn(), settings: vi.fn(), start: vi.fn(), action: vi.fn(), release: vi.fn(), claim: vi.fn(), rename: vi.fn(), suspend: vi.fn() }));
 vi.mock("react", () => ({
   useState: (initial: unknown) => { const i = h.index++; if (!(i in h.slots)) h.slots[i] = typeof initial === "function" ? initial() : initial; return [h.slots[i], (value: unknown) => { h.slots[i] = value; }]; },
   useRef: (initial: unknown) => { const i = h.index++; if (!(i in h.slots)) h.slots[i] = { current: initial }; return h.slots[i]; },
@@ -22,7 +22,7 @@ vi.mock("@/lib/realtime/useGameChannel", () => ({ useGameChannel: () => "subscri
 vi.mock("@/lib/identity/player-token-client", () => ({ getClientPlayerToken: () => "owner" }));
 vi.mock("@/lib/http/api", async importOriginal => ({ ...await importOriginal<object>(), api: {
   games: { get: h.read, settings: h.settings, start: h.start, submitAction: h.action },
-  seats: { release: h.release },
+  seats: { release: h.release, claim: h.claim, rename: h.rename },
 } }));
 import { useGameSession } from "./useGameSession";
 function render(id = gameplayGame.id) { h.index = 0; h.effects = []; h.passive = []; return useGameSession(id); }
@@ -177,4 +177,25 @@ it("a read deadline keeps the loaded table and exposes a refresh failure", async
   h.read.mockRejectedValueOnce(new DOMException("Timed out", "AbortError"));
   await expect(session.loadGame(gameplayGame.id)).rejects.toThrow();
   expect(render()).toMatchObject({ game: gameplayGame, connectionNotice: "refreshFailed", refreshing: false });
+});
+
+it.each(["access", "write"])("successful claims and renames stay successful after storage %s failure", async failure => {
+  const session = await fixture();
+  if (failure === "access") Object.defineProperty(window, "localStorage", { get() { throw Error(); } });
+  else vi.mocked(window.localStorage.setItem).mockImplementation(() => { throw Error("quota"); });
+  h.claim.mockResolvedValue({}); h.rename.mockResolvedValue({});
+  expect(await session.claimSeatAt(0, " Ada ")).toBe(true);
+  expect(h.claim.mock.calls[0][0].name).toBe("Ada");
+  expect(await render().updatePlayerName(0, "Grace")).toBe(true);
+  expect(render().error).toBeFalsy();
+});
+it("failed name requests preserve their errors and rename does not save", async () => {
+  const { readPlayerName } = await import("@/lib/browser/player-name");
+  const session = await fixture();
+  h.claim.mockRejectedValueOnce(new Error("Claim rejected"));
+  expect(await session.claimSeatAt(0, "Claim preference")).toBe(false);
+  expect(readPlayerName()).toBe("Claim preference"); expect(render().error).toBe("Claim rejected");
+  h.rename.mockRejectedValueOnce(new Error("Rename rejected"));
+  expect(await render().updatePlayerName(0, "Rejected")).toBe(false);
+  expect(readPlayerName()).toBe("Claim preference"); expect(render().error).toBe("Rename rejected");
 });
