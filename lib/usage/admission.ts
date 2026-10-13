@@ -1,3 +1,4 @@
+import type { RpcArgs, RpcName } from "@/lib/supabase/contracts";
 import "server-only";
 import { z } from "zod";
 import { usagePolicy } from "./policy";
@@ -7,14 +8,14 @@ import { BotStepClaimLostError } from "@/lib/poker/bot-step-claims";
 import { GameConflictError } from "@/lib/supabase/queries";
 
 export interface UsageClient {
-  rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: unknown }>;
+  rpc<N extends RpcName>(name: N, args: NoInfer<RpcArgs<N>>): PromiseLike<{ data: unknown; error: unknown }>;
 }
 const resultSchema = z.discriminatedUnion("outcome", [
   z.object({ outcome: z.literal("admitted") }),
   z.object({ outcome: z.literal("denied"), code: z.enum(["OWNER_AI_LIMIT", "GAME_AI_RATE_LIMIT", "GAME_CREATION_LIMIT"]), retryAfterMs: z.number().int().min(1).max(3_600_000) }),
   z.object({ outcome: z.enum(["claim_lost", "conflict"]) }),
 ]);
-async function admit(client: UsageClient, name: string, args: Record<string, unknown>) {
+async function admit<N extends "admit_game_creation" | "admit_external_bot_call">(client: UsageClient, name: N, args: NoInfer<RpcArgs<N>>) {
   let response;
   try { response = await client.rpc(name, args); } catch { throw new UsageUnavailableError(); }
   if (response.error) {

@@ -1,3 +1,6 @@
+import type { RpcArgs, TimerOperation, CreationAttempt, CreationPlayer } from "./contracts";
+import { toJson, toRequiredJson } from "./contracts";
+import type { Database, TablesUpdate } from "./database.generated";
 import { TurnTimerError } from "@/lib/poker/turn-timer";
 import { turnTimerSchema, humanTurnSecondsSchema } from "@/lib/http/schemas";
 import { CreationAttemptError } from "@/lib/poker/creation-attempt-errors";
@@ -65,7 +68,7 @@ export interface UpdateTableSettingsInput extends UpdateSeatCountInput {
   readonly smallBlind: number;
   readonly bigBlind: number;
   readonly startingStack: number;
-  readonly botsShowUncontestedWins?: boolean;
+  readonly botsShowUncontestedWins: boolean;
 }
 
 export interface PersistHumanActionInput extends CompareAndSwapGameInput {
@@ -170,72 +173,29 @@ interface MaybeSingleQueryResult extends DatabaseResult {
   readonly error: { readonly message: string } | null;
 }
 
-export interface FilteredQueryResult extends PromiseLike<DatabaseResult> {
-  eq(column: string, value: string | number): FilteredQueryResult;
+export type TableName = "games" | "game_players" | "game_hosts" | "game_listings" | "hand_card_reveals";
+export type TableInsert<T extends TableName> = Database["public"]["Tables"][T] extends { Insert: unknown } ? Database["public"]["Tables"][T]["Insert"] : never;
+export type TableUpdate<T extends TableName> = Database["public"]["Tables"][T] extends { Update: unknown } ? Database["public"]["Tables"][T]["Update"] : never;
+export type Row<T extends TableName> = Database["public"]["Tables"][T]["Row"];
+export interface FilteredQueryResult<T extends TableName = TableName> extends PromiseLike<DatabaseResult> {
+  eq<K extends keyof Row<T> & string>(column: K, value: Row<T>[K]): FilteredQueryResult<T>;
   maybeSingle(): PromiseLike<MaybeSingleQueryResult>;
 }
-
 export interface GameDatabaseClient {
-  from(table: "games" | "game_players" | "game_hosts" | "game_listings" | "hand_card_reveals"): {
-    insert(values: Record<string, unknown>): {
-      select(): {
-        single(): PromiseLike<DatabaseResult>;
-      };
+  from<T extends TableName>(table: T): {
+    insert(values: TableInsert<T>): {
+      select(): { single(): PromiseLike<DatabaseResult> };
     };
     select(columns?: string): {
-      eq(column: string, value: string | number): FilteredQueryResult;
+      eq<K extends keyof Row<T> & string>(column: K, value: Row<T>[K]): FilteredQueryResult<T>;
     };
-    update(values: Record<string, unknown>): {
-      eq(
-        column: string,
-        value: string | number,
-      ): {
-        eq(
-          column: string,
-          value: string | number,
-        ): {
-          select(): {
-            single(): PromiseLike<DatabaseResult>;
-          };
-        };
+    update(values: TableUpdate<T>): {
+      eq<K extends keyof Row<T> & string>(column: K, value: Row<T>[K]): {
+        eq<K2 extends keyof Row<T> & string>(column: K2, value: Row<T>[K2]): { select(): { single(): PromiseLike<DatabaseResult> } };
       };
     };
   };
-  rpc(
-    functionName:
-      | "commit_with_turn_timer"
-      | "advance_departure_if_version"
-      | "apply_human_action_if_version"
-      | "acquire_bot_step_claim"
-      | "release_bot_step_claim"
-      | "commit_bot_action_with_claim"
-      | "commit_bot_departure_with_claim"
-      | "apply_ai_action_if_version"
-      | "apply_ai_action_and_leave_if_version"
-      | "create_game_session"
-      | "create_game_with_attempt"
-      | "get_game_read_snapshot"
-      | "get_bot_hand_context"
-      | "get_game_feed"
-      | "get_game_feed_since"
-      | "start_next_hand_if_version"
-      | "start_game_if_version"
-      | "update_game_state_if_version"
-      | "update_seat_count_if_version"
-      | "update_table_settings_if_version"
-      | "reveal_human_cards_if_version"
-      | "remove_game_if_version"
-      | "list_my_games"
-      | "list_public_games"
-      | "list_public_game_exclusions"
-      | "set_game_publication_if_version"
-      | "renew_game_listing_lease"
-      | "join_public_game_if_version"
-      | "claim_game_seat_if_version"
-      | "assign_bot_to_seat_if_version"
-      | "release_game_seat_if_version" | "depart_game_seat_if_version",
-    arguments_: Record<string, unknown>,
-  ): PromiseLike<DatabaseResult>;
+  rpc<N extends import("./contracts").RpcName>(name: N, args: NoInfer<RpcArgs<N>>): PromiseLike<DatabaseResult>;
 }
 
 export class GameConflictError extends Error {
@@ -520,12 +480,11 @@ function toGameListing(data: unknown): GameListing {
 }
 
 export class SupabaseGameRepository {
-  constructor(private readonly client: GameDatabaseClient, private readonly creationAttempt?: Record<string, unknown>) {}
+  constructor(private readonly client: GameDatabaseClient, private readonly creationAttempt?: CreationAttempt) {}
 
-  private async timerRpc(operation: Parameters<GameDatabaseClient["rpc"]>[0], args: Record<string, unknown>,
-    timeout?: { decisionId: string; driverToken: string }): Promise<DatabaseResult> {
-    const fold = isRecord(args.p_fold) ? args.p_fold : null;
-    const raw = args.p_current_state ?? fold?.currentState;
+  private async timerRpc(...[operation, args, timeout]: { [N in TimerOperation]: [operation: N, args: RpcArgs<N>, timeout?: { decisionId: string; driverToken: string }] }[TimerOperation]): Promise<DatabaseResult> {
+    const fold = "p_fold" in args ? args.p_fold : null;
+    const raw = "p_current_state" in args ? args.p_current_state : fold?.currentState;
     const configured = isRecord(raw) && isRecord(raw.config) && raw.config.humanTurnSeconds != null;
     const state = configured ? pokerEngineAdapter.restore(raw as unknown as import("@/lib/poker/types").PokerGameState) : null;
     const transition = state ? pokerEngineAdapter.timerTransition(state) : null;
@@ -551,10 +510,29 @@ export class SupabaseGameRepository {
     if (!timeout && !state && !["reveal_human_cards_if_version", "set_game_publication_if_version"].includes(operation)) {
       return this.client.rpc(operation, args);
     }
-    const result = await this.client.rpc("commit_with_turn_timer", {
-      p_operation: operation, p_arguments: args, p_transition: transition,
-      p_decision_id: timeout?.decisionId ?? null, p_driver_token: timeout?.driverToken ?? null,
-    });
+    const timer = { p_transition: transition, p_decision_id: timeout?.decisionId ?? null,
+      p_driver_token: timeout?.driverToken ?? null };
+    // Narrow the discriminated operation/payload pair before building the JSON envelope.
+    const commit = () => {
+      switch (operation) {
+        case "create_game_session": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "start_game_if_version": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "start_next_hand_if_version": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "update_table_settings_if_version": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "update_seat_count_if_version": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "apply_human_action_if_version": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "apply_ai_action_if_version": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "apply_ai_action_and_leave_if_version": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "commit_bot_action_with_claim": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "commit_bot_departure_with_claim": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "advance_departure_if_version": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "depart_game_seat_if_version": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "remove_game_if_version": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "reveal_human_cards_if_version": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+        case "set_game_publication_if_version": return this.client.rpc("commit_with_turn_timer", { ...timer, p_operation: operation, p_arguments: args });
+      }
+    };
+    const result = await commit();
     if (result.error?.message === "TURN_FORBIDDEN") throw new TurnTimerError("TURN_FORBIDDEN");
     if (isRecord(result.data) && result.data.timerError === "TURN_NOT_EXPIRED") {
       throw new TurnTimerError("TURN_NOT_EXPIRED", z.number().int().min(1).max(90_000).parse(result.data.retryAfterMs));
@@ -652,7 +630,7 @@ export class SupabaseGameRepository {
     readonly leaving?: boolean;
     readonly enginePlayerId?: string | null;
   }): Promise<void> {
-    const values: Record<string, unknown> = { status: input.status };
+    const values: TablesUpdate<"game_players"> = { status: input.status };
     if (input.name !== undefined) values.name = input.name;
     if (input.controller !== undefined) {
       values.controller =
@@ -691,14 +669,13 @@ export class SupabaseGameRepository {
     }
   }
 
-  private async atomicSeatResult(
-    functionName: "claim_game_seat_if_version" | "assign_bot_to_seat_if_version" | "release_game_seat_if_version" | "depart_game_seat_if_version",
-    arguments_: Record<string, unknown>,
-    gameId: string,
-    expectedVersion: number,
-    seat: number,
-  ): Promise<GamePlayerSeatAssignment> {
-    const { data, error } = await this.timerRpc(functionName, arguments_);
+  private async atomicSeatResult(...[functionName, arguments_, gameId, expectedVersion, seat]: {
+    [N in "claim_game_seat_if_version" | "assign_bot_to_seat_if_version" | "depart_game_seat_if_version"]:
+      [name: N, args: RpcArgs<N>, gameId: string, expectedVersion: number, seat: number]
+  }["claim_game_seat_if_version" | "assign_bot_to_seat_if_version" | "depart_game_seat_if_version"]): Promise<GamePlayerSeatAssignment> {
+    const { data, error } = await (functionName === "depart_game_seat_if_version"
+      ? this.timerRpc(functionName, arguments_)
+      : this.client.rpc(functionName, arguments_));
     if (error) throw new Error(`Unable to update seat assignment: ${error.message}`);
     if (!isRecord(data) || typeof data.outcome !== "string") throw new Error("Supabase returned an invalid seat mutation result");
     if (data.outcome === "conflict") throw new GameConflictError(gameId, expectedVersion);
@@ -731,7 +708,7 @@ export class SupabaseGameRepository {
   async releaseSeatIfVersion(input: Parameters<AtomicSeatAssignmentRepository["releaseSeatIfVersion"]>[0]) {
     return this.atomicSeatResult("depart_game_seat_if_version", {
       p_game_id: input.gameId, p_expected_version: input.expectedVersion,
-      p_seat: input.seat, p_player_token: input.playerToken, p_fold: input.fold ?? null,
+      p_seat: input.seat, p_player_token: input.playerToken, p_fold: input.fold ? { ...input.fold, currentState: toJson(input.fold.currentState), stateBefore: toJson(input.fold.stateBefore) } : null,
     }, input.gameId, input.expectedVersion, input.seat);
   }
 
@@ -739,7 +716,7 @@ export class SupabaseGameRepository {
     const { data, error } = await this.client
       .from("games")
       .insert({
-        current_state: input.currentState,
+        current_state: toRequiredJson(input.currentState),
         state_schema_version: input.stateSchemaVersion,
         hand_number: input.handNumber,
         status: input.status,
@@ -758,13 +735,13 @@ export class SupabaseGameRepository {
     input: CreateGameSessionInput,
   ): Promise<PersistedGame> {
     const { data, error } = await this.timerRpc("create_game_session", {
-      p_current_state: input.currentState,
+      p_current_state: toJson(input.currentState),
       p_state_schema_version: input.stateSchemaVersion,
       p_hand_number: input.handNumber,
       p_status: input.status,
       p_host_token: input.hostToken ?? null,
       p_players: input.players.map((player) => {
-        const row: Record<string, unknown> = {
+        const row: CreationPlayer = {
           engine_player_id: player.enginePlayerId,
           seat: player.seat,
           name: player.name,
@@ -863,7 +840,7 @@ export class SupabaseGameRepository {
   async removeGameIfVersion(input: import("@/lib/poker/table-removal").RemovalInput & { fold?: import("@/lib/poker/departure-contracts").DepartureFold }): Promise<unknown> {
     const { data, error } = await this.timerRpc("remove_game_if_version", {
       p_game_id: input.gameId, p_expected_version: input.expectedVersion,
-      p_player_token: input.playerToken, p_operation: input.operation, p_fold: input.fold ?? null,
+      p_player_token: input.playerToken, p_operation: input.operation, p_fold: input.fold ? { ...input.fold, currentState: toJson(input.fold.currentState), stateBefore: toJson(input.fold.stateBefore) } : null,
     });
     if (error) throw new Error("Unable to remove table");
     return data;
@@ -1024,7 +1001,7 @@ export class SupabaseGameRepository {
       {
         p_game_id: input.gameId,
         p_expected_version: input.expectedVersion,
-        p_current_state: input.currentState,
+        p_current_state: toJson(input.currentState),
         p_status: input.status,
         p_hand_number: input.handNumber,
         p_state_schema_version: input.stateSchemaVersion,
@@ -1048,7 +1025,7 @@ export class SupabaseGameRepository {
       {
         p_game_id: input.gameId,
         p_expected_version: input.expectedVersion,
-        p_current_state: input.currentState,
+        p_current_state: toJson(input.currentState),
         p_hand_number: input.handNumber,
         p_state_schema_version: input.stateSchemaVersion,
       },
@@ -1069,7 +1046,7 @@ export class SupabaseGameRepository {
     const { data, error } = await this.timerRpc("start_game_if_version", {
       p_game_id: input.gameId,
       p_expected_version: input.expectedVersion,
-      p_current_state: input.currentState,
+      p_current_state: toJson(input.currentState),
       p_hand_number: input.handNumber,
       p_state_schema_version: input.stateSchemaVersion,
     });
@@ -1090,7 +1067,7 @@ export class SupabaseGameRepository {
         p_game_id: input.gameId,
         p_expected_version: input.expectedVersion,
         p_seat_count: input.seatCount,
-        p_current_state: input.currentState,
+        p_current_state: toJson(input.currentState),
         p_state_schema_version: input.stateSchemaVersion,
       },
     );
@@ -1117,7 +1094,7 @@ export class SupabaseGameRepository {
         p_big_blind: input.bigBlind,
         p_starting_stack: input.startingStack,
         p_bots_show_uncontested_wins: input.botsShowUncontestedWins,
-        p_current_state: input.currentState,
+        p_current_state: toJson(input.currentState),
         p_state_schema_version: input.stateSchemaVersion,
       },
     );
@@ -1142,15 +1119,15 @@ export class SupabaseGameRepository {
         p_game_id: input.gameId,
         p_expected_version: input.expectedVersion,
         p_player_engine_id: input.playerEngineId,
-        p_current_state: input.currentState,
+        p_current_state: toJson(input.currentState),
         p_status: input.status,
         p_hand_number: input.handNumber,
         p_state_schema_version: input.stateSchemaVersion,
         p_street: input.street,
         p_action: input.action,
         p_amount: input.amount,
-        p_state_before: input.stateBefore,
-        p_state_after: input.currentState,
+        p_state_before: toJson(input.stateBefore),
+        p_state_after: toJson(input.currentState),
         p_hand_complete: input.handComplete,
         p_auto_reveal_player_engine_id: input.autoRevealPlayerEngineId ?? null,
         p_auto_reveal_reason: input.autoRevealReason ?? null,
@@ -1169,9 +1146,10 @@ export class SupabaseGameRepository {
   }
 
   async advanceDepartureIfVersion(input: PersistHumanActionInput & { readonly driverToken: string }): Promise<PersistedGame> {
+    if (input.action !== "fold" || input.amount !== null || (input.status !== "playing" && input.status !== "complete")) throw new Error("Invalid departure fold");
     const { data, error } = await this.timerRpc("advance_departure_if_version", {
       p_game_id: input.gameId, p_expected_version: input.expectedVersion,
-      p_driver_token: input.driverToken, p_fold: input,
+      p_driver_token: input.driverToken, p_fold: { ...input, action: input.action, amount: input.amount, status: input.status, currentState: toJson(input.currentState), stateBefore: toJson(input.stateBefore) },
     });
     if (error) throw new Error("Unable to advance departure");
     if (!Array.isArray(data) || data.length === 0) throw new GameConflictError(input.gameId, input.expectedVersion);
@@ -1207,38 +1185,30 @@ export class SupabaseGameRepository {
 
   async persistClaimedAIAction(input: PersistAIActionInput & { claimToken: string }): Promise<PersistedGame> {
     const claimToken = z.uuid().parse(input.claimToken);
-    return this.writeAIAction(input,
-      input.leaveSeat ? "commit_bot_departure_with_claim" : "commit_bot_action_with_claim",
-      { p_claim_token: claimToken });
+    return this.writeAIAction(input, claimToken);
   }
 
   async persistAIAction(input: PersistAIActionInput): Promise<PersistedGame> {
-    return this.writeAIAction(input,
-      input.leaveSeat ? "apply_ai_action_and_leave_if_version" : "apply_ai_action_if_version", {});
+    return this.writeAIAction(input);
   }
 
   private async writeAIAction(
     input: PersistAIActionInput,
-    functionName: "commit_bot_departure_with_claim" | "commit_bot_action_with_claim" |
-      "apply_ai_action_and_leave_if_version" | "apply_ai_action_if_version",
-    claimArguments: { p_claim_token: string } | Record<string, never>,
+    claimToken?: string,
   ): Promise<PersistedGame> {
-    const { data, error } = await this.timerRpc(
-      functionName,
-      {
-        ...claimArguments,
+    const args = {
         p_game_id: input.gameId,
         p_expected_version: input.expectedVersion,
         p_player_engine_id: input.playerEngineId,
-        p_current_state: input.currentState,
+        p_current_state: toJson(input.currentState),
         p_status: input.status,
         p_hand_number: input.handNumber,
         p_state_schema_version: input.stateSchemaVersion,
         p_street: input.street,
         p_action: input.action,
         p_amount: input.amount,
-        p_state_before: input.stateBefore,
-        p_state_after: input.currentState,
+        p_state_before: toJson(input.stateBefore),
+        p_state_after: toJson(input.currentState),
         p_hand_complete: input.handComplete,
         // Ignored legacy RPC parameters preserve compatibility during rollout.
         p_ai_state: null,
@@ -1260,8 +1230,11 @@ export class SupabaseGameRepository {
         p_cost: null,
         p_auto_reveal_player_engine_id: input.autoRevealPlayerEngineId ?? null,
         p_auto_reveal_reason: input.autoRevealReason ?? null,
-      },
-    );
+      };
+    const result = claimToken !== undefined
+      ? await this.timerRpc(input.leaveSeat ? "commit_bot_departure_with_claim" : "commit_bot_action_with_claim", { ...args, p_claim_token: claimToken })
+      : await this.timerRpc(input.leaveSeat ? "apply_ai_action_and_leave_if_version" : "apply_ai_action_if_version", args);
+    const { data, error } = result;
 
     if (error) {
       if (error.message === "BOT_STEP_CLAIM_LOST") throw new BotStepClaimLostError();

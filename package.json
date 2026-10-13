@@ -40,7 +40,9 @@
     "test:e2e:ui": "node scripts/e2e/production.mjs ui",
     "test:e2e:webkit": "node scripts/e2e/production.mjs webkit",
     "test:e2e:ci": "node scripts/e2e/production.mjs ci",
-    "test:sql:creation": "node scripts/local-creation-attempts.mjs"
+    "test:sql:creation": "node scripts/local-creation-attempts.mjs",
+    "db:types:generate": "node scripts/database-types.mjs generate",
+    "db:types:check": "node scripts/database-types.mjs check"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",

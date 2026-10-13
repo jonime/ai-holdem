@@ -18,6 +18,34 @@ Each request applies at most one player action. Supabase RPCs atomically store
 the resulting engine state and action record while enforcing the expected
 game version. Bot decision inspection data is not stored.
 
+## Database contracts
+
+`lib/supabase/database.generated.ts` is the unchanged Supabase CLI 2.119.0 output
+for the fully migrated local `public` schema. Server clients use a database type
+derived from it; the browser Realtime client keeps its existing boundary.
+`GameDatabaseClient` carries generated RPC name/argument relationships and table
+insert/update/filter types through the repository and focused test doubles.
+Usage admission shares those generated function arguments. Response data remains
+`unknown` at the testable repository boundary so malformed database responses
+continue to be parsed and rejected.
+
+The server-only `lib/supabase/contracts.ts` refines SQL-supported nullable function
+inputs that the generator cannot express, and structured JSON payloads. Timer
+commits discriminate the SQL wrapper's allowed operation names and corresponding
+RPC arguments. Duplicate-safe creation binds admission metadata and nested
+`create_game_session` arguments; creation players derive from table columns,
+timer transitions from adapter facts, and departure folds from the existing
+domain contract. Unknown persisted state crosses JSON inputs through checked
+serialization using the same JSON semantics as Supabase, including omitted
+undefined object fields. Generated `Json` and these compile-time contracts do
+not validate poker state or result envelopes; runtime parsing, engine validation,
+SQL permissions, ownership/privacy filtering and version checks remain required.
+
+The integration job compares freshly generated local types after migrations and
+before SQL tests. The fast job compiles committed types without Docker. See
+[the contributor workflow](../CONTRIBUTING.md#database-contracts) for regeneration
+and prerequisites.
+
 ## Poker service boundaries
 
 `lib/poker/bot-turn-service.ts` owns bot authorization, claims, history/context

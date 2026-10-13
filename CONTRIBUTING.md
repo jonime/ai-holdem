@@ -45,6 +45,35 @@ external inference and a TypeSafe API key, performs one paid request per bot
 turn, and is not part of CI. See the [benchmark guide](benchmarks/README.md)
 for methodology and policy details.
 
+## Database contracts
+
+Use Node 24+, Docker, and Supabase CLI **2.119.0** on `PATH`. Start the local
+stack and apply every committed migration in filename order using the existing
+local migration workflow. After a schema change:
+
+```sh
+npm run db:types:generate
+npm run db:types:check
+npm run check
+```
+
+Commit `lib/supabase/database.generated.ts` exactly as generated. The commands
+check the CLI version and applied local migration versions, then generate only
+the local `public` schema. They never load application environment files, pass
+hosted credentials, reset databases, or apply migrations. Generation replaces
+the file atomically after success; checking compares temporary output and never
+changes the committed file. Missing CLI/Docker/local stack, unapplied migrations,
+and stale types fail the command. Install the pinned CLI before retrying; the
+commands do not install it automatically.
+
+Keep SQL nullability and structured JSON refinements in the server-only
+`lib/supabase/contracts.ts`, separate from HTTP DTOs. Generated signatures check
+RPC names/arguments and table writes/filters; JSON contracts bind timer operations,
+creation metadata/players and departure folds. Continue runtime validation of
+responses and poker state. `contracts.typecheck.ts` uses `@ts-expect-error` cases
+so accepting an invalid call fails the ordinary Docker-free typecheck. Tooling
+and repository tests also preserve malformed-response coverage.
+
 ## Local Supabase E2E
 
 Start the local Supabase stack with `supabase start`, then run:
@@ -81,13 +110,14 @@ a 1.66 GiB archive and 96 seconds loading it, while avoiding only about 47 secon
 of startup work. See the [cached run](https://github.com/jonime/ai-holdem/actions/runs/37427550384)
 and [earlier uncached run](https://github.com/jonime/ai-holdem/actions/runs/37422679102).
 The npm download cache remains enabled. Every run starts a fresh disposable
-stack, applies all migrations, and checks health; containers, volumes, and
+stack, applies all migrations, checks health, and runs `db:types:check` before SQL tests; containers, volumes, and
 database state are never cached.
 
 For local production verification, start Supabase and apply all committed
 migrations, then run these commands in order:
 
 ```sh
+npm run db:types:check
 npm run test:sql:game-reads
 npm run test:sql:creation
 npm run test:sql:my-games

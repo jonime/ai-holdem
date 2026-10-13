@@ -1,3 +1,5 @@
+import { pokerEngineAdapter, createDeterministicDeck } from "@/lib/poker/adapter";
+import type { DepartureFold } from "@/lib/poker/departure-contracts";
 import { BotStepClaimLostError } from "@/lib/poker/bot-step-claims";
 import { describe, expect, it, vi } from "vitest";
 
@@ -8,6 +10,8 @@ import {
   type PersistAIActionInput,
   SupabaseGameRepository,
 } from "./queries";
+
+const creationAttempt = { p_attempt_id: "attempt", p_fingerprint: "fingerprint", p_ip_allowance: 1, p_ip_hash: "ip", p_owner: "owner", p_owner_allowance: 1, p_owner_hash: "hash", p_window_ms: 1000 };
 
 const persistedGame = {
   id: "game-1",
@@ -440,6 +444,7 @@ describe("SupabaseGameRepository", () => {
       smallBlind: 25,
       bigBlind: 50,
       startingStack: 5_000,
+      botsShowUncontestedWins: false,
       currentState: { configured: true },
       stateSchemaVersion: 1,
     });
@@ -451,6 +456,7 @@ describe("SupabaseGameRepository", () => {
       p_small_blind: 25,
       p_big_blind: 50,
       p_starting_stack: 5_000,
+      p_bots_show_uncontested_wins: false,
       p_current_state: { configured: true },
       p_state_schema_version: 1,
     });
@@ -774,7 +780,7 @@ describe("atomic creation attempt persistence", () => {
   const input = { currentState: {}, stateSchemaVersion: 1, handNumber: 0, status: "waiting" as const, hostToken: "owner", players: [] };
   it("uses one transaction RPC and decodes the existing game", async () => {
     const { client, rpc } = createClient({ updateResult: { outcome: "created", games: [persistedGame] } });
-    const repository = new SupabaseGameRepository(client, { p_attempt_id: "attempt" });
+    const repository = new SupabaseGameRepository(client, creationAttempt);
     const result = await repository.createGameSession(input);
     expect(result.id).toBe(persistedGame.id);
     expect(rpc).toHaveBeenCalledExactlyOnceWith("create_game_with_attempt", expect.objectContaining({ p_attempt_id: "attempt", p_arguments: expect.objectContaining({ p_host_token: "owner" }), p_transition: null }));
@@ -785,7 +791,59 @@ describe("atomic creation attempt persistence", () => {
     [{ outcome: "denied", code: "GAME_CREATION_LIMIT", retryAfterMs: 1000 }, "GAME_CREATION_LIMIT"],
   ])("surfaces structured failures without falling back to legacy creation", async (data, code) => {
     const { client, rpc } = createClient({ updateResult: data });
-    await expect(new SupabaseGameRepository(client, {}).createGameSession(input)).rejects.toMatchObject({ code });
+    await expect(new SupabaseGameRepository(client, creationAttempt).createGameSession(input)).rejects.toMatchObject({ code });
     expect(rpc).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("structured timer and departure persistence", () => {
+  function scenario(humanTurnSeconds: 60 | null) {
+    const state = pokerEngineAdapter.startHand(pokerEngineAdapter.createGame({
+      smallBlind: 50, bigBlind: 100, humanTurnSeconds,
+      players: [0, 1].map(seat => ({ id: `human-${seat}`, seat, name: `Human ${seat}`, controller: "human", stack: 1000 })),
+    }), createDeterministicDeck());
+    const actor = pokerEngineAdapter.snapshot(state).currentActorId!;
+    const after = pokerEngineAdapter.applyAction(state, actor, { type: "fold" });
+    const fold: DepartureFold = {
+      gameId: "game-1", expectedVersion: 4, playerEngineId: actor,
+      currentState: after, stateBefore: state, stateSchemaVersion: 1, handNumber: 1,
+      status: "complete", street: "preflop", action: "fold", amount: null, handComplete: true,
+    };
+    return { state, fold };
+  }
+  it.each([null, 60] as const)("preserves human and claimed bot payloads with timer %s", async seconds => {
+    const { fold } = scenario(seconds); const { client, rpc } = createClient({}); const repo = new SupabaseGameRepository(client);
+    await repo.persistHumanAction(fold);
+    const call = rpc.mock.calls[0];
+    expect(call[0]).toBe(seconds === null ? "apply_human_action_if_version" : "commit_with_turn_timer");
+    expect(seconds === null ? call[1] : call[1].p_arguments).toMatchObject({ p_action: "fold", p_amount: null, p_current_state: fold.currentState, p_state_before: fold.stateBefore });
+    if (seconds !== null) expect(call[1]).toMatchObject({ p_operation: "apply_human_action_if_version", p_transition: { handNumber: 1, multiplayer: true, actorEngineId: null } });
+    rpc.mockClear();
+    await repo.persistClaimedAIAction({ ...fold, choice: "fold", claimToken: "d06c1650-b45f-4ead-8ab9-65de9d402b17", leaveSeat: true });
+    const botCall = rpc.mock.calls[0];
+    expect(botCall[0]).toBe(seconds === null ? "commit_bot_departure_with_claim" : "commit_with_turn_timer");
+    expect(seconds === null ? botCall[1] : botCall[1].p_arguments).toMatchObject({ p_claim_token: "d06c1650-b45f-4ead-8ab9-65de9d402b17", p_raw_response: null, p_ai_state: null });
+  });
+  it.each([null, 60] as const)("preserves departure and seat-release folds with timer %s", async seconds => {
+    const { fold } = scenario(seconds); const { client, rpc } = createClient({}); const repo = new SupabaseGameRepository(client);
+    await repo.advanceDepartureIfVersion({ ...fold, driverToken: "driver" });
+    const call = rpc.mock.calls[0];
+    expect(call[0]).toBe(seconds === null ? "advance_departure_if_version" : "commit_with_turn_timer");
+    expect(seconds === null ? call[1].p_fold : call[1].p_arguments.p_fold).toEqual({ ...fold, driverToken: "driver" });
+    rpc.mockResolvedValue({ data: { outcome: "ok", seat: { game_id: "game-1", seat: 0, name: "Human", status: "claimed", controller: "human", player_token: "owner", is_host: false, leaving: true, engine_player_id: "human-0" }, version: 5 }, error: null });
+    rpc.mockClear();
+    await repo.releaseSeatIfVersion({ gameId: "game-1", expectedVersion: 4, seat: 0, playerToken: "owner", fold });
+    const release = rpc.mock.calls[0];
+    expect(release[0]).toBe(seconds === null ? "depart_game_seat_if_version" : "commit_with_turn_timer");
+    expect(seconds === null ? release[1].p_fold : release[1].p_arguments.p_fold).toEqual(fold);
+  });
+  it.each([null, 60] as const)("binds creation retries to the same metadata and nested arguments with timer %s", async seconds => {
+    const { state } = scenario(seconds); const { client, rpc } = createClient({});
+    rpc.mockResolvedValue({ data: { outcome: "created", games: [persistedGame] }, error: null });
+    const repo = new SupabaseGameRepository(client, creationAttempt);
+    const input = { currentState: state, status: "playing" as const, stateSchemaVersion: 1, handNumber: 1, hostToken: "owner", players: [{ enginePlayerId: "human-0", seat: 0, name: "Human", controller: "human" as const, stack: 1000, playerToken: "owner" }] };
+    await repo.createGameSession(input); await repo.createGameSession(input);
+    expect(rpc.mock.calls[0]).toEqual(rpc.mock.calls[1]);
+    expect(rpc.mock.calls[0]).toEqual(["create_game_with_attempt", { ...creationAttempt, p_arguments: { p_current_state: state, p_status: "playing", p_state_schema_version: 1, p_hand_number: 1, p_host_token: "owner", p_players: [{ engine_player_id: "human-0", seat: 0, name: "Human", controller: "human", stack: 1000, player_token: "owner" }] }, p_transition: seconds === null ? null : pokerEngineAdapter.timerTransition(state) }]);
   });
 });

@@ -79,7 +79,7 @@ images are pulled normally during startup; do not cache Docker image archives,
 containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
-disposable database, then runs `test:sql:game-reads`, `test:sql:creation`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
+disposable database, then runs `db:types:check` before `test:sql:game-reads`, `test:sql:creation`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
 `test:sql:departures`, `test:sql:turn-timers`, `test:sql:bot-claims`, `test:sql:usage`, and `test:e2e:ci` in order. Startup/migration errors fail the job; never ignore
 health checks. Preserve workflow cancellation for superseded commits.
 
@@ -112,6 +112,14 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
 
 ## Architecture Rules
 
+- Keep `lib/supabase/database.generated.ts` unchanged from pinned CLI 2.119.0
+  generation against the fully migrated local public schema. After schema changes,
+  apply migrations locally, run `db:types:generate`, then `db:types:check` and
+  `check`. Type commands never load application environment files, use hosted
+  credentials, reset databases, or migrate automatically. Keep server-only JSON
+  and SQL-nullability refinements in `lib/supabase/contracts.ts`; generated types
+  never replace runtime response/state validation. Preserve typed RPC argument
+  relationships and table writes/filters through repository helpers and doubles.
 - Keep third-party poker-engine details behind `lib/poker/adapter.ts`. Inspect
 	the installed package declarations and behavior before using an engine API.
 - The poker engine, never TypeSafe output or client input, decides legality.

@@ -81,6 +81,9 @@ jobs:
         timeout-minutes: 12
         run: node scripts/e2e/supabase.mjs
 
+      - name: Check generated database types against migrated schema
+        run: npm run db:types:check
+
       - name: Verify SQL game reads
         timeout-minutes: 3
         run: npm run test:sql:game-reads

@@ -1,3 +1,4 @@
+import type { CreationAttempt } from "@/lib/supabase/contracts";
 import "server-only";
 import { createHash } from "node:crypto";
 import { sanitizePlayerName } from "./game-service";
@@ -6,7 +7,7 @@ import { usagePolicy } from "@/lib/usage/policy";
 import type { CreateGameRequest } from "@/lib/http/creation-contracts";
 
 export function creationAttemptArguments(request: Request, owner: string, attemptId: string,
-  intent: CreateGameRequest & { mode: "custom" | "quick"; botMode?: "rules" }) {
+  intent: CreateGameRequest & { mode: "custom" | "quick"; botMode?: "rules" }): CreationAttempt {
   const normalized = intent.mode === "custom"
     ? { mode: "custom", name: sanitizePlayerName(intent.hostName, "Player 1"), seatCount: intent.seatCount ?? 6, humanTurnSeconds: intent.humanTurnSeconds === undefined ? 60 : intent.humanTurnSeconds }
     : { mode: "quick", name: sanitizePlayerName(intent.hostName, "Player 1"), botMode: intent.botMode ?? "catalog" };
