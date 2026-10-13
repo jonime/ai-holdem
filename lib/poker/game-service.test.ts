@@ -1859,3 +1859,36 @@ describe("getGameFeed", () => {
     });
   });
 });
+
+it("projects the same private current category in action responses and snapshot reads", async () => {
+  let state = pokerEngineAdapter.startHand(pokerEngineAdapter.createGame({
+    smallBlind: 50, bigBlind: 100, players: [
+      { id: "human", seat: 0, name: "Same", controller: "human", stack: 10000, playerToken: "owner" },
+      { id: "other", seat: 1, name: "Same", controller: "human", stack: 10000, playerToken: "other-owner" },
+    ],
+  }), createDeterministicDeck());
+  while (pokerEngineAdapter.snapshot(state).street !== "flop" || pokerEngineAdapter.snapshot(state).currentActorId !== "human") {
+    const action = pokerEngineAdapter.getLegalActions(state).find(a => a.type === "check" || a.type === "call")!;
+    state = pokerEngineAdapter.applyAction(state, pokerEngineAdapter.snapshot(state).currentActorId!, action);
+  }
+  let persisted: PersistedGame = { id: "game-1", status: "playing", currentState: state, stateSchemaVersion: 1, handNumber: 1, version: 0 };
+  const repository = {
+    getGame: async () => persisted,
+    getHostToken: async () => "owner",
+    persistHumanAction: async (input: PersistHumanActionInput) => {
+      persisted = { ...persisted, currentState: input.currentState, status: input.status, version: 1 };
+      return persisted;
+    },
+    getGameReadSnapshot: async () => ({ game: persisted, assignments: [], hostToken: "owner", listing: null, revealedPlayerIds: [] }),
+  };
+  const mutation = await submitHumanAction(repository, "game-1", { expectedVersion: 0, playerId: "owner", action: { type: "check" } });
+  const read = await getPublicGame(repository, "game-1", "owner");
+  expect(mutation.poker.players).toEqual(read.poker.players);
+  expect(read.poker.players[0].currentHandCategory).not.toBeNull();
+  expect(read.poker.players[1].currentHandCategory).toBeNull();
+  const other = await getPublicGame(repository, "game-1", "other-owner");
+  expect(other.poker.players[0].currentHandCategory).toBeNull();
+  expect(other.poker.players[1].currentHandCategory).not.toBeNull();
+  const spectator = await getPublicGame(repository, "game-1", null);
+  expect(spectator.poker.players.every(p => p.currentHandCategory === null)).toBe(true);
+});

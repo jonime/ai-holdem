@@ -13,6 +13,9 @@ import styles from "@/components/poker/Seat.module.css";
 
 export function Seat({
   player,
+  isViewer,
+  showCurrentHand,
+  handActive,
   countdown,
   active,
   winner,
@@ -23,6 +26,9 @@ export function Seat({
   bigBlindSeat,
   gameWinner,
 }: {
+  readonly isViewer: boolean;
+  readonly showCurrentHand: boolean;
+  readonly handActive: boolean;
   readonly countdown?: import("react").ReactNode;
   readonly player: PublicPokerPlayer;
   readonly active: boolean;
@@ -37,6 +43,20 @@ export function Seat({
   const { dictionary, locale, t } = useI18n();
   const isAi = player.controller === "bot";
   const isOpen = player.status === "open";
+  const showLiveCategory = isViewer && handActive && showCurrentHand;
+  const category = player.bestHand ?? (showLiveCategory ? player.currentHandCategory : null);
+  const hasWagerBadge = latestAction?.action === "bet" || latestAction?.action === "raise";
+  const wagerReplacesStatus = hasWagerBadge && player.inHand && !player.leaving &&
+    !player.folded && !player.allIn && !active;
+  const status = player.bestHand || wagerReplacesStatus ? null : describeSeatStatus(
+    { leaving: player.leaving, inHand: player.inHand, folded: player.folded,
+      allIn: player.allIn, stack: player.stack, active,
+      isViewer: isViewer && player.controller === "human" },
+    latestAction, dictionary.seat, dictionary.actions, locale,
+  );
+  const isYourTurn = isViewer && player.controller === "human" && active && handActive &&
+    player.inHand && !player.leaving && !player.folded && !player.allIn && !player.bestHand;
+  const award = winner && winnerAmount !== null ? `+${formatChips(winnerAmount, locale)}` : null;
   const isBusted = player.stack === 0 && !player.inHand;
   const botDetails = describeBotConfiguration(
     player,
@@ -72,7 +92,8 @@ export function Seat({
             {t("seat.seat", { seat: player.seat + 1 })}
           </span>
         </div>
-        <span className={styles.seatStatus}>{t("seat.openSeat")}</span>
+        <span className={styles.currentHand} data-hand-category-slot aria-hidden="true" />
+        <span className={styles.seatStatus} data-seat-status>{t("seat.openSeat")}</span>
       </section>
     );
   }
@@ -105,14 +126,9 @@ export function Seat({
           {gameWinner ? dictionary.seat.gameWinner : dictionary.seat.potWinner}
         </span>
       ) : null}
-      {winner && winnerAmount !== null ? (
-        <span className={styles.winnerAmount}>
-          +{formatChips(winnerAmount, locale)}
-        </span>
-      ) : null}
       {countdown}
       <strong>{formatChips(player.stack, locale)}</strong>
-      {latestAction?.action === "bet" || latestAction?.action === "raise" ? (
+      {hasWagerBadge ? (
         <span className={styles.actionBadge}>
           {latestAction.action.toUpperCase()}{" "}
           {formatChips(latestAction.amount ?? 0, locale)}
@@ -128,24 +144,24 @@ export function Seat({
           </>
         )}
       </div>
-      <span className={styles.seatStatus}>
-        {player.bestHand
-          ? dictionary.seat.handCategories[player.bestHand]
-          : describeSeatStatus(
-              {
-                leaving: player.leaving,
-                inHand: player.inHand,
-                folded: player.folded,
-                allIn: player.allIn,
-                stack: player.stack,
-                active,
-              },
-              latestAction,
-              dictionary.seat,
-              dictionary.actions,
-              locale,
-            )}
+      <span
+        className={styles.currentHand}
+        data-hand-category-slot
+        data-current-hand={showLiveCategory && !player.bestHand ? true : undefined}
+        role={category && !player.bestHand ? "group" : undefined}
+        aria-hidden={!category ? true : undefined}
+        aria-label={category && !player.bestHand ? t("seat.currentHand", { category: dictionary.seat.handCategories[category] }) : undefined}
+      >
+        {category ? player.bestHand ? dictionary.seat.handCategories[category]
+          : <span aria-hidden="true">{dictionary.seat.handCategories[category]}</span> : null}
       </span>
+      {status || award ? (
+        <span className={`${styles.seatStatus} ${isYourTurn ? styles.yourTurnStatus : ""}`} data-seat-status>
+          {status}
+          {status && award ? " " : null}
+          {award ? <span className={styles.winnerAmount}>{award}</span> : null}
+        </span>
+      ) : null}
     </section>
   );
 }

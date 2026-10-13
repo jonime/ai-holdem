@@ -4,7 +4,7 @@ import type { GameDictionary } from "../../types";
 
 const dictionary = {
   creation: {"wait": "Du kan försöka igen om {seconds} sekunder.", "creating": "Skapar bord…", "retry": "Försök skapa igen", "recovery": "Ett skapande väntar. Försök igen för att återställa samma bord.", "memoryOnly": "Sessionslagring är inte tillgänglig. Omladdning förlorar denna återställning.", "cookiesRequired": "Cookies krävs för att skapa ett bord. Aktivera cookies och försök igen.", "identityChanged": "Din anonyma identitet ändrades. Försöket kan inte återupptas säkert.", "failed": "Resultatet kunde inte bekräftas. Försök igen för att återställa samma bord.", "unavailable": "Försöket kan inte återupptas. Bordet kan ha raderats eller uppgifterna ändrats.", "denied": "Gränsen för skapande nådd. Vänta innan du försöker igen.", "dismiss": "Avfärda försök"},
-  settings: {"cardColours": "Kortfärger", "classic": "Klassiska", "fourColour": "Fyra färger", "title": "Inställningar", "close": "Stäng", "shortcuts": "Spelgenvägar", "language": "Språk", "continues": "Spelet fortsätter medan inställningarna är öppna.", "languageBlocked": "Språket kan ändras när begäran eller återställningen av bordet är klar."},
+  settings: {"showCurrentHand": "Visa aktuell hand", "cardColours": "Kortfärger", "classic": "Klassiska", "fourColour": "Fyra färger", "title": "Inställningar", "close": "Stäng", "shortcuts": "Spelgenvägar", "language": "Språk", "continues": "Spelet fortsätter medan inställningarna är öppna.", "languageBlocked": "Språket kan ändras när begäran eller återställningen av bordet är klar."},
   tableLoading: {
     missingTitle: "Det här bordet är inte längre tillgängligt",
     missingGuidance: "Kontrollera att inbjudningslänken är korrekt eller återvänd till lobbyn.",
@@ -164,6 +164,8 @@ const dictionary = {
     waitingNextHand: "Väntar på nästa giv",
     folded: "Lade sig",
     allIn: "All-in",
+    yourTurn: "Din tur",
+    currentHand: "Aktuell hand: {category}",
     thinking: "Tänker",
     waiting: "Väntar",
     botDifficulty: "Svårighetsgrad: {value}",

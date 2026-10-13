@@ -67,6 +67,20 @@ export const publicPlayerSchema = z.object({
     ])
     .nullable()
     .default(null),
+  currentHandCategory: z
+    .enum([
+      "high-card",
+      "one-pair",
+      "two-pair",
+      "three-of-a-kind",
+      "straight",
+      "flush",
+      "full-house",
+      "four-of-a-kind",
+      "straight-flush",
+    ])
+    .nullable()
+    .default(null),
   winningHand: winningHandSchema.nullable().default(null),
   cardsRevealed: z.boolean().default(false),
   holeCards: z.array(z.string()).nullable(),
@@ -150,6 +164,7 @@ const broadcastPlayerSchema = publicPlayerSchema
   .extend({
     playerToken: z.null(),
     holeCards: z.null(),
+    currentHandCategory: z.null().optional(),
   })
   .strict();
 

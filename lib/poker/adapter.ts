@@ -710,6 +710,12 @@ export const pokerEngineAdapter = {
           stack: seat?.stack ?? config.stack,
           folded: player?.folded ?? false,
           allIn: player?.allIn ?? false,
+          currentHandCategory:
+            isViewer && config.controller === "human" && player && !player.folded && !config.leaving &&
+            (snapshot.street === "flop" || snapshot.street === "turn" || snapshot.street === "river") &&
+            sourcePlayer?.holeCards.length === 2
+              ? evaluateVisibleCards(sourcePlayer.holeCards.map(cardToString), snapshot.communityCards).category
+              : null,
           bestHand:
             publicAtCompletion && player && !player.folded
               ? (sourcePlayer?.handRank?.category ?? null)

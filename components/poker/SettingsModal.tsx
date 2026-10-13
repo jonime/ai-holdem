@@ -9,7 +9,7 @@ import type { Settings } from "./settings";
 import styles from "./SettingsModal.module.css";
 export function SettingsModal({ preferences, onUpdate, onSound, notice, languageBlocked, onNavigate, gameId, onClose, restoreFocus, fallbackFocus }: {
   readonly preferences: Settings;
-  readonly onUpdate: (patch: Partial<Pick<Settings, "turnSound" | "gameplayShortcuts" | "cardColours">>) => void;
+  readonly onUpdate: (patch: Partial<Pick<Settings, "turnSound" | "gameplayShortcuts" | "cardColours" | "showCurrentHand">>) => void;
   readonly onSound: (enabled: boolean) => Promise<void>;
   readonly notice: string | null;
   readonly languageBlocked: boolean;
@@ -28,8 +28,8 @@ export function SettingsModal({ preferences, onUpdate, onSound, notice, language
       <Button ref={closeRef} size="small" onClick={onClose}>{t("settings.close")}</Button></div>
     <div className={styles.content}>
       <p className={styles.note}>{t("settings.continues")}</p>
-      {(["turnSound", "gameplayShortcuts"] as const).map(key => <div className={styles.row} key={key}>
-        <span id={`settings-${key}`}>{t(key === "turnSound" ? "turnNotification.sound" : "settings.shortcuts")}</span>
+      {(["turnSound", "gameplayShortcuts", "showCurrentHand"] as const).map(key => <div className={styles.row} key={key}>
+        <span id={`settings-${key}`}>{t(key === "turnSound" ? "turnNotification.sound" : key === "showCurrentHand" ? "settings.showCurrentHand" : "settings.shortcuts")}</span>
         <button type="button" role="switch" aria-labelledby={`settings-${key}`} aria-checked={preferences[key]}
           className={styles.switch} onClick={() => {
             const next = !preferences[key]; onUpdate({ [key]: next });

@@ -28,8 +28,8 @@ it("uses hydration defaults until saved preferences have been read", () => {
 });
 it("updates immediately, combines successive patches and tolerates failed persistence", () => {
   vi.mocked(win.localStorage.setItem).mockImplementation(() => { throw Error(); });
-  const value = render(); value.update({ turnSound: true }); value.update({ gameplayShortcuts: false }); value.update({ cardColours: "four-colour" });
-  expect(render().preferences).toEqual({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour" });
+  const value = render(); value.update({ turnSound: true }); value.update({ gameplayShortcuts: false }); value.update({ cardColours: "four-colour", showCurrentHand: true });
+  expect(render().preferences).toEqual({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour", showCurrentHand: true });
 });
 it("synchronizes storage events, ignores legacy keys, resets on removal and cleans up", () => {
   render();
@@ -54,11 +54,21 @@ it("inaccessible storage still finishes initialization", () => {
 
 it("updates palette in memory when localStorage itself is unavailable", () => {
   Object.defineProperty(win, "localStorage", { get() { throw Error(); } });
-  render(); render().update({ cardColours: "four-colour" });
+  render(); render().update({ cardColours: "four-colour", showCurrentHand: true });
   expect(render().preferences.cardColours).toBe("four-colour");
 });
 it.each(["classic", "four-colour"] as const)("loads saved %s palette after hydration and preserves other preferences", cardColours => {
-  vi.mocked(win.localStorage.getItem).mockReturnValue(JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours }));
+  vi.mocked(win.localStorage.getItem).mockReturnValue(JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours, showCurrentHand: true }));
   expect(render().preferences).toEqual(defaultSettings);
-  expect(render().preferences).toEqual({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours });
+  expect(render().preferences).toEqual({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours, showCurrentHand: true });
+});
+
+it("loads, synchronizes and updates current-hand display even without storage", () => {
+  vi.mocked(win.localStorage.getItem).mockReturnValue(JSON.stringify({ ...defaultSettings, showCurrentHand: false }));
+  render(); expect(render().preferences.showCurrentHand).toBe(false);
+  win.dispatchEvent(Object.assign(new Event("storage"), { key: settingsStorageKey, newValue: JSON.stringify(defaultSettings) }));
+  expect(render().preferences.showCurrentHand).toBe(true);
+  Object.defineProperty(win, "localStorage", { get() { throw Error(); } });
+  render().update({ showCurrentHand: false });
+  expect(render().preferences.showCurrentHand).toBe(false);
 });

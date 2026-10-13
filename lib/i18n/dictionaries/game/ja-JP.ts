@@ -4,7 +4,7 @@ import type { GameDictionary } from "../../types";
 
 const dictionary = {
   creation: {"wait": "{seconds}秒後に再試行できます。", "creating": "テーブルを作成中…", "retry": "作成を再試行", "recovery": "作成が保留中です。再試行して同じテーブルを復元してください。", "memoryOnly": "セッションストレージを利用できません。再読み込みすると、この復元情報は失われます。", "cookiesRequired": "テーブルの作成にはCookieが必要です。有効にして再試行してください。", "identityChanged": "匿名IDが変わりました。この試行を安全に再開できません。", "failed": "結果を確認できませんでした。再試行して同じテーブルを復元してください。", "unavailable": "この試行は再開できません。テーブルが削除されたか、入力が変更された可能性があります。", "denied": "作成上限に達しました。しばらく待ってから再試行してください。", "dismiss": "試行を破棄"},
-  settings: {"cardColours": "カードの色", "classic": "クラシック", "fourColour": "4色", "title": "設定", "close": "閉じる", "shortcuts": "ゲームのショートカット", "language": "言語", "continues": "設定を開いている間もゲームは続行します。", "languageBlocked": "リクエストまたはテーブルの復旧が完了すると言語を変更できます。"},
+  settings: {"showCurrentHand": "現在の役を表示", "cardColours": "カードの色", "classic": "クラシック", "fourColour": "4色", "title": "設定", "close": "閉じる", "shortcuts": "ゲームのショートカット", "language": "言語", "continues": "設定を開いている間もゲームは続行します。", "languageBlocked": "リクエストまたはテーブルの復旧が完了すると言語を変更できます。"},
   tableLoading: {
     missingTitle: "このテーブルは利用できません",
     missingGuidance: "招待リンクが正しいか確認するか、ロビーに戻ってください。",
@@ -181,6 +181,8 @@ const dictionary = {
     "waitingNextHand": "次のハンド待ち",
     "folded": "フォールド済み",
     "allIn": "オールイン",
+    "yourTurn": "あなたの番",
+    "currentHand": "現在の役：{category}",
     "thinking": "思考中",
     "waiting": "待機中",
     "botDifficulty": "難易度：{value}",

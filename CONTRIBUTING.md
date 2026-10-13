@@ -932,6 +932,8 @@ and independently scrolling content. It remains available during pending request
 and recovery. The game, timers, bots, refreshes, and turn notifications continue
 while it is open; gameplay shortcuts are suppressed by the overlay.
 
+**Show current hand** defaults to On in the version-1 Settings entry; older entries default the missing `showCurrentHand` to true and retain other preferences. It controls display only. Keep the category and status separate on every Seat layout, reserve the category slot in every seat regardless of preference, float status/action text on the bottom border without resizing seats, and pass explicit viewer identity. Production Settings UI tests cover category changes, storage/reload, desktop/mobile spacing, long translations and unchanged showdown results; adapter and contract tests cover visible-card evaluation and privacy.
+
 **Card colours** uses a labelled native selector: **Classic** (default) or
 **Four-colour**. Classic keeps dark spades/clubs and red hearts/diamonds;
 Four-colour uses dark spades, red hearts, blue diamonds and green clubs.

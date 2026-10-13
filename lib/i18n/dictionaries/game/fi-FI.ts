@@ -4,7 +4,7 @@ import type { GameDictionary } from "../../types";
 
 const dictionary = {
   creation: {"wait": "Voit yrittää uudelleen {seconds} sekunnin kuluttua.", "creating": "Luodaan pöytää…", "retry": "Yritä luomista uudelleen", "recovery": "Pöydän luominen on kesken. Jatka samalla yrityksellä.", "memoryOnly": "Istuntotallennus ei ole käytettävissä. Sivun lataaminen uudelleen poistaa palautusmahdollisuuden.", "cookiesRequired": "Pöydän luominen edellyttää evästeitä. Salli evästeet ja yritä uudelleen.", "identityChanged": "Anonyymi henkilöllisyytesi muuttui. Yritystä ei voi jatkaa turvallisesti.", "failed": "Tulosta ei voitu vahvistaa. Yritä uudelleen palauttaaksesi saman pöydän.", "unavailable": "Yritystä ei voi jatkaa. Pöytä on ehkä poistettu tai tiedot muuttuneet.", "denied": "Luontiraja saavutettu. Odota ennen uutta yritystä.", "dismiss": "Hylkää yritys"},
-  settings: {"cardColours": "Korttien värit", "classic": "Perinteinen", "fourColour": "Nelivärinen", "title": "Asetukset", "close": "Sulje", "shortcuts": "Pelin pikanäppäimet", "language": "Kieli", "continues": "Peli jatkuu asetusten ollessa auki.", "languageBlocked": "Kielen voi vaihtaa, kun käynnissä oleva pyyntö tai pöydän palautus on valmis."},
+  settings: {"showCurrentHand": "Näytä nykyinen käsi", "cardColours": "Korttien värit", "classic": "Perinteinen", "fourColour": "Nelivärinen", "title": "Asetukset", "close": "Sulje", "shortcuts": "Pelin pikanäppäimet", "language": "Kieli", "continues": "Peli jatkuu asetusten ollessa auki.", "languageBlocked": "Kielen voi vaihtaa, kun käynnissä oleva pyyntö tai pöydän palautus on valmis."},
   tableLoading: {
     missingTitle: "Tämä pöytä ei ole enää saatavilla",
     missingGuidance: "Tarkista, että kutsulinkki on oikein, tai palaa aulaan.",
@@ -164,6 +164,8 @@ const dictionary = {
     waitingNextHand: "Odottaa seuraavaa kättä",
     folded: "Kipannut",
     allIn: "All-in",
+    yourTurn: "Sinun vuorosi",
+    currentHand: "Nykyinen käsi: {category}",
     thinking: "Miettii",
     waiting: "Odottaa",
     botDifficulty: "Vaikeustaso: {value}",

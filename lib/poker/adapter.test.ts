@@ -484,3 +484,64 @@ describe("public winning five", () => {
     }
   });
 });
+
+describe("private current made-hand category", () => {
+  function rigged(hole: string[], board: string[]) {
+    const other = ["2c", "3d"];
+    const used = [...hole, ...other, ...board];
+    const burns = createDeterministicDeck().map(c => `${c.rank}${c.suit}`).filter(c => !used.includes(c)).slice(0, 3);
+    return pokerEngineAdapter.startHand(pokerEngineAdapter.createGame(headsUpConfig),
+      createDeterministicDeck([other[0], hole[0], other[1], hole[1], burns[0],
+        ...board.slice(0, 3), burns[1], board[3], burns[2], board[4]]));
+  }
+  it.each([
+    ["flop", "one-pair"], ["turn", "three-of-a-kind"], ["river", "four-of-a-kind"],
+  ] as const)("evaluates %s using only the revealed board", (street, category) => {
+    const state = playToStreet(rigged(["Ah", "Kd"], ["As", "7h", "9c", "Ac", "Ad"]), street);
+    const own = pokerEngineAdapter.publicProjection(state, "human");
+    expect(own.players[0].currentHandCategory).toBe(category);
+    expect(own.players[0].bestHand).toBeNull();
+    expect(own.players[1].currentHandCategory).toBeNull();
+    for (const viewer of [null, "ai", "unknown"]) {
+      expect(pokerEngineAdapter.publicProjection(state, viewer).players.every(p => p.currentHandCategory === null)).toBe(true);
+    }
+  });
+  it("counts board-only hands and keeps all-in humans eligible", () => {
+    const state = playToStreet(rigged(["4h", "5d"], ["Ts", "Js", "Qs", "Ks", "As"]), "river");
+    expect(pokerEngineAdapter.publicProjection(state, "human").players[0].currentHandCategory).toBe("straight-flush");
+    // A short stack is all-in on the flop while two deeper opponents continue betting.
+    let allIn = pokerEngineAdapter.startHand(pokerEngineAdapter.createGame({ ...headsUpConfig, players: [
+      { ...headsUpConfig.players[0], stack: 100 },
+      { ...headsUpConfig.players[1], seat: 1 },
+      { ...headsUpConfig.players[1], id: "other", seat: 2 },
+    ] }), createDeterministicDeck());
+    allIn = playToStreet(allIn, "flop");
+    const hero = pokerEngineAdapter.publicProjection(allIn, "human").players[0];
+    expect(hero.allIn).toBe(true);
+    expect(hero.currentHandCategory).not.toBeNull();
+  });
+  it("omits preflop, completion, folded and departing participants", () => {
+    expect(pokerEngineAdapter.publicProjection(startHand(), "human").players[0].currentHandCategory).toBeNull();
+    const river = playToStreet(rigged(["Ah", "Kd"], ["As", "7h", "9c", "Ac", "Ad"]), "river");
+    const leaving = { ...river, config: { ...river.config, players: river.config.players.map(p => ({ ...p, leaving: p.id === "human" })) } };
+    expect(pokerEngineAdapter.publicProjection(leaving, "human").players[0].currentHandCategory).toBeNull();
+    expect(pokerEngineAdapter.publicProjection(playToShowdown(river), "human").players.every(p => p.currentHandCategory === null)).toBe(true);
+    let folded = playToStreet(startHand(), "flop");
+    if (currentActor(folded) !== "human") folded = pokerEngineAdapter.applyAction(folded, currentActor(folded), passiveAction(folded));
+    folded = pokerEngineAdapter.applyAction(folded, "human", { type: "fold" });
+    expect(pokerEngineAdapter.publicProjection(folded, "human").players[0].currentHandCategory).toBeNull();
+  });
+});
+
+it("keeps a folded owner's current category null while the hand continues", () => {
+  let state = pokerEngineAdapter.startHand(pokerEngineAdapter.createGame({ ...headsUpConfig, players: [
+    ...headsUpConfig.players, { ...headsUpConfig.players[1], id: "third", seat: 2 },
+  ] }), createDeterministicDeck());
+  state = playToStreet(state, "flop");
+  while (currentActor(state) !== "human") state = pokerEngineAdapter.applyAction(state, currentActor(state), passiveAction(state));
+  state = pokerEngineAdapter.applyAction(state, "human", { type: "fold" });
+  expect(pokerEngineAdapter.snapshot(state).street).not.toBe("complete");
+  const hero = pokerEngineAdapter.publicProjection(state, "human").players[0];
+  expect(hero.folded).toBe(true);
+  expect(hero.currentHandCategory).toBeNull();
+});

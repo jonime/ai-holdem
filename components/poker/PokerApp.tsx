@@ -377,6 +377,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
             className={`${styles.tableRow} ${feedCollapsed ? styles.feedCollapsed : ""}`}
           >
             <PokerTable
+              showCurrentHand={settings.preferences.showCurrentHand}
               shortcuts={shortcuts}
               busy={requestBusy}
               game={game}

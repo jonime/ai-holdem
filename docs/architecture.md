@@ -543,6 +543,8 @@ renders authoritative awards independently of the Actions feed, marks hole-card
 sources accessibly, stacks different recipients under Pot awards, and clears with
 the next hand while preserving result scrolling and next-hand controls.
 
+The public player `currentHandCategory` defaults to null for omitted legacy fields. The engine adapter reuses its visible-card evaluator with exactly the owned human participant’s two hole cards and the currently revealed board on flop/turn/river. It requires participation without folding or departure; all-ins qualify. Preflop, completion, spectators and other participants receive null. Shared projection applies this equally to reads and mutation responses. No persistence or migration is needed. Legacy Broadcast permits only absent/null categories; compact notifications remain unchanged. Seat renders receive explicit viewer identity on desktop and mobile. The display-only `showCurrentHand` version-1 Settings preference defaults to true, uses existing hydration/storage synchronization, and does not affect server projection. Every seat reserves an aria-hidden empty category slot even with the preference disabled. Status/action text is absolutely positioned on the bottom border; equal fixed seat dimensions keep category/status updates out of table sizing. Showdown categories use the same slot and winner amounts share the border badge. Category changes have no live region, sound or animation.
+
 ## In-game Help content
 
 Each supported locale has a complete Markdown-authored document in `content/help/`

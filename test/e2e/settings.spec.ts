@@ -89,12 +89,13 @@ test("storage changes synchronize without previews and game refresh continues in
   const f = await table(page); await open(page);
   const other = await page.context().newPage();
   await other.goto(`/game/${f.id}`);
-  await other.evaluate(() => localStorage.setItem("ai-holdem-settings", JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour" })));
+  await other.evaluate(() => localStorage.setItem("ai-holdem-settings", JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour", showCurrentHand: false })));
   await page.evaluate(() => {
-    window.dispatchEvent(new StorageEvent("storage", { key: "ai-holdem-settings", newValue: JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour" }), storageArea: localStorage }));
+    window.dispatchEvent(new StorageEvent("storage", { key: "ai-holdem-settings", newValue: JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour", showCurrentHand: false }), storageArea: localStorage }));
   });
   await expect(page.getByRole("switch", { name: "Turn sound", exact: true })).toHaveAttribute("aria-checked", "true");
   await expect(page.getByRole("switch", { name: "Gameplay shortcuts", exact: true })).toHaveAttribute("aria-checked", "false");
+  await expect(page.getByRole("switch", { name: "Show current hand", exact: true })).toHaveAttribute("aria-checked", "false");
   await expect(page.getByRole("combobox", { name: "Card colours", exact: true })).toHaveValue("four-colour");
   expect(await page.evaluate(() => (window as unknown as { audioAttempts: number }).audioAttempts)).toBe(0);
   f.set({ ...f.get(), version: f.get().version + 1, poker: { ...f.get().poker, handNumber: 42 } });
@@ -103,6 +104,7 @@ test("storage changes synchronize without previews and game refresh continues in
   await expect(page.getByRole("dialog")).toBeVisible();
   await other.evaluate(() => localStorage.removeItem("ai-holdem-settings"));
   await other.close();
+  await expect(page.getByRole("switch", { name: "Show current hand", exact: true })).toHaveAttribute("aria-checked", "true");
   await expect(page.getByRole("combobox", { name: "Card colours", exact: true })).toHaveValue("classic");
   await expect(page.getByRole("switch", { name: "Turn sound", exact: true })).toHaveAttribute("aria-checked", "false");
 });
@@ -209,4 +211,150 @@ test("card colours persist and cover table, winning five, Actions and Help", { t
   await page.keyboard.press("Escape"); await page.reload();
   await expect(palette).toHaveAttribute("data-card-colours", "classic");
   expect(actions).toBe(0);
+});
+
+test("current hand keeps category and turn status separate on desktop and mobile", { tag: ["@ui-regression", "@compatibility"] }, async ({ page }) => {
+  // Use the committed logo directly: rapid viewport changes can cancel responsive
+  // optimizer requests, which should not make status/layout screenshots flaky.
+  await page.route(/\/_next\/image\?.*ai-holdem-logo/, route =>
+    route.fulfill({ path: `${process.cwd()}/public/ai-holdem-logo.png`, contentType: "image/png" }));
+  const f = await table(page);
+  const human = f.get().poker.players.find(p => p.controller === "human")!;
+  const caller = f.get().poker.players.find(p => p.controller === "bot")!;
+  let callerAction: "call" | "bet" | "raise" = "call";
+  await page.route(`**/api/games/${f.id}/feed*`, route => route.fulfill({ json: { feed: { events: [
+    { type: "handStarted", handNumber: f.get().poker.handNumber },
+    { type: "action", handNumber: f.get().poker.handNumber, player: caller.name, playerId: caller.id,
+      controller: "bot", action: callerAction, amount: 100, street: "flop" },
+  ] } } }));
+  await page.reload();
+  async function equalSeats() {
+    const seats = page.locator("[data-hand-category-slot]:visible").locator("xpath=ancestor::section[1]");
+    await expect(seats).toHaveCount(6);
+    const boxes = await seats.evaluateAll(nodes => nodes.map(n => ({ width: n.getBoundingClientRect().width, height: n.getBoundingClientRect().height })));
+    for (const box of boxes) {
+      expect(box.height).toBe(boxes[0].height);
+      expect(box.width).toBe(boxes[0].width);
+    }
+    expect(boxes[0].height).toBe(page.viewportSize()!.width <= 560 ? 110 : 170);
+    return boxes;
+  }
+  async function capture(name: string) {
+    await expect.poll(() => page.locator("[data-playing-card]:visible img").evaluateAll(images =>
+      images.every(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0))).toBe(true);
+    await page.screenshot({ path: test.info().outputPath(name), fullPage: true });
+  }
+  await equalSeats();
+  const line = page.locator("[data-current-hand]:visible");
+  await expect(line).toHaveCount(1);
+  await expect(line).toHaveAttribute("aria-hidden", "true");
+  const reserved = await line.boundingBox();
+  const initialViewport = page.viewportSize()!;
+  await page.setViewportSize({ width: 375, height: 812 });
+  const mobileReserved = await line.boundingBox();
+  await equalSeats();
+  const mobileSeat = await line.locator("xpath=ancestor::section[1]").boundingBox();
+  await capture("current-hand-preflop-mobile.png");
+  await page.setViewportSize(initialViewport);
+  const card = page.locator('[data-playing-card]:visible').first();
+  const dimensions = await card.boundingBox();
+  async function update(street: "flop" | "turn" | "river", category: "one-pair" | "three-of-a-kind" | "four-of-a-kind", board: string[]) {
+    f.set({ ...f.get(), version: f.get().version + 1, poker: { ...f.get().poker, street, communityCards: board,
+      players: f.get().poker.players.map(p => p.id === human.id ? { ...p, holeCards: ["Ah", "Kd"], currentHandCategory: category } : p) } });
+    await page.evaluate(() => window.dispatchEvent(new Event("online")));
+  }
+  await update("flop", "one-pair", ["As", "7h", "9c"]);
+  await expect(line).toHaveText("Pair");
+  await expect(line).toHaveAttribute("aria-label", "Current hand: Pair");
+  const flop = await line.boundingBox();
+  expect(flop?.height).toBe(reserved?.height);
+  expect(flop?.y).toBe(reserved?.y);
+  const status = line.locator("xpath=following-sibling::span[1]");
+  await expect(status).toHaveText("Your turn");
+  await expect(status).toHaveCSS("background-color", "rgb(240, 183, 77)");
+  await expect(status).toHaveCSS("color", "rgb(25, 62, 55)");
+  expect((await status.boundingBox())!.y).toBeGreaterThanOrEqual(flop!.y + flop!.height);
+  await expect(status).toHaveCSS("position", "absolute");
+  const seat = await line.locator("xpath=ancestor::section[1]").boundingBox();
+  const badge = await status.boundingBox();
+  // Absolute bottom anchors to the inner edge of the one-pixel seat border.
+  expect(Math.abs(badge!.y + badge!.height / 2 - (seat!.y + seat!.height - 1))).toBeLessThanOrEqual(0.5);
+  await expect(page.locator("[data-seat-status]:visible").filter({ hasText: "Call 100" })).toHaveCount(1);
+  expect((await card.boundingBox())?.width).toBe(dimensions?.width);
+  expect((await card.boundingBox())?.height).toBe(dimensions?.height);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await equalSeats();
+  await capture("current-hand-desktop.png");
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(line).toHaveText("Pair");
+  const mobileFlop = await line.boundingBox();
+  const mobileFlopSeat = await line.locator("xpath=ancestor::section[1]").boundingBox();
+  expect(mobileFlop!.y - mobileFlopSeat!.y).toBe(mobileReserved!.y - mobileSeat!.y);
+  expect((await line.boundingBox())?.height).toBe(mobileReserved?.height);
+  await expect(status).toHaveText("Your turn");
+  await equalSeats();
+  await capture("current-hand-mobile.png");
+  for (const action of ["bet", "raise"] as const) {
+    callerAction = action;
+    f.set({ ...f.get(), version: f.get().version + 1 });
+    await page.reload();
+    const badge = page.getByText(`${action.toUpperCase()} 100`, { exact: true }).filter({ visible: true });
+    await expect(badge).toHaveCount(1);
+    await expect(badge.locator("xpath=ancestor::section[1]").locator("[data-seat-status]")).toHaveCount(0);
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await equalSeats(); await capture(`single-${action}-desktop.png`);
+    await page.setViewportSize({ width: 375, height: 812 });
+    await equalSeats(); await capture(`single-${action}-mobile.png`);
+  }
+  callerAction = "call";
+  await page.reload();
+  await update("turn", "three-of-a-kind", ["As", "7h", "9c", "Ac"]);
+  await expect(line).toHaveText("Three of a kind");
+  await update("river", "four-of-a-kind", ["As", "7h", "9c", "Ac", "Ad"]);
+  await expect(line).toHaveText("Four of a kind");
+  await open(page);
+  const toggle = page.getByRole("switch", { name: "Show current hand", exact: true });
+  await expect(toggle).toHaveAttribute("aria-checked", "true");
+  await page.screenshot({ path: test.info().outputPath("current-hand-settings-mobile.png") });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.screenshot({ path: test.info().outputPath("current-hand-settings-desktop.png") });
+  await toggle.click(); await page.keyboard.press("Escape");
+  await expect(line).toHaveCount(0);
+  await equalSeats();
+  await page.reload(); await expect(line).toHaveCount(0);
+  await equalSeats();
+  await open(page); await expect(toggle).toHaveAttribute("aria-checked", "false");
+  await toggle.click(); await page.keyboard.press("Escape");
+  await expect(line).toHaveText("Four of a kind");
+  // Long localized labels stay above the border badge at the narrowest supported size.
+  await page.goto(`/nl-NL/game/${f.id}`);
+  await page.setViewportSize({ width: 320, height: 568 });
+  await expect(line).toHaveAttribute("aria-label", /Huidige hand/);
+  const localized = await line.boundingBox();
+  expect((await status.boundingBox())!.y).toBeGreaterThanOrEqual(localized!.y + localized!.height);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  await equalSeats();
+  await capture("current-hand-dutch-mobile.png");
+  const activeGame = f.get();
+  f.set({ ...f.get(), status: "complete", poker: { ...f.get().poker, street: "complete", currentActorId: null,
+    legalActions: [], completionReason: "showdown", winnerIds: [human.id], winnerAmounts: { [human.id]: 100 },
+    viewerHandResult: { startStack: 10000, endStack: 10100, netChange: 100 },
+    players: f.get().poker.players.map(p => p.id === human.id ? { ...p, currentHandCategory: null, bestHand: "four-of-a-kind",
+      winningHand: { cards: ["Ah", "As", "Ac", "Ad", "Kd"], playsBoard: false } } : p) } });
+  await page.goto(`/game/${f.id}`);
+  await expect(line).toHaveCount(0);
+  await equalSeats();
+  await expect(page.locator("[data-winning-hand]")).toBeVisible();
+  await expect(page.getByText("Four of a kind", { exact: true }).filter({ visible: true }).first()).toBeVisible();
+  await capture("border-status-showdown-mobile.png");
+  await page.route(`**/api/games/${f.id}/step`, () => {});
+  f.set({ ...activeGame, version: activeGame.version + 1, poker: { ...activeGame.poker, currentActorId: caller.id } });
+  await page.reload();
+  const thinking = page.locator("[data-seat-status]:visible").filter({ hasText: "Thinking" });
+  await expect(thinking).toHaveCount(1);
+  await expect(thinking).toHaveCSS("background-color", "rgb(16, 75, 65)");
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await equalSeats(); await capture("border-status-thinking-desktop.png");
+  await page.setViewportSize({ width: 375, height: 812 });
+  await equalSeats(); await capture("border-status-thinking-mobile.png");
 });

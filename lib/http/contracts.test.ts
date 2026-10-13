@@ -80,3 +80,18 @@ it("validates personal results, defaults omission to null and rejects viewer-spe
     poker: { ...broadcast.poker, viewerHandResult } }).success).toBe(true);
   expect(broadcastGameSchema.safeParse({ ...broadcast, poker: { ...broadcast.poker, viewerHandResult: personal } }).success).toBe(false);
 });
+
+it("defaults omitted current category and rejects it in legacy broadcasts", async () => {
+  const { publicPlayerSchema, broadcastGameSchema } = await import("./schemas");
+  const { gameplayGame } = await import("@/test/fixtures/gameplay");
+  const player = gameplayGame.poker.players[0];
+  const { currentHandCategory: omitted, ...legacy } = publicPlayerSchema.parse(player);
+  expect(omitted).toBeNull();
+  expect(publicPlayerSchema.parse(legacy).currentHandCategory).toBeNull();
+  expect(publicPlayerSchema.parse({ ...legacy, currentHandCategory: "flush" }).currentHandCategory).toBe("flush");
+  const game = { ...gameplayGame, poker: { ...gameplayGame.poker, legalActions: [],
+    players: gameplayGame.poker.players.map(p => ({ ...p, playerToken: null, holeCards: null, currentHandCategory: null })) } };
+  expect(broadcastGameSchema.safeParse(game).success).toBe(true);
+  expect(broadcastGameSchema.safeParse({ ...game, poker: { ...game.poker,
+    players: game.poker.players.map(p => ({ ...p, currentHandCategory: "flush" })) } }).success).toBe(false);
+});

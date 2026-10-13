@@ -18,6 +18,7 @@ import { useI18n } from "@/components/poker/I18nProvider";
 
 export function PokerTable({
   shortcuts = true,
+  showCurrentHand = true,
   game,
   seatRows,
   linearSeats,
@@ -45,6 +46,7 @@ export function PokerTable({
   latestActions,
 }: {
   readonly shortcuts?: boolean;
+  readonly showCurrentHand?: boolean;
   readonly game: Game;
   readonly seatRows: {
     readonly top: readonly PublicPokerPlayer[];
@@ -168,6 +170,9 @@ export function PokerTable({
             <Seat
               key={player.id}
               player={player}
+              isViewer={human !== null && human.id === player.id}
+              showCurrentHand={showCurrentHand}
+              handActive={game.poker.street !== null && game.poker.street !== "complete"}
               countdown={game.turnTimer?.actorEngineId === player.id ? <TurnCountdown game={game} /> : undefined}
               active={game.poker.currentActorId === player.id}
               winner={game.poker.winnerIds.includes(player.id)}
@@ -203,6 +208,9 @@ export function PokerTable({
             <Seat
               key={player.id}
               player={player}
+              isViewer={human !== null && human.id === player.id}
+              showCurrentHand={showCurrentHand}
+              handActive={game.poker.street !== null && game.poker.street !== "complete"}
               countdown={game.turnTimer?.actorEngineId === player.id ? <TurnCountdown game={game} /> : undefined}
               active={game.poker.currentActorId === player.id}
               winner={game.poker.winnerIds.includes(player.id)}
@@ -220,6 +228,9 @@ export function PokerTable({
             <Seat
               key={player.id}
               player={player}
+              isViewer={human !== null && human.id === player.id}
+              showCurrentHand={showCurrentHand}
+              handActive={game.poker.street !== null && game.poker.street !== "complete"}
               countdown={game.turnTimer?.actorEngineId === player.id ? <TurnCountdown game={game} /> : undefined}
               active={game.poker.currentActorId === player.id}
               winner={game.poker.winnerIds.includes(player.id)}

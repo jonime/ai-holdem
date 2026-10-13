@@ -477,7 +477,13 @@ not change turn eligibility. Separate tabs may each notify; do not change pollin
 
 Settings shares the single overlay and Modal with Help, Join and mobile Actions.
 `useSettings` owns `ai-holdem-settings` version 1 with turnSound false and
-gameplayShortcuts true and cardColours "classic" by default. Card colours accepts
+gameplayShortcuts true, showCurrentHand true and cardColours "classic" by default.
+Current-hand categories are adapter-evaluated only for the owned participating,
+non-folded/non-departing human on flop/turn/river using revealed cards; all-ins qualify.
+Keep categories null for everyone else, preflop and completion, and absent/null in
+legacy Broadcast. Explicit viewer identity drives every Seat layout; Settings only
+controls display; every seat reserves the same category slot and status/action text
+floats on its bottom border without affecting equal, fixed seat dimensions. Card colours accepts
 "classic" or "four-colour"; old version-1 entries default the missing field to
 Classic. Game-scoped suit CSS variables also colour server-rendered inline Help
 examples, with unchanged symbols, accessible names and card geometry. Read after

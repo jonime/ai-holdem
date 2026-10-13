@@ -227,7 +227,7 @@
   .mobileSeats {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
+    gap: 18px 6px;
     width: 100%;
   }
   .felt {

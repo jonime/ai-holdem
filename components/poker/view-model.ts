@@ -341,6 +341,7 @@ export function describeSeatStatus(
     "leaving" | "inHand" | "folded" | "allIn" | "stack"
   > & {
     readonly active?: boolean;
+    readonly isViewer?: boolean;
   },
   latestAction: LatestPlayerAction | null,
   labels: GameDictionary["seat"],
@@ -363,7 +364,7 @@ export function describeSeatStatus(
     return labels.allIn;
   }
   if (player.active) {
-    return labels.thinking;
+    return player.isViewer ? labels.yourTurn : labels.thinking;
   }
   return latestAction
     ? formatActionLabel(latestAction, locale, actions)
