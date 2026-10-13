@@ -30,6 +30,10 @@ when the host comes back. Anyone with a table URL can view it.
 Bots advance while an eligible host or seated human has the table open. Other
 spectators watch passively. Starting another hand requires explicit interaction.
 
+Betting action and the dealer button move clockwise around the desktop table,
+with your seat anchored at the bottom. The compact mobile grid lists seats in
+turn order from left to right, then top to bottom, starting with your seat.
+
 ## Lobby navigation and departure
 
 The game header offers **Leave table** whenever you own a non-departing human

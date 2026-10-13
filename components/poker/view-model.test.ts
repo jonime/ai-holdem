@@ -6,6 +6,7 @@ import type { PublicPokerPlayer } from "@/lib/poker/types";
 import {
   tableFlow,
   arrangeSeats,
+  arrangeSeatsLinear,
   canManageTable,
   cardLabel,
   copyInviteUrl,
@@ -274,8 +275,8 @@ describe("view-model", () => {
     ];
 
     expect(arrangeSeats(players, "p1")).toMatchObject({
-      bottom: [{ id: "p6" }, { id: "p1" }, { id: "p2" }],
-      top: [{ id: "p5" }, { id: "p4" }, { id: "p3" }],
+      bottom: [{ id: "p2" }, { id: "p1" }, { id: "p6" }],
+      top: [{ id: "p3" }, { id: "p4" }, { id: "p5" }],
     });
     expect(arrangeSeats(players.slice(0, 2), "p1")).toMatchObject({
       bottom: [{ id: "p1" }],
@@ -283,16 +284,37 @@ describe("view-model", () => {
     });
     expect(arrangeSeats(players.slice(0, 3), "p2")).toMatchObject({
       bottom: [{ id: "p2" }],
-      top: [{ id: "p1" }, { id: "p3" }],
+      top: [{ id: "p3" }, { id: "p1" }],
     });
     expect(arrangeSeats(players.slice(0, 5), "p1")).toMatchObject({
-      bottom: [{ id: "p5" }, { id: "p1" }, { id: "p2" }],
-      top: [{ id: "p4" }, { id: "p3" }],
+      bottom: [{ id: "p2" }, { id: "p1" }, { id: "p5" }],
+      top: [{ id: "p3" }, { id: "p4" }],
     });
     expect(arrangeSeats(players.slice(0, 6), "p1")).toMatchObject({
-      bottom: [{ id: "p6" }, { id: "p1" }, { id: "p2" }],
-      top: [{ id: "p5" }, { id: "p4" }, { id: "p3" }],
+      bottom: [{ id: "p2" }, { id: "p1" }, { id: "p6" }],
+      top: [{ id: "p3" }, { id: "p4" }, { id: "p5" }],
     });
+
+    // Clockwise traverses the bottom row right-to-left, then top left-to-right.
+    // Verify every table size and viewer, plus spectators and unsorted input.
+    for (let count = 2; count <= 6; count++) {
+      const table = players.slice(0, count);
+      for (const anchor of [...table.map(player => player.id), null, "absent"]) {
+        const { top, bottom } = arrangeSeats([...table].reverse(), anchor);
+        const clockwise = [...bottom].reverse().concat(top);
+        for (let index = 0; index < count; index++) {
+          expect(clockwise[(index + 1) % count].seat).toBe(
+            (clockwise[index].seat + 1) % count,
+          );
+        }
+        const linear = arrangeSeatsLinear([...table].reverse(), anchor);
+        const viewer = table.find(player => player.id === anchor) ?? table[0];
+        expect(bottom[count >= 5 ? 1 : 0].id).toBe(viewer.id);
+        expect(linear.map(player => player.seat)).toEqual(
+          Array.from({ length: count }, (_, index) => (viewer.seat + index) % count),
+        );
+      }
+    }
   });
 
   it("describes split-pot results and permissions", () => {

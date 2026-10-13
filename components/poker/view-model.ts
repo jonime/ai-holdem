@@ -132,19 +132,20 @@ export function arrangeSeats(
 
   if (rotated.length >= 5) {
     return {
-      bottom: [rotated[rotated.length - 1], rotated[0], rotated[1]],
-      top: rotated.slice(2, rotated.length - 1).reverse(),
+      // Rows render left-to-right; increasing seats walk clockwise from bottom.
+      bottom: [rotated[1], rotated[0], rotated[rotated.length - 1]],
+      top: rotated.slice(2, rotated.length - 1),
     };
   }
 
-  return { bottom: rotated.slice(0, 1), top: rotated.slice(1).reverse() };
+  return { bottom: rotated.slice(0, 1), top: rotated.slice(1) };
 }
 
 /**
  * Seat order for compact/mobile layouts: a single sequential list starting
  * at the anchor (typically the viewer) and walking the table in seat order,
- * so reading top-to-bottom matches turn order instead of the oval layout's
- * split top/bottom rows.
+ * so reading left-to-right, then top-to-bottom matches turn order instead of
+ * the oval layout's split top/bottom rows.
  */
 export function arrangeSeatsLinear(
   players: readonly PublicPokerPlayer[],
