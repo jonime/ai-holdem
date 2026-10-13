@@ -317,6 +317,10 @@
   color: #173a34;
   font-size: 14px;
 }
+.personalResult { margin-bottom: 8px; }
+.personalResult[data-outcome="gain"] strong { color: #215b45; }
+.personalResult[data-outcome="loss"] strong { color: #793f35; }
+
 .handResult h2 {
   margin: 0 0 4px;
   font-size: 14px;

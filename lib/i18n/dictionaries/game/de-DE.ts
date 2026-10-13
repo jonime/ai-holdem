@@ -136,6 +136,9 @@ const dictionary = {
     show: "Aufdecken",
   },
   result: {
+    gained: "Du hast in dieser Hand {amount} Chips gewonnen",
+    lost: "Du hast in dieser Hand {amount} Chips verloren",
+    brokeEven: "Dein Chipstand blieb in dieser Hand unverändert",
     winningFive: "Die fünf Gewinnkarten",
     playsBoard: "Spielt das Board",
     holeCardDescription: "{card}, Hole Card",

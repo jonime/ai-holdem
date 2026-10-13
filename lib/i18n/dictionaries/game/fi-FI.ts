@@ -136,6 +136,9 @@ const dictionary = {
     show: "Näytä",
   },
   result: {
+    gained: "Voitit {amount} merkkiä tässä jaossa",
+    lost: "Hävisit {amount} merkkiä tässä jaossa",
+    brokeEven: "Merkkimääräsi ei muuttunut tässä jaossa",
     winningFive: "Voittavat viisi",
     playsBoard: "Pelaa pöydän korteilla",
     holeCardDescription: "{card}, taskukortti",

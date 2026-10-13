@@ -501,6 +501,28 @@ until explicit retry; early requests wait for the server-supplied interval. No w
 or next-hand automation exists.
 
 
+## Personal completed-hand result
+
+`startHand` captures actual engine seat stacks before forced bets for dealt
+participants, keyed by immutable player ID in optional `handStartStacks` persisted
+JSON metadata tagged with the hand number. Adapter actions and seat transitions
+preserve it; starting the next hand replaces it. Restore accepts legacy or malformed
+optional metadata without blocking gameplay. Projection validates the complete
+baseline as nonnegative safe integers and requires the current hand number.
+Missing, malformed, mismatched or missing-viewer entries suppress the result.
+
+The public contract adds nullable `viewerHandResult` (`startStack`, `endStack`,
+`netChange`), with omission parsed as null. Only a token-resolved human participant
+in the completed hand receives it, including released participants through retained
+immutable ownership. The adapter finds the settled engine seat by player ID and
+subtracts the pre-blind baseline; pot awards are independent. Spectators, bots,
+nonparticipants and active hands receive null. Raw baselines stay server-side;
+legacy Broadcast envelopes require the personal result to be absent or null,
+and compact refresh signals are unchanged. No migration, backfill, history
+reconstruction or additional database read is required. The localized summary
+precedes awards, uses text for gain/loss/break-even, survives refresh/feed failures,
+and clears at the next hand without new controls or notifications.
+
 ## Public winning five
 
 The shared adapter projection adds nullable `players[].winningHand` containing

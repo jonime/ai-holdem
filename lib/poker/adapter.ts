@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   assertCompleteDeck,
   assertTableState,
@@ -27,6 +28,11 @@ import {
   type PublicPokerGame,
   PokerRuleError,
 } from "./types";
+
+const handStartStacksSchema = z.object({
+  handNumber: z.number().int().nonnegative(),
+  stacks: z.record(z.string(), z.number().int().nonnegative()),
+}).strict();
 
 /** Select only from already public cards; awards remain engine-authoritative. */
 function publicWinningHand(hole: readonly string[], board: readonly string[]) {
@@ -98,11 +104,13 @@ function engineStateFrom(state: PokerGameState): TableState {
 function withEngineState(
   config: GameConfig,
   engineState: TableState,
+  previous?: PokerGameState,
 ): PokerGameState {
   return {
     stateSchemaVersion: 1,
     config,
     engineState,
+    ...(previous?.handStartStacks !== undefined ? { handStartStacks: previous.handStartStacks } : {}),
   };
 }
 
@@ -382,6 +390,7 @@ export const pokerEngineAdapter = {
         players: [...state.config.players, player],
       },
       table,
+      state,
     );
   },
 
@@ -398,6 +407,7 @@ export const pokerEngineAdapter = {
         ),
       },
       table,
+      state,
     );
   },
 
@@ -406,7 +416,8 @@ export const pokerEngineAdapter = {
     deck: readonly Card[] = createShuffledDeck(),
   ): PokerGameState {
     assertCompleteDeck(deck);
-    const result = transition(engineStateFrom(state), {
+    const before = engineStateFrom(state);
+    const result = transition(before, {
       type: "start-hand",
       deck,
     });
@@ -435,6 +446,12 @@ export const pokerEngineAdapter = {
     return {
       ...withEngineState(state.config, result.state),
       blindPostings,
+      handStartStacks: {
+        handNumber: result.state.handNumber,
+        stacks: Object.fromEntries((result.state.hand?.players ?? []).map(player => [
+          player.playerId, before.seats.find(seat => seat?.playerId === player.playerId)!.stack,
+        ])),
+      },
     };
   },
 
@@ -502,6 +519,7 @@ export const pokerEngineAdapter = {
         playerId,
         action: toEngineAction(action),
       }),
+      state,
     );
   },
 
@@ -616,6 +634,15 @@ export const pokerEngineAdapter = {
       table.hand?.players.map((player) => [player.playerId, player]) ?? [],
     );
     const snapshot = this.snapshot(state);
+    const baseline = handStartStacksSchema.safeParse(state.handStartStacks);
+    const settledSeat = table.seats.find(seat => seat?.playerId === effectiveViewerId);
+    const startStack = baseline.success && baseline.data.handNumber === snapshot.handNumber &&
+      effectiveViewerId && Object.hasOwn(baseline.data.stacks, effectiveViewerId)
+      ? baseline.data.stacks[effectiveViewerId] : null;
+    const viewerHandResult = snapshot.street === "complete" && startStack !== null && settledSeat &&
+      sourcePlayers.has(effectiveViewerId ?? "") &&
+      state.config.players.some(player => player.id === effectiveViewerId && player.controller === "human")
+      ? { startStack, endStack: settledSeat.stack, netChange: settledSeat.stack - startStack } : null;
     const revealedIds = new Set(revealedPlayerIds);
     const publicAtCompletion =
       snapshot.street === "complete" &&
@@ -627,6 +654,7 @@ export const pokerEngineAdapter = {
 
     return {
       ...snapshot,
+      viewerHandResult,
       seatCount,
       humanTurnSeconds: state.config.humanTurnSeconds ?? null,
       smallBlind: state.config.smallBlind,

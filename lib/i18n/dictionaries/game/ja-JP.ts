@@ -153,6 +153,9 @@ const dictionary = {
     "show": "公開"
   },
   "result": {
+    gained: "このハンドで{amount}チップ増えました",
+    lost: "このハンドで{amount}チップ減りました",
+    brokeEven: "このハンドでチップの増減はありませんでした",
     winningFive: "勝利の5枚",
     playsBoard: "ボードの5枚を使用",
     holeCardDescription: "{card}、ホールカード",

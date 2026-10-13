@@ -38,6 +38,7 @@ describe("human turn timers", () => {
     const result = await advanceTimeout(f.repository,"game",1,decisionId,"owner-a");
     expect(f.repository.persistTimeout.mock.calls[0][0].action).toBe(check ? "check" : "fold");
     expect(result.version).toBe(2);
+    expect(f.repository.persistTimeout.mock.calls[0][0].currentState).toMatchObject({ handStartStacks: f.state.handStartStacks });
     expect(result.poker.players.every(player => player.status === "claimed" && !player.leaving)).toBe(true);
   });
   it("folds a departing actor even when checking is legal", async () => {

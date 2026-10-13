@@ -49,10 +49,20 @@ function fixture(stacks = [1000, 1000, 1000]) {
 }
 
 describe("human departure engine/service boundary", () => {
+  it("preserves the baseline through a regular human action", async () => {
+    const f = fixture();
+    const before = f.state().handStartStacks;
+    const result = await submitHumanAction(f.repository, "game", {
+      expectedVersion: 3, playerId: "owner0", action: { type: "call" },
+    });
+    expect(f.state().handStartStacks).toEqual(before);
+    expect(result.poker.viewerHandResult).toBeNull();
+  });
   it("folds the current actor exactly once through the shared release service", async () => {
     const f = fixture(); const actor = pokerEngineAdapter.snapshot(f.state()).currentActorId!;
     const seat = f.seats().find(seat => seat.enginePlayerId === actor)!;
     await releaseSeat(f.repository, { gameId: "game", seat: seat.seat, playerToken: seat.playerToken!, expectedVersion: 3 });
+    expect(f.state().handStartStacks).toEqual({ handNumber: 1, stacks: { p0: 1000, p1: 1000, p2: 1000 } });
     expect(f.actions).toHaveLength(1); expect(f.actions[0]).toMatchObject({ action: "fold", amount: null, expectedVersion: 3 });
     expect(pokerEngineAdapter.snapshot(f.state()).currentActorId).not.toBe(actor);
     expect(f.repository.updateSeatAssignment).not.toHaveBeenCalled();
@@ -68,6 +78,7 @@ describe("human departure engine/service boundary", () => {
     const next = pokerEngineAdapter.snapshot(f.state()).currentActorId!; f.depart(next);
     expect((await advanceDeparture(f.repository, "game", 4, "host")).status).toBe("complete");
     expect(f.actions.map(action => action.action)).toEqual(["fold", "fold"]);
+    expect(f.state().handStartStacks).toEqual({ handNumber: 1, stacks: { p0: 1000, p1: 1000, p2: 1000 } });
   });
   it("rejects spectators, stale requests and ordinary human turns before any commit", async () => {
     const f = fixture();
@@ -147,6 +158,8 @@ it("separates a replacement occupant's live ownership from the completed partici
   expect(replacement.poker.players[0]).toMatchObject({ id: "p0", name: "Player 0", playerToken: null, holeCards: null, status: "open" });
   expect(replacement.poker.seats?.[0]).toMatchObject({ id: "replacement", status: "claimed", playerToken: "new-owner", stack: 1000 });
   expect(original.poker.players[0].holeCards).toHaveLength(2);
+  expect(original.poker.viewerHandResult).toEqual({ startStack: 1000, endStack: 1000, netChange: 0 });
+  expect(replacement.poker.viewerHandResult).toBeNull();
   expect(original.poker.seats?.[0].playerToken).toBeNull();
   expect(canAdvanceBots(replacement, "new-owner")).toBe(true);
   expect(canAdvanceBots(original, "owner0")).toBe(false);

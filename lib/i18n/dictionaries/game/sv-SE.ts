@@ -136,6 +136,9 @@ const dictionary = {
     show: "Visa",
   },
   result: {
+    gained: "Du vann {amount} marker i den här handen",
+    lost: "Du förlorade {amount} marker i den här handen",
+    brokeEven: "Du gick jämnt upp i den här handen",
     winningFive: "Vinnande fem",
     playsBoard: "Spelar bordet",
     holeCardDescription: "{card}, hålkort",

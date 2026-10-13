@@ -55,7 +55,9 @@ describe("bot credit departure", () => {
       expectedVersion: 1, action: "fold", choice: "fold", leaveSeat: true,
       matchedRule: LLM_CREDIT_EXIT_RULE,
     }));
-    expect(result.game).toMatchObject({ version: 2, status: "complete" });
+    expect(result.game).toMatchObject({ version: 2, status: "complete", poker: { viewerHandResult: token === "owner"
+      ? { startStack: 1000, endStack: 1100, netChange: 100 } : null } });
+    expect((await repository.getGame()).currentState).toMatchObject({ handStartStacks: { handNumber: 1, stacks: { human: 1000, bot: 1000 } } });
     expect(result.game.poker.players.find(player => player.id === "bot")).toMatchObject({ folded: true, leaving: true });
     expect(result.aiDecision).toMatchObject({ action: "fold", matchedRule: LLM_CREDIT_EXIT_RULE });
     expect(warn).toHaveBeenCalledOnce();

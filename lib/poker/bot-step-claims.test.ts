@@ -53,6 +53,7 @@ describe("bot step claims", () => {
     f.response.resolve();
     const result = await first;
     expect(result.game.version).toBe(2);
+    expect((await f.repository.getGame()).currentState).toMatchObject({ handStartStacks: { handNumber: 1, stacks: { human: 200, bot: 200 } } });
     const token = f.repository.acquireBotStepClaim.mock.calls[0][0].claimToken;
     expect(JSON.stringify(result)).not.toContain(token);
     expect(f.repository.persistClaimedAIAction).toHaveBeenCalledOnce();

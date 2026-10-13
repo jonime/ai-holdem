@@ -431,7 +431,7 @@ describe("public winning five", () => {
     expect(winner.winningHand?.cards).toHaveLength(5);
     expect(winner.winningHand?.playsBoard).toBe(false);
     expect(game.players.find(p => p.id === "ai")?.winningHand).toBeNull();
-    expect(pokerEngineAdapter.publicProjection(state, "human")).toEqual({ ...game, legalActions: [] });
+    expect(pokerEngineAdapter.publicProjection(state, "human")).toEqual({ ...game, legalActions: [], viewerHandResult: { startStack: 10000, endStack: 10100, netChange: 100 } });
   });
   it("prefers the board in board order for tied winners, even if hole cards make an equivalent hand", () => {
     const board = ["Ts", "Jh", "Qd", "Kc", "As"];

@@ -136,6 +136,9 @@ const dictionary = {
     show: "Tonen",
   },
   result: {
+    gained: "Je hebt deze hand {amount} chips gewonnen",
+    lost: "Je hebt deze hand {amount} chips verloren",
+    brokeEven: "Je hebt deze hand quitte gespeeld",
     winningFive: "De vijf winnende kaarten",
     playsBoard: "Speelt het board",
     holeCardDescription: "{card}, holecard",

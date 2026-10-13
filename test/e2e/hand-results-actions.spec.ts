@@ -76,6 +76,13 @@ test("persists public hand results through feed failure and refresh, preserves c
   const result = page.locator("[data-hand-result]");
   await expect(result).toContainText("Opponents folded.");
   const completed = await getGame();
+  const personal = result.locator("[data-personal-result]");
+  expect(completed.poker.viewerHandResult).toEqual({ startStack: 10000, endStack: 9950, netChange: -50 });
+  await expect(personal).toContainText("You lost 50 chips this hand");
+  await expect(personal).not.toContainText("Stack:");
+  expect(JSON.stringify(completed)).not.toContain("handStartStacks");
+  await refresh(guest);
+  await expect(guest.locator("[data-personal-result]")).toContainText("You gained 50 chips this hand");
   const winnerId = completed.poker.winnerIds[0];
   await expect(result).toContainText(`Alex wins ${completed.poker.winnerAmounts[winnerId]}`);
   await expect(result).toContainText("Opponents folded.");
@@ -88,6 +95,8 @@ test("persists public hand results through feed failure and refresh, preserves c
   await page.setViewportSize({ width: 375, height: 812 });
   expect(await trayGeometry(page)).toEqual(playingMobileTray);
   await expect(result).toBeVisible();
+  await expect(personal).toBeInViewport();
+  expect(await personal.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
   await page.screenshot({ path: test.info().outputPath("completed-hand-mobile.png"), fullPage: true });
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.evaluate(() => {
@@ -103,11 +112,15 @@ test("persists public hand results through feed failure and refresh, preserves c
   await expect(page.getByRole("button", { name: "Show", exact: true })).toBeDisabled();
   await page.reload();
   await expect(result).toContainText("Opponents folded.");
+  await expect(personal).toContainText("You lost 50 chips this hand");
+  await expect(personal).not.toContainText("Stack:");
+  await page.screenshot({ path: test.info().outputPath("personal-result-desktop.png"), fullPage: true });
 
   const spectatorContext = await browser.newContext();
   const spectator = await spectatorContext.newPage();
   await spectator.goto(page.url());
   await expect(spectator.locator("[data-hand-result]")).toContainText("Opponents folded.");
+  await expect(spectator.locator("[data-personal-result]")).toHaveCount(0);
   await expect(spectator.getByRole("button", { name: "Next Hand", exact: true })).toHaveCount(0);
   await expect(spectator.getByRole("button", { name: "Show", exact: true })).toHaveCount(0);
   await expect(spectator.getByRole("complementary", { name: "Actions" }).locator('[class*="viewerEvent"]')).toHaveCount(0);
@@ -128,6 +141,12 @@ test("persists public hand results through feed failure and refresh, preserves c
     game = (await response.json()).game;
   }
   expect(game.poker.completionReason).toBe("showdown");
+  // Fetch from the owner: the last mutation may belong to the guest.
+  const ownerGame = await getGame();
+  const ownerResult = ownerGame.poker.viewerHandResult!;
+  expect(ownerResult.startStack).toBe(9950);
+  expect(ownerResult.endStack).toBe(ownerGame.poker.players.find(p => p.id === hostId)!.stack);
+  expect(ownerResult.netChange).toBe(ownerResult.endStack - 9950);
   await refresh(page);
   await expect(result).toBeVisible();
   for (const winner of game.poker.winnerIds) {
@@ -143,11 +162,13 @@ test("persists public hand results through feed failure and refresh, preserves c
   for (const row of await rows.all()) {
     await expect(row.locator("[data-playing-card]")).toHaveCount(5);
   }
+  const personalText = await personal.innerText();
   const winningMarkup = await rows.evaluateAll(nodes => nodes.map(n => n.innerHTML));
   await page.route(`**/api/games/${id}/feed*`, route => route.fulfill({ status: 500, json: { error: "Feed unavailable" } }));
   await page.reload();
   await expect(rows).toHaveCount(game.poker.winnerIds.length);
   expect(await rows.evaluateAll(nodes => nodes.map(n => n.innerHTML))).toEqual(winningMarkup);
+  await expect.poll(() => personal.innerText()).toBe(personalText);
   await expect(page.getByRole("button", { name: "Next Hand", exact: true })).toBeEnabled();
   for (const row of await rows.all()) {
     await row.locator("[data-playing-card]").last().scrollIntoViewIfNeeded();

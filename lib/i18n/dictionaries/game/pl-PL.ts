@@ -137,6 +137,9 @@ const dictionary = {
     show: "Pokaż",
   },
   result: {
+    gained: "Zyskałeś {amount} żetonów w tym rozdaniu",
+    lost: "Straciłeś {amount} żetonów w tym rozdaniu",
+    brokeEven: "Twój bilans w tym rozdaniu wyniósł zero",
     winningFive: "Zwycięska piątka",
     playsBoard: "Gra kartami wspólnymi",
     holeCardDescription: "{card}, karta własna",

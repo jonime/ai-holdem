@@ -12,9 +12,19 @@ export function CompletedHandResult({
   const { locale, t, dictionary } = useI18n();
   if (poker.street !== "complete") return null;
 
+  const personal = poker.viewerHandResult;
+
   return (
     <div className={styles.handResult} data-hand-result>
-      <h2>{t(poker.winnerIds.length > 1 ? "result.potAwards" : "result.title")}</h2>
+      {personal ? (
+        <div className={styles.personalResult} data-personal-result
+          data-outcome={personal.netChange > 0 ? "gain" : personal.netChange < 0 ? "loss" : "even"}>
+          <strong>{t(personal.netChange > 0 ? "result.gained" : personal.netChange < 0 ? "result.lost" : "result.brokeEven", {
+            amount: formatChips(Math.abs(personal.netChange), locale),
+          })}</strong>
+        </div>
+      ) : null}
+      {poker.winnerIds.length > 1 ? <h2>{t("result.potAwards")}</h2> : null}
       <ul>
         {poker.winnerIds.map((id) => {
           const player = poker.players.find((candidate) => candidate.id === id);

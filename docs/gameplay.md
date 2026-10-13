@@ -91,7 +91,15 @@ The final hand result and Actions remain available, including eligible card reve
 
 ## Completed hands and Actions
 
-Completed hands show each winner’s awarded chips centered in the sizing area,
+Completed hands show your personal net chip result first, when you participated
+and the hand has a recorded starting stack. Gain, loss, and break-even messages
+show the change from your stack before blinds to your settled stack. This includes blinds,
+side pots, split awards, and returned uncalled bets. It is a current-hand result,
+not session statistics or history. Spectators and older hands without a baseline
+keep the existing display; refreshes and Actions-feed failures do not affect it.
+The summary clears when the next hand starts, and never appears during unresolved all-ins.
+
+Each winner’s awarded chips appear centered in the sizing area,
 with an explanation for opponents folding or the public showdown hand category.
 At completed showdowns, each pot recipient with publicly revealed hole cards also
 shows “Winning five”: the engine-selected five cards, with gold underlines on hole
@@ -100,7 +108,7 @@ show the five community cards in board order and “Plays the board”. The comm
 board stays in its existing position. Fold-ended wins and incomplete legacy hands
 keep the existing result without this row. Only the translated hand category is
 shown; detailed hand descriptions are not included.
-These are winnings, not net profit. Multiple winners are listed as “Pot awards”
+Pot awards are the chips paid from pots, distinct from your net chip change. Multiple winners are listed as “Pot awards”
 since separate side pots do not necessarily constitute a split pot. Results use
 current authoritative public game state, survive refresh and feed failures, and
 clear when the next hand begins. The hidden sizing controls preserve the tray’s

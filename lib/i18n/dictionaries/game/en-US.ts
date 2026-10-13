@@ -136,6 +136,9 @@ const dictionary = {
     show: "Show",
   },
   result: {
+    gained: "You gained {amount} chips this hand",
+    lost: "You lost {amount} chips this hand",
+    brokeEven: "You broke even this hand",
     winningFive: "Winning five",
     playsBoard: "Plays the board",
     holeCardDescription: "{card}, hole card",

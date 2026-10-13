@@ -96,6 +96,11 @@ export interface PokerGameState {
   readonly config: GameConfig;
   readonly engineState: unknown;
   readonly blindPostings?: readonly PokerBlindPosting[];
+  /** Optional current-hand metadata; never included in public projections. */
+  readonly handStartStacks?: {
+    readonly handNumber: number;
+    readonly stacks: Readonly<Record<string, number>>;
+  };
 }
 
 export interface PokerBlindPosting {

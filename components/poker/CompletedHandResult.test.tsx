@@ -82,3 +82,29 @@ describe("winning five", () => {
     expect(render({ ...completed, players: [winner], street: "preflop" })).toBe("");
   });
 });
+
+
+describe("personal result", () => {
+  it.each([
+    [650, 9350, 10000, "You gained 650 chips this hand"],
+    [-650, 10000, 9350, "You lost 650 chips this hand"],
+    [0, 10000, 10000, "You broke even this hand"],
+  ])("renders %s with stable authoritative awards and winning five", (netChange, startStack, endStack, sentence) => {
+    const game = { ...completed, completionReason: "showdown" as const,
+      viewerHandResult: { startStack, endStack, netChange },
+      players: [{ ...player, winningHand: { cards: ["As", "Ks", "Qs", "Js", "9s"], playsBoard: false } }],
+    };
+    const html = render(game);
+    expect(html).toContain(sentence);
+    expect(html).not.toContain("Stack:");
+    expect(html.indexOf(sentence)).toBeLessThan(html.indexOf("Alice wins 150"));
+    expect(html).toContain("Alice wins 150");
+    expect(html.match(/data-playing-card/g)).toHaveLength(5);
+    expect(render(JSON.parse(JSON.stringify(game)))).toBe(html);
+    expect(render({ ...game, street: "preflop", handNumber: 2 })).toBe("");
+  });
+  it("preserves legacy and null fallbacks", () => {
+    expect(render({ ...completed, viewerHandResult: null })).toBe(render(completed));
+    expect(render(completed)).not.toContain("data-personal-result");
+  });
+});

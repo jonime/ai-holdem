@@ -61,3 +61,22 @@ it("defaults legacy winning hands to null and validates exactly five distinct ca
     { ...winningHand, rank: 8 },
   ]) expect(publicPlayerSchema.safeParse({ ...player, winningHand: invalid }).success).toBe(false);
 });
+
+it("validates personal results, defaults omission to null and rejects viewer-specific legacy Broadcasts", async () => {
+  const { publicGameSchema, broadcastGameSchema } = await import("./schemas");
+  const { gameplayGame } = await import("@/test/fixtures/gameplay");
+  expect(publicGameSchema.parse(gameplayGame.poker).viewerHandResult).toBeNull();
+  const personal = { startStack: 1000, endStack: 950, netChange: -50 };
+  expect(publicGameSchema.parse({ ...gameplayGame.poker, viewerHandResult: personal }).viewerHandResult).toEqual(personal);
+  for (const invalid of [{ ...personal, startStack: -1 }, { ...personal, endStack: 1.5 },
+    { ...personal, startStack: Number.MAX_SAFE_INTEGER + 1 }, { ...personal, netChange: 50 },
+    { ...personal, netChange: -0.5 }, { ...personal, rawBaseline: {} }]) {
+    expect(publicGameSchema.safeParse({ ...gameplayGame.poker, viewerHandResult: invalid }).success).toBe(false);
+  }
+  const broadcast = { ...gameplayGame, poker: { ...gameplayGame.poker, legalActions: [],
+    players: gameplayGame.poker.players.map(player => ({ ...player, playerToken: null, holeCards: null })),
+  } };
+  for (const viewerHandResult of [undefined, null]) expect(broadcastGameSchema.safeParse({ ...broadcast,
+    poker: { ...broadcast.poker, viewerHandResult } }).success).toBe(true);
+  expect(broadcastGameSchema.safeParse({ ...broadcast, poker: { ...broadcast.poker, viewerHandResult: personal } }).success).toBe(false);
+});

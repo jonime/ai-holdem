@@ -153,6 +153,9 @@ const dictionary = {
     "show": "亮牌"
   },
   "result": {
+    gained: "本手牌你净赚了{amount}筹码",
+    lost: "本手牌你净亏了{amount}筹码",
+    brokeEven: "本手牌你的筹码没有变化",
     winningFive: "获胜的五张牌",
     playsBoard: "使用公共牌",
     holeCardDescription: "{card}，底牌",

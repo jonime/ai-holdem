@@ -78,6 +78,12 @@ export const publicLiveSeatSchema = publicPlayerSchema.pick({
 });
 
 export const publicGameSchema = z.object({
+  viewerHandResult: z.object({
+    startStack: z.number().int().nonnegative(),
+    endStack: z.number().int().nonnegative(),
+    netChange: z.number().int(),
+  }).strict().refine(result => result.netChange === result.endStack - result.startStack)
+    .nullable().default(null),
   humanTurnSeconds: humanTurnSecondsSchema.default(null),
   handNumber: z.number().int().nonnegative(),
   seatCount: z.number().int().min(2).max(6),
@@ -151,6 +157,7 @@ export const broadcastGameSchema = gameSchema
   .extend({
     poker: publicGameSchema
       .extend({
+        viewerHandResult: z.null().optional(),
         legalActions: z.array(legalActionSchema).length(0),
         players: z.array(broadcastPlayerSchema),
         seats: z.array(publicLiveSeatSchema.extend({ playerToken: z.null() }).strict()).optional(),

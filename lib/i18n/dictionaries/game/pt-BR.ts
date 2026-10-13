@@ -136,6 +136,9 @@ const dictionary = {
     show: "Mostrar",
   },
   result: {
+    gained: "Você ganhou {amount} fichas nesta mão",
+    lost: "Você perdeu {amount} fichas nesta mão",
+    brokeEven: "Seu saldo ficou igual nesta mão",
     winningFive: "As cinco vencedoras",
     playsBoard: "Joga com a mesa",
     holeCardDescription: "{card}, carta da mão",
