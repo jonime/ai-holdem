@@ -3,7 +3,8 @@ import { Suspense, type ReactNode } from "react";
 import { notFound } from "next/navigation";
 
 import { I18nProvider } from "@/components/poker/I18nProvider";
-import { hasLocale } from "@/lib/i18n";
+import { TableLoadingShell } from "@/components/poker/TableLoadingShell";
+import { addLocalePrefix, hasLocale } from "@/lib/i18n";
 import { getGameDictionary } from "@/lib/i18n/server";
 
 // Shared tables are viewable by URL, but should not become search results.
@@ -24,18 +25,14 @@ export async function GameI18nBoundary({ children, params }: GameI18nBoundaryPro
 
   return (
     <I18nProvider locale={lang} dictionary={dictionary}>
-      {children}
+      <Suspense fallback={<TableLoadingShell label={dictionary.table.loading} homeHref={addLocalePrefix("/", lang)}
+        controlLabels={[dictionary.gameHeader.help, dictionary.settings.title, dictionary.gameHeader.lobby]} />}>
+        {children}
+      </Suspense>
     </I18nProvider>
   );
 }
 
-export default function GameLayout({
-  children,
-  params,
-}: LayoutProps<"/[lang]/game/[gameId]">) {
-  return (
-    <Suspense fallback={<main aria-busy="true" />}>
-      <GameI18nBoundary params={params}>{children}</GameI18nBoundary>
-    </Suspense>
-  );
+export default function GameLayout({ children }: { readonly children: ReactNode }) {
+  return children;
 }

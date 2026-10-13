@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import type { Game } from "../../components/poker/types";
 import { expect, test } from "./fixtures";
 import { createUITable } from "./ui-fixtures";
 
@@ -72,4 +73,85 @@ for (const locale of ["en-US", "fi-FI"]) {
     }
   });
 
+}
+
+for (const locale of ["en-US", "fi-FI"]) {
+  for (const mobile of [false, true]) {
+    for (const destination of ["waiting", "active", "completed"]) {
+      test(`empty loading table ${locale} ${mobile ? "mobile navigation" : "desktop direct"} to ${destination}`, { tag: "@ui-regression" }, async ({ page }) => {
+        test.skip(process.env.E2E_PRODUCTION !== "true", "Server delay uses the isolated production build.");
+        test.setTimeout(60_000);
+        await page.setViewportSize({ width: mobile ? 375 : 1280, height: mobile ? 812 : 900 });
+        const prefix = locale === "en-US" ? "" : `/${locale}`;
+        const gameId = await createUITable(page, destination !== "waiting");
+        if (destination === "completed") {
+          for (let turns = 0; turns < 100; turns++) {
+            const game: Game = (await (await page.request.get(`/api/games/${gameId}`)).json()).game;
+            if (game.poker.street === "complete") break;
+            const human = game.poker.players.find(p => p.id === game.poker.currentActorId)?.controller === "human";
+            const response = await page.request.post(`/api/games/${gameId}/${human ? "action" : "step"}`, {
+              data: { expectedVersion: game.version, ...(human ? { action: { type: "fold" } } : {}) },
+            });
+            expect(response.ok()).toBe(true);
+          }
+          expect((await (await page.request.get(`/api/games/${gameId}`)).json()).game.poker.street).toBe("complete");
+        }
+        const marker = join(process.env.E2E_WORKSPACE!, `table-read-delay-${gameId}`);
+        writeFileSync(marker, "delay");
+        let release!: () => void;
+        const pending = new Promise<void>(resolve => { release = resolve; });
+        let browserReadStarted = false;
+        await page.route(`**/api/games/${gameId}`, async route => {
+          if (route.request().method() !== "GET") return route.continue();
+          browserReadStarted = true;
+          await pending;
+          await route.continue();
+        });
+        const shell = page.getByTestId("table-loading-shell");
+        const label = locale === "en-US" ? "Loading table…" : "Ladataan pöytää…";
+        const assertEmpty = async () => {
+          await expect(shell).toBeVisible();
+          await expect(shell.getByRole("status")).toHaveText(label);
+          await expect(shell.locator('button, input, [data-playing-card], article')).toHaveCount(0);
+          await expect(shell).not.toContainText(/Player|Seat|Equity|[0-9]/);
+          await expect(page.getByRole("complementary")).toHaveCount(0);
+          expect(await shell.locator('[class*="emptyFelt"]').evaluate(n => n.getBoundingClientRect().height)).toBeGreaterThanOrEqual(490);
+          expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+        };
+        try {
+          if (mobile) {
+            await page.goto(`${prefix}/play`);
+            await page.locator(`a[href="${prefix}/game/${gameId}"]`).first().click();
+          } else {
+            await page.goto(`${prefix}/game/${gameId}`, { waitUntil: "commit" });
+          }
+          await assertEmpty();
+          await expect(page.getByRole("link", { name: "AI Hold'em", exact: true })).toBeVisible();
+          expect(browserReadStarted).toBe(false);
+          await expect(page.getByRole("button")).toHaveCount(0);
+          const serverGeometry = await shell.boundingBox();
+          await page.screenshot({ path: test.info().outputPath("server-loading.png"), fullPage: true });
+          rmSync(marker, { force: true });
+          await expect.poll(() => browserReadStarted).toBe(true);
+          await assertEmpty();
+          await expect(page.getByRole("button", { name: locale === "en-US" ? "Help" : "Ohje", exact: true })).toBeEnabled();
+          expect(await shell.boundingBox()).toEqual(serverGeometry);
+          await page.screenshot({ path: test.info().outputPath("browser-loading.png"), fullPage: true });
+          release();
+          await expect(shell).toHaveCount(0);
+          if (destination === "waiting") {
+            await expect(page.getByRole("button", { name: locale === "en-US" ? "Start hand" : "Aloita käsi", exact: true })).toBeVisible();
+          } else {
+            await expect(page.locator('[class*="tableShell"]').first()).toBeVisible();
+            await expect(page.locator("[data-playing-card]:visible").first()).toBeVisible();
+            if (destination === "completed") await expect(page.locator("[data-hand-result]")).toBeVisible();
+          }
+          expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+        } finally {
+          rmSync(marker, { force: true });
+          release();
+        }
+      });
+    }
+  }
 }

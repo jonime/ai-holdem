@@ -1,0 +1,10 @@
+.toolbar { min-height: 60px; }
+.emptyFelt { display: grid; place-items: center; grid-template-rows: 1fr; }
+.status { margin: 0; color: #eaf5ef; font-size: 13px; }
+.controls { min-height: 204px; }
+.headerSpace { visibility: hidden; }
+@media (max-width: 560px) {
+  .toolbar { min-height: 56px; }
+  .emptyFelt { min-height: 490px; }
+  .controls { min-height: 194px; }
+}

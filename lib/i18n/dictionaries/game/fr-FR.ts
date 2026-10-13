@@ -84,6 +84,7 @@ const dictionary = {
     botsShowUncontestedWins: "Les bots montrent les gains sans opposition",
   },
   table: {
+    loading: "Chargement de la table…",
     outOfChips: "Tu n’as plus de jetons",
     watching: "Tu regardes la partie",
     youWonTable: "Tu as gagné la table",

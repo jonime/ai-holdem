@@ -337,8 +337,9 @@
   font-size: 14px;
 }
 @media (max-width: 760px) {
-  .guidanceStrip {
-    grid-template-columns: 1fr;
+  .guidanceStrip,
+  .publication {
+    grid-template-columns: minmax(0, 1fr);
   }
   .lobbySeat > button {
     margin-left: 0;

@@ -280,6 +280,17 @@ required database migrations.
 
 ## Game route loading failures
 
+Locale resolution and server-owned dictionaries precede the game layout's
+Suspense boundary. Its prerendered `TableLoadingShell` shows branding, empty
+felt, a localized loading status and reserved toolbar/control space. Header
+controls reserve invisible space until the client app is ready. The shared
+`EmptyLoadingTable` also covers the initial browser fetch, with an explicit
+mobile felt height and Actions collapsed. No players, cards, chips or game
+controls appear before authoritative data. The server existence check and
+browser snapshot read remain uncached; subsequent refreshes retain the table.
+Waiting tables still transition into the lobby; active and completed tables
+retain their existing views.
+
 The localized and unprefixed English game segments share branded missing-table and
 render-error fallbacks under the game layout’s I18nProvider. Malformed UUIDs are
 rejected before constructing the repository; only GameNotFoundError uses

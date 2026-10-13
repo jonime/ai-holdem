@@ -84,6 +84,7 @@ const dictionary = {
     botsShowUncontestedWins: "Bots show uncontested wins",
   },
   table: {
+    loading: "Loading table…",
     outOfChips: "You’re out of chips",
     watching: "You’re watching",
     youWonTable: "You won the table",

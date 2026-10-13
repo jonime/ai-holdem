@@ -84,6 +84,7 @@ const dictionary = {
     botsShowUncontestedWins: "Botit näyttävät kiistattomat voitot",
   },
   table: {
+    loading: "Ladataan pöytää…",
     outOfChips: "Pelimerkkisi loppuivat",
     watching: "Seuraat peliä",
     youWonTable: "Voitit pöydän",

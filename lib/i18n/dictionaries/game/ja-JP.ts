@@ -102,6 +102,7 @@ const dictionary = {
     "botsShowUncontestedWins": "全員フォールドで勝ったボットもカードを公開"
   },
   "table": {
+    loading: "テーブルを読み込み中…",
     "outOfChips": "チップがなくなりました",
     "watching": "観戦中",
     "youWonTable": "テーブルで優勝しました",

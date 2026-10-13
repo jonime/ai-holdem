@@ -58,7 +58,7 @@ import enUsGame from "@/lib/i18n/dictionaries/game/en-US";
 import fiFiGame from "@/lib/i18n/dictionaries/game/fi-FI";
 import { useI18n } from "@/components/poker/I18nProvider";
 
-import GameLayout, { GameI18nBoundary, metadata } from "./layout";
+import { GameI18nBoundary, metadata } from "./layout";
 
 const gameTopLevelKeys = [
   "actions",
@@ -116,18 +116,20 @@ describe("game layout", () => {
     },
   );
 
-  it("renders a standalone loading placeholder, not children, while the dictionary loads", () => {
-    const html = renderToStaticMarkup(
-      GameLayout({
-        params: Promise.resolve({ lang: "en-US", gameId: "table-1" }),
-        children: <TranslatingChild />,
-      }),
-    );
-
-    expect(html).toBe('<main aria-busy="true"></main>');
-    expect(html).not.toContain("game-i18n");
-    expect(html).not.toContain("Live");
-    expect(html).not.toContain("Yhteys");
-    expect(providerCaptures).toEqual([]);
-  });
+  it.each([["en-US", enUsGame], ["fi-FI", fiFiGame]] as const)(
+    "%s shows an empty branded table while game content suspends",
+    async (locale, dictionary) => {
+      function Pending(): never { throw new Promise(() => {}); }
+      const boundary = await GameI18nBoundary({ params: Promise.resolve({ lang: locale }), children: <Pending /> });
+      const html = renderToStaticMarkup(boundary);
+      expect(html).toContain("AI Hold&#x27;em");
+      expect(html).toContain(dictionary.table.loading);
+      expect(html).toContain('role="status"');
+      expect(html).toContain('aria-busy="true"');
+      expect(html).toContain(`href="${locale === "en-US" ? "/" : "/fi-FI"}"`);
+      expect(html).not.toContain("<button");
+      expect(html).not.toContain("data-playing-card");
+      expect(html).not.toContain("Player 1");
+    },
+  );
 });

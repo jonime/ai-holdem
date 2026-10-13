@@ -10,6 +10,7 @@ import { hasAutomaticTurn } from "./bot-advancement";
 import { useSettings } from "./useSettings";
 import { SettingsModal } from "./SettingsModal";
 import { useTurnNotifications } from "./useTurnNotifications";
+import { EmptyLoadingTable } from "./TableLoadingShell";
 import { GameHeader } from "./GameHeader";
 import { addLocalePrefix } from "@/lib/i18n";
 
@@ -336,7 +337,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
       {unavailable ? (
         <Link href={addLocalePrefix("/play", locale)}>{t("gameHeader.lobby")}</Link>
       ) : !game ? (
-        <div className="route-loading" aria-label={t("table.waiting")} />
+        <EmptyLoadingTable label={t("table.loading")} />
       ) : game.status === "waiting" ? (
         <LobbyPanel
           busy={requestBusy}

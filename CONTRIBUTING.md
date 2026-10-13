@@ -329,14 +329,19 @@ repository errors. Component tests cover all game dictionaries, Lobby paths and
 error-detail privacy. The production UI suite includes `storage-preferences.spec.ts` for pre-initialization
 storage-object/read/write failures, desktop/mobile Actions controls, name drafts,
 reload persistence and hydration errors. It also includes `table-loading.spec.ts`:
-English/Finnish missing and malformed links, keyboard Lobby navigation, mobile
+English/Finnish server-read and initial-browser-read delays on fresh URLs,
+desktop/mobile empty felt, accessible status and no gameplay data or controls,
+direct visits and client navigation, followed by waiting/active/completed views.
+It also covers missing and malformed links, keyboard Lobby navigation, mobile
 layout and noindex, plus keyboard retry through repeated render failures into a
 successful table with URL and identity preserved.
 
 The production runner instruments only its disposable source copy with
-`scripts/e2e/table-read-fault.mjs`. Tests control per-table file markers in that
+`scripts/e2e/table-read-fault.mjs`. Tests control per-table failure and bounded delay file markers in that
 copy; the checkout and normal production build contain no fault endpoint or
 runtime flag. Screenshot artifacts are in each project-qualified test directory under `test-results/`.
+Inspect an authorized production preview for early shell delivery as well; local
+streaming verification does not prove deployment buffering behavior.
 Route-render retry refetches the segment and never replays gameplay actions;
 existing in-game unknown-outcome recovery and removed-table handling are tested
 separately.

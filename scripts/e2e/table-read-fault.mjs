@@ -13,6 +13,11 @@ import "server-only";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 export async function failTableRead(gameId: string) {
+  const delay = join(process.cwd(), "table-read-delay-" + gameId);
+  const deadline = Date.now() + 20000;
+  while (existsSync(delay) && Date.now() < deadline) {
+    await new Promise(resolve => setTimeout(resolve, 50));
+  }
   const marker = join(process.cwd(), "table-read-failure-" + gameId);
   if (!existsSync(marker)) return;
   const remaining = Number(readFileSync(marker, "utf8"));

@@ -102,6 +102,7 @@ const dictionary = {
     "botsShowUncontestedWins": "机器人无争议获胜时亮牌"
   },
   "table": {
+    loading: "正在加载牌桌…",
     "outOfChips": "你的筹码已用完",
     "watching": "你正在观看",
     "youWonTable": "你赢得了整桌比赛",
