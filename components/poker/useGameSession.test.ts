@@ -6,13 +6,13 @@ import { TransportError } from "@/lib/http/api";
 
 // Minimal hook driver: preserve hook slots across renders and execute only session
 // ownership effects. Network operations and lifecycle callbacks remain explicit.
-const h = vi.hoisted(() => ({ slots: [] as unknown[], index: 0, effects: [] as (() => void | (() => void))[], cleanups: [] as (() => void)[], push: vi.fn(), read: vi.fn(), settings: vi.fn(), start: vi.fn(), action: vi.fn(), release: vi.fn(), suspend: vi.fn() }));
+const h = vi.hoisted(() => ({ slots: [] as unknown[], index: 0, passive: [] as (() => void | (() => void))[], effects: [] as (() => void | (() => void))[], cleanups: [] as (() => void)[], push: vi.fn(), read: vi.fn(), settings: vi.fn(), start: vi.fn(), action: vi.fn(), release: vi.fn(), suspend: vi.fn() }));
 vi.mock("react", () => ({
   useState: (initial: unknown) => { const i = h.index++; if (!(i in h.slots)) h.slots[i] = typeof initial === "function" ? initial() : initial; return [h.slots[i], (value: unknown) => { h.slots[i] = value; }]; },
   useRef: (initial: unknown) => { const i = h.index++; if (!(i in h.slots)) h.slots[i] = { current: initial }; return h.slots[i]; },
   useCallback: (fn: unknown) => fn,
   useLayoutEffect: (fn: () => void | (() => void)) => { h.effects.push(fn); },
-  useEffect: () => {},
+  useEffect: (fn: () => void | (() => void)) => { h.passive.push(fn); },
 }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: h.push }) }));
 vi.mock("./useGameFeed", () => ({ useGameFeed: () => ({ feed: null, refreshFeed: vi.fn() }) }));
@@ -25,7 +25,7 @@ vi.mock("@/lib/http/api", async importOriginal => ({ ...await importOriginal<obj
   seats: { release: h.release },
 } }));
 import { useGameSession } from "./useGameSession";
-function render() { h.index = 0; h.effects = []; return useGameSession(gameplayGame.id); }
+function render(id = gameplayGame.id) { h.index = 0; h.effects = []; h.passive = []; return useGameSession(id); }
 function deferred<T>() { let resolve!: (value: T) => void; let reject!: (error: unknown) => void; const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; }
 async function fixture() {
   render();
@@ -36,6 +36,7 @@ async function fixture() {
   return render();
 }
 beforeEach(() => {
+  vi.stubGlobal("navigator", { onLine: true });
   h.slots = []; h.cleanups = []; vi.clearAllMocks();
   vi.stubGlobal("window", { localStorage: { setItem: vi.fn() } });
   h.read.mockResolvedValue({ game: gameplayGame });
@@ -108,4 +109,72 @@ it("late rejected actions after navigation cannot start recovery or change anoth
   h.cleanups.forEach(fn => fn());
   held.reject(new TransportError("network", "late")); await work;
   expect(h.read).not.toHaveBeenCalled(); expect(render().error).toBeFalsy();
+});
+
+it("keeps failed refresh visible during repeated reads and clears on unchanged-version success", async () => {
+  const session = await fixture();
+  h.read.mockRejectedValueOnce(new TypeError("network"));
+  await expect(session.loadGame(gameplayGame.id)).rejects.toThrow();
+  expect(render().connectionNotice).toBe("refreshFailed");
+  const held = deferred<{ game: typeof gameplayGame }>(); h.read.mockReturnValueOnce(held.promise);
+  const retry = render().loadGame(gameplayGame.id);
+  expect(render().connectionNotice).toBe("refreshFailed");
+  expect(render().refreshing).toBe(true);
+  held.reject(new TypeError("network")); await expect(retry).rejects.toThrow();
+  expect(render().connectionNotice).toBe("refreshFailed");
+  await render().loadGame(gameplayGame.id);
+  expect(render().connectionNotice).toBe("none");
+});
+it("online and subscription are not recovery; only an accepted read clears reconnecting", async () => {
+  const session = await fixture();
+  h.read.mockRejectedValueOnce(new TypeError("network"));
+  await expect(session.loadGame(gameplayGame.id)).rejects.toThrow();
+  const listeners = new Map<string, () => void>();
+  vi.stubGlobal("window", { addEventListener: (event: string, fn: () => void) => listeners.set(event, fn) });
+  vi.stubGlobal("document", { addEventListener: vi.fn() });
+  // Only install the browser connectivity effect, keeping requests explicit.
+  h.passive[3]();
+  listeners.get("offline")!(); expect(render().connectionNotice).toBe("offline");
+  listeners.get("online")!(); expect(render().connectionNotice).toBe("reconnecting");
+  await render().loadGame(gameplayGame.id, () => false);
+  expect(render().connectionNotice).toBe("reconnecting");
+  await render().loadGame(gameplayGame.id);
+  expect(render().connectionNotice).toBe("none");
+});
+it("navigation resets failures and fences late rejected and successful reads", async () => {
+  const session = await fixture();
+  h.read.mockRejectedValueOnce(new TypeError("network"));
+  await expect(session.loadGame(gameplayGame.id)).rejects.toThrow();
+  const held = deferred<{ game: typeof gameplayGame }>(); h.read.mockReturnValueOnce(held.promise);
+  const late = render().loadGame(gameplayGame.id);
+  h.cleanups.forEach(fn => fn());
+  render("another-game"); for (const effect of h.effects) effect(); await Promise.resolve();
+  held.resolve({ game: gameplayGame }); await late;
+  expect(render("another-game").connectionNotice).toBe("none");
+});
+it("an older ignored read cannot clear a failure", async () => {
+  const session = await fixture();
+  const held = deferred<{ game: typeof gameplayGame }>(); h.read.mockReturnValueOnce(held.promise);
+  const late = session.loadGame(gameplayGame.id);
+  await session.loadGame(gameplayGame.id);
+  h.read.mockRejectedValueOnce(new TypeError("network"));
+  await expect(session.loadGame(gameplayGame.id)).rejects.toThrow();
+  held.resolve({ game: gameplayGame }); await late;
+  expect(render().connectionNotice).toBe("refreshFailed");
+});
+
+it("late failed reads cannot replace a newer successful read", async () => {
+  const session = await fixture();
+  const held = deferred<{ game: typeof gameplayGame }>(); h.read.mockReturnValueOnce(held.promise);
+  const late = session.loadGame(gameplayGame.id);
+  await session.loadGame(gameplayGame.id);
+  held.reject(new TypeError("network")); await expect(late).rejects.toThrow();
+  expect(render().connectionNotice).toBe("none");
+});
+
+it("a read deadline keeps the loaded table and exposes a refresh failure", async () => {
+  const session = await fixture();
+  h.read.mockRejectedValueOnce(new DOMException("Timed out", "AbortError"));
+  await expect(session.loadGame(gameplayGame.id)).rejects.toThrow();
+  expect(render()).toMatchObject({ game: gameplayGame, connectionNotice: "refreshFailed", refreshing: false });
 });

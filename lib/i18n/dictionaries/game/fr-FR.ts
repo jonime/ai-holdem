@@ -25,13 +25,6 @@ const dictionary = {
     confirmComplete: "Quitter cette table ? Votre place sera libérée maintenant ; les résultats resteront disponibles.",
     departureChanged: "La table a changé. Vérifiez-la et réessayez de la quitter.",
   },
-  connection: {
-    live: "En direct",
-    checking: "Recherche de mises à jour",
-    offline: "Hors ligne",
-    error: "Actualisation impossible",
-    refreshNow: "Actualiser",
-  },
   lobby: {
     waitingRoom: "Salle d’attente",
     chooseTable: "Choisissez votre table",
@@ -217,6 +210,11 @@ const dictionary = {
     spades: "pique",
     unknownSuit: "couleur inconnue",
     of: "{rank} de {suit}",
+  },
+  connection: {
+    offline: "Vous êtes hors ligne. La table sera actualisée au retour de la connexion.",
+    reconnecting: "Connexion rétablie. Actualisation de la table…",
+    refreshFailed: "Impossible d’actualiser la table. Les informations affichées peuvent être obsolètes.",
   },
   errors: {
     actionUnconfirmed: "Nous n’avons pas pu confirmer votre action. Vérification de la table…",

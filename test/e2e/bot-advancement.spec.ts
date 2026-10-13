@@ -631,3 +631,32 @@ test("polling during a held retry refresh cannot start a parallel bot loop", asy
   await expect.poll(() => steps).toBe(2);
   await expect(page.locator("main").getByRole("alert")).toHaveCount(0);
 });
+
+test("provider pause survives offline and connection refresh recovery", { tag: "@ui-regression" }, async ({ page }) => {
+  const f = await fixture(page);
+  let steps = 0;
+  await page.route(`**/api/games/${f.gameId}/step`, route => {
+    steps++;
+    return route.fulfill({ status: 502, json: { code: "BOT_PROVIDER_ERROR" } });
+  });
+  await open(page, f.gameId);
+  const retry = page.getByRole("button", { name: "Retry bot", exact: true });
+  await expect(retry).toBeVisible();
+  const message = await page.locator("main").getByRole("alert").textContent();
+  await page.context().setOffline(true);
+  await expect(page.getByTestId("connection-status")).toContainText("You’re offline.");
+  await page.context().setOffline(false);
+  await expect(page.getByTestId("connection-status")).toHaveText("");
+  await expect(page.locator("main").getByRole("alert")).toHaveText(message!);
+  await expect(retry).toBeVisible();
+  await page.route(`**/api/games/${f.gameId}`, route => route.abort("failed"));
+  await triggerRefresh(page);
+  await expect(page.getByTestId("connection-status")).toContainText("Unable to update the table.");
+  await page.unroute(`**/api/games/${f.gameId}`);
+  await page.route(`**/api/games/${f.gameId}`, route => route.fulfill({ json: { game: f.current() } }));
+  await page.getByRole("button", { name: "Refresh table", exact: true }).click();
+  await expect(page.getByTestId("connection-status")).toHaveText("");
+  await expect(page.locator("main").getByRole("alert")).toHaveText(message!);
+  await expect(retry).toBeVisible();
+  expect(steps).toBe(1);
+});

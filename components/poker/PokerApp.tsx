@@ -1,4 +1,5 @@
 "use client";
+import { connectionFeedback } from "./connection-notice";
 import { useCreation } from "@/components/creation/useCreation";
 import { CreationFeedback } from "@/components/creation/CreationFeedback";
 import { Modal } from "./Modal";
@@ -123,6 +124,9 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     refreshing,
     refreshGame,
     error,
+    botNotice,
+    botRetryAvailable,
+    connectionNotice,
     claimSeatAt,
     updatePlayerName,
     assignBot,
@@ -136,6 +140,9 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     usageRetryAfterMs,
     refreshDirectoryState,
   } = useGameSession(gameId);
+
+  const feedback = connectionFeedback(connectionNotice, recoveryBlocked);
+  const connectionMessage = feedback.message === "none" ? null : t(`connection.${feedback.message}`);
 
   const viewerToken = getClientPlayerToken();
   const { viewerPlayer, human } = resolveViewer(
@@ -321,12 +328,17 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     <CreationFeedback creation={creation} labels={creationLabels} />
     <GameHeader helpRef={helpOpenerRef} onHelp={opener => openOverlay("help", opener)} settingsRef={settingsOpenerRef} onSettings={opener => openOverlay("settings", opener)} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={releaseSeat} />
     <main className={styles.pokerApp}>
-      {error ? (
-        <p className={styles.errorBanner} role="alert">
+      <div className={connectionMessage || error || botNotice || feedback.refresh ? styles.errorBanner : undefined}>
+        <div data-testid="connection-status" role="status" aria-live="polite" aria-atomic="true">
+          {connectionMessage ? <p>{connectionMessage}</p> : null}
+        </div>
+      {error || botNotice || feedback.refresh ? (
+        <p role={error || botNotice ? "alert" : undefined}>
           {error}
-          {recoveryBlocked ? <Button className={styles.recoveryButton} size="small" disabled={refreshing} onClick={refreshGame}>{t("errors.refreshTable")}</Button> : null}
+          {botNotice ? <span>{botNotice}</span> : null}
+          {feedback.refresh ? <Button className={styles.recoveryButton} size="small" disabled={!online || refreshing} onClick={refreshGame}>{t("errors.refreshTable")}</Button> : null}
           {usageLimited ? <> <span>{t("errors.retryAvailable", { seconds: Math.ceil(usageRetryAfterMs / 1000) })}</span> <Button size="small" disabled={loading || replaying || creation.hasPending} onClick={() => void newQuickPlay("rules")}>{t("errors.rulesOnlyGame")}</Button></> : null}
-          {game && canAdvanceBots(game, viewerToken) && hasAutomaticTurn(game) ? (
+          {botNotice && (botRetryAvailable || usageLimited) && !recoveryBlocked && game && canAdvanceBots(game, viewerToken) && hasAutomaticTurn(game) ? (
             <Button
               size="small"
               disabled={loading || replaying || usageRetryAfterMs > 0}
@@ -338,6 +350,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
           ) : null}
         </p>
       ) : null}
+      </div>
       {unavailable ? (
         <Link href={addLocalePrefix("/play", locale)}>{t("gameHeader.lobby")}</Link>
       ) : !game ? (

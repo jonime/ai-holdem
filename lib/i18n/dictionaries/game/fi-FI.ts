@@ -25,13 +25,6 @@ const dictionary = {
     confirmComplete: "Poistutko pöydästä? Paikkasi vapautetaan heti; jaon tulokset säilyvät.",
     departureChanged: "Pöytä muuttui. Tarkista tilanne ja yritä poistua uudelleen.",
   },
-  connection: {
-    live: "Yhteys toimii",
-    checking: "Tarkistetaan päivityksiä",
-    offline: "Ei verkkoyhteyttä",
-    error: "Päivitys epäonnistui",
-    refreshNow: "Päivitä nyt",
-  },
   lobby: {
     waitingRoom: "Odotushuone",
     chooseTable: "Valitse pöytä",
@@ -217,6 +210,11 @@ const dictionary = {
     spades: "pata",
     unknownSuit: "tuntematon maa",
     of: "{rank} {suit}",
+  },
+  connection: {
+    offline: "Olet offline-tilassa. Pöytä päivittyy, kun yhteys palautuu.",
+    reconnecting: "Yhteys palautui. Päivitetään pöytää…",
+    refreshFailed: "Pöytää ei voitu päivittää. Näytetyt tiedot voivat olla vanhentuneita.",
   },
   errors: {
     actionUnconfirmed: "Emme voineet vahvistaa toimintoasi. Tarkistetaan pöytää…",

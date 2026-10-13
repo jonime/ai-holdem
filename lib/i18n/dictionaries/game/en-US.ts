@@ -23,13 +23,6 @@ const dictionary = {
     confirmComplete: "Leave this table? Your seat will be released now; your hand results will remain available.",
     departureChanged: "The table changed. Review it and try leaving again.",
   },
-  connection: {
-    live: "Live",
-    checking: "Checking for updates",
-    offline: "Offline",
-    error: "Unable to refresh",
-    refreshNow: "Refresh now",
-  },
   lobby: {
     waitingRoom: "Waiting room",
     chooseTable: "Choose your table",
@@ -217,6 +210,11 @@ const dictionary = {
     spades: "spades",
     unknownSuit: "unknown suit",
     of: "{rank} of {suit}",
+  },
+  connection: {
+    offline: "You’re offline. The table will refresh when you reconnect.",
+    reconnecting: "Connection restored. Updating the table…",
+    refreshFailed: "Unable to update the table. Displayed information may be out of date.",
   },
   errors: {
     actionUnconfirmed: "We couldn’t confirm your action. Checking the table…",

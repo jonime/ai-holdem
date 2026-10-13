@@ -34,13 +34,6 @@ const dictionary = {
     "confirmComplete": "このテーブルを離れますか？席はすぐに解放されます。ハンドの結果は引き続き確認できます。",
     "departureChanged": "テーブルの状態が変わりました。確認して、もう一度退出をお試しください。"
   },
-  "connection": {
-    "live": "リアルタイム",
-    "checking": "更新を確認中",
-    "offline": "オフライン",
-    "error": "更新できません",
-    "refreshNow": "今すぐ更新"
-  },
   "lobby": {
     "waitingRoom": "待機室",
     "chooseTable": "テーブルを設定",
@@ -233,6 +226,11 @@ const dictionary = {
     "spades": "スペード",
     "unknownSuit": "不明なスート",
     "of": "{suit}の{rank}"
+  },
+  connection: {
+    offline: "オフラインです。接続が復旧するとテーブルが更新されます。",
+    reconnecting: "接続が復旧しました。テーブルを更新しています…",
+    refreshFailed: "テーブルを更新できませんでした。表示されている情報が古い可能性があります。",
   },
   "errors": {
     "actionUnconfirmed": "アクションの完了を確認できませんでした。テーブルを確認中…",

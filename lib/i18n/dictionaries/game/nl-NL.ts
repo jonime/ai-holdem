@@ -25,13 +25,6 @@ const dictionary = {
     confirmComplete: "Deze tafel verlaten? Je plaats komt nu vrij; de resultaten blijven beschikbaar.",
     departureChanged: "De tafel is veranderd. Bekijk hem en probeer opnieuw te vertrekken.",
   },
-  connection: {
-    live: "Live",
-    checking: "Controleren op updates",
-    offline: "Offline",
-    error: "Vernieuwen mislukt",
-    refreshNow: "Nu vernieuwen",
-  },
   lobby: {
     waitingRoom: "Wachtkamer",
     chooseTable: "Kies je tafel",
@@ -217,6 +210,11 @@ const dictionary = {
     spades: "schoppen",
     unknownSuit: "onbekende kleur",
     of: "{rank} van {suit}",
+  },
+  connection: {
+    offline: "Je bent offline. De tafel wordt vernieuwd zodra je weer verbinding hebt.",
+    reconnecting: "Verbinding hersteld. De tafel wordt vernieuwd…",
+    refreshFailed: "De tafel kan niet worden vernieuwd. De getoonde informatie kan verouderd zijn.",
   },
   errors: {
     actionUnconfirmed: "We konden je actie niet bevestigen. De tafel wordt gecontroleerd…",

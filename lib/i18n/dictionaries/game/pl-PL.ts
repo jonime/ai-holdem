@@ -25,13 +25,6 @@ const dictionary = {
     confirmComplete: "Opuścić ten stół? Twoje miejsce zostanie zwolnione teraz; wyniki pozostaną dostępne.",
     departureChanged: "Stół się zmienił. Sprawdź go i spróbuj opuścić go ponownie.",
   },
-  connection: {
-    live: "Na żywo",
-    checking: "Sprawdzanie aktualizacji",
-    offline: "Offline",
-    error: "Nie można odświeżyć",
-    refreshNow: "Odśwież teraz",
-  },
   lobby: {
     waitingRoom: "Poczekalnia",
     chooseTable: "Wybierz stół",
@@ -218,6 +211,11 @@ const dictionary = {
     spades: "pik",
     unknownSuit: "nieznany kolor",
     of: "{rank} {suit}",
+  },
+  connection: {
+    offline: "Jesteś offline. Stół zostanie odświeżony po przywróceniu połączenia.",
+    reconnecting: "Połączenie przywrócone. Odświeżanie stołu…",
+    refreshFailed: "Nie udało się odświeżyć stołu. Wyświetlane informacje mogą być nieaktualne.",
   },
   errors: {
     actionUnconfirmed: "Nie mogliśmy potwierdzić Twojej akcji. Sprawdzamy stół…",

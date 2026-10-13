@@ -47,6 +47,15 @@ can continue without the departing browser. If every eligible browser closes,
 the table stays persisted and resumes when one returns. Closing a tab without
 Leave table or Stand up does not register departure; there are no disconnect timeouts.
 
+Above waiting and active tables, connection feedback appears only when the browser
+is offline, reconnecting, or an authoritative table read fails. The last loaded
+table stays visible. Returning online shows “Connection restored. Updating the
+table…” until a successful read, even when its version is unchanged. Failed reads
+keep their notice during retries; **Refresh table** is disabled offline or while
+reading. Healthy polling and routine updates remain silent. If an action’s outcome
+is unknown, its specific explanation and one Refresh table button take precedence.
+Connection recovery never resubmits an action or dismisses a paused bot’s retry.
+
 ## In-game Help
 
 The header Help button opens optional reference material for players and spectators

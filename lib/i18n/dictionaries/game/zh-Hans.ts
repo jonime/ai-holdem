@@ -34,13 +34,6 @@ const dictionary = {
     "confirmComplete": "离开此牌桌？你的座位将立即释放，仍可查看本手结果。",
     "departureChanged": "牌桌状态已更改。请查看后再次尝试离开。"
   },
-  "connection": {
-    "live": "实时连接",
-    "checking": "正在检查更新",
-    "offline": "离线",
-    "error": "无法刷新",
-    "refreshNow": "立即刷新"
-  },
   "lobby": {
     "waitingRoom": "等候室",
     "chooseTable": "设置你的牌桌",
@@ -233,6 +226,11 @@ const dictionary = {
     "spades": "黑桃",
     "unknownSuit": "未知花色",
     "of": "{suit}{rank}"
+  },
+  connection: {
+    offline: "你已离线。重新连接后，牌桌将会刷新。",
+    reconnecting: "连接已恢复。正在更新牌桌…",
+    refreshFailed: "无法更新牌桌。显示的信息可能已过时。",
   },
   "errors": {
     "actionUnconfirmed": "无法确认你的行动是否完成。正在检查牌桌…",

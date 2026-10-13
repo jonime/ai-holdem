@@ -80,7 +80,7 @@ const gameTopLevelKeys = [
 
 const TranslatingChild = () => {
   const { t } = useI18n();
-  return <main>{t("connection.live")}</main>;
+  return <main>{t("connection.offline")}</main>;
 };
 
 describe("game layout", () => {
@@ -107,7 +107,7 @@ describe("game layout", () => {
       const html = renderToStaticMarkup(boundary);
 
       expect(html).toContain(
-        `<div data-testid="game-i18n"><main>${dictionary.connection.live}</main></div>`,
+        `<div data-testid="game-i18n"><main>${dictionary.connection.offline}</main></div>`,
       );
       expect(providerCaptures).toEqual([{ locale, dictionary }]);
       expect(Object.keys(providerCaptures[0].dictionary).sort()).toEqual(

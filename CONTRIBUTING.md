@@ -617,6 +617,21 @@ progression resumes normal eligibility. Client cancellation does not stop server
 inference or release claims. Session generations and abort signals prevent late
 results from changing a different table or navigating after unmount.
 
+Connection notices share the existing recovery area above waiting and active tables.
+Only browser offline, reconnecting pending a reconciled read, and failed authoritative
+reads are visible; healthy polling fallback is silent. Offline takes precedence and
+failed reads remain visible during retries. A same-version accepted read clears the
+connection failure; feed/catalog responses and fenced late results cannot. Mutation
+recovery keeps its specific explanation and one Refresh table button, disabled while
+offline or reading. Provider pauses and allowance countdowns remain independent.
+Verify `request-recovery.spec.ts` and `bot-advancement.spec.ts` with
+`npm run test:e2e:ui -- request-recovery.spec.ts bot-advancement.spec.ts`:
+offline → online with a held read, failed read/manual retry, combined unknown outcome,
+blocked WebSockets with healthy polling, and desktop/mobile screenshots. Check the
+stable polite status text changes only on notice transitions and that Refresh table
+is keyboard accessible. Connection recovery must never resubmit a mutation or retry
+a paused provider. Navigation resets notices; existing session fences still apply.
+
 The endpoint-to-contract/client checklist is complete:
 
 | Endpoint | Request contract (path/query/body) | Response schema | Named method (`api.` prefix) |

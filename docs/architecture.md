@@ -191,6 +191,18 @@ Realtime is connected and every 5 seconds while it is unavailable. Polling
 pauses in hidden or offline tabs, then refreshes immediately when the tab is
 visible or online again.
 
+`useGameSession` exposes a structured connection notice: none, offline,
+reconnecting, or refreshFailed. Offline takes precedence; online events retain
+reconnecting until a current-session authoritative game read passes reconciliation.
+Failed reads (including timeout) stay visible during retries. Equal versions are
+valid successes; ignored late responses, subscriptions, feed and catalog reads
+cannot clear failures. Navigation resets feedback and fences pending reads by
+session generation. Read activity disables the single shared Refresh table action;
+manual requests use the existing serialized coordinator. The stable polite status
+region announces message changes only. Mutation recovery retains its unknown-outcome
+explanation, while independent provider/allowance notices and explicit retries remain.
+Connection feedback changes no mutation eligibility, bot policy or request deadline.
+
 ## Public discovery
 
 Hosts may publish a waiting lobby with an optional 60-character title. A visible

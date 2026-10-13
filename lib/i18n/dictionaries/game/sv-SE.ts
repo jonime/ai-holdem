@@ -25,13 +25,6 @@ const dictionary = {
     confirmComplete: "Lämna bordet? Din plats frigörs nu; givens resultat finns kvar.",
     departureChanged: "Bordet har ändrats. Kontrollera läget och försök lämna igen.",
   },
-  connection: {
-    live: "Live",
-    checking: "Söker efter uppdateringar",
-    offline: "Offline",
-    error: "Det gick inte att uppdatera",
-    refreshNow: "Uppdatera nu",
-  },
   lobby: {
     waitingRoom: "Väntrum",
     chooseTable: "Välj ditt bord",
@@ -217,6 +210,11 @@ const dictionary = {
     spades: "spader",
     unknownSuit: "okänd färg",
     of: "{rank} i {suit}",
+  },
+  connection: {
+    offline: "Du är offline. Bordet uppdateras när anslutningen återställs.",
+    reconnecting: "Anslutningen är återställd. Uppdaterar bordet…",
+    refreshFailed: "Det gick inte att uppdatera bordet. Informationen kan vara inaktuell.",
   },
   errors: {
     actionUnconfirmed: "Vi kunde inte bekräfta din åtgärd. Kontrollerar bordet…",

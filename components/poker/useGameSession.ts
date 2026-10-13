@@ -1,4 +1,5 @@
 "use client";
+import { connectionNotice } from "./connection-notice";
 import { observeTurnClock, turnRemainingMs } from "./turn-clock";
 
 import { addLocalePrefix } from "@/lib/i18n";
@@ -52,6 +53,7 @@ export function useGameSession(gameId?: string) {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
   const [online, setOnline] = useState(() =>
     typeof navigator === "undefined" ? true : navigator.onLine,
   );
@@ -65,6 +67,7 @@ export function useGameSession(gameId?: string) {
   const nextResponseSequence = useRef(0);
   const lastAppliedResponse = useRef<AppliedGameResponse | null>(null);
   const refreshCoordinator = useRef<RefreshCoordinator | null>(null);
+  const activeReads = useRef(0);
   const refreshAbortControllers = useRef(new Set<AbortController>());
   const mutationPending = useRef(false);
   const recoveryBlock = useRef(false);
@@ -77,10 +80,11 @@ export function useGameSession(gameId?: string) {
   useLayoutEffect(() => {
     const generation = ++sessionGeneration.current;
     requestController.current = new AbortController();
+    activeReads.current = 0;
     mutationPending.current = false;
     recoveryBlock.current = false;
     queueMicrotask(() => {
-      if (sessionGeneration.current === generation) { setRecoveryBlocked(false); setLoading(false); setError(null); setRecoveryNotice(null); }
+      if (sessionGeneration.current === generation) { setRecoveryBlocked(false); setLoading(false); setError(null); setRecoveryNotice(null); setRefreshFailed(false); setReconnecting(false); setRefreshing(false); }
     });
     activeGameId.current = gameId;
     return () => {
@@ -122,16 +126,22 @@ export function useGameSession(gameId?: string) {
       const sequence = ++nextResponseSequence.current;
       const { controller, cancel } = createRefreshTimeout();
       refreshAbortControllers.current.add(controller);
+      activeReads.current++;
+      setRefreshing(true);
       try {
         const body = await api.games.get({ gameId: targetGameId }, { signal: controller.signal });
         if (valid()) {
-          applyGame(body.game, sequence, targetGameId);
+          const applied = applyGame(body.game, sequence, targetGameId);
+          if (!applied) return body.game;
+          setRefreshFailed(false);
+          setReconnecting(false);
           if (recoveryBlock.current && !mutationPending.current) {
             recoveryBlock.current = false; setRecoveryBlocked(false); setError(null); setRecoveryNotice(t("errors.actionReconciled"));
           }
         }
         return body.game;
       } catch (failure) {
+        if (valid() && activeGameId.current === targetGameId && sequence >= (lastAppliedResponse.current?.sequence ?? 0)) setRefreshFailed(true);
         if (failure instanceof HttpError && failure.status === 404 && valid() && activeGameId.current === targetGameId) {
           unavailableGameId.current = targetGameId;
           latestGame.current = null;
@@ -144,6 +154,10 @@ export function useGameSession(gameId?: string) {
       } finally {
         cancel();
         refreshAbortControllers.current.delete(controller);
+        if (generation === sessionGeneration.current) {
+          activeReads.current--;
+          setRefreshing(activeReads.current > 0);
+        }
       }
     },
     [applyGame, t],
@@ -165,7 +179,9 @@ export function useGameSession(gameId?: string) {
     },
     apply: applyGame,
     refresh: loadGame,
-    refreshFailed: setRefreshFailed,
+    // Game reads own connection feedback; lifecycle callbacks cannot clear it
+    // after an ignored response. Provider pause policy remains independent.
+    refreshFailed: () => {},
     clearError: () => setError(null),
     errorMessage: requestError => botErrorMessage(requestError, t),
     unfinishedMessage: () => t("errors.botTurnUnfinished"),
@@ -181,27 +197,12 @@ export function useGameSession(gameId?: string) {
   const performRefresh = useCallback(async () => {
     if (!gameId || unavailableGameId.current === gameId || !navigator.onLine) return;
     const generation = sessionGeneration.current;
-    setRefreshing(true);
     try {
       await loadGame(gameId, () => sessionGeneration.current === generation);
-      if (sessionGeneration.current !== generation) return;
-      setRefreshFailed(false);
-      if (recoveryBlock.current && !mutationPending.current) {
-        recoveryBlock.current = false;
-        setRecoveryBlocked(false);
-        setError(null); setRecoveryNotice(t("errors.actionReconciled"));
-      }
-    } catch (requestError) {
-      if (sessionGeneration.current !== generation) return;
-      if (!(requestError instanceof DOMException && requestError.name === "AbortError")) {
-        setRefreshFailed(true);
-      } else if (activeGameId.current === gameId) {
-        setRefreshFailed(true);
-      }
-    } finally {
-      if (sessionGeneration.current === generation) setRefreshing(false);
+    } catch {
+      // loadGame records current-session read failures without replacing errors.
     }
-  }, [gameId, loadGame, t]);
+  }, [gameId, loadGame]);
 
   useEffect(() => {
     const coordinator = new RefreshCoordinator(performRefresh);
@@ -242,6 +243,10 @@ export function useGameSession(gameId?: string) {
   useEffect(() => {
     const handleOnline = () => {
       setOnline(true);
+      setReconnecting(true);
+      // Replace the previous outage’s failed-read message with reconnecting;
+      // connectivity is still unconfirmed until an accepted read succeeds.
+      setRefreshFailed(false);
       refreshCoordinator.current?.schedule(0);
     };
     const handleOffline = () => setOnline(false);
@@ -340,11 +345,11 @@ export function useGameSession(gameId?: string) {
             setError(null); setRecoveryNotice(t("errors.actionReconciled"));
           }
         } catch {
-          if (current()) { setRefreshFailed(true); setError(t("errors.actionRecoveryFailed")); }
+          if (current()) setError(t("errors.actionRecoveryFailed"));
         }
       } else if (failure instanceof HttpError && (failure.status === 409 || failure.code === "TURN_EXPIRED")) {
         try { await loadGame(game.id, current); }
-        catch { if (current()) setRefreshFailed(true); }
+        catch { /* loadGame owns connection failure state. */ }
         if (current()) setError(failure.code === "TURN_EXPIRED" || failure.code === "GAME_VERSION_CONFLICT" ? null : conflictMessage ?? failure.message);
       } else setError(failure instanceof Error ? failure.message : t("errors.submitAction"));
       return false;
@@ -458,7 +463,10 @@ export function useGameSession(gameId?: string) {
     recoveryBlocked,
     requestBusy: loading || bots.loading,
     navigationLoading: loading,
-    error: unavailable ? t("errors.tableUnavailable") : error ?? bots.notice ?? recoveryNotice,
+    error: unavailable ? t("errors.tableUnavailable") : error ?? recoveryNotice,
+    botNotice: bots.notice,
+    botRetryAvailable: bots.retryAvailable,
+    connectionNotice: game?.id === gameId && !unavailable ? connectionNotice(online, reconnecting, refreshFailed) : "none",
     usageLimited: bots.usageLimited,
     usageRetryAfterMs: bots.usageRetryAfterMs,
     connectionStatus: liveConnectionStatus,

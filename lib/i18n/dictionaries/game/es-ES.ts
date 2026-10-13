@@ -25,13 +25,6 @@ const dictionary = {
     confirmComplete: "¿Salir de esta mesa? Tu asiento quedará libre ahora; los resultados seguirán disponibles.",
     departureChanged: "La mesa ha cambiado. Revísala e intenta salir de nuevo.",
   },
-  connection: {
-    live: "En vivo",
-    checking: "Buscando actualizaciones",
-    offline: "Sin conexión",
-    error: "No se puede actualizar",
-    refreshNow: "Actualizar ahora",
-  },
   lobby: {
     waitingRoom: "Sala de espera",
     chooseTable: "Elige tu mesa",
@@ -217,6 +210,11 @@ const dictionary = {
     spades: "picas",
     unknownSuit: "palo desconocido",
     of: "{rank} de {suit}",
+  },
+  connection: {
+    offline: "Estás sin conexión. La mesa se actualizará cuando te reconectes.",
+    reconnecting: "Conexión restablecida. Actualizando la mesa…",
+    refreshFailed: "No se pudo actualizar la mesa. La información mostrada puede estar desactualizada.",
   },
   errors: {
     actionUnconfirmed: "No pudimos confirmar tu acción. Comprobando la mesa…",
