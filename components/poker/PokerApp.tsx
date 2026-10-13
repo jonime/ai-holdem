@@ -317,7 +317,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   ]);
 
   return (
-    <>
+    <div className={styles.cardPalette} data-card-colours={settings.preferences.cardColours}>
     <CreationFeedback creation={creation} labels={creationLabels} />
     <GameHeader helpRef={helpOpenerRef} onHelp={opener => openOverlay("help", opener)} settingsRef={settingsOpenerRef} onSettings={opener => openOverlay("settings", opener)} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={releaseSeat} />
     <main className={styles.pokerApp}>
@@ -509,6 +509,6 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
         <div className={styles.helpScroll} tabIndex={0}>{helpContent}</div>
       </Modal>
     ) : null}
-    </>
+    </div>
   );
 }

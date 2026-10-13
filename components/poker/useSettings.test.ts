@@ -28,8 +28,8 @@ it("uses hydration defaults until saved preferences have been read", () => {
 });
 it("updates immediately, combines successive patches and tolerates failed persistence", () => {
   vi.mocked(win.localStorage.setItem).mockImplementation(() => { throw Error(); });
-  const value = render(); value.update({ turnSound: true }); value.update({ gameplayShortcuts: false });
-  expect(render().preferences).toEqual({ version: 1, turnSound: true, gameplayShortcuts: false });
+  const value = render(); value.update({ turnSound: true }); value.update({ gameplayShortcuts: false }); value.update({ cardColours: "four-colour" });
+  expect(render().preferences).toEqual({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour" });
 });
 it("synchronizes storage events, ignores legacy keys, resets on removal and cleans up", () => {
   render();
@@ -37,6 +37,8 @@ it("synchronizes storage events, ignores legacy keys, resets on removal and clea
   event("ai-holdem-turn-sound", "true"); expect(render().preferences).toEqual(defaultSettings);
   event(settingsStorageKey, '{"version":1,"turnSound":true,"gameplayShortcuts":false}');
   expect(render().preferences.turnSound).toBe(true);
+  event(settingsStorageKey, '{"version":1,"turnSound":true,"gameplayShortcuts":false,"cardColours":"four-colour"}');
+  expect(render().preferences.cardColours).toBe("four-colour");
   event(settingsStorageKey, null); expect(render().preferences).toEqual(defaultSettings);
   event(settingsStorageKey, "malformed"); expect(render().preferences).toEqual(defaultSettings);
   event(settingsStorageKey, '{"version":1,"turnSound":true,"gameplayShortcuts":false}');
@@ -48,4 +50,15 @@ it("synchronizes storage events, ignores legacy keys, resets on removal and clea
 it("inaccessible storage still finishes initialization", () => {
   vi.mocked(win.localStorage.getItem).mockImplementation(() => { throw Error(); });
   render(); expect(render()).toMatchObject({ ready: true, preferences: defaultSettings });
+});
+
+it("updates palette in memory when localStorage itself is unavailable", () => {
+  Object.defineProperty(win, "localStorage", { get() { throw Error(); } });
+  render(); render().update({ cardColours: "four-colour" });
+  expect(render().preferences.cardColours).toBe("four-colour");
+});
+it.each(["classic", "four-colour"] as const)("loads saved %s palette after hydration and preserves other preferences", cardColours => {
+  vi.mocked(win.localStorage.getItem).mockReturnValue(JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours }));
+  expect(render().preferences).toEqual(defaultSettings);
+  expect(render().preferences).toEqual({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours });
 });

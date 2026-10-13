@@ -1,3 +1,14 @@
+.cardPalette {
+  --suit-spades: #182424;
+  --suit-hearts: #b33d2c;
+  --suit-diamonds: #b33d2c;
+  --suit-clubs: #182424;
+}
+.cardPalette[data-card-colours="four-colour"] {
+  --suit-diamonds: #1856a0;
+  --suit-clubs: #21633e;
+}
+
 .pokerApp {
   padding: 28px clamp(18px, 4vw, 64px) 12px;
 }

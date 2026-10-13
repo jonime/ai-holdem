@@ -1,3 +1,5 @@
+import { InlineCardExample } from "@/components/poker/InlineCardExample";
+
 export const title = "Aide du jeu";
 
 L’aide ne met pas le jeu en pause. Les bots, les mises à jour et les minuteurs multijoueurs continuent ; un tour humain chronométré peut expirer et entraîner un abandon.
@@ -6,17 +8,17 @@ L’aide ne met pas le jeu en pause. Les bots, les mises à jour et les minuteur
 
 Formez la meilleure main de cinq cartes avec vos deux cartes privées et les cinq cartes communes. De la plus forte à la plus faible :
 
-1. **Quinte flush : cinq cartes consécutives de la même couleur** — `9♠ 8♠ 7♠ 6♠ 5♠`.
-2. **Carré : quatre cartes de même rang** — `A♠ A♥ A♦ A♣ K♠`.
-3. **Full : un brelan et une paire** — `K♠ K♥ K♦ 2♣ 2♥`.
-4. **Couleur : cinq cartes de la même couleur** — `A♥ J♥ 8♥ 5♥ 2♥`.
-5. **Quinte : cinq rangs consécutifs** — `9♠ 8♥ 7♦ 6♣ 5♠`.
-6. **Brelan : trois cartes de même rang** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
-7. **Deux paires : deux paires différentes** — `J♠ J♥ 4♦ 4♣ A♥`.
-8. **Paire : deux cartes de même rang** — `10♠ 10♥ A♦ 7♣ 3♥`.
-9. **Carte haute : aucune combinaison ci-dessus** — `A♠ J♥ 8♦ 5♣ 2♥`.
+1. **Quinte flush : cinq cartes consécutives de la même couleur** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **Carré : quatre cartes de même rang** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **Full : un brelan et une paire** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **Couleur : cinq cartes de la même couleur** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **Quinte : cinq rangs consécutifs** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **Brelan : trois cartes de même rang** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **Deux paires : deux paires différentes** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **Paire : deux cartes de même rang** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **Carte haute : aucune combinaison ci-dessus** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-La quinte flush royale est la plus haute quinte flush : A♠ K♠ Q♠ J♠ 10♠ (as, roi, dame, valet et dix de pique). L’as peut aussi être bas dans A–2–3–4–5. Les rangs supérieurs puis les cartes restantes départagent ; des meilleures mains identiques de cinq cartes partagent le pot. Les couleurs ne départagent pas les égalités. Symboles : ♠ pique, ♥ cœur, ♦ carreau, ♣ trèfle. A = as, K = roi, Q = dame, J = valet.
+La quinte flush royale est la plus haute quinte flush : <InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" /> (as, roi, dame, valet et dix de pique). L’as peut aussi être bas dans A–2–3–4–5. Les rangs supérieurs puis les cartes restantes départagent ; des meilleures mains identiques de cinq cartes partagent le pot. Les couleurs ne départagent pas les égalités. Symboles : <InlineCardExample cards="♠" /> pique, <InlineCardExample cards="♥" /> cœur, <InlineCardExample cards="♦" /> carreau, <InlineCardExample cards="♣" /> trèfle. A = as, K = roi, Q = dame, J = valet.
 
 ## Bases des mises
 
@@ -37,3 +39,5 @@ La quinte flush royale est la plus haute quinte flush : A♠ K♠ Q♠ J♠ 10�
 
 
 Le son de tour et les raccourcis se règlent dans les Paramètres. Désactiver les raccourcis masque leurs indications et désactive les touches d’action et les ajustements de mise personnalisés. Tab, Entrée/Espace sur les boutons ciblés, la saisie numérique et les touches natives du curseur fonctionnent toujours. Changer de langue conserve la table et devient possible après les requêtes et la récupération.
+
+Dans les Paramètres, Couleurs des cartes utilise Classiques par défaut. Quatre couleurs affiche les piques sombres, les cœurs rouges, les carreaux bleus et les trèfles verts. Les symboles restent identiques.

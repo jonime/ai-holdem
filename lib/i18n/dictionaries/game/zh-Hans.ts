@@ -4,7 +4,7 @@ import type { GameDictionary } from "../../types";
 
 const dictionary = {
   creation: {"wait": "{seconds} 秒后可重试。", "creating": "正在创建牌桌…", "retry": "重试创建", "recovery": "有待完成的创建请求。重试可恢复同一牌桌。", "memoryOnly": "无法使用会话存储。重新加载将丢失此恢复记录。", "cookiesRequired": "创建牌桌需要 Cookie。请启用后重试。", "identityChanged": "您的匿名身份已更改，无法安全恢复此请求。", "failed": "无法确认结果。重试创建以恢复同一牌桌。", "unavailable": "无法恢复此请求。牌桌可能已删除或输入已更改。", "denied": "已达到创建上限。请稍后重试。", "dismiss": "丢弃请求"},
-  settings: {"title": "设置", "close": "关闭", "shortcuts": "游戏快捷键", "language": "语言", "continues": "设置打开时，游戏仍会继续。", "languageBlocked": "当前请求或牌桌恢复完成后即可切换语言。"},
+  settings: {"cardColours": "纸牌颜色", "classic": "经典", "fourColour": "四色", "title": "设置", "close": "关闭", "shortcuts": "游戏快捷键", "language": "语言", "continues": "设置打开时，游戏仍会继续。", "languageBlocked": "当前请求或牌桌恢复完成后即可切换语言。"},
   tableLoading: {
     missingTitle: "此牌桌已不可用",
     missingGuidance: "请检查邀请链接是否正确，或返回大厅。",

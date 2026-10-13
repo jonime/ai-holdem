@@ -237,6 +237,17 @@ and independently scrolling content. It remains available during pending request
 and recovery. The game, timers, bots, refreshes, and turn notifications continue
 while it is open; gameplay shortcuts are suppressed by the overlay.
 
+**Card colours** uses a labelled native selector: **Classic** (default) or
+**Four-colour**. Classic keeps dark spades/clubs and red hearts/diamonds;
+Four-colour uses dark spades, red hearts, blue diamonds and green clubs.
+Changes apply immediately to table cards, winning-five results, desktop/mobile
+Actions and compact Help examples. Symbols and accessible card names stay the
+same, as do card backs, placeholders, dimensions and winning-card underlines.
+The version-1 `ai-holdem-settings` entry stores `cardColours`; older entries default
+this field to `classic` while preserving sound and shortcuts. Server rendering
+starts with Classic and the saved palette loads after hydration. Storage removal
+resets defaults; unavailable storage still allows changes in the current tab.
+
 Turning off Gameplay shortcuts removes action badges, Q/E/Shift hints and custom
 `aria-keyshortcuts`, and restores native slider keyboard behavior. Tab navigation,
 Enter/Space on focused buttons, numeric editing and dialog keys remain available.

@@ -1,3 +1,5 @@
+import { InlineCardExample } from "@/components/poker/InlineCardExample";
+
 export const title = "Spielhilfe";
 
 Die Hilfe pausiert das Spiel nicht. Bots, Aktualisierungen und Mehrspieler-Zugtimer laufen weiter; ein zeitbegrenzter menschlicher Zug kann ablaufen und gefoldet werden.
@@ -6,17 +8,17 @@ Die Hilfe pausiert das Spiel nicht. Bots, Aktualisierungen und Mehrspieler-Zugti
 
 Bilde die besten fünf Karten aus deinen zwei verdeckten Karten und den fünf Gemeinschaftskarten. Von stark nach schwach:
 
-1. **Straight Flush: fünf aufeinanderfolgende Karten derselben Farbe** — `9♠ 8♠ 7♠ 6♠ 5♠`.
-2. **Vierling: vier Karten desselben Rangs** — `A♠ A♥ A♦ A♣ K♠`.
-3. **Full House: Drilling und Paar** — `K♠ K♥ K♦ 2♣ 2♥`.
-4. **Flush: fünf Karten derselben Farbe** — `A♥ J♥ 8♥ 5♥ 2♥`.
-5. **Straße: fünf aufeinanderfolgende Ränge** — `9♠ 8♥ 7♦ 6♣ 5♠`.
-6. **Drilling: drei Karten desselben Rangs** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
-7. **Zwei Paare: zwei unterschiedliche Paare** — `J♠ J♥ 4♦ 4♣ A♥`.
-8. **Paar: zwei Karten desselben Rangs** — `10♠ 10♥ A♦ 7♣ 3♥`.
-9. **Höchste Karte: keine der obigen Kombinationen** — `A♠ J♥ 8♦ 5♣ 2♥`.
+1. **Straight Flush: fünf aufeinanderfolgende Karten derselben Farbe** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **Vierling: vier Karten desselben Rangs** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **Full House: Drilling und Paar** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **Flush: fünf Karten derselben Farbe** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **Straße: fünf aufeinanderfolgende Ränge** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **Drilling: drei Karten desselben Rangs** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **Zwei Paare: zwei unterschiedliche Paare** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **Paar: zwei Karten desselben Rangs** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **Höchste Karte: keine der obigen Kombinationen** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-Der Royal Flush ist der höchste Straight Flush: A♠ K♠ Q♠ J♠ 10♠ (Ass, König, Dame, Bube und Zehn in Pik). Das Ass kann in A–2–3–4–5 auch niedrig sein. Höhere Ränge und danach Beikarten entscheiden; identische beste Fünf-Karten-Hände teilen den Pot. Farben brechen keinen Gleichstand. Zeichen: ♠ Pik, ♥ Herz, ♦ Karo, ♣ Kreuz. A = Ass, K = König, Q = Dame, J = Bube.
+Der Royal Flush ist der höchste Straight Flush: <InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" /> (Ass, König, Dame, Bube und Zehn in Pik). Das Ass kann in A–2–3–4–5 auch niedrig sein. Höhere Ränge und danach Beikarten entscheiden; identische beste Fünf-Karten-Hände teilen den Pot. Farben brechen keinen Gleichstand. Zeichen: <InlineCardExample cards="♠" /> Pik, <InlineCardExample cards="♥" /> Herz, <InlineCardExample cards="♦" /> Karo, <InlineCardExample cards="♣" /> Kreuz. A = Ass, K = König, Q = Dame, J = Bube.
 
 ## Grundlagen des Setzens
 
@@ -37,3 +39,5 @@ Der Royal Flush ist der höchste Straight Flush: A♠ K♠ Q♠ J♠ 10♠ (Ass,
 
 
 Zugton und Spiel-Tastenkürzel lassen sich in den Einstellungen ändern. Beim Ausschalten verschwinden die Hinweise; Aktionstasten und angepasste Einsatzänderungen werden deaktiviert. Tab-Navigation, Enter/Leertaste auf fokussierten Schaltflächen, Zahleneingabe und normale Reglertasten funktionieren weiterhin. Sprachwechsel behalten den Tisch bei und sind nach Anfragen und Wiederherstellung verfügbar.
+
+Unter Einstellungen ist Kartenfarben standardmäßig Klassisch. Vierfarbig zeigt Pik dunkel, Herz rot, Karo blau und Kreuz grün. Die Symbole bleiben gleich.

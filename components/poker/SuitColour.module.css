@@ -1,0 +1,4 @@
+.suit[data-suit="s"] { color: var(--suit-spades, #182424); }
+.suit[data-suit="h"] { color: var(--suit-hearts, #b33d2c); }
+.suit[data-suit="d"] { color: var(--suit-diamonds, #b33d2c); }
+.suit[data-suit="c"] { color: var(--suit-clubs, #182424); }

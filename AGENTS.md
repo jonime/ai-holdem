@@ -477,8 +477,11 @@ not change turn eligibility. Separate tabs may each notify; do not change pollin
 
 Settings shares the single overlay and Modal with Help, Join and mobile Actions.
 `useSettings` owns `ai-holdem-settings` version 1 with turnSound false and
-gameplayShortcuts true by default. Read after hydration before attaching gameplay
-shortcuts; validate storage and synchronize storage events, including removal.
+gameplayShortcuts true and cardColours "classic" by default. Card colours accepts
+"classic" or "four-colour"; old version-1 entries default the missing field to
+Classic. Game-scoped suit CSS variables also colour server-rendered inline Help
+examples, with unchanged symbols, accessible names and card geometry. Read after
+hydration before attaching gameplay shortcuts; validate storage and synchronize storage events, including removal.
 Ignore legacy sound storage. `useTurnNotifications` receives sound preference
 and previews only explicit user enabling, never storage changes. Disabled gameplay
 shortcuts hide custom hints and aria-keyshortcuts and preserve native controls.

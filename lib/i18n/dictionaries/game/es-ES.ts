@@ -4,7 +4,7 @@ import type { GameDictionary } from "../../types";
 
 const dictionary = {
   creation: {"wait": "Podrás reintentar en {seconds} segundos.", "creating": "Creando mesa…", "retry": "Reintentar creación", "recovery": "Hay una creación pendiente. Reintenta para recuperar la misma mesa.", "memoryOnly": "El almacenamiento de sesión no está disponible. Al recargar se pierde esta recuperación.", "cookiesRequired": "Se necesitan cookies para crear una mesa. Actívalas e inténtalo de nuevo.", "identityChanged": "Tu identidad anónima cambió. No se puede reanudar este intento de forma segura.", "failed": "No se pudo confirmar el resultado. Reintenta para recuperar la misma mesa.", "unavailable": "No se puede reanudar este intento. La mesa pudo eliminarse o los datos cambiaron.", "denied": "Límite de creación alcanzado. Espera antes de reintentar.", "dismiss": "Descartar intento"},
-  settings: {"title": "Ajustes", "close": "Cerrar", "shortcuts": "Atajos de juego", "language": "Idioma", "continues": "La partida continúa mientras los ajustes están abiertos.", "languageBlocked": "El idioma se puede cambiar cuando termine la solicitud o recuperación de la mesa."},
+  settings: {"cardColours": "Colores de las cartas", "classic": "Clásicos", "fourColour": "Cuatro colores", "title": "Ajustes", "close": "Cerrar", "shortcuts": "Atajos de juego", "language": "Idioma", "continues": "La partida continúa mientras los ajustes están abiertos.", "languageBlocked": "El idioma se puede cambiar cuando termine la solicitud o recuperación de la mesa."},
   tableLoading: {
     missingTitle: "Esta mesa ya no está disponible",
     missingGuidance: "Comprueba que el enlace de invitación sea correcto o vuelve al vestíbulo.",

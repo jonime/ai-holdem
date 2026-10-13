@@ -552,6 +552,15 @@ Component loads only the selected locale and passes rendered content and its tit
 into `PokerApp` through a React-node slot; unprefixed English routes use the same
 component with `en-US`. Client modules never import help documents or fetch them
 at runtime. Only Help and Close help interface labels live in game dictionaries.
+Localized Help imports the server-only `InlineCardExample` for text-sized ranked
+hands, the royal flush and suit legend. Suit-marked spans share
+`SuitColour.module.css` with visible `PlayingCard` faces and inherit suit variables
+from the `PokerApp` wrapper, which contains the table and every overlay. The
+version-1 browser settings codec defaults a missing `cardColours` to `classic`;
+post-hydration loading switches the wrapper palette without game or HTTP changes.
+No document-wide style mutation or client Help provider is needed. Four-colour
+blue (`#1856a0`) and green (`#21633e`) maintain at least 4.5:1 text contrast on
+card (`#fffdf6`) and Help (`#f8f7f0`) backgrounds.
 The single overlay state includes Help and uses the shared native `Modal` lifecycle.
 
 ## Feedback link

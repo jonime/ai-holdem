@@ -89,12 +89,13 @@ test("storage changes synchronize without previews and game refresh continues in
   const f = await table(page); await open(page);
   const other = await page.context().newPage();
   await other.goto(`/game/${f.id}`);
-  await other.evaluate(() => localStorage.setItem("ai-holdem-settings", JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false })));
+  await other.evaluate(() => localStorage.setItem("ai-holdem-settings", JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour" })));
   await page.evaluate(() => {
-    window.dispatchEvent(new StorageEvent("storage", { key: "ai-holdem-settings", newValue: JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false }), storageArea: localStorage }));
+    window.dispatchEvent(new StorageEvent("storage", { key: "ai-holdem-settings", newValue: JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour" }), storageArea: localStorage }));
   });
   await expect(page.getByRole("switch", { name: "Turn sound", exact: true })).toHaveAttribute("aria-checked", "true");
   await expect(page.getByRole("switch", { name: "Gameplay shortcuts", exact: true })).toHaveAttribute("aria-checked", "false");
+  await expect(page.getByRole("combobox", { name: "Card colours", exact: true })).toHaveValue("four-colour");
   expect(await page.evaluate(() => (window as unknown as { audioAttempts: number }).audioAttempts)).toBe(0);
   f.set({ ...f.get(), version: f.get().version + 1, poker: { ...f.get().poker, handNumber: 42 } });
   await page.evaluate(() => window.dispatchEvent(new Event("online")));
@@ -102,6 +103,7 @@ test("storage changes synchronize without previews and game refresh continues in
   await expect(page.getByRole("dialog")).toBeVisible();
   await other.evaluate(() => localStorage.removeItem("ai-holdem-settings"));
   await other.close();
+  await expect(page.getByRole("combobox", { name: "Card colours", exact: true })).toHaveValue("classic");
   await expect(page.getByRole("switch", { name: "Turn sound", exact: true })).toHaveAttribute("aria-checked", "false");
 });
 
@@ -125,4 +127,86 @@ test("language waits for bot advancement and replay creation", { tag: "@ui-regre
   await page.getByRole("button", { name: "New Quick Play", exact: true }).click();
   await expect.poll(() => creations).toBe(1);
   await open(page); await expect(page.getByRole("combobox", { name: "Language", exact: true })).toBeDisabled();
+});
+
+test("card colours persist and cover table, winning five, Actions and Help", { tag: ["@ui-regression", "@compatibility"] }, async ({ page }) => {
+  const f = await table(page);
+  const palette = page.locator("[data-card-colours]");
+  await expect(palette).toHaveAttribute("data-card-colours", "classic");
+  const backs = page.locator('[data-playing-card][aria-label="Hidden card"]');
+  const placeholders = page.locator('[data-playing-card][aria-hidden="true"]');
+  const beforeBacks = await backs.evaluateAll(nodes => nodes.map(n => n.outerHTML));
+  const beforePlaceholders = await placeholders.evaluateAll(nodes => nodes.map(n => n.outerHTML));
+  const beforeDimensions = await page.locator("[data-playing-card]").first().boundingBox();
+  let actions = 0;
+  await page.route("**/action", route => { actions++; return route.abort(); });
+  await open(page);
+  const select = page.getByRole("combobox", { name: "Card colours", exact: true });
+  await expect(select).toHaveValue("classic");
+  await select.selectOption("four-colour");
+  await expect(palette).toHaveAttribute("data-card-colours", "four-colour");
+  expect(await backs.evaluateAll(nodes => nodes.map(n => n.outerHTML))).toEqual(beforeBacks);
+  expect(await placeholders.evaluateAll(nodes => nodes.map(n => n.outerHTML))).toEqual(beforePlaceholders);
+  const afterDimensions = await page.locator("[data-playing-card]").first().boundingBox();
+  expect(afterDimensions?.width).toBe(beforeDimensions?.width);
+  expect(afterDimensions?.height).toBe(beforeDimensions?.height);
+  await page.screenshot({ path: test.info().outputPath("four-colour-settings.png") });
+  await page.reload(); await expect(palette).toHaveAttribute("data-card-colours", "four-colour");
+  const cards = ["As", "Kh", "Qd", "Jc", "Ts"];
+  const human = f.get().poker.players.find(p => p.controller === "human")!;
+  f.set({ ...f.get(), version: f.get().version + 1, status: "complete", poker: { ...f.get().poker,
+    street: "complete", currentActorId: null, legalActions: [], communityCards: cards,
+    completionReason: "showdown", winnerIds: [human.id], winnerAmounts: { [human.id]: 100 },
+    players: f.get().poker.players.map(p => p.id === human.id ? { ...p, holeCards: ["As", "Kh"],
+      bestHand: "straight", winningHand: { cards, playsBoard: false } } : p) } });
+  await page.route(`**/api/games/${f.id}/feed*`, route => route.fulfill({ json: { feed: { events: [
+    { type: "handStarted", handNumber: f.get().poker.handNumber },
+    { type: "street", handNumber: f.get().poker.handNumber, street: "river", cards },
+  ] } } }));
+  await page.reload();
+  const winning = page.locator("[data-winning-hand]");
+  await expect(winning).toBeVisible();
+  const colours = { s: "rgb(24, 36, 36)", h: "rgb(179, 61, 44)", d: "rgb(24, 86, 160)", c: "rgb(33, 99, 62)" };
+  async function inspect(scope: ReturnType<Page["locator"]>, four = true) {
+    for (const suit of ["s", "h", "d", "c"] as const) {
+      const card = scope.locator(`[data-suit="${suit}"]`).first();
+      await expect(card).toBeAttached();
+      await expect(card).toHaveCSS("color", four ? colours[suit] : suit === "h" || suit === "d" ? colours.h : colours.s);
+    }
+  }
+  await inspect(page.locator("main")); await inspect(winning);
+  const names = await winning.locator("[data-playing-card]").evaluateAll(nodes => nodes.map(n => n.getAttribute("aria-label")));
+  const underline = await winning.locator('[data-hole-card="true"]').first().evaluate(n => getComputedStyle(n).borderBottom);
+  const mobile = test.info().project.name === "webkit-mobile";
+  if (!mobile) await page.setViewportSize({ width: 1280, height: 900 });
+  if (mobile) await page.getByRole("button", { name: /^(Collapse|Expand) actions panel$/ }).click();
+  await inspect(page.getByRole(mobile ? "dialog" : "complementary", { name: "Actions", exact: true }));
+  if (mobile) await page.keyboard.press("Escape");
+  await page.screenshot({ path: test.info().outputPath("four-colour-table-results.png"), fullPage: true });
+  await page.getByRole("button", { name: "Help", exact: true }).click();
+  await inspect(page.getByRole("dialog"));
+  await expect(page.locator("[data-card-example]").first()).toContainText("9♠ 8♠ 7♠ 6♠ 5♠");
+  await page.screenshot({ path: test.info().outputPath("four-colour-help.png") });
+  await page.keyboard.press("Escape");
+  if (!mobile) {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.getByRole("button", { name: /^(Collapse|Expand) actions panel$/ }).click();
+    await inspect(page.getByRole("dialog", { name: "Actions", exact: true }));
+    await page.screenshot({ path: test.info().outputPath("four-colour-actions-mobile.png") });
+    await page.keyboard.press("Escape");
+  }
+  await open(page); await select.selectOption("classic");
+  await expect(palette).toHaveAttribute("data-card-colours", "classic");
+  await inspect(winning, false);
+  expect(await winning.locator("[data-playing-card]").evaluateAll(nodes => nodes.map(n => n.getAttribute("aria-label")))).toEqual(names);
+  expect(await winning.locator('[data-hole-card="true"]').first().evaluate(n => getComputedStyle(n).borderBottom)).toEqual(underline);
+  await page.keyboard.press("Escape");
+  await inspect(page.locator("main"), false);
+  await page.getByRole("button", { name: /^(Collapse|Expand) actions panel$/ }).click();
+  await inspect(page.getByRole("dialog", { name: "Actions", exact: true }), false);
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Help", exact: true }).click(); await inspect(page.getByRole("dialog"), false);
+  await page.keyboard.press("Escape"); await page.reload();
+  await expect(palette).toHaveAttribute("data-card-colours", "classic");
+  expect(actions).toBe(0);
 });

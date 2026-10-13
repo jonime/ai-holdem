@@ -2,7 +2,7 @@ import "server-only";
 
 const dictionary = {
   creation: {"wait": "Retry available in {seconds} seconds.", "creating": "Creating table…", "retry": "Retry creation", "recovery": "A creation attempt is pending. Retry to recover the same table.", "memoryOnly": "Session storage is unavailable. Reloading loses this recovery attempt.", "cookiesRequired": "Cookies are required to create a table. Enable cookies and try again.", "identityChanged": "Your anonymous identity changed. This attempt cannot be safely resumed.", "failed": "The result could not be confirmed. Retry creation to recover the same table.", "unavailable": "This attempt cannot be resumed. Its table may have been deleted or its inputs changed.", "denied": "Creation allowance reached. Wait before retrying this attempt.", "dismiss": "Dismiss attempt"},
-  settings: {"title": "Settings", "close": "Close", "shortcuts": "Gameplay shortcuts", "language": "Language", "continues": "The game continues while Settings is open.", "languageBlocked": "Language is available after the current request or table recovery finishes."},
+  settings: {"cardColours": "Card colours", "classic": "Classic", "fourColour": "Four-colour", "title": "Settings", "close": "Close", "shortcuts": "Gameplay shortcuts", "language": "Language", "continues": "The game continues while Settings is open.", "languageBlocked": "Language is available after the current request or table recovery finishes."},
   tableLoading: {
     missingTitle: "This table is no longer available",
     missingGuidance: "Check that the invitation link is correct, or return to the Lobby.",

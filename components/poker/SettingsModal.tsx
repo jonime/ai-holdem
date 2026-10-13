@@ -9,7 +9,7 @@ import type { Settings } from "./settings";
 import styles from "./SettingsModal.module.css";
 export function SettingsModal({ preferences, onUpdate, onSound, notice, languageBlocked, onNavigate, gameId, onClose, restoreFocus, fallbackFocus }: {
   readonly preferences: Settings;
-  readonly onUpdate: (patch: Partial<Pick<Settings, "turnSound" | "gameplayShortcuts">>) => void;
+  readonly onUpdate: (patch: Partial<Pick<Settings, "turnSound" | "gameplayShortcuts" | "cardColours">>) => void;
   readonly onSound: (enabled: boolean) => Promise<void>;
   readonly notice: string | null;
   readonly languageBlocked: boolean;
@@ -36,6 +36,15 @@ export function SettingsModal({ preferences, onUpdate, onSound, notice, language
             if (key === "turnSound") void onSound(next);
           }}><span aria-hidden="true">{preferences[key] ? "✓" : "×"}</span><i aria-hidden="true" /></button>
       </div>)}
+      <label className={styles.language}><span>{t("settings.cardColours")}</span>
+        <select value={preferences.cardColours} onChange={event => {
+          const value = event.target.value;
+          if (value === "classic" || value === "four-colour") onUpdate({ cardColours: value });
+        }}>
+          <option value="classic">{t("settings.classic")}</option>
+          <option value="four-colour">{t("settings.fourColour")}</option>
+        </select>
+      </label>
       {notice ? <p role="status" className={styles.note}>{notice}</p> : null}
       <label className={styles.language}><span>{t("settings.language")}</span>
         <select value={locale} disabled={languageBlocked} aria-describedby={languageBlocked ? "settings-language-blocked" : undefined}

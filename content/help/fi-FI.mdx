@@ -1,3 +1,5 @@
+import { InlineCardExample } from "@/components/poker/InlineCardExample";
+
 export const title = "Pelin ohje";
 
 Ohje ei pysäytä peliä. Botit, päivitykset ja moninpelin vuoroajastimet jatkavat lukemisen aikana; ajastettu ihmisvuoro voi umpeutua ja päättyä luovutukseen.
@@ -6,17 +8,17 @@ Ohje ei pysäytä peliä. Botit, päivitykset ja moninpelin vuoroajastimet jatka
 
 Muodosta paras viiden kortin käsi kahdesta taskukortistasi ja viidestä yhteisestä kortista. Vahvimmasta heikoimpaan:
 
-1. **Värisuora: viisi peräkkäistä korttia samaa maata** — `9♠ 8♠ 7♠ 6♠ 5♠`.
-2. **Neloset: neljä samanarvoista korttia** — `A♠ A♥ A♦ A♣ K♠`.
-3. **Täyskäsi: kolmoset ja pari** — `K♠ K♥ K♦ 2♣ 2♥`.
-4. **Väri: viisi korttia samaa maata** — `A♥ J♥ 8♥ 5♥ 2♥`.
-5. **Suora: viisi peräkkäistä arvoa** — `9♠ 8♥ 7♦ 6♣ 5♠`.
-6. **Kolmoset: kolme samanarvoista korttia** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
-7. **Kaksi paria: kaksi eri paria** — `J♠ J♥ 4♦ 4♣ A♥`.
-8. **Pari: kaksi samanarvoista korttia** — `10♠ 10♥ A♦ 7♣ 3♥`.
-9. **Korkein kortti: ei yllä mainittuja yhdistelmiä** — `A♠ J♥ 8♦ 5♣ 2♥`.
+1. **Värisuora: viisi peräkkäistä korttia samaa maata** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **Neloset: neljä samanarvoista korttia** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **Täyskäsi: kolmoset ja pari** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **Väri: viisi korttia samaa maata** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **Suora: viisi peräkkäistä arvoa** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **Kolmoset: kolme samanarvoista korttia** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **Kaksi paria: kaksi eri paria** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **Pari: kaksi samanarvoista korttia** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **Korkein kortti: ei yllä mainittuja yhdistelmiä** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-Kuningasvärisuora on korkein värisuora: A♠ K♠ Q♠ J♠ 10♠ (pataässä, -kuningas, -rouva, -jätkä ja -kymppi). Ässä voi olla myös pieni suorassa A–2–3–4–5. Suuremmat arvot ja sitten sivukortit ratkaisevat tasatilanteen; samat parhaat viisi korttia jakavat potin. Maat eivät ratkaise tasapeliä. Merkit: ♠ pata, ♥ hertta, ♦ ruutu, ♣ risti. A = ässä, K = kuningas, Q = rouva, J = jätkä.
+Kuningasvärisuora on korkein värisuora: <InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" /> (pataässä, -kuningas, -rouva, -jätkä ja -kymppi). Ässä voi olla myös pieni suorassa A–2–3–4–5. Suuremmat arvot ja sitten sivukortit ratkaisevat tasatilanteen; samat parhaat viisi korttia jakavat potin. Maat eivät ratkaise tasapeliä. Merkit: <InlineCardExample cards="♠" /> pata, <InlineCardExample cards="♥" /> hertta, <InlineCardExample cards="♦" /> ruutu, <InlineCardExample cards="♣" /> risti. A = ässä, K = kuningas, Q = rouva, J = jätkä.
 
 ## Panostamisen perusteet
 
@@ -37,3 +39,5 @@ Kuningasvärisuora on korkein värisuora: A♠ K♠ Q♠ J♠ 10♠ (pataässä,
 
 
 Vuoroäänen ja pelin pikanäppäimet voi vaihtaa asetuksista. Pikanäppäinten poistaminen käytöstä piilottaa vihjeet ja poistaa toimintanäppäimet sekä panoksen mukautetut säädöt. Sarkainnavigointi, kohdistettujen painikkeiden Enter/välilyönti, numeron muokkaus ja liukusäätimen tavalliset näppäimet toimivat edelleen. Kielen vaihto säilyttää pöydän ja on käytettävissä pyyntöjen ja palautuksen valmistuttua.
+
+Asetusten Korttien värit on oletuksena Perinteinen. Nelivärisessä pakassa pata on tumma, hertta punainen, ruutu sininen ja risti vihreä. Maasymbolit pysyvät samoina.

@@ -1,3 +1,5 @@
+import { InlineCardExample } from "@/components/poker/InlineCardExample";
+
 export const title = "Game help";
 
 Help does not pause the game. Bots, updates and multiplayer turn timers continue while you read; a timed human turn can expire and fold.
@@ -6,17 +8,17 @@ Help does not pause the game. Bots, updates and multiplayer turn timers continue
 
 Use the best five cards from your two hole cards and the five community cards. From strongest to weakest:
 
-1. **Straight flush: five consecutive cards of one suit** — `9♠ 8♠ 7♠ 6♠ 5♠`.
-2. **Four of a kind: four cards of the same rank** — `A♠ A♥ A♦ A♣ K♠`.
-3. **Full house: three of a kind and a pair** — `K♠ K♥ K♦ 2♣ 2♥`.
-4. **Flush: five cards of one suit** — `A♥ J♥ 8♥ 5♥ 2♥`.
-5. **Straight: five consecutive ranks** — `9♠ 8♥ 7♦ 6♣ 5♠`.
-6. **Three of a kind: three cards of the same rank** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
-7. **Two pair: two different pairs** — `J♠ J♥ 4♦ 4♣ A♥`.
-8. **One pair: two cards of the same rank** — `10♠ 10♥ A♦ 7♣ 3♥`.
-9. **High card: no combination above** — `A♠ J♥ 8♦ 5♣ 2♥`.
+1. **Straight flush: five consecutive cards of one suit** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **Four of a kind: four cards of the same rank** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **Full house: three of a kind and a pair** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **Flush: five cards of one suit** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **Straight: five consecutive ranks** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **Three of a kind: three cards of the same rank** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **Two pair: two different pairs** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **One pair: two cards of the same rank** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **High card: no combination above** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-A royal flush is the highest straight flush: A♠ K♠ Q♠ J♠ 10♠ (ace, king, queen, jack and ten of spades). A can also be low in A–2–3–4–5. Higher ranks and then the remaining cards (kickers) decide ties; identical best five-card hands split the pot. Suits do not break ties. Symbols: ♠ spades, ♥ hearts, ♦ diamonds, ♣ clubs. A = ace, K = king, Q = queen, J = jack.
+A royal flush is the highest straight flush: <InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" /> (ace, king, queen, jack and ten of spades). A can also be low in A–2–3–4–5. Higher ranks and then the remaining cards (kickers) decide ties; identical best five-card hands split the pot. Suits do not break ties. Symbols: <InlineCardExample cards="♠" /> spades, <InlineCardExample cards="♥" /> hearts, <InlineCardExample cards="♦" /> diamonds, <InlineCardExample cards="♣" /> clubs. A = ace, K = king, Q = queen, J = jack.
 
 ## Betting basics
 
@@ -37,3 +39,5 @@ A royal flush is the highest straight flush: A♠ K♠ Q♠ J♠ 10♠ (ace, kin
 
 
 Turn sound and gameplay shortcuts can be changed in Settings. Turning off gameplay shortcuts hides their hints and disables action keys and custom bet adjustments. Tab navigation, Enter/Space on focused buttons, number editing, and native slider keys still work. Language changes keep you at the same table and are available once requests and recovery finish.
+
+In Settings, Card colours defaults to Classic. Four-colour keeps spades dark and hearts red, with blue diamonds and green clubs. Suit symbols stay the same.

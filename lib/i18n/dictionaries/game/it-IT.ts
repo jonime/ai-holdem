@@ -4,7 +4,7 @@ import type { GameDictionary } from "../../types";
 
 const dictionary = {
   creation: {"wait": "Potrai riprovare tra {seconds} secondi.", "creating": "Creazione del tavolo…", "retry": "Riprova la creazione", "recovery": "Una creazione è in sospeso. Riprova per recuperare lo stesso tavolo.", "memoryOnly": "La memoria di sessione non è disponibile. Ricaricando si perde questo recupero.", "cookiesRequired": "I cookie sono necessari per creare un tavolo. Abilitali e riprova.", "identityChanged": "La tua identità anonima è cambiata. Non è possibile riprendere questo tentativo in sicurezza.", "failed": "Impossibile confermare il risultato. Riprova per recuperare lo stesso tavolo.", "unavailable": "Impossibile riprendere il tentativo. Il tavolo potrebbe essere stato eliminato o i dati modificati.", "denied": "Limite di creazione raggiunto. Attendi prima di riprovare.", "dismiss": "Scarta tentativo"},
-  settings: {"title": "Impostazioni", "close": "Chiudi", "shortcuts": "Scorciatoie di gioco", "language": "Lingua", "continues": "La partita continua mentre le impostazioni sono aperte.", "languageBlocked": "Puoi cambiare lingua al termine della richiesta o del recupero del tavolo."},
+  settings: {"cardColours": "Colori delle carte", "classic": "Classici", "fourColour": "Quattro colori", "title": "Impostazioni", "close": "Chiudi", "shortcuts": "Scorciatoie di gioco", "language": "Lingua", "continues": "La partita continua mentre le impostazioni sono aperte.", "languageBlocked": "Puoi cambiare lingua al termine della richiesta o del recupero del tavolo."},
   tableLoading: {
     missingTitle: "Questo tavolo non è più disponibile",
     missingGuidance: "Verifica che il link di invito sia corretto o torna alla lobby.",

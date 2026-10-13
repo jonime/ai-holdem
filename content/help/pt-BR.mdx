@@ -1,3 +1,5 @@
+import { InlineCardExample } from "@/components/poker/InlineCardExample";
+
 export const title = "Ajuda do jogo";
 
 A ajuda não pausa o jogo. Bots, atualizações e temporizadores multijogador continuam; uma vez humana cronometrada pode expirar e causar uma desistência.
@@ -6,17 +8,17 @@ A ajuda não pausa o jogo. Bots, atualizações e temporizadores multijogador co
 
 Use as melhores cinco cartas entre suas duas cartas fechadas e as cinco comunitárias. Da mais forte à mais fraca:
 
-1. **Straight flush: cinco cartas consecutivas do mesmo naipe** — `9♠ 8♠ 7♠ 6♠ 5♠`.
-2. **Quadra: quatro cartas do mesmo valor** — `A♠ A♥ A♦ A♣ K♠`.
-3. **Full house: uma trinca e um par** — `K♠ K♥ K♦ 2♣ 2♥`.
-4. **Flush: cinco cartas do mesmo naipe** — `A♥ J♥ 8♥ 5♥ 2♥`.
-5. **Sequência: cinco valores consecutivos** — `9♠ 8♥ 7♦ 6♣ 5♠`.
-6. **Trinca: três cartas do mesmo valor** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
-7. **Dois pares: dois pares diferentes** — `J♠ J♥ 4♦ 4♣ A♥`.
-8. **Par: duas cartas do mesmo valor** — `10♠ 10♥ A♦ 7♣ 3♥`.
-9. **Carta alta: nenhuma combinação acima** — `A♠ J♥ 8♦ 5♣ 2♥`.
+1. **Straight flush: cinco cartas consecutivas do mesmo naipe** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **Quadra: quatro cartas do mesmo valor** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **Full house: uma trinca e um par** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **Flush: cinco cartas do mesmo naipe** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **Sequência: cinco valores consecutivos** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **Trinca: três cartas do mesmo valor** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **Dois pares: dois pares diferentes** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **Par: duas cartas do mesmo valor** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **Carta alta: nenhuma combinação acima** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-O royal flush é o straight flush mais alto: A♠ K♠ Q♠ J♠ 10♠ (ás, rei, dama, valete e dez de espadas). O ás também pode ser baixo em A–2–3–4–5. Valores maiores e depois as cartas de desempate decidem; mãos idênticas de cinco cartas dividem o pote. Naipes não desempatam mãos. Símbolos: ♠ espadas, ♥ copas, ♦ ouros, ♣ paus. A = ás, K = rei, Q = dama, J = valete.
+O royal flush é o straight flush mais alto: <InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" /> (ás, rei, dama, valete e dez de espadas). O ás também pode ser baixo em A–2–3–4–5. Valores maiores e depois as cartas de desempate decidem; mãos idênticas de cinco cartas dividem o pote. Naipes não desempatam mãos. Símbolos: <InlineCardExample cards="♠" /> espadas, <InlineCardExample cards="♥" /> copas, <InlineCardExample cards="♦" /> ouros, <InlineCardExample cards="♣" /> paus. A = ás, K = rei, Q = dama, J = valete.
 
 ## Noções básicas de apostas
 
@@ -37,3 +39,5 @@ O royal flush é o straight flush mais alto: A♠ K♠ Q♠ J♠ 10♠ (ás, rei
 
 
 O som de turno e os atalhos podem ser alterados nas Configurações. Desativar os atalhos oculta as dicas e desativa as teclas de ação e os ajustes personalizados de aposta. Tab, Enter/Espaço nos botões em foco, edição numérica e teclas nativas do controle deslizante continuam funcionando. A mudança de idioma mantém a mesa e fica disponível após as solicitações e a recuperação.
+
+Em Configurações, Cores das cartas usa Clássicas por padrão. Quatro cores mostra espadas escuras, copas vermelhas, ouros azuis e paus verdes. Os símbolos permanecem iguais.

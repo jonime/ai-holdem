@@ -1,3 +1,5 @@
+import { InlineCardExample } from "@/components/poker/InlineCardExample";
+
 export const title = "Pomoc w grze";
 
 Pomoc nie wstrzymuje gry. Boty, aktualizacje i zegary gry wieloosobowej działają dalej; czas ludzkiej kolejki może upłynąć i spowodować pas.
@@ -6,17 +8,17 @@ Pomoc nie wstrzymuje gry. Boty, aktualizacje i zegary gry wieloosobowej działaj
 
 Wybierz najlepsze pięć kart ze swoich dwóch kart własnych i pięciu wspólnych. Od najsilniejszego do najsłabszego:
 
-1. **Poker: pięć kolejnych kart w jednym kolorze** — `9♠ 8♠ 7♠ 6♠ 5♠`.
-2. **Kareta: cztery karty tej samej wartości** — `A♠ A♥ A♦ A♣ K♠`.
-3. **Full: trójka i para** — `K♠ K♥ K♦ 2♣ 2♥`.
-4. **Kolor: pięć kart w jednym kolorze** — `A♥ J♥ 8♥ 5♥ 2♥`.
-5. **Strit: pięć kolejnych wartości** — `9♠ 8♥ 7♦ 6♣ 5♠`.
-6. **Trójka: trzy karty tej samej wartości** — `Q♠ Q♥ Q♦ 9♣ 2♥`.
-7. **Dwie pary: dwie różne pary** — `J♠ J♥ 4♦ 4♣ A♥`.
-8. **Para: dwie karty tej samej wartości** — `10♠ 10♥ A♦ 7♣ 3♥`.
-9. **Wysoka karta: brak powyższych układów** — `A♠ J♥ 8♦ 5♣ 2♥`.
+1. **Poker: pięć kolejnych kart w jednym kolorze** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **Kareta: cztery karty tej samej wartości** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **Full: trójka i para** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **Kolor: pięć kart w jednym kolorze** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **Strit: pięć kolejnych wartości** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **Trójka: trzy karty tej samej wartości** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **Dwie pary: dwie różne pary** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **Para: dwie karty tej samej wartości** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **Wysoka karta: brak powyższych układów** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-Poker królewski to najwyższy poker: A♠ K♠ Q♠ J♠ 10♠ (as, król, dama, walet i dziesiątka pik). As może być też niski w A–2–3–4–5. Wyższe wartości, a potem karty dodatkowe rozstrzygają remis; identyczne najlepsze układy pięciu kart dzielą pulę. Kolory nie rozstrzygają remisu. Symbole: ♠ pik, ♥ kier, ♦ karo, ♣ trefl. A = as, K = król, Q = dama, J = walet.
+Poker królewski to najwyższy poker: <InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" /> (as, król, dama, walet i dziesiątka pik). As może być też niski w A–2–3–4–5. Wyższe wartości, a potem karty dodatkowe rozstrzygają remis; identyczne najlepsze układy pięciu kart dzielą pulę. Kolory nie rozstrzygają remisu. Symbole: <InlineCardExample cards="♠" /> pik, <InlineCardExample cards="♥" /> kier, <InlineCardExample cards="♦" /> karo, <InlineCardExample cards="♣" /> trefl. A = as, K = król, Q = dama, J = walet.
 
 ## Podstawy licytacji
 
@@ -37,3 +39,5 @@ Poker królewski to najwyższy poker: A♠ K♠ Q♠ J♠ 10♠ (as, król, dama
 
 
 Dźwięk tury i skróty gry zmienia się w Ustawieniach. Wyłączenie skrótów ukrywa podpowiedzi i wyłącza klawisze akcji oraz niestandardowe zmiany zakładu. Tab, Enter/spacja na aktywnych przyciskach, edycja liczb i standardowe klawisze suwaka nadal działają. Zmiana języka zachowuje stół i jest dostępna po zakończeniu żądań i odzyskiwania.
+
+Kolory kart w Ustawieniach są domyślnie Klasyczne. Cztery kolory oznaczają ciemne piki, czerwone kiery, niebieskie kara i zielone trefle. Symbole pozostają bez zmian.

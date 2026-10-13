@@ -1,3 +1,4 @@
+import suitStyles from "./SuitColour.module.css";
 import Image from "next/image";
 import logo from "@/public/ai-holdem-logo.png";
 import { cardLabel } from "@/components/poker/view-model";
@@ -50,11 +51,11 @@ export function PlayingCard({
     h: "♥",
     s: "♠",
   };
-  const red = suit === "d" || suit === "h";
   return (
     <span
-      className={`${styles.playingCard} ${red ? styles.redCard : ""} ${holeCard === true ? styles.holeCard : ""}`}
+      className={`${styles.playingCard} ${suitStyles.suit} ${holeCard === true ? styles.holeCard : ""}`}
       data-playing-card
+      data-suit={suit}
       data-hole-card={holeCard === true ? "true" : undefined}
       aria-label={holeCard === undefined ? cardLabel(card, dictionary.cards) : t(
         holeCard ? "result.holeCardDescription" : "result.boardCardDescription",

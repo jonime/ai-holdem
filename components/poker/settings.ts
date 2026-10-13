@@ -5,6 +5,7 @@ export const settingsSchema = z.object({
   version: z.literal(1),
   turnSound: z.boolean(),
   gameplayShortcuts: z.boolean(),
+  cardColours: z.enum(["classic", "four-colour"]).default("classic"),
 });
 export type Settings = Readonly<z.infer<typeof settingsSchema>>;
 export const settingsCodec = z.codec(z.string(), settingsSchema, {
@@ -19,7 +20,7 @@ export const settingsCodec = z.codec(z.string(), settingsSchema, {
   },
   encode: value => JSON.stringify(value),
 });
-export const defaultSettings: Settings = { version: 1, turnSound: false, gameplayShortcuts: true };
+export const defaultSettings: Settings = { version: 1, turnSound: false, gameplayShortcuts: true, cardColours: "classic" };
 export function parseSettings(raw: string | null): Settings {
   if (raw === null) return defaultSettings;
   const result = settingsCodec.safeDecode(raw);

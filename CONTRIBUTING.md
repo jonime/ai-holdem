@@ -162,12 +162,12 @@ Use the shared fixture's `test` export for new browser cases. Realtime observers
 share `realtime-observer.ts`, which decodes both JSON and SDK binary broadcasts
 from the browser's actual socket.
 
-The focused compatibility suite runs six cases per WebKit project: real rules-only
+The focused compatibility suite covers these cases per WebKit project: real rules-only
 Quick Play to an actionable human turn; input edits, presets and a legal raise;
 Help/Settings scrolling, background scroll locks and restored focus (desktop
 Escape/mobile touch dismissal); disabled shortcuts with native focused controls
 and reload persistence; language changes preserving ownership and unprefixed
-English; and a committed mutation with a lost response and no automatic replay.
+English; card palettes across table, results, Actions and Help; and a committed mutation with a lost response and no automatic replay.
 Mobile automation uses touch taps for controls and dismissal and checks scroll
 containers; physical swipes and the on-screen keyboard remain device checks.
 UI cases reuse isolated fixtures; fair-use protections remain enabled. Chromium
@@ -275,6 +275,8 @@ date and pass/fail notes for each item:
 - Enable sound through a gesture; confirm the preview and a subsequent turn cue.
 - Background and resume the tab; confirm usable recovery. Background sound is
   best-effort and is not required to be guaranteed.
+- Switch Classic/Four-colour, check table/results/Actions/Help suit symbols and colours,
+  reload to check persistence, and return to Classic.
 - Reload and switch language; confirm settings and owned seat persist, then
   return to unprefixed English.
 
@@ -929,6 +931,17 @@ Modal with initial focus on Close, Escape/backdrop dismissal, focus restoration,
 and independently scrolling content. It remains available during pending requests
 and recovery. The game, timers, bots, refreshes, and turn notifications continue
 while it is open; gameplay shortcuts are suppressed by the overlay.
+
+**Card colours** uses a labelled native selector: **Classic** (default) or
+**Four-colour**. Classic keeps dark spades/clubs and red hearts/diamonds;
+Four-colour uses dark spades, red hearts, blue diamonds and green clubs.
+Changes apply immediately to table cards, winning-five results, desktop/mobile
+Actions and compact Help examples. Symbols and accessible card names stay the
+same, as do card backs, placeholders, dimensions and winning-card underlines.
+The version-1 `ai-holdem-settings` entry stores `cardColours`; older entries default
+this field to `classic` while preserving sound and shortcuts. Server rendering
+starts with Classic and the saved palette loads after hydration. Storage removal
+resets defaults; unavailable storage still allows changes in the current tab.
 
 Turning off Gameplay shortcuts removes action badges, Q/E/Shift hints and custom
 `aria-keyshortcuts`, and restores native slider keyboard behavior. Tab navigation,
