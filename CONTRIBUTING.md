@@ -45,6 +45,80 @@ external inference and a TypeSafe API key, performs one paid request per bot
 turn, and is not part of CI. See the [benchmark guide](benchmarks/README.md)
 for methodology and policy details.
 
+## Deterministic poker simulations
+
+`npm run check` includes `test/poker-simulation/`: five fixed seeds (1–5) for
+each seat count 2–6, for 25 games with at most ten hands each, plus harness
+checks and explicit fixtures. The simulation imports the production adapter,
+`restorePersistedState`, and `publicProjectionForViewer`; it is separate from the
+bot-strategy benchmark harness and uses no database, browser, or provider calls.
+Only synthetic identities and ownership tokens enter its diagnostics.
+
+Run the larger offline matrix or reproduce one generated case:
+
+```sh
+npm run test:poker:simulation
+npm run test:poker:simulation -- --seed 7 --seats 3 --hands 10
+```
+
+The dedicated command defaults to seeds 1–50 across seats 2–6 (250 games), with
+at most 40 hands per game. Overrides select an unsigned 32-bit `--seed`
+(0–4294967295), `--seats` (2–6), or `--hands` (1–40). Missing, duplicate,
+noninteger, out-of-range, and unknown arguments fail. Selection/filter arguments
+are rejected and empty selections fail. The five named fixtures always run,
+including when reproducing one generated case. Normal Vitest/check never reads
+simulation environment overrides; the dedicated config alone receives the
+runner's validated arguments. It does not load `.env` or `.env.test`.
+
+The generator uses Mulberry32 with uint32 arithmetic and descending Fisher–Yates
+shuffling of the adapter's canonical complete deck. FNV-1a derives separate
+stack, deck, and action streams from the seed, seat count, hand number, and
+purpose. Case order and intervening runs cannot change decks or action traces.
+Stacks are integer chips with blinds 5/10: one deliberately short seat starts
+with 1–9 chips, and other seats start with 10–1000 chips. Human and synthetic
+rules-bot configurations alternate; no bot implementation is invoked.
+
+The action generator selects adapter-reported folds, checks, calls, and
+minimum/midpoint/maximum legal bet or raise targets, expressed as integer
+**total-street targets**. After 64 actions it switches deterministically to
+check/call, recording `passive-after-64` in the trace. This is the generation
+policy, not recovery from a failed action. A hand still active after 128 actions
+fails. Games stop normally when fewer than two funded seats remain or the hand
+limit is reached; producing a table winner is not required.
+
+Every transition checks chip conservation (active stacks plus commitments;
+settled stacks alone), nonnegative safe integers, decision progress, settlement,
+personal net changes, and public stacks/awards against raw engine accounting
+facts. Only `adapter-facts.ts` inspects engine structure. A second branch JSON
+round-trips and restores before/after each transition, using exactly the same
+preselected deck/actions. State, legal actions, snapshots, hand baselines,
+outcomes, and every viewer projection must agree. All human owners, a spectator,
+and an unknown token are checked for private cards, categories, results, and
+ownership tokens. Completed showdown and explicit-reveal views are checked
+separately, and projection must neither mutate state nor affect another viewer.
+Fixtures guarantee short all-ins/side pots, uncalled refunds, odd-chip splits,
+consecutive hands, and activation of the 64-action policy.
+
+Failures include the synthetic configuration, seed, hand/action index, ordered
+actions with policy labels, the underlying assertion, and a reproduction command.
+To preserve a discovered failure, first reproduce that command, then reduce its
+synthetic stacks, deterministic deck prefix, and ordered actions into a named
+fixture or a focused adapter/projection test beside the owning module. Assert the
+specific broken invariant and retain the failing seed/trace as context. Do not
+weaken accounting/privacy assertions or fix production behavior in a test-only
+change. This suite exercises integration consistency with the installed engine;
+it is neither an independent proof of poker rules nor a strength evaluation.
+SQL concurrency/authorization/departures and browser lifecycles remain covered by
+their existing suites.
+
+Runtime measurements are descriptive, not pass/fail thresholds; no retries or
+timing assertions are added. On Node 24.21.0, the default simulation/harness
+files took 0.93 seconds in isolation (the incremental simulation workload); the
+extended matrix and fixtures took 7–9 seconds. The successful full check had a
+40.60-second Vitest phase (1,618 tests), versus 41.32 seconds with these two files
+excluded (1,583 tests). Total-suite differences were within local timing noise;
+the isolated workload is the useful overhead estimate.
+
 ## Database contracts
 
 Use Node 24+, Docker, and Supabase CLI **2.119.0** on `PATH`. Start the local
