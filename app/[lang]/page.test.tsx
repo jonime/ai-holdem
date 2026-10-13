@@ -95,8 +95,8 @@ describe("homepage", () => {
     expect(html).toContain(
       "Jump into a private six-seat game against five bots, or customize your own table.",
     );
-    expect(html).toContain('<form action="/quick-game" method="post">');
-    expect(html).not.toContain('<form action="/new-game" method="post">');
+    expect(html).toMatch(/<form\b[^>]*action="\/quick-game"[^>]*method="post"/);
+    expect(html).not.toMatch(/<form\b[^>]*action="\/new-game"/);
     expect(html).toContain('href="/play"');
     expect(html).toContain('type="submit"');
     expect(html).not.toContain("<input");

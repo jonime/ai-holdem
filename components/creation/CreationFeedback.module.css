@@ -1,0 +1,19 @@
+.feedback {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 100%;
+  color: #526560;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.feedback:empty {
+  display: none;
+}
+
+.feedback p {
+  margin: 0;
+}

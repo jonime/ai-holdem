@@ -5,7 +5,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { LanguageMenu } from "@/components/LanguageMenu";
-import { Button } from "@/components/Button";
 import { APP_NAME } from "@/lib/constants";
 import { addLocalePrefix, hasLocale } from "@/lib/i18n";
 import {
@@ -79,11 +78,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
         <p className={styles.intro}>{landing.intro}</p>
         <p className={styles.supportingCopy}>{landing.supportingCopy}</p>
         <div className={styles.actions}>
-          <CreationForm locale={lang} labels={gameDictionary.creation} action={addLocalePrefix("/quick-game", lang)}>
-            <Button variant="primary" size="large" type="submit">
-              {landing.quickPlay}
-            </Button>
-          </CreationForm>
+          <CreationForm quickPlayLabel={landing.quickPlay} locale={lang} labels={gameDictionary.creation} action={addLocalePrefix("/quick-game", lang)} />
           <Link className={styles.joinGame} href={addLocalePrefix("/play", lang)}>{landing.play}</Link>
         </div>
       </section>
