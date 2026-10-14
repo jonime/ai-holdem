@@ -250,3 +250,16 @@ structured output, with fallback disabled. Treat the small paired match sample a
 exploratory behavior evidence, not proof of stronger overall poker. Select a model
 only after reviewing measured quality, latency, actual reported cost and unknown
 billing coverage in the benchmark report.
+
+
+## Jev confidence-aware advice
+
+The server registry selects `typesafe-poker-v4.1-confidence` for existing and newly
+selected Jev seats after deployment. It retains `jev-latest` and the existing
+provider credentials/settings. No new schema, environment variable, feature flag
+or model selection is required; the existing bot-session-context migration remains
+a prerequisite. The Jev-only advice is computed from the already-authorized and
+validated context, after claim/context checks. Other providers retain their
+existing policies. `npm run check`, offline `test:bots`, context benchmarks and
+`npm run build` verify the release; no schema-specific SQL check is needed for
+this change. Production-sized behavioral strength still requires later evidence.

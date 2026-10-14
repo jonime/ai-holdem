@@ -1263,3 +1263,14 @@ The corrected 960-call pilot completed with zero failures; its authorization is
 exhausted. Preserve v1 and v2 evidence separately. See the [v2 report](benchmarks/opponent-advice/live-v2-report-2026-10-14.md)
 for Jev's heads-up pressure response and extreme sizing. No production promotion
 or further paid evaluation follows automatically.
+
+
+Production Jev confidence advice is covered by `lib/bots/jev-confidence.test.ts`.
+Keep the production registry wiring, sparse/unknown suppression, Wilson thresholds,
+size/street matching, privacy and one-request candidate/schema checks intact.
+The production text includes explicit sizing caveats and excludes all-in opening
+candidates from tendency annotations. It has no paid strength validation; do not
+present the archived experimental wording as validation of this revision.
+Frozen Plan 3 runners intentionally reject the newer registry hash. Use a separate
+checkout of archival commit `62d7bc6` for reproducible offline experiments; their
+paid allocations remain exhausted. See the promotion record.

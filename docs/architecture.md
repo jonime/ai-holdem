@@ -392,8 +392,10 @@ only on request.
 
 `lib/systemone/` owns provider-neutral request types, candidate construction,
 response validation and difficulty sampling. `lib/bots/systemone.ts` prepares
-sanitized context/advice and extracts diagnostics for both Jev and Eevo. Jev keeps
-`jev-latest`, policy `typesafe-poker-v4.0`, prompts and river safeguards; Eevo uses
+sanitized context/advice and extracts diagnostics for both Jev and Eevo. Both retain
+the `typesafe-poker-v4.0` base questions and exact river safeguards. The production
+registry wraps Jev with `ConfidenceAwareJevPokerBot` (`typesafe-poker-v4.1-confidence`),
+using the unchanged `jev-latest` model; Eevo uses
 `eevo-1` at the fixed `https://eevo.io/api/v1/systemone` endpoint with its own
 Bearer secret and allowlisted request/response errors. No native consequence or
 stakeholder API is used. Missing cost remains null. Compatibility exports in
@@ -453,6 +455,30 @@ Dealt-player count, current remaining players and pending actors are distinct.
 Originally larger tables with two dealt players receive heads-up opening guidance;
 a multiway hand reduced to two retains its original preflop context. Advice never
 removes candidates or overrides legality, exact river safeguards or playstyles.
+
+Production Jev alone additionally receives server-only `jev-opponent-advice-v2`
+from `lib/poker/opponent-advice.ts`. Relevant fold observations need at least ten
+opportunities; a two-sided 95% Wilson lower bound >0.60 describes frequent folding,
+and an upper bound <0.30 describes frequent continuation. Other intervals add no
+tendency guidance. Use dealt-heads-up versus multiway buckets, match the street,
+and name only an active opponent still able to fold. Preflop BB evidence applies
+only to a heads-up button's unopened pot and the indicated normal opening-size
+bucket; all-in candidates never receive opening-bucket tendency advice.
+
+Production text differs from the experimental v1 advice: pressure does not imply
+larger bets; historical fold counts are not a current-action fold probability and
+cannot justify oversized or all-in commitments. Prefer ordinary pot-relative
+sizing; a large commitment needs independent hand/stack/price justification. Seek
+worse continuing hands for value rather than automatically reducing value bets.
+All action/sizing candidates remain available; this is qualitative advice, not an
+action override. The wrapper uses one provider request and preserves difficulty,
+claims, allowance admission, deadlines and public privacy boundaries. Eevo, LLM
+and Equity Rules behavior is unchanged.
+
+The original `JevPokerBot` wrapper remains the reproducible base for benchmarks.
+The paid pilot showed behavioral sensitivity but concerning extreme sizes; the
+production wording revision is offline-tested, not a paid-validated strength
+improvement. See the [promotion record](../benchmarks/opponent-advice/production.md).
 
 Provider context, raw responses and decision diagnostics are not persisted or
 exposed through public DTOs, browser APIs or Realtime. Production model settings

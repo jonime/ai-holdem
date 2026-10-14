@@ -8,7 +8,7 @@ import { EevoSystemOneClient } from "@/lib/eevo/client";
 import { EevoPokerBot } from "./eevo";
 
 import { EquityRulesV2Bot } from "./equity-rules-v2";
-import { JevPokerBot } from "./jev";
+import { ConfidenceAwareJevPokerBot } from "./jev-confidence";
 import { LlmPokerBot } from "./llm";
 import type { PokerBot } from "./types";
 import { DEFAULT_BOT_PLAYSTYLE_ID, isBotPlaystyleId } from "./llm-playstyles";
@@ -88,7 +88,7 @@ export class ServerBotRegistry implements BotRegistry {
     if (descriptor.provider === "typesafe") {
       return {
         descriptor,
-        bot: new JevPokerBot(new TypesafeSystemOneClient()),
+        bot: new ConfidenceAwareJevPokerBot(new TypesafeSystemOneClient()),
       };
     }
     const modelDefinition = getLlmBotModels().find(

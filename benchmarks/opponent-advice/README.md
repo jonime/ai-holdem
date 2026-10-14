@@ -207,3 +207,14 @@ latency, action/sizing distributions and the difference between folding and
 continuation advice effects. This is sensitivity analysis, not chip EV or a
 population poker-frequency estimate. The original v1 report is not pooled with
 v2 because its omitted-history control differs.
+
+
+## Production promotion and archival reconstruction
+
+The user subsequently requested production Jev promotion. See
+[the production record](production.md) for the Jev-only wrapper and revised sizing
+wording. Historical Plan 3 source dependencies are preserved by archival commit
+`62d7bc6` (created after the run; not an execution-time commit identifier). The
+freeze checks intentionally refuse current production sources because the registry
+changed. Reconstruct offline experiments at that commit; do not rewrite archived
+hashes or rerun exhausted paid allocations.
