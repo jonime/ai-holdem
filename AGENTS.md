@@ -589,14 +589,16 @@ for Jev's heads-up pressure response and extreme sizing. No production promotion
 or further paid evaluation follows automatically.
 
 
-## Production Jev confidence advice
+## Production Jev and Eevo confidence advice
 
 The registry uses `ConfidenceAwareJevPokerBot` (`typesafe-poker-v4.1-confidence`)
-for Jev only. `lib/poker/opponent-advice.ts` owns server-only Wilson-qualified
+for Jev and `ConfidenceAwareEevoPokerBot` (`eevo-poker-v4.1-confidence`) for Eevo.
+Both share the same advice-envelope builder. `lib/poker/opponent-advice.ts` owns server-only Wilson-qualified
 fold interpretation (`jev-opponent-advice-v2`), ten-opportunity minimum, situational
 matching and explicit sizing caveats. Do not interpret counts as current fold
 probabilities or endorse all-ins from them; preserve every candidate and the
-base engine/river safeguards. Eevo, LLM, rules, models, persistence, claims,
+base engine/river safeguards. Eevo retains its own model/client/error mapping;
+LLM, rules, models, persistence, claims,
 allowances and request deadlines remain unchanged. The old wrapper stays a
 benchmark baseline; reconstruct frozen Plan 3 experiments at archival commit
 `62d7bc6` instead of rewriting paid-run hashes after promotion.

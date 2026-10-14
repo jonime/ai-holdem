@@ -1265,7 +1265,9 @@ for Jev's heads-up pressure response and extreme sizing. No production promotion
 or further paid evaluation follows automatically.
 
 
-Production Jev confidence advice is covered by `lib/bots/jev-confidence.test.ts`.
+Production confidence advice is covered by `lib/bots/jev-confidence.test.ts`
+and `lib/bots/eevo-confidence.test.ts`. Both providers share the same advice
+envelope; verify Eevo's distinct model and error mapping without fallback.
 Keep the production registry wiring, sparse/unknown suppression, Wilson thresholds,
 size/street matching, privacy and one-request candidate/schema checks intact.
 The production text includes explicit sizing caveats and excludes all-in opening
@@ -1274,3 +1276,7 @@ present the archived experimental wording as validation of this revision.
 Frozen Plan 3 runners intentionally reject the newer registry hash. Use a separate
 checkout of archival commit `62d7bc6` for reproducible offline experiments; their
 paid allocations remain exhausted. See the promotion record.
+
+The Eevo extension has offline contract/safety coverage only; Jev pilot behavior
+is not evidence of Eevo playing strength. No additional provider calls are made
+without fresh explicit authorization.

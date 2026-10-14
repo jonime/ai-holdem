@@ -2,7 +2,7 @@ import { expect, it, vi } from "vitest";
 import { ConfidenceAwareJevPokerBot, jevConfidencePolicyVersion } from "./jev-confidence";
 import { ServerBotRegistry } from "./registry";
 import { JevPokerBot } from "./jev";
-import { EevoPokerBot } from "./eevo";
+import { ConfidenceAwareEevoPokerBot } from "./eevo-confidence";
 import { controlledAdviceFixtures } from "@/benchmarks/opponent-advice/controlled-fixtures";
 import { selectJevOpponentAdvice, tendency, wilson95 } from "@/lib/poker/opponent-advice";
 import type { TypesafeDecisionClient } from "@/lib/typesafe/decision";
@@ -15,10 +15,10 @@ function client() {
     return { answers: { move: { type: "choice", choice, confidence: 1, probabilities: Object.fromEntries(choices.map(k => [k, Number(k === choice)])) } } };
   }) };
 }
-it("production registry enables confidence advice only for Jev", () => {
+it("production registry enables the confidence wrappers for Jev and Eevo", () => {
   const registry = new ServerBotRegistry();
   expect(registry.get({ botId: "jev" }).bot).toBeInstanceOf(ConfidenceAwareJevPokerBot);
-  expect(registry.get({ botId: "eevo" }).bot).toBeInstanceOf(EevoPokerBot);
+  expect(registry.get({ botId: "eevo" }).bot).toBeInstanceOf(ConfidenceAwareEevoPokerBot);
 });
 it("uses one request with unchanged candidates, model, questions and river protections", async () => {
   const f = fixtures.find(f => f.id === "HU-river")!;

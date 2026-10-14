@@ -49,3 +49,9 @@ function describe(observation: Observation, seat: number, metric: string, sizing
     opportunities: observation.opportunities, confidence95: result.interval, tendency: result.kind,
     text: `${result.kind === "frequent_folding" ? "Consider more pressure against this opponent's observed frequent folds using ordinary pot-relative bets or the indicated normal opening size when independently justified by chip value." : "Reduce speculative bluffs and seek worse continuing hands against this opponent's observed frequent continuation."} Evidence: ${observation.count}/${observation.opportunities} folds; 95% Wilson interval ${result.interval.map(n => n.toFixed(3)).join("–")}. Conditional on this situation${sizing ? ` and sizing ${sizing}` : ""}; uncertain recorded behavior, not a known range. This describes only seat ${seat}; it does not estimate everyone's fold probability. These observations are not the current action's fold probability, showdown equity, or evidence about responses to much larger bets. More pressure does not mean larger sizing. Do not justify an all-in or an oversized deep-stack bet from these fold counts; prefer ordinary pot-relative sizes, and require independent hand/stack/price justification for a large commitment. Against frequent continuation, seek value from worse hands rather than automatically reducing value bets. Keep all candidates, exact safeguards and playstyle boundaries.` }];
 }
+
+/** Shared production envelope; retain the established advice version for Jev and Eevo. */
+export function withConfidenceOpponentAdvice(context: BotContext) {
+  const items = selectJevOpponentAdvice(context);
+  return { ...context, ...(items.length ? { opponentAdvice: { version: adviceVersion, items } } : {}) };
+}

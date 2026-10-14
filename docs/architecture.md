@@ -394,8 +394,9 @@ only on request.
 response validation and difficulty sampling. `lib/bots/systemone.ts` prepares
 sanitized context/advice and extracts diagnostics for both Jev and Eevo. Both retain
 the `typesafe-poker-v4.0` base questions and exact river safeguards. The production
-registry wraps Jev with `ConfidenceAwareJevPokerBot` (`typesafe-poker-v4.1-confidence`),
-using the unchanged `jev-latest` model; Eevo uses
+registry wraps Jev with `ConfidenceAwareJevPokerBot` (`typesafe-poker-v4.1-confidence`)
+and Eevo with `ConfidenceAwareEevoPokerBot` (`eevo-poker-v4.1-confidence`).
+Jev keeps `jev-latest`; Eevo uses
 `eevo-1` at the fixed `https://eevo.io/api/v1/systemone` endpoint with its own
 Bearer secret and allowlisted request/response errors. No native consequence or
 stakeholder API is used. Missing cost remains null. Compatibility exports in
@@ -456,7 +457,7 @@ Originally larger tables with two dealt players receive heads-up opening guidanc
 a multiway hand reduced to two retains its original preflop context. Advice never
 removes candidates or overrides legality, exact river safeguards or playstyles.
 
-Production Jev alone additionally receives server-only `jev-opponent-advice-v2`
+Production Jev and Eevo additionally receive the same server-only `jev-opponent-advice-v2`
 from `lib/poker/opponent-advice.ts`. Relevant fold observations need at least ten
 opportunities; a two-sided 95% Wilson lower bound >0.60 describes frequent folding,
 and an upper bound <0.30 describes frequent continuation. Other intervals add no
@@ -471,14 +472,16 @@ cannot justify oversized or all-in commitments. Prefer ordinary pot-relative
 sizing; a large commitment needs independent hand/stack/price justification. Seek
 worse continuing hands for value rather than automatically reducing value bets.
 All action/sizing candidates remain available; this is qualitative advice, not an
-action override. The wrapper uses one provider request and preserves difficulty,
-claims, allowance admission, deadlines and public privacy boundaries. Eevo, LLM
-and Equity Rules behavior is unchanged.
+action override. Both wrappers use one provider request and preserve difficulty,
+claims, allowance admission, deadlines and public privacy boundaries. LLM and
+Equity Rules behavior is unchanged. The advice version retains its historical Jev
+name; Eevo uses the exact same advice and sizing caveats through the shared envelope
+builder. Eevo retains its own endpoint, key, model and error mapping.
 
 The original `JevPokerBot` wrapper remains the reproducible base for benchmarks.
 The paid pilot showed behavioral sensitivity but concerning extreme sizes; the
-production wording revision is offline-tested, not a paid-validated strength
-improvement. See the [promotion record](../benchmarks/opponent-advice/production.md).
+production wording revision and Eevo extension are offline-tested, not
+paid-validated strength improvements. See the [promotion record](../benchmarks/opponent-advice/production.md).
 
 Provider context, raw responses and decision diagnostics are not persisted or
 exposed through public DTOs, browser APIs or Realtime. Production model settings

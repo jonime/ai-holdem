@@ -5,7 +5,7 @@ import type { BotDescriptor } from "@/lib/poker/types";
 import { TypesafeSystemOneClient } from "@/lib/typesafe/client";
 
 import { EevoSystemOneClient } from "@/lib/eevo/client";
-import { EevoPokerBot } from "./eevo";
+import { ConfidenceAwareEevoPokerBot } from "./eevo-confidence";
 
 import { EquityRulesV2Bot } from "./equity-rules-v2";
 import { ConfidenceAwareJevPokerBot } from "./jev-confidence";
@@ -83,7 +83,7 @@ export class ServerBotRegistry implements BotRegistry {
       return { descriptor, bot: new EquityRulesV2Bot() };
     }
     if (descriptor.provider === "eevo") {
-      return { descriptor, bot: new EevoPokerBot(new EevoSystemOneClient()) };
+      return { descriptor, bot: new ConfidenceAwareEevoPokerBot(new EevoSystemOneClient()) };
     }
     if (descriptor.provider === "typesafe") {
       return {

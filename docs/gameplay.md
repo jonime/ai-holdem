@@ -5,7 +5,7 @@
 Custom tables offer **Upright Eevo** when its server key is configured and external
 inference is enabled. Like TypeSafe Jev, it supports Easy, Medium and Hard difficulty
 rather than LLM playstyles. Eevo uses the same base poker questions, legal candidates and
-sanitized decision-context boundaries as Jev, with generic strategy advice. Provider failures pause the turn for explicit
+sanitized decision-context boundaries and confidence-qualified opponent advice as Jev. Provider failures pause the turn for explicit
 retry; Eevo credit failures do not automatically fold or remove the seat.
 Quick Play excludes Eevo by default; the server can opt in with
 `EEVO_QUICK_PLAY_ENABLED=true`. External inference disabled always means rules-only
@@ -300,13 +300,13 @@ navigation. The handler rechecks this guard. Language and player identity are ne
 stored in settings. Cross-tab sound changes never preview or unlock audio.
 
 
-## Jev opponent observations
+## Jev and Eevo opponent observations
 
-TypeSafe Jev uses private, table-local observations of opponents' recorded folds
-when enough relevant opportunities exist. It separates heads-up/multiway history,
-street and opening-size evidence, and accounts for uncertainty rather than treating
-a small sample as a reliable tendency. Against frequent folds it may consider more
-pressure with ordinary sizing; against frequent continuation it may reduce
+TypeSafe Jev and Upright Eevo use private, table-local observations of opponents' recorded folds
+when enough relevant opportunities exist. They separate heads-up/multiway history,
+street and opening-size evidence, and account for uncertainty rather than treating
+a small sample as a reliable tendency. Against frequent folds they may consider more
+pressure with ordinary sizing; against frequent continuation they may reduce
 speculative bluffs and seek value from worse hands. Fold observations alone do not
 justify all-ins or larger bets. These are advisory observations, not known ranges
 or guaranteed improvements. The engine remains authoritative and no extra

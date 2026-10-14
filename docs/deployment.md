@@ -252,14 +252,15 @@ only after reviewing measured quality, latency, actual reported cost and unknown
 billing coverage in the benchmark report.
 
 
-## Jev confidence-aware advice
+## Jev and Eevo confidence-aware advice
 
 The server registry selects `typesafe-poker-v4.1-confidence` for existing and newly
-selected Jev seats after deployment. It retains `jev-latest` and the existing
+selected Jev seats after deployment. Eevo seats use `eevo-poker-v4.1-confidence`
+through `ConfidenceAwareEevoPokerBot`, with the same advice and sizing cautions. It retains `jev-latest` and the existing
 provider credentials/settings. No new schema, environment variable, feature flag
 or model selection is required; the existing bot-session-context migration remains
-a prerequisite. The Jev-only advice is computed from the already-authorized and
-validated context, after claim/context checks. Other providers retain their
-existing policies. `npm run check`, offline `test:bots`, context benchmarks and
+a prerequisite. The shared Jev/Eevo advice is computed from the already-authorized and
+validated context, after claim/context checks. Eevo retains `eevo-1`, its own endpoint/key and error handling; LLM and rules
+bots retain their existing policies. `npm run check`, offline `test:bots`, context benchmarks and
 `npm run build` verify the release; no schema-specific SQL check is needed for
 this change. Production-sized behavioral strength still requires later evidence.

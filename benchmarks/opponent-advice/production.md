@@ -4,7 +4,11 @@ After the corrected pilot, the user explicitly requested enabling opponent advic
 for Jev and pushing it to main. The server registry now uses
 `ConfidenceAwareJevPokerBot`, policy `typesafe-poker-v4.1-confidence`, with the
 same `jev-latest` model and the unchanged base questions, sampling, legal candidates,
-response contracts and exact river safeguards. Other providers are unchanged.
+response contracts and exact river safeguards. The user subsequently requested
+the same advice for Eevo: the registry now uses `ConfidenceAwareEevoPokerBot`,
+policy `eevo-poker-v4.1-confidence`, retaining `eevo-1`, its own client/key and
+error mapping. Jev and Eevo share the exact advice-envelope builder. LLM and
+Equity Rules behavior is unchanged.
 
 The server-only advice version is `jev-opponent-advice-v2`. It retains the pilot's
 Wilson calculation, ten-opportunity minimum, thresholds, privacy-safe attribution
@@ -38,3 +42,19 @@ and 1,851 tests in 135 files. Offline `test:bots` passed 60 tests (120 external
 cases skipped); `benchmark:poker-context` passed two offline tests (paid test
 skipped). `npm run build` completed successfully outside the restricted sandbox
 after Turbopack stalled inside it. No additional paid inference was performed.
+
+
+The Eevo follow-up reuses the established `jev-opponent-advice-v2` version tag,
+including uncertainty thresholds and sizing cautions, without changing Jev's
+supplied advice. Tests verify identical Jev/Eevo context and distinct models,
+unchanged candidate/schema handling, one request, sparse/unknown suppression,
+multiway targeting and Eevo errors without fallback. Eevo was not included in
+the paid pilot; this extension has no measured behavioral-strength evidence.
+
+
+Eevo follow-up validation: `npm run check` passed lint, strict typechecking and
+1,855 tests in 136 files; `npm run build` succeeded. Offline bot scenarios passed
+60 tests (external cases skipped), and the context benchmark passed its two
+offline tests. The existing service already supplies the same validated session
+statistics to all external providers, including Eevo; no new history query,
+migration, credential or paid evaluation was needed.
