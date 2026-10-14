@@ -48,7 +48,7 @@ jobs:
     timeout-minutes: 30
     env:
       CI: "true"
-      SUPABASE_CLI_VERSION: "2.119.0"
+      SUPABASE_CLI_VERSION: "2.120.0"
       EXTERNAL_INFERENCE_ENABLED: "false"
       TYPESAFE_API_KEY: ""
       LLM_API_ENDPOINT: ""

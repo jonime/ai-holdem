@@ -225,7 +225,7 @@ Deploy `20261028000000_add_bot_session_context.sql` before the matching applicat
 It adds a service-role-only, stable snapshot RPC for current-hand history and up to
 50 earlier completed hands, bounded before action loading. No backfill, historical
 mutation or new environment variable is required. Keep `get_bot_hand_context` for
-Equity Rules and rolling deployment. Generate/check database types using CLI 2.119.0
+Equity Rules and rolling deployment. Generate/check database types using CLI 2.120.0
 after applying every local migration; run check, offline context/bot benchmarks,
 `test:sql:bot-context` and the production build. Privacy, claim ordering and version
 checks must pass before release.

@@ -3,7 +3,7 @@ import { mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSy
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export const CLI_VERSION = "2.119.0";
+export const CLI_VERSION = "2.120.0";
 const root = fileURLToPath(new URL("../", import.meta.url));
 
 /**

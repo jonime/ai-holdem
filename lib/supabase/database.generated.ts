@@ -9,6 +9,7 @@ export type Database = {
                   Row: {
                     "action": string,"amount": number | null,"created_at": string,"game_id": string,"hand_id": string,"id": string,"player_id": string,"sequence": number,"state_after": NonNullable<Json>,"state_before": NonNullable<Json>,"street": string
                   }
+                  ComputedFields: never
                   Insert: {
                     "action": string,"amount"?: number | null,"created_at"?: string,"game_id": string,"hand_id": string,"id"?: string,"player_id": string,"sequence": number,"state_after": NonNullable<Json>,"state_before": NonNullable<Json>,"street": string
                   }
@@ -40,6 +41,7 @@ isOneToOne: false
                   Row: {
                     "actor_engine_id": string,"claim_token": string,"expected_version": number,"expires_at": string,"game_id": string,"usage_admitted": boolean
                   }
+                  ComputedFields: never
                   Insert: {
                     "actor_engine_id": string,"claim_token": string,"expected_version": number,"expires_at": string,"game_id": string,"usage_admitted"?: boolean
                   }
@@ -59,6 +61,7 @@ isOneToOne: true
                   Row: {
                     "attempt_id": string,"created_at": string,"game_id": string | null,"intent_fingerprint": string,"owner_hash": string
                   }
+                  ComputedFields: never
                   Insert: {
                     "attempt_id": string,"created_at"?: string,"game_id"?: string | null,"intent_fingerprint": string,"owner_hash": string
                   }
@@ -78,6 +81,7 @@ isOneToOne: false
                   Row: {
                     "game_id": string,"host_token": string
                   }
+                  ComputedFields: never
                   Insert: {
                     "game_id": string,"host_token": string
                   }
@@ -97,6 +101,7 @@ isOneToOne: true
                   Row: {
                     "game_id": string,"host_lease_expires_at": string,"is_public": boolean,"published_at": string,"title": string | null
                   }
+                  ComputedFields: never
                   Insert: {
                     "game_id": string,"host_lease_expires_at"?: string,"is_public"?: boolean,"published_at"?: string,"title"?: string | null
                   }
@@ -116,6 +121,7 @@ isOneToOne: true
                   Row: {
                     "ai_difficulty": string | null,"bot_id": string | null,"bot_label": string | null,"bot_model_id": string | null,"bot_profile_id": string | null,"bot_provider": string | null,"controller": string,"created_at": string,"engine_player_id": string | null,"game_id": string,"id": string,"is_host": boolean,"leaving": boolean,"name": string,"player_token": string | null,"seat": number,"stack": number,"status": string
                   }
+                  ComputedFields: never
                   Insert: {
                     "ai_difficulty"?: string | null,"bot_id"?: string | null,"bot_label"?: string | null,"bot_model_id"?: string | null,"bot_profile_id"?: string | null,"bot_provider"?: string | null,"controller"?: string,"created_at"?: string,"engine_player_id"?: string | null,"game_id": string,"id"?: string,"is_host"?: boolean,"leaving"?: boolean,"name": string,"player_token"?: string | null,"seat": number,"stack": number,"status"?: string
                   }
@@ -135,6 +141,7 @@ isOneToOne: false
                   Row: {
                     "bots_show_uncontested_wins": boolean,"created_at": string,"current_state": NonNullable<Json>,"hand_number": number,"human_timer_enabled": boolean,"human_timer_hand": number | null,"human_turn_seconds": number | null,"id": string,"min_seats_to_start": number,"state_schema_version": number,"status": string,"turn_actor_engine_id": string | null,"turn_deadline": string | null,"turn_decision_id": string | null,"turn_hand_number": number | null,"updated_at": string,"version": number
                   }
+                  ComputedFields: never
                   Insert: {
                     "bots_show_uncontested_wins"?: boolean,"created_at"?: string,"current_state": NonNullable<Json>,"hand_number"?: number,"human_timer_enabled"?: boolean,"human_timer_hand"?: number | null,"human_turn_seconds"?: number | null,"id"?: string,"min_seats_to_start"?: number,"state_schema_version"?: number,"status"?: string,"turn_actor_engine_id"?: string | null,"turn_deadline"?: string | null,"turn_decision_id"?: string | null,"turn_hand_number"?: number | null,"updated_at"?: string,"version"?: number
                   }
@@ -148,6 +155,7 @@ isOneToOne: false
                   Row: {
                     "created_at": string,"engine_player_id": string,"game_id": string,"hand_id": string,"hand_number": number,"id": string,"player_id": string,"reason": string
                   }
+                  ComputedFields: never
                   Insert: {
                     "created_at"?: string,"engine_player_id": string,"game_id": string,"hand_id": string,"hand_number": number,"id"?: string,"player_id": string,"reason": string
                   }
@@ -179,6 +187,7 @@ isOneToOne: false
                   Row: {
                     "completed_at": string | null,"final_state": Json | null,"game_id": string,"hand_number": number,"id": string,"initial_state": NonNullable<Json>,"started_at": string,"status": string
                   }
+                  ComputedFields: never
                   Insert: {
                     "completed_at"?: string | null,"final_state"?: Json | null,"game_id": string,"hand_number": number,"id"?: string,"initial_state": NonNullable<Json>,"started_at"?: string,"status": string
                   }
@@ -198,6 +207,7 @@ isOneToOne: false
                   Row: {
                     "game_id": string,"player_token": string
                   }
+                  ComputedFields: never
                   Insert: {
                     "game_id": string,"player_token": string
                   }
@@ -217,6 +227,7 @@ isOneToOne: false
                   Row: {
                     "attempts": (string)[],"key": string,"last_seen": string
                   }
+                  ComputedFields: never
                   Insert: {
                     "attempts"?: (string)[],"key": string,"last_seen": string
                   }

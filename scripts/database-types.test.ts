@@ -13,7 +13,7 @@ function fixture(committed = generated) {
   writeFileSync(join(cwd, "supabase/migrations/20261013000000_test.sql"), "");
   const target = join(cwd, "lib/supabase/database.generated.ts"); writeFileSync(target, committed);
   const run = vi.fn((_command: string, args: readonly string[]) => {
-    if (args[0] === "--version") return "2.119.0\n";
+    if (args[0] === "--version") return "2.120.0\n";
     if (args[0] === "migration") return JSON.stringify({ migrations: [{ remote: "20261013000000" }] });
     return generated;
   });
@@ -37,23 +37,23 @@ describe("local database type tooling", () => {
     const f = fixture("old"); databaseTypes("generate", f); expect(readFileSync(f.target, "utf8")).toBe(generated);
   });
   it.each(["check", "generate"])("preserves committed output when CLI generation fails (%s)", mode => {
-    const f = fixture("old"); f.run.mockImplementationOnce(() => "2.119.0").mockImplementationOnce(() => JSON.stringify({ migrations: [{ remote: "20261013000000" }] })).mockImplementationOnce(() => { throw new Error("secret CLI diagnostic"); });
+    const f = fixture("old"); f.run.mockImplementationOnce(() => "2.120.0").mockImplementationOnce(() => JSON.stringify({ migrations: [{ remote: "20261013000000" }] })).mockImplementationOnce(() => { throw new Error("secret CLI diagnostic"); });
     expect(() => databaseTypes(mode, f)).toThrow("local type generation failed");
     expect(readFileSync(f.target, "utf8")).toBe("old");
     expect(readdirSync(join(f.cwd, "lib/supabase"))).toEqual(["database.generated.ts"]);
   });
   it("rejects mismatched CLI versions before inspecting the database", () => {
-    const f = fixture(); f.run.mockReturnValueOnce("2.120.0");
-    expect(() => databaseTypes("generate", f)).toThrow("require Supabase CLI 2.119.0"); expect(f.run).toHaveBeenCalledTimes(1);
+    const f = fixture(); f.run.mockReturnValueOnce("2.119.0");
+    expect(() => databaseTypes("generate", f)).toThrow("require Supabase CLI 2.120.0"); expect(f.run).toHaveBeenCalledTimes(1);
   });
   it("rejects missing CLI and unapplied migrations", () => {
     const f = fixture(); f.run.mockImplementationOnce(() => { throw new Error("ENOENT"); });
     expect(() => databaseTypes("generate", f)).toThrow("CLI version check failed");
-    f.run.mockImplementationOnce(() => "2.119.0").mockImplementationOnce(() => '{"migrations":[]}');
+    f.run.mockImplementationOnce(() => "2.120.0").mockImplementationOnce(() => '{"migrations":[]}');
     expect(() => databaseTypes("generate", f)).toThrow("Apply every committed migration");
   });
   it("preserves committed output on invalid generator output", () => {
-    const f = fixture("old"); f.run.mockImplementationOnce(() => "2.119.0").mockImplementationOnce(() => JSON.stringify({ migrations: [{ remote: "20261013000000" }] })).mockReturnValueOnce("");
+    const f = fixture("old"); f.run.mockImplementationOnce(() => "2.120.0").mockImplementationOnce(() => JSON.stringify({ migrations: [{ remote: "20261013000000" }] })).mockReturnValueOnce("");
     expect(() => databaseTypes("generate", f)).toThrow("invalid output"); expect(readFileSync(f.target, "utf8")).toBe("old");
   });
 });

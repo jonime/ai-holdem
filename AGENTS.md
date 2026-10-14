@@ -82,7 +82,7 @@ routing, rendering, environment handling, or deployment behavior.
 
 Pull requests and pushes to `main` retain the fast check/build job with non-secret
 placeholder values; unit tests must not depend on live Supabase or TypeSafe.
-An independent 30-minute integration job uses Docker, pinned Supabase CLI 2.119.0,
+An independent 30-minute integration job uses Docker, pinned Supabase CLI 2.120.0,
 and the installed Playwright Chromium and WebKit with system dependencies. Supabase registry
 images are pulled normally during startup; do not cache Docker image archives,
 containers, volumes, or database state. Archive restore/load overhead exceeded
@@ -130,7 +130,7 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
 
 ## Architecture Rules
 
-- Keep `lib/supabase/database.generated.ts` unchanged from pinned CLI 2.119.0
+- Keep `lib/supabase/database.generated.ts` unchanged from pinned CLI 2.120.0
   generation against the fully migrated local public schema. After schema changes,
   apply migrations locally, run `db:types:generate`, then `db:types:check` and
   `check`. Type commands never load application environment files, use hosted

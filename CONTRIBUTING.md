@@ -121,7 +121,7 @@ the isolated workload is the useful overhead estimate.
 
 ## Database contracts
 
-Use Node 24+, Docker, and Supabase CLI **2.119.0** on `PATH`. Start the local
+Use Node 24+, Docker, and Supabase CLI **2.120.0** on `PATH`. Start the local
 stack and apply every committed migration in filename order using the existing
 local migration workflow. After a schema change:
 
@@ -168,7 +168,7 @@ npm run test:e2e:reset
 
 ## External bot application integration
 
-With Node 24+, Docker, Supabase CLI 2.119.0, and an already-running healthy
+With Node 24+, Docker, Supabase CLI 2.120.0, and an already-running healthy
 local Supabase with **every committed migration applied**, run:
 
 ```sh
@@ -232,7 +232,7 @@ checks and cleanup still complete.
 CI runs an independent integration job alongside the unchanged
 lint/typecheck/unit-test/build job on pull requests and pushes to `main`. It has a
 30-minute limit and preserves cancellation of superseded commits. It uses Node
-from `.nvmrc`, `npm ci`, Supabase CLI **2.119.0**, and the installed Playwright
+from `.nvmrc`, `npm ci`, Supabase CLI **2.120.0**, and the installed Playwright
 version's Chromium and WebKit (`npx playwright install --with-deps chromium webkit` on Ubuntu;
 `npx playwright install chromium webkit` on macOS).
 Docker and a healthy local Supabase stack including Realtime are prerequisites.
@@ -846,7 +846,7 @@ public-lobby suites after changes to these flows.
 Apply `20261013000000_add_bot_hand_context.sql` and
 `20261028000000_add_bot_session_context.sql` before deploying bot-context code.
 After applying locally, run `db:types:generate` and `db:types:check` with pinned
-CLI 2.119.0. Keep generated output unchanged.
+CLI 2.120.0. Keep generated output unchanged.
 Run `npm run benchmark:poker-context` for the offline weighted 169-class matrix
 and seeded heads-up/six-seat wrapper comparisons, and `npm run test:sql:bot-context`
 with migrated local Supabase running for private RPC roles and game/hand

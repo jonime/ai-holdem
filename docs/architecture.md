@@ -20,7 +20,7 @@ game version. Bot decision inspection data is not stored.
 
 ## Database contracts
 
-`lib/supabase/database.generated.ts` is the unchanged Supabase CLI 2.119.0 output
+`lib/supabase/database.generated.ts` is the unchanged Supabase CLI 2.120.0 output
 for the fully migrated local `public` schema. Server clients use a database type
 derived from it; the browser Realtime client keeps its existing boundary.
 `GameDatabaseClient` carries generated RPC name/argument relationships and table
