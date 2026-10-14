@@ -236,6 +236,11 @@ from `.nvmrc`, `npm ci`, Supabase CLI **2.120.0**, and the installed Playwright
 version's Chromium and WebKit (`npx playwright install --with-deps chromium webkit` on Ubuntu;
 `npx playwright install chromium webkit` on macOS).
 Docker and a healthy local Supabase stack including Realtime are prerequisites.
+CI's `scripts/e2e/ci-setup.mjs` installs browsers/system dependencies alongside
+Supabase startup and migration application. Both tasks must finish successfully
+before schema or test checks begin; failures wait for both children to exit before
+the workflow's unconditional Supabase teardown. Each task retains its deadline
+and sanitized logs in `integration-logs/`.
 Setup follows the official [Supabase CI guide](https://supabase.com/docs/guides/deployment/ci/testing)
 and [Playwright CI guide](https://playwright.dev/docs/ci).
 

@@ -75,13 +75,9 @@ jobs:
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
 
-      - name: Install Chromium, WebKit and system dependencies
-        timeout-minutes: 8
-        run: npx playwright install --with-deps chromium webkit
-
-      - name: Start disposable Supabase and apply migrations
-        timeout-minutes: 12
-        run: node scripts/e2e/supabase.mjs
+      - name: Install browsers and start migrated Supabase concurrently
+        timeout-minutes: 13
+        run: node scripts/e2e/ci-setup.mjs
 
       - name: Check generated database types against migrated schema
         run: npm run db:types:check

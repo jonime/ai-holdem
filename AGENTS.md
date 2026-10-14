@@ -83,7 +83,10 @@ routing, rendering, environment handling, or deployment behavior.
 Pull requests and pushes to `main` retain the fast check/build job with non-secret
 placeholder values; unit tests must not depend on live Supabase or TypeSafe.
 An independent 30-minute integration job uses Docker, pinned Supabase CLI 2.120.0,
-and the installed Playwright Chromium and WebKit with system dependencies. Supabase registry
+and the installed Playwright Chromium and WebKit with system dependencies.
+Browser/system dependency installation and Supabase setup overlap through
+`scripts/e2e/ci-setup.mjs`; both must exit successfully before checks, and setup
+failures wait for both tasks to exit before unconditional teardown. Supabase registry
 images are pulled normally during startup; do not cache Docker image archives,
 containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
