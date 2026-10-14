@@ -219,13 +219,13 @@ from ordinary unit tests and bot benchmarks. A failing production invariant must
 remain a failing case and be reported, rather than weakened or fixed as an
 unannounced expansion of this test-only work.
 
-Known failing invariant retained by this suite: bot action responses use the
-repository's unordered seat read, while `get_game_read_snapshot` orders seats.
-Moving the host to seat 1 before assigning the external bot to seat 0 reproduces
-a response-array order mismatch. The strict comparison is deferred to scenario
-teardown so full lifecycle checks and cleanup still complete. Production code
-is unchanged; the integration command and CI gate report this discrepancy until
-a separately scoped production fix makes the response agree with the snapshot.
+Bot action responses and authoritative snapshots guarantee ascending numeric
+seat order. `getSeatAssignments` validates rows before sorting the parsed
+assignments; snapshot RPC validation still rejects malformed or unordered results.
+The host-seat-move regression assigns the host to seat 1 and the external bot to
+seat 0, then strictly compares the response with the snapshot without normalizing
+either array. The comparison is deferred to scenario teardown so full lifecycle
+checks and cleanup still complete.
 
 ## Production browser integration
 

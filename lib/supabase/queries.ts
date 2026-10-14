@@ -615,7 +615,9 @@ export class SupabaseGameRepository {
       return [];
     }
 
-    return toSeatAssignments(result.data, gameId);
+    return [...toSeatAssignments(result.data, gameId)].sort(
+      (left, right) => left.seat - right.seat,
+    );
   }
 
   async updateSeatAssignment(input: {
