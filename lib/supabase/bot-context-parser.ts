@@ -11,7 +11,9 @@ export function parseBotHandContext(data: unknown) {
       aiDifficulty: z.enum(["easy", "medium", "hard"]).nullable().optional(),
       botProfileId: z.enum(["balanced", "tight", "aggressive"]).nullable().optional(),
       bot: z.object({ id: z.string().min(1), label: z.string().min(1), provider: z.enum(["rules", "typesafe", "llm"]),
-        modelId: z.string().min(1).nullable() }).strict().nullable().optional() }).passthrough()),
+        modelId: z.string().min(1).nullable(),
+        configuration: z.object({ difficulty: z.boolean(), playstyle: z.boolean() }).strict().optional(),
+      }).strict().nullable().optional() }).passthrough()),
   }).passthrough(), engineState: z.unknown() }).passthrough().transform(raw => pokerEngineAdapter.restore(raw));
   // Empty historical records explicitly mean unknown; malformed nonempty states fail visibly.
   const legacyState = z.union([z.null(), z.object({}).strict().transform(() => null), state]);

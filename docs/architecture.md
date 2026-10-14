@@ -397,6 +397,10 @@ before inference; missing legacy states/gaps produce explicit incomplete coverag
 and database/malformed-state failures remain visible. Authorization and the bot
 claim precede history preparation; claim verification and allowance admission
 still precede the provider request. Provider-specific output contracts are unchanged.
+Historical bot descriptors accept and preserve optional catalog `configuration`
+booleans (`difficulty` and `playstyle`), including those persisted by Quick Play.
+Legacy descriptors may omit them; malformed metadata and unknown descriptor fields
+remain rejected.
 
 Only compact `sessionStats` aggregates leave the server. They contain seat-relative
 hero/opponent roles, separate dealt-heads-up and dealt-multiway buckets, action counts,
