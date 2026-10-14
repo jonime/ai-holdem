@@ -65,7 +65,7 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
-    "@playwright/test": "1.63.0",
+    "@playwright/test": "1.64.0",
     "@tailwindcss/postcss": "^4",
     "@types/mdx": "2.0.14",
     "@types/node": "^26",
