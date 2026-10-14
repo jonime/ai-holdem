@@ -1,6 +1,7 @@
 import { createDeterministicDeck, pokerEngineAdapter as engine } from "@/lib/poker/adapter";
 import { createPokerAIState } from "@/lib/poker/ai-state";
 import { projectBotHistory, legacyDecisionHistory, type BotHandContext } from "@/lib/poker/bot-history";
+import { projectSessionStats } from "@/lib/poker/session-stats";
 import { prepareProviderContext } from "@/lib/poker/provider-context";
 import { createSizingOptions, createLegacySizingOptions } from "@/lib/typesafe/questions";
 import type { PokerAction, PokerGameState } from "@/lib/poker/types";
@@ -145,7 +146,7 @@ export function pairedInterval(differences: readonly number[]) {
   const margin = 1.96*Math.sqrt(variance/differences.length);
   return { mean, confidence95:[mean-margin,mean+margin] };
 }
-export async function playEvaluationHand(subject: PokerBot, opponent: PokerBot, seats: 2|6, rotation:number, seed:number, variant:EvaluationVariant) {
+export async function playEvaluationHand(subject: PokerBot, opponent: PokerBot, seats: 2|6, rotation:number, seed:number, variant:EvaluationVariant, options: { equitySamples?: number; emptySession?: boolean; beforeSubject?: (state: PokerGameState, history: BotHandContext, context: BotContext) => void } = {}) {
   let random = seed >>> 0;
   const deck = [...createDeterministicDeck()];
   for (let i=deck.length-1; i>0; i--) { random=(Math.imul(random,1664525)+1013904223)>>>0; const j=Math.floor(random/2**32*(i+1)); [deck[i],deck[j]]=[deck[j],deck[i]]; }
@@ -157,14 +158,17 @@ export async function playEvaluationHand(subject: PokerBot, opponent: PokerBot, 
   for (let n=0; n<200 && engine.snapshot(state).street !== "complete"; n++) {
     const view = engine.decisionView(state), actor = view.players.find(p => p.seat === view.currentActorSeat)!;
     const isSubject = actor.seat === rotation;
-    const ctx = evaluationContext(state,{ version:0,handNumber:1,initialState,actions },isSubject ? variant : "facts",100,!isSubject);
+    const history = { version:0,handNumber:1,initialState,actions };
+    const base = evaluationContext(state,history,isSubject ? variant : "facts",options.equitySamples ?? 100,!isSubject);
+    const ctx = isSubject && options.emptySession ? { ...base, sessionStats: projectSessionStats({ gameId: "paired-empty", version: 0, currentHand: history, previousHands: [] }, state, actor.id) } : base;
+    if (isSubject) options.beforeSubject?.(state, history, ctx);
     const decision = await (isSubject ? subject : opponent).decide(ctx);
     if (isSubject) diagnostics.push(decision.diagnostics);
     const before=state; state=engine.applyAction(state,actor.id,decision.action);
     actions.push({ sequence:actions.length+1,action:decision.action,stateBefore:before });
   }
   if (engine.snapshot(state).street !== "complete") throw new Error("Hand action limit exceeded");
-  return { profitBB:(engine.decisionView(state).players.find(p => p.seat === rotation)!.stack-200)/2, diagnostics };
+  return { actionCount: actions.length, profitBB:(engine.decisionView(state).players.find(p => p.seat === rotation)!.stack-200)/2, diagnostics };
 }
 export async function compareVariants(subjects: Readonly<Partial<Record<EvaluationVariant,PokerBot>>>, opponent:PokerBot, seats:2|6, seeds:readonly number[], repetitions:number, onProgress?:(rows:readonly unknown[]) => void) {
   const rows: { variant:EvaluationVariant; seed:number; repetition:number; rotation:number; profitBB:number|null; failure:string|null; diagnostics:BotDecision["diagnostics"][] }[] = [];

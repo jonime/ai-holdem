@@ -234,3 +234,8 @@ uses solver-assisted reasoning and [SpinGPT](https://arxiv.org/html/2509.22387v2
 uses specialized training. Their results do not establish that this application's
 qualitative prompts or model changes achieve comparable strength. We use none of
 these papers' restricted assets, detailed ranges, budget systems or training data.
+
+The subsequent [explicit heads-up Jev experiment](heads-up/README.md) preserves
+this pilot evidence and adds exact reference import/conditional scoring, full-hand
+paired comparisons and controlled memory contrasts. It does not expand the model
+comparison or alter production bots.

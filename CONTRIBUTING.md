@@ -1096,3 +1096,29 @@ and anonymous landing Quick Play. The controller owns a 15-second creation
 deadline; native forms remain usable without duplicate-safe retry guarantees.
 Pending session records must never contain tokens, and creation diagnostics must
 never log attempt IDs, fingerprints, submitted names or payloads.
+
+### Explicit heads-up Jev evaluation
+
+Run `npm run benchmark:jev:heads-up` for frozen offline memory mechanics and
+`npx vitest run benchmarks/heads-up/reference.test.ts` for importer, sampling,
+matching, scoring, privacy, full-hand pairing and budget tests. Also run
+`npm run benchmark:poker-context`, offline `npm run test:bots` and `npm run check`.
+See [the source audit and protocol](benchmarks/heads-up/README.md). No chart source
+passed; no chart-dependent paid decision or match run is currently enabled.
+
+The dated live memory command is `EXTERNAL_INFERENCE_ENABLED=true
+BOT_DECISION_CALL_CAP=108 npm run benchmark:jev:memory:live`, with
+`TYPESAFE_API_KEY` in ignored `.env.test` or the shell environment. The command does
+not load application `.env`. Credential preflight precedes persistent reservation.
+It verifies frozen policy/fixture SHA-256 hashes, reserves each attempt before
+network dispatch, and refuses an existing evidence/start ledger. Never remove
+the marker to get around the cap; a separately authorized run needs its own dated
+ledger while preserving prior evidence. The source-failure protocol permits only
+108 provider attempts, not spending unused chart allocations. All provider
+failures count; no automatic retries/substitutions are allowed.
+
+Current policy remains `jev-latest` with medium difficulty and unchanged guidance.
+Pure mechanics and frequency compliance are not playing-strength evidence.
+Memory changes are sensitivity observations; quality needs an independently
+supported reference. Paired chip reports exclude unfinished four-hand blocks and
+bootstrap whole blocks by opponent; fewer than 30 blocks are exploratory.

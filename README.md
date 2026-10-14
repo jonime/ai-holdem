@@ -168,6 +168,11 @@ the application includes its SDK with private table URLs redacted.
   — a solver-assisted research comparison illustrating the limits of qualitative prompts.
 - [SpinGPT](https://arxiv.org/html/2509.22387v2)
   — specialized poker training research; its results do not establish this app's strength.
+- [amaster97/poker_solver](https://github.com/amaster97/poker_solver)
+  — candidate audited for evaluation-only preflop references; its equity-leaf
+  blueprint was rejected for full-action comparison. See the
+  [explicit heads-up audit](benchmarks/heads-up/README.md); no solver code or
+  playable chart data is reused.
 - [marcbara/jev-preflop-poker](https://github.com/marcbara/jev-preflop-poker)
   — a reproducible Jev preflop benchmark that inspired weighted starting-hand
   chart reporting in our evaluations.

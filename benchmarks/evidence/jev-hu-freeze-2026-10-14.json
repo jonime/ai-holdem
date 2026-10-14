@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-14",
+  "policy": "typesafe-poker-v4.0",
+  "model": "jev-latest",
+  "files": {
+    "lib/bots/jev.ts": "d1fd5a372a92f6c240bf103b5dc69b17a3eaff35408f12b51b3cd6732c3e655a",
+    "lib/typesafe/questions.ts": "43ce974ddaa7f1494b792665900fc37becfd3ad300287975e26170ddef08a497",
+    "lib/typesafe/decision.ts": "fc9c2efc7c74c915698b46912dd6e90b44530b35f8f8773ca27024895a5478fa",
+    "lib/typesafe/client.ts": "6f4e43ce7645b5b7a7d81708824900d2810d1c2d645539d681f3f79822de1e9f",
+    "lib/bots/provider-request.ts": "c2457c1b2271cbaa0480d382b6be3d759a4fafb636187834c2106e6cf59676b6",
+    "lib/poker/provider-context.ts": "b91c08307c83f6e859e9c044af3a3a71c9acf60d99099f7c98a802c5f51e3d61",
+    "lib/poker/strategy-advice.ts": "bd0565c33f3011f5984d6e9fdea5627a230e32d0f1241163e951da963073ef63",
+    "lib/poker/decision-candidates.ts": "2296f7836fc4518e32666cddf83a76413c6de72a64f991d6f95185f51f3eea0b",
+    "lib/poker/decision-facts.ts": "b43fac89de6b83241d86dbb8cc6021bea3ecf455a074bf5d961e2062bc20b947",
+    "lib/poker/session-stats.ts": "0964f9c8acfff821d2c51db236eb6d5619248f237ed730e6c2b0747b25b963a1",
+    "lib/poker/bot-history.ts": "9060108a5479f452771dfb5dcf3b102ee036e6c2a57ad649b865568c12c0492d",
+    "lib/poker/ai-state.ts": "d42b69cf9cf84afba8ef1b26c986523307100d890968cf39ed9f9ef1bc6d67e4",
+    "lib/poker/equity.ts": "3de93201511bdf2c9ff4479321620058f386c1c345e69dd7b8ff46ab8680ca8a",
+    "lib/poker/adapter.ts": "43122cd9e182822e61ee1ee4a643bcf4319712334a5cb0e3c1c672323fa5c06b",
+    "benchmarks/heads-up/memory.ts": "e6e90422a66c4cd2fa8731e604f11869b868a636f5c4df7c1d92bd29c5c0dba5"
+  }
+}

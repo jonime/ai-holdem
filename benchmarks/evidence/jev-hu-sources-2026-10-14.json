@@ -1,0 +1,101 @@
+{
+  "date": "2026-10-14",
+  "supportedConfigurations": [],
+  "solverGeneratedInThisProject": false,
+  "purchasedAccess": false,
+  "sources": [
+    {
+      "url": "https://github.com/amaster97/poker_solver",
+      "revision": "f78f1b2bc338dd8cbb5226ecb8398bbdb3635676",
+      "attribution": "ashen / amaster97",
+      "codeLicense": "MIT (LICENSE)",
+      "dataTerms": "No separately scoped asset license verified; MIT software/documentation label is not treated as express asset redistribution permission",
+      "redistribution": "not relied upon; no playable data imported",
+      "generation": "DCFR, class169 preflop equity-leaf blueprint; 25000 iterations",
+      "stackConvention": "starting stack before 0.5/1 BB blinds; 100 chips/BB",
+      "actionTree": "opens 2/3/4/5 BB, re-raise multipliers 2/3/4/5, raise cap4, limps/folds/calls/all-in",
+      "postflop": "matched non-all-in calls close at equity leaf; checkdown assumption",
+      "convergence": "100BB no-ante manifest final_exploitability_bb100=null",
+      "decision": "rejected",
+      "verifiedAnchors": [
+        100
+      ],
+      "missingTargetAnchors": [
+        10,
+        25
+      ],
+      "files": [
+        "poker_solver/blueprint.py",
+        "crates/cfr_core/src/preflop_rvr.rs",
+        "poker_solver/preflop.py",
+        "assets/blueprints/manifest.json",
+        "docs/blueprint_generation.md",
+        "LICENSE"
+      ]
+    },
+    {
+      "url": "https://github.com/hellomate2/gto-poker-overlay",
+      "revision": "e4b8791dc1bbbfcf4c92fff79a83821ee0194fc3",
+      "attribution": "Dev Lakhani / hellomate2",
+      "codeLicense": "MIT (LICENSE)",
+      "dataTerms": "No independently documented provenance or upstream chart redistribution terms",
+      "redistribution": "not relied upon; no data imported",
+      "generation": "explicit range strings, not a fresh solve (source file comment)",
+      "stackConvention": "approximately25\u2013100BB, no exact anchor conventions verified",
+      "actionTree": "open/vs-open/vs3bet/vs4bet range decisions; exact solver tree unverified",
+      "convergence": "none verified for encoded ranges",
+      "decision": "rejected",
+      "files": [
+        "src/core/ranges/preflop-charts.ts",
+        "LICENSE"
+      ]
+    },
+    {
+      "url": "https://github.com/Julian-cloud-max/holdemmath-data",
+      "revision": "7c72b1261f08c63cf8366120dc531631935c21cd",
+      "attribution": "HoldemMath \u2014 https://holdemmath.com/",
+      "codeLicense": "separate LICENSE-CODE; not relied upon",
+      "dataTerms": "LICENSE-DATA: CC BY4.0 for matrix/ and pushfold/; credit HoldemMath and link license",
+      "redistribution": "permitted with attribution under data license; no data imported",
+      "generation": "published fictitious-play HU push/fold; provider describes near-exact Nash",
+      "stackConvention": "effectiveBB4/6/8/10/12/15/20; no-ante variant available; before-blind detail unverified",
+      "actionTree": "SB shove/fold, BB call/fold only",
+      "convergence": "publisher reports epsilon<=0.05BB no-ante; not independently reproduced",
+      "decision": "rejected; push/fold-only",
+      "files": [
+        "README.md",
+        "LICENSE-DATA"
+      ]
+    },
+    {
+      "url": "https://github.com/chirenonhive/poker-solver",
+      "revision": "6d54d3725c50d5e74c8971723a616eb52d664f3c",
+      "attribution": "chirenonhive",
+      "codeLicense": "not audited after model disqualification",
+      "dataTerms": "not audited; no exports imported",
+      "redistribution": "not established",
+      "generation": "preflop solver with positional realization leaves as described in README",
+      "stackConvention": "not verified",
+      "actionTree": "not independently verified",
+      "postflop": "no postflop tree; default realize_ip=realize_oop=1.0",
+      "convergence": "not verified for reusable full-action export",
+      "decision": "rejected; equity realization substitute",
+      "files": [
+        "README.md"
+      ]
+    },
+    {
+      "url": "https://pokercoaching.com/tools_old/downloadable-preflop-charts/",
+      "revision": "listing observed2026-10-14; no immutable export revision verified",
+      "attribution": "PokerCoaching.com",
+      "codeLicense": "not applicable",
+      "dataTerms": "copyright; no redistribution grant verified",
+      "redistribution": "not established; no chart copied or access purchased",
+      "generation": "not independently documented on listing",
+      "stackConvention": "100BB HU no-ante listing;25BB9-handed12.5%ante listing",
+      "actionTree": "not verified",
+      "convergence": "not verified",
+      "decision": "not admitted; access/terms/model evidence insufficient"
+    }
+  ]
+}

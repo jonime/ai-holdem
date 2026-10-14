@@ -58,3 +58,10 @@ play; passing unit tests or the mocked benchmark is insufficient.
 Unit tests and benchmarks load the optional root `.env.test` before collection.
 Existing shell/CI variables take precedence; `.env` is not loaded. `.env.test` is
 ignored by Git. Live evaluations require their explicit opt-in flags.
+
+The [explicit heads-up Jev experiment](heads-up/README.md) adds a strict chart
+importer, independent sampler control, conditional EV/frequency grading, full-hand
+four-hand paired comparisons and isolated memory contrasts. No chart source
+passed the audit; chart-dependent calls are deferred. Use
+`npm run benchmark:jev:heads-up` for offline mechanics; the dated memory-only live
+command has its own 108-call cap and persistent one-run ledger.

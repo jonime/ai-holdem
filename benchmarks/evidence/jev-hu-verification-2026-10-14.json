@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-14",
+  "checks": {
+    "npm run check": {
+      "status": "passed",
+      "testFiles": 122,
+      "tests": 1650
+    },
+    "npm run benchmark:jev:heads-up": {
+      "status": "passed",
+      "tests": 1,
+      "liveSkipped": 1
+    },
+    "npm run benchmark:poker-context": {
+      "status": "passed",
+      "tests": 2,
+      "liveSkipped": 1
+    },
+    "npm run test:bots": {
+      "status": "passed",
+      "tests": 60,
+      "externalProviderTestsSkipped": 60
+    },
+    "EXTERNAL_INFERENCE_ENABLED=true BOT_DECISION_CALL_CAP=108 npm run benchmark:jev:memory:live": {
+      "status": "passed",
+      "providerRequests": 108,
+      "successes": 108,
+      "failures": 0
+    },
+    "git diff --check": {
+      "status": "passed"
+    }
+  },
+  "productionChanged": false,
+  "priorPilotUnchanged": true,
+  "acceptedChartConfigurations": [],
+  "providerRequests": 108,
+  "localCredentialFailures": 108,
+  "providerCallsAvoidedByChart": 0,
+  "recommendation": "Keep current Jev; chart compliance and match strength unmeasured; no observed frequent-folding/calling contrast in six memory situations.",
+  "sha256": {
+    "CONTRIBUTING.md": "114d7ea1385a2a833afb9b6fef573d7f709ec058004fc295eb94e0b0f0f126e6",
+    "README.md": "3a0bacfeb4b6952241287b1d79ee428c0e9f1bdeebcfb5b723933591c93572a9",
+    "benchmarks/README.md": "b6680a608f1c5859363229bff912e2ebeda754aa572b69b495ca621c17c743e4",
+    "benchmarks/evidence/heads-up-pilot-2026-10-14.json": "dd788e3074da99a783f92f73e5ea0c47dc158192ae26457099bec259f59c2f04",
+    "benchmarks/evidence/heads-up-pilot-2026-10-14.manifest.json": "63dc664127d26095d96815f0160dc391c25ab317d304773753b8d500f4b90e86",
+    "benchmarks/evidence/jev-hu-freeze-2026-10-14.json": "808d6cfbcbb9fe1fc3ffbdb0abd3539b6e8d72c6c65fec01aa86f7222daa758d",
+    "benchmarks/evidence/jev-hu-memory-2026-10-14.json": "9da84adc06b786c96deba04c03906eeb9232426b607c3cfc3ad776be6b52636b",
+    "benchmarks/evidence/jev-hu-memory-2026-10-14.json.manifest.json": "6304fe42be1e1584e644e9271f77b1c6143f2d75a4bb7361b6392b24eac0837a",
+    "benchmarks/evidence/jev-hu-memory-2026-10-14.json.started": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "benchmarks/evidence/jev-hu-memory-live-2026-10-14.json": "14df2f384be736c38c10b2fe796e03bd613498e548ea9a41b9d6cf8b46a95bca",
+    "benchmarks/evidence/jev-hu-memory-live-2026-10-14.json.manifest.json": "7a3bd1b665ab180128933b2b505ea040a268369edb79a27754447ec21cdcb2bb",
+    "benchmarks/evidence/jev-hu-memory-live-2026-10-14.json.started": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "benchmarks/evidence/jev-hu-source-audit-2026-10-14.json": "f01786b9e4a70c18d2d8c7b6ac9a14aa6c8bdeeead306ac7954d9b87de580f1f",
+    "benchmarks/evidence/jev-hu-source-verification-2026-10-14.json": "c90489120ebd3a0ee2bb3199321f88802e91c68ef26592deb5cffbbd84f21bec",
+    "benchmarks/evidence/jev-hu-sources-2026-10-14.json": "a7e13317410b757c7399d9c1448fd3c195f17bd5366578ee3c0152cbb881d9cc",
+    "benchmarks/heads-up-pilot-2026-10-14.md": "8b48942c205e3e02c6d8f93ea2756416d8bd9b4599a2413d8aca395e3719cb03",
+    "benchmarks/heads-up/README.md": "a80ace0fd1c025d1d8dbe243de5ceefc39f814fe35309af8ab1d87529ca43aea",
+    "benchmarks/heads-up/audit-source.py": "f39f14848ca13ec42084133ac735fb15b9fc542add350fe837895aba837f663f",
+    "benchmarks/heads-up/chart-matches.ts": "b6319c835f8dc61a59bffdf05281ccdee1d5be2e9d00a9167aed89c4f1868e7b",
+    "benchmarks/heads-up/decisions.ts": "aa968943d673e028eadb7865e33779496bc9d77cb847a6af007d8adc8dc6865a",
+    "benchmarks/heads-up/experiment.ts": "af1b23712f9cc31af2f8ae2b1cf9f137bd76a07f6f6efc5d2cb5bdb48e5803ce",
+    "benchmarks/heads-up/jev-heads-up.benchmark.ts": "b65cb34038a375e7e52221921dfc98b717be13b6f4ad1fc98bdf34d90cc8a2c4",
+    "benchmarks/heads-up/memory.ts": "e6e90422a66c4cd2fa8731e604f11869b868a636f5c4df7c1d92bd29c5c0dba5",
+    "benchmarks/heads-up/reference.test.ts": "27504cd951efd56851bc9848278c80405506716724cdd3a523b178ea6beffb95",
+    "benchmarks/heads-up/reference.ts": "fff9aadb64c6dc48343f5cb7d9116ec7ead8fe86fd803e834bc4dc019af579e3",
+    "benchmarks/jev-heads-up-2026-10-14.md": "053b26a9b0f30154130da8813f5707177bc763464a32f9138965cc2a3a02cffe",
+    "benchmarks/poker-context-harness.ts": "c151d7d157f0a566e744362ffddcce7fd476dfbaa4ea4d304ec6ba8ec7526a3a",
+    "benchmarks/poker-context.md": "1bfa6a6855edbe98d7315c41c096ba16b3285d20c69cf6de766d3849ca32948f",
+    "package.json": "0711d2fe11c756b3e9956b394801aab5d88745c7e94b608486b3811c425a5d15"
+  }
+}

@@ -1,0 +1,2374 @@
+{
+  "version": "jev-hu-evaluation-v1",
+  "date": "2026-10-14",
+  "fixtureVersion": "jev-memory-six-v1",
+  "priorCredentialFailureLedger": "jev-hu-memory-2026-10-14.json",
+  "sourceAudit": "jev-hu-source-audit-2026-10-14.json",
+  "chartSourceAccepted": false,
+  "chartDependentCalls": 0,
+  "authorizedCeiling": 1000,
+  "allocatedCap": 108,
+  "usedRequests": 108,
+  "allocations": {
+    "decisions": 0,
+    "memory": 108,
+    "matches": 0
+  },
+  "inputChecksum": "095cf286f8388566528b761e495bb331421c3facf3b85cf4b61462a07a27a328",
+  "frozenFiles": {
+    "lib/bots/jev.ts": "d1fd5a372a92f6c240bf103b5dc69b17a3eaff35408f12b51b3cd6732c3e655a",
+    "lib/typesafe/questions.ts": "43ce974ddaa7f1494b792665900fc37becfd3ad300287975e26170ddef08a497",
+    "lib/typesafe/decision.ts": "fc9c2efc7c74c915698b46912dd6e90b44530b35f8f8773ca27024895a5478fa",
+    "lib/typesafe/client.ts": "6f4e43ce7645b5b7a7d81708824900d2810d1c2d645539d681f3f79822de1e9f",
+    "lib/bots/provider-request.ts": "c2457c1b2271cbaa0480d382b6be3d759a4fafb636187834c2106e6cf59676b6",
+    "lib/poker/provider-context.ts": "b91c08307c83f6e859e9c044af3a3a71c9acf60d99099f7c98a802c5f51e3d61",
+    "lib/poker/strategy-advice.ts": "bd0565c33f3011f5984d6e9fdea5627a230e32d0f1241163e951da963073ef63",
+    "lib/poker/decision-candidates.ts": "2296f7836fc4518e32666cddf83a76413c6de72a64f991d6f95185f51f3eea0b",
+    "lib/poker/decision-facts.ts": "b43fac89de6b83241d86dbb8cc6021bea3ecf455a074bf5d961e2062bc20b947",
+    "lib/poker/session-stats.ts": "0964f9c8acfff821d2c51db236eb6d5619248f237ed730e6c2b0747b25b963a1",
+    "lib/poker/bot-history.ts": "9060108a5479f452771dfb5dcf3b102ee036e6c2a57ad649b865568c12c0492d",
+    "lib/poker/ai-state.ts": "d42b69cf9cf84afba8ef1b26c986523307100d890968cf39ed9f9ef1bc6d67e4",
+    "lib/poker/equity.ts": "3de93201511bdf2c9ff4479321620058f386c1c345e69dd7b8ff46ab8680ca8a",
+    "lib/poker/adapter.ts": "43122cd9e182822e61ee1ee4a643bcf4319712334a5cb0e3c1c672323fa5c06b",
+    "benchmarks/heads-up/memory.ts": "e6e90422a66c4cd2fa8731e604f11869b868a636f5c4df7c1d92bd29c5c0dba5"
+  },
+  "status": "complete",
+  "rows": [
+    {
+      "situation": "button-weak",
+      "history": "folding",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 372,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "folding",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 358,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "calling",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 276,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "calling",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 245,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "insufficient",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 302,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "insufficient",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 251,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "folding",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 249,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "folding",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 248,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "calling",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 260,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "calling",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 248,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "insufficient",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 234,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "insufficient",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 250,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "folding",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 258,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "folding",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 223,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "calling",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 241,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "calling",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 230,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "insufficient",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "call:1",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 274,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-weak",
+      "history": "insufficient",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 253,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "folding",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 274,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "folding",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "call:1",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 250,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "calling",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 317,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "calling",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "call:1",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 236,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "insufficient",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 278,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "insufficient",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 220,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "folding",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 248,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "folding",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 234,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "calling",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 254,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "calling",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 279,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "insufficient",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 239,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "insufficient",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 253,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "folding",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 275,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "folding",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "call:1",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 231,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "calling",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 249,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "calling",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "call:1",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 248,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "insufficient",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 249,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-suited",
+      "history": "insufficient",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "call:1",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 295,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "folding",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 246,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "folding",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 225,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "calling",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 263,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "calling",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 242,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "insufficient",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 292,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "insufficient",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 232,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "folding",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 237,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "folding",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 262,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "calling",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 313,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "calling",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 266,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "insufficient",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 236,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "insufficient",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 232,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "folding",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 253,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "folding",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 227,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "calling",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 235,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "calling",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 243,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "insufficient",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 261,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-weak",
+      "history": "insufficient",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "fold:",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 293,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "folding",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 243,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "folding",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 218,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "calling",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 296,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "calling",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 231,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "insufficient",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 260,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "insufficient",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 212,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "folding",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 227,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "folding",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 364,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "calling",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 222,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "calling",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 265,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "insufficient",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 235,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "insufficient",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 249,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "folding",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 262,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "folding",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 230,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "calling",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 237,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "calling",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 230,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "insufficient",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 233,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-suited",
+      "history": "insufficient",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 223,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "folding",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 259,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "folding",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 240,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "calling",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 255,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "calling",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 241,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "insufficient",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 289,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "insufficient",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 245,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "folding",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 216,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "folding",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 265,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "calling",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 228,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "calling",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 240,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "insufficient",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 255,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "insufficient",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 306,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "folding",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 245,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "folding",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 243,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "calling",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 272,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "calling",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 234,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "insufficient",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 242,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "bb-pair",
+      "history": "insufficient",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "call:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 224,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "folding",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 238,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "folding",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 248,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "calling",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 229,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "calling",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 220,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "insufficient",
+      "repetition": 0,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 321,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "insufficient",
+      "repetition": 0,
+      "statistics": "omitted",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 219,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "folding",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 227,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "folding",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 256,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "calling",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 235,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "calling",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 284,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "insufficient",
+      "repetition": 1,
+      "statistics": "omitted",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 265,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "insufficient",
+      "repetition": 1,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 267,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "folding",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 233,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "folding",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 237,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "calling",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 249,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "calling",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 243,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "insufficient",
+      "repetition": 2,
+      "statistics": "enabled",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 300,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    },
+    {
+      "situation": "button-premium",
+      "history": "insufficient",
+      "repetition": 2,
+      "statistics": "omitted",
+      "action": "raise:4",
+      "failure": null,
+      "diagnostics": {
+        "policy": "typesafe-poker-v4.0",
+        "latencyMs": 225,
+        "tokens": {
+          "input": null,
+          "output": null,
+          "total": null
+        },
+        "cost": null
+      }
+    }
+  ],
+  "summaries": [
+    {
+      "situation": "button-weak",
+      "groups": [
+        {
+          "history": "folding",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "fold:": 1
+          }
+        },
+        {
+          "history": "folding",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "fold:": 1
+          }
+        },
+        {
+          "history": "calling",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "fold:": 1
+          }
+        },
+        {
+          "history": "calling",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "fold:": 1
+          }
+        },
+        {
+          "history": "insufficient",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "fold:": 0.6666666666666666,
+            "call:1": 0.3333333333333333
+          }
+        },
+        {
+          "history": "insufficient",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "fold:": 1
+          }
+        }
+      ],
+      "foldingCallingTV": {
+        "enabled": 0,
+        "omitted": 0
+      },
+      "interpretation": "behavioral_sensitivity_only_no_independent_quality_reference"
+    },
+    {
+      "situation": "button-suited",
+      "groups": [
+        {
+          "history": "folding",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "raise:4": 1
+          }
+        },
+        {
+          "history": "folding",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:1": 0.6666666666666666,
+            "raise:4": 0.3333333333333333
+          }
+        },
+        {
+          "history": "calling",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "raise:4": 1
+          }
+        },
+        {
+          "history": "calling",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:1": 0.6666666666666666,
+            "raise:4": 0.3333333333333333
+          }
+        },
+        {
+          "history": "insufficient",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "raise:4": 1
+          }
+        },
+        {
+          "history": "insufficient",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "raise:4": 0.6666666666666666,
+            "call:1": 0.3333333333333333
+          }
+        }
+      ],
+      "foldingCallingTV": {
+        "enabled": 0,
+        "omitted": 0
+      },
+      "interpretation": "behavioral_sensitivity_only_no_independent_quality_reference"
+    },
+    {
+      "situation": "bb-weak",
+      "groups": [
+        {
+          "history": "folding",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "fold:": 1
+          }
+        },
+        {
+          "history": "folding",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "fold:": 1
+          }
+        },
+        {
+          "history": "calling",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "fold:": 1
+          }
+        },
+        {
+          "history": "calling",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "fold:": 1
+          }
+        },
+        {
+          "history": "insufficient",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "fold:": 1
+          }
+        },
+        {
+          "history": "insufficient",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "fold:": 1
+          }
+        }
+      ],
+      "foldingCallingTV": {
+        "enabled": 0,
+        "omitted": 0
+      },
+      "interpretation": "behavioral_sensitivity_only_no_independent_quality_reference"
+    },
+    {
+      "situation": "bb-suited",
+      "groups": [
+        {
+          "history": "folding",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:4": 1
+          }
+        },
+        {
+          "history": "folding",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:4": 1
+          }
+        },
+        {
+          "history": "calling",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:4": 1
+          }
+        },
+        {
+          "history": "calling",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:4": 1
+          }
+        },
+        {
+          "history": "insufficient",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:4": 1
+          }
+        },
+        {
+          "history": "insufficient",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:4": 1
+          }
+        }
+      ],
+      "foldingCallingTV": {
+        "enabled": 0,
+        "omitted": 0
+      },
+      "interpretation": "behavioral_sensitivity_only_no_independent_quality_reference"
+    },
+    {
+      "situation": "bb-pair",
+      "groups": [
+        {
+          "history": "folding",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:4": 1
+          }
+        },
+        {
+          "history": "folding",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:4": 1
+          }
+        },
+        {
+          "history": "calling",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:4": 1
+          }
+        },
+        {
+          "history": "calling",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:4": 1
+          }
+        },
+        {
+          "history": "insufficient",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:4": 1
+          }
+        },
+        {
+          "history": "insufficient",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "call:4": 1
+          }
+        }
+      ],
+      "foldingCallingTV": {
+        "enabled": 0,
+        "omitted": 0
+      },
+      "interpretation": "behavioral_sensitivity_only_no_independent_quality_reference"
+    },
+    {
+      "situation": "button-premium",
+      "groups": [
+        {
+          "history": "folding",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "raise:4": 1
+          }
+        },
+        {
+          "history": "folding",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "raise:4": 1
+          }
+        },
+        {
+          "history": "calling",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "raise:4": 1
+          }
+        },
+        {
+          "history": "calling",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "raise:4": 1
+          }
+        },
+        {
+          "history": "insufficient",
+          "statistics": "enabled",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "raise:4": 1
+          }
+        },
+        {
+          "history": "insufficient",
+          "statistics": "omitted",
+          "attempts": 3,
+          "failures": 0,
+          "frequencies": {
+            "raise:4": 1
+          }
+        }
+      ],
+      "foldingCallingTV": {
+        "enabled": 0,
+        "omitted": 0
+      },
+      "interpretation": "behavioral_sensitivity_only_no_independent_quality_reference"
+    }
+  ],
+  "qualityGrade": null,
+  "limitation": "Three repetitions measure behavioral sensitivity; no independently supported quality reference and no match-strength evidence."
+}
