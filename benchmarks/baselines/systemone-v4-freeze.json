@@ -1,0 +1,27 @@
+{
+  "policy": "typesafe-poker-v4.0",
+  "model": "jev-latest",
+  "purpose": "Offline regression freeze after provider-neutral SystemOne extraction. Historical paid evidence remains bound to the original dated manifest.",
+  "files": {
+    "lib/bots/jev.ts": "d225b4b5e46a244152a18534267f02faf6a61cafca1d2b2fa755ece2c1f2848f",
+    "lib/typesafe/questions.ts": "39b6ae52bb12754d98717b471fc8512175acdc46a217dcd445dc8474dd608369",
+    "lib/typesafe/decision.ts": "1821126e77768a5daff0dcc5c043c433fa697fd9d66158d66a074b983dab42e2",
+    "lib/typesafe/client.ts": "6f4e43ce7645b5b7a7d81708824900d2810d1c2d645539d681f3f79822de1e9f",
+    "lib/bots/provider-request.ts": "c2457c1b2271cbaa0480d382b6be3d759a4fafb636187834c2106e6cf59676b6",
+    "lib/poker/provider-context.ts": "b91c08307c83f6e859e9c044af3a3a71c9acf60d99099f7c98a802c5f51e3d61",
+    "lib/poker/strategy-advice.ts": "bd0565c33f3011f5984d6e9fdea5627a230e32d0f1241163e951da963073ef63",
+    "lib/poker/decision-candidates.ts": "2296f7836fc4518e32666cddf83a76413c6de72a64f991d6f95185f51f3eea0b",
+    "lib/poker/decision-facts.ts": "b43fac89de6b83241d86dbb8cc6021bea3ecf455a074bf5d961e2062bc20b947",
+    "lib/poker/session-stats.ts": "0964f9c8acfff821d2c51db236eb6d5619248f237ed730e6c2b0747b25b963a1",
+    "lib/poker/bot-history.ts": "9060108a5479f452771dfb5dcf3b102ee036e6c2a57ad649b865568c12c0492d",
+    "lib/poker/ai-state.ts": "d42b69cf9cf84afba8ef1b26c986523307100d890968cf39ed9f9ef1bc6d67e4",
+    "lib/poker/equity.ts": "3de93201511bdf2c9ff4479321620058f386c1c345e69dd7b8ff46ab8680ca8a",
+    "lib/poker/adapter.ts": "14b10e3ef973749fe6dd52aa7875cc7e0ee0136b9f8c4928fb8e7276400db268",
+    "benchmarks/heads-up/memory.ts": "e6e90422a66c4cd2fa8731e604f11869b868a636f5c4df7c1d92bd29c5c0dba5",
+    "lib/bots/systemone.ts": "51c683bea7abab49fd295d1bd945bfbedef182bacd038c0182f9abff9ee42d03",
+    "lib/systemone/questions.ts": "b679944efd5144d2d3423424c7ff56f38d85ea6949d1df9fa0f426141f47bb5c",
+    "lib/systemone/decision.ts": "98b9671b60c2ddaefd5eca31c4fdf8471a81e29190185a0b0511c47100f71912",
+    "lib/systemone/types.ts": "65c3aad3fe26e23029a091f42d0a8d3a578af09121da5622ad7903e302483f40",
+    "lib/typesafe/types.ts": "9484b791957e1ffb028ce5397054280743b9464413fccdb07faa43237cb12ae6"
+  }
+}

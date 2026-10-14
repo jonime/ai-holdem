@@ -34,6 +34,10 @@ TypeSafe Jev lähettää jäsennellyn pelitilanteen ja täydelliset sallitut toi
 
 Vaikeustaso vaikuttaa vain toiminnon valintaan. Se ei anna botille eri kortteja, piilotettua tietoa tai ylimääräisiä sallittuja toimintoja.
 
+### Upright Eevo
+
+Upright Eevo lähettää saman jäsennellyn pelitilanteen ja sallitut toimintovaihtoehdot kuin Jev [Eevolle](https://eevo.io/) käyttäen mallia `eevo-1`. Sen vaikeustasot, pokeristrategia ja riverin suojaukset ovat samat kuin Jevillä. Botti on saatavilla omille pöydille, kun palvelin on määritetty käyttämään sitä. Pikapeli ei sisällä sitä oletuksena. Palveluvirheen jälkeen tarvitaan erillinen uudelleenyritys.
+
 ### LLM-botit
 
 Jokainen määritetty LLM-botti sisältää näyttönimen ja mallin. Malli saa rajatun pelitilanteen määritetyn LLM-palveluntarjoajan kautta, ja sen on palautettava rakenteinen sallittu toiminto sekä panostuskoko.

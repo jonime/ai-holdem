@@ -81,8 +81,8 @@ describe("bot credit departure", () => {
     expect((await repository.getSeatAssignments())[1].leaving).toBe(false);
   });
 
-  it("does not infer Jev credit exhaustion from an LLM error", async () => {
-    const { repository, registry, failure } = setup(402, "typesafe");
+  it.each(["typesafe", "eevo"] as const)("does not infer %s credit exhaustion from an LLM error", async provider => {
+    const { repository, registry, failure } = setup(402, provider);
     await expect(stepBotAction(repository, registry, "game-1", 1, "owner")).rejects.toBe(failure);
     expect(repository.persistAIAction).not.toHaveBeenCalled();
   });

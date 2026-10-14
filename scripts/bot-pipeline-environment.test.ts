@@ -9,9 +9,9 @@ function status(origin: string) {
 describe("isolated bot pipeline environment", () => {
   it("allowlists process settings and uses only local credentials", () => {
     status("http://127.0.0.1:54321");
-    const env = botPipelineEnvironment({ PATH: "/bin", NODE_OPTIONS: "--env-file=.env", TYPESAFE_API_KEY: "secret", LLM_API_KEY: "secret", OPENAI_API_KEY: "secret", NEXT_PUBLIC_SUPABASE_URL: "https://hosted.example", LLM_BOT_MODELS: "hosted" });
+    const env = botPipelineEnvironment({ PATH: "/bin", NODE_OPTIONS: "--env-file=.env", TYPESAFE_API_KEY: "secret", EEVO_API_KEY: "secret", LLM_API_KEY: "secret", OPENAI_API_KEY: "secret", NEXT_PUBLIC_SUPABASE_URL: "https://hosted.example", LLM_BOT_MODELS: "hosted" });
     expect(env).toMatchObject({ PATH: "/bin", SUPABASE_SECRET_KEY: "local-service", NODE_ENV: "test", EXTERNAL_INFERENCE_ENABLED: "true", NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321" });
-    for (const key of ["NODE_OPTIONS", "TYPESAFE_API_KEY", "LLM_API_KEY", "LLM_API_ENDPOINT", "OPENAI_API_KEY"]) expect(env).not.toHaveProperty(key);
+    for (const key of ["NODE_OPTIONS", "EEVO_API_KEY", "TYPESAFE_API_KEY", "LLM_API_KEY", "LLM_API_ENDPOINT", "OPENAI_API_KEY"]) expect(env).not.toHaveProperty(key);
     expect(env.USAGE_LIMIT_HASH_SECRET.length).toBeGreaterThanOrEqual(64);
     expect(JSON.parse(env.LLM_BOT_MODELS)[0].id).toBe("llm-test-model");
   });

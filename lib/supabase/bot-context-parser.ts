@@ -10,7 +10,7 @@ export function parseBotHandContext(data: unknown) {
       playerToken: z.string().min(1).nullable().optional(), leaving: z.boolean().optional(),
       aiDifficulty: z.enum(["easy", "medium", "hard"]).nullable().optional(),
       botProfileId: z.enum(["balanced", "tight", "aggressive"]).nullable().optional(),
-      bot: z.object({ id: z.string().min(1), label: z.string().min(1), provider: z.enum(["rules", "typesafe", "llm"]),
+      bot: z.object({ id: z.string().min(1), label: z.string().min(1), provider: z.enum(["rules", "typesafe", "eevo", "llm"]),
         modelId: z.string().min(1).nullable(),
         configuration: z.object({ difficulty: z.boolean(), playstyle: z.boolean() }).strict().optional(),
       }).strict().nullable().optional() }).passthrough()),

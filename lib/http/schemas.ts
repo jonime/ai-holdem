@@ -7,7 +7,7 @@ export const turnTimerSchema = z.object({
 });
 
 export const botDescriptorSchema = z.object({
-  id: z.string(), label: z.string(), provider: z.enum(["typesafe", "llm", "rules"]), modelId: z.string().nullable(),
+  id: z.string(), label: z.string(), provider: z.enum(["typesafe", "eevo", "llm", "rules"]), modelId: z.string().nullable(),
   configuration: z.object({ difficulty: z.boolean(), playstyle: z.boolean() }).optional(),
 });
 
@@ -188,7 +188,7 @@ export const publicAIDecisionSchema = z
     bot: z.object({
       id: z.string(),
       label: z.string(),
-      provider: z.enum(["typesafe", "llm", "rules"]),
+      provider: z.enum(["typesafe", "eevo", "llm", "rules"]),
       modelId: z.string().nullable(),
     }),
     botProfileId: z.enum(["balanced", "tight", "aggressive"]).nullable(),
@@ -227,7 +227,7 @@ const broadcastSeatSchema = z
       .object({
         id: z.string(),
         label: z.string(),
-        provider: z.enum(["typesafe", "llm", "rules"]),
+        provider: z.enum(["typesafe", "eevo", "llm", "rules"]),
         modelId: z.string().nullable(),
       })
       .nullable()

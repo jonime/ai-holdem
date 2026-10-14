@@ -126,7 +126,7 @@ export const scenarios: readonly Scenario[] = [
 export function buildScenario(scenario: Scenario, options: {
   difficulty?: AIDifficulty;
   typesafePolicyV2?: boolean;
-  provider?: "rules" | "typesafe" | "llm";
+  provider?: "rules" | "typesafe" | "eevo" | "llm";
 } = {}) {
   if (scenario.stacks.length < 2 || scenario.stacks.length > 6) throw new Error("Expected 2–6 seats");
   let state = engine.startHand(engine.createGame({

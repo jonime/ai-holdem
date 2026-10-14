@@ -373,7 +373,7 @@ replay. An acknowledged JSON success clears the record and navigates.
 
 Quick Play atomically creates an already-playing private six-seat game with
 five bots selected from the available Equity Rules, TypeSafe Jev, and configured
-LLM catalog. Rules and Jev use medium difficulty; LLM seats receive random
+LLM catalog. Rules, Jev and opt-in Eevo use medium difficulty; LLM seats receive random
 server-owned playstyles. With external inference disabled, only Equity Rules
 bots are selected.
 
@@ -390,7 +390,22 @@ only on request.
 
 ## Private bot decision context
 
-Jev and LLMs share server-owned decision facts, exact sizing and selected original
+`lib/systemone/` owns provider-neutral request types, candidate construction,
+response validation and difficulty sampling. `lib/bots/systemone.ts` prepares
+sanitized context/advice and extracts diagnostics for both Jev and Eevo. Jev keeps
+`jev-latest`, policy `typesafe-poker-v4.0`, prompts and river safeguards; Eevo uses
+`eevo-1` at the fixed `https://eevo.io/api/v1/systemone` endpoint with its own
+Bearer secret and allowlisted request/response errors. No native consequence or
+stakeholder API is used. Missing cost remains null. Compatibility exports in
+`lib/typesafe/` preserve existing callers and frozen earlier benchmark policies.
+
+Eevo's descriptor is always resolvable for existing seats/history. New selections
+require a configured `EEVO_API_KEY` and external inference enabled. Quick Play
+filters it out unless `EEVO_QUICK_PLAY_ENABLED=true`, then includes it in provider
+diversity selection. It has difficulty controls and no LLM playstyles.
+
+
+Jev, Eevo and LLMs share server-owned decision facts, exact sizing and selected original
 situational advice. The uncached, service-role-only `get_bot_session_context` RPC
 returns the current hand plus the latest 50 completed hands before it, bounding
 hands in SQL before fetching actions. A single stable SQL statement binds every
@@ -460,9 +475,9 @@ a `Retry-After` header also uses the credit fallback. A 402 with
 with a `Retry-After` header,
 remains paused; 429 and other provider errors never trigger departure. Error
 envelopes carried in HTTP 200 are classified using their numeric error code.
-Jev credit exhaustion is undocumented, so Jev failures remain paused.
+Jev credit exhaustion is undocumented, so Jev and Eevo failures remain paused. Eevo never uses LLM credit departures.
 
-TypeSafe and LLM requests use the same server-only helper with one 60-second
+TypeSafe, Eevo and LLM requests use the same server-only helper with one 60-second
 deadline spanning response headers and JSON body consumption. Expiry aborts the
 request, including an active body read, and every outcome clears the timer.
 Failures carry explicit `timeout`, `network`, `rate_limit`, `invalid_response`,
@@ -485,7 +500,7 @@ in force; competing commits still refresh silently. There are no automatic
 retries, fallback poker actions, new provider settings, or schema changes.
 
 In Vercel runtime logs, search for `llm_provider_http_failure` or
-`typesafe_provider_http_failure` to find structured LLM or Jev HTTP failures:
+`typesafe_provider_http_failure` or `eevo_provider_http_failure` to find structured LLM or Jev HTTP failures:
 game ID, fixed reason, allowlisted category, request phase (`headers`, `body`,
 `response`) and elapsed milliseconds when available, HTTP status, numeric provider error code (100–599),
 numeric `Retry-After` seconds when supplied, its presence (including date-format

@@ -1,0 +1,41 @@
+import { selectPokerAdvice } from "@/lib/poker/strategy-advice";
+import { prepareProviderContext } from "@/lib/poker/provider-context";
+import { decidePokerAction, type SystemOneDecisionClient } from "@/lib/systemone/decision";
+import { typesafePokerPolicyVersion } from "@/lib/systemone/questions";
+
+import { emptyDiagnostics, type BotContext, type BotDecision, type PokerBot } from "./types";
+
+export class SystemOnePokerBot implements PokerBot {
+  constructor(private readonly client: SystemOneDecisionClient, private readonly guidance = true, private readonly model = "jev-latest") {}
+
+  async decide(context: BotContext): Promise<BotDecision> {
+    const started = performance.now();
+    const prepared = prepareProviderContext(context);
+    const suppliedContext = { ...prepared, ...(this.guidance ? { strategyAdvice: selectPokerAdvice(prepared) } : {}) };
+    const decision = await decidePokerAction(this.client, suppliedContext, { model: this.model });
+    const audit = decision.rawResponse;
+    const provider = typeof audit === "object" && audit !== null && "providerResponse" in audit ? audit.providerResponse : null;
+    const usage = typeof provider === "object" && provider !== null && "usage" in provider ? provider.usage : null;
+    const cost = typeof usage === "object" && usage !== null && "cost" in usage && typeof usage.cost === "number" && Number.isFinite(usage.cost) ? usage.cost : null;
+    return {
+      action: decision.action,
+      suppliedContext,
+      diagnostics: emptyDiagnostics({
+        probabilities: decision.probabilities,
+        confidence: decision.confidence,
+        sizing: decision.sizing
+          ? {
+              choice: decision.sizing.choice,
+              probabilities: decision.sizing.probabilities,
+              confidence: decision.sizing.confidence,
+            }
+          : null,
+        promptVersion: typesafePokerPolicyVersion,
+        durationMs: Math.round(performance.now() - started),
+        usage,
+        cost,
+      }),
+      rawResponse: decision.rawResponse,
+    };
+  }
+}

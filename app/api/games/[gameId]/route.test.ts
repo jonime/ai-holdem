@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET } from "./route";
+import { EevoResponseError } from "@/lib/bots/eevo";
 import { TypesafeResponseError } from "@/lib/typesafe/types";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { POST as nextHand } from "./next-hand/route";
@@ -170,8 +171,8 @@ it("does not log expected missing-game or authorization errors", async () => {
 });
 
 
-it("preserves provider diagnostics without a generic duplicate", async () => {
-  stepBotActionMock.mockRejectedValue(new TypesafeResponseError("PRIVATE_PROVIDER_PAYLOAD"));
+it.each([TypesafeResponseError, EevoResponseError])("preserves %s provider diagnostics without a generic duplicate", async ErrorType => {
+  stepBotActionMock.mockRejectedValue(new ErrorType("PRIVATE_PROVIDER_PAYLOAD"));
   const sink = vi.spyOn(console, "error").mockImplementation(() => {});
   const providerSink = vi.spyOn(console, "warn").mockImplementation(() => {});
   try {
@@ -180,6 +181,7 @@ it("preserves provider diagnostics without a generic duplicate", async () => {
     expect(await response.json()).toEqual({ error: "AI decision failed", code: "BOT_INVALID_RESPONSE" });
     expect(sink).not.toHaveBeenCalled();
     expect(providerSink).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(providerSink.mock.calls[0][1])).toMatchObject({ category: "invalid_response", reason: ErrorType === EevoResponseError ? "eevo_response" : "typesafe_response" });
     expect(JSON.stringify(providerSink.mock.calls)).not.toContain("PRIVATE_PROVIDER_PAYLOAD");
   } finally { sink.mockRestore(); providerSink.mockRestore(); }
 });

@@ -246,7 +246,7 @@ function botDescriptorFrom(
   if (
     typeof id !== "string" ||
     typeof label !== "string" ||
-    (provider !== "typesafe" && provider !== "llm" && provider !== "rules") ||
+    (provider !== "typesafe" && provider !== "eevo" && provider !== "llm" && provider !== "rules") ||
     (modelId !== null && modelId !== undefined && typeof modelId !== "string")
   ) {
     throw new Error("Supabase returned an invalid bot descriptor");

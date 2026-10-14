@@ -34,6 +34,10 @@ TypeSafe Jev wysyła uporządkowany kontekst gry i kompletne legalne warianty ru
 
 Poziom wpływa tylko na wybór ruchu i nigdy nie daje innych kart, ukrytych informacji ani dodatkowych legalnych akcji.
 
+### Upright Eevo
+
+Upright Eevo wysyła ten sam uporządkowany kontekst gry i te same legalne ruchy co Jev do [Eevo](https://eevo.io/), używając modelu `eevo-1`. Dzieli z Jev zasady poziomów trudności, strategię i zabezpieczenia na riverze. Jest dostępny przy własnych stołach po skonfigurowaniu serwera; szybka gra domyślnie go wyklucza. Błędy dostawcy wymagają jawnego ponowienia próby.
+
 ### Boty LLM
 
 Każdy skonfigurowany bot LLM podaje nazwę i model. Model otrzymuje ograniczony kontekst przez skonfigurowanego dostawcę LLM i musi zwrócić ustrukturyzowaną legalną akcję oraz rozmiar zakładu.

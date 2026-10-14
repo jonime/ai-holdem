@@ -691,7 +691,8 @@ export const pokerEngineAdapter = {
           aiDifficulty:
             config.controller !== "human" &&
             ((config.bot?.provider ?? "typesafe") === "typesafe" ||
-              (config.bot?.provider ?? "typesafe") === "rules")
+              (config.bot?.provider ?? "typesafe") === "rules" ||
+              config.bot?.provider === "eevo")
               ? (config.aiDifficulty ?? "medium")
               : null,
           botProfileId:

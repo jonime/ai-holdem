@@ -186,7 +186,7 @@ provider endpoint is added, or production bypass is enabled.
 The suite injects deterministic decisions through `BotRegistry` into
 `stepBotAction`. Quick Play retains the real catalog descriptors and configuration
 metadata; two-seat custom tables use production creation, assignment and start
-services. TypeSafe and LLM coverage follows real persisted hand/session parsing,
+services. TypeSafe, Eevo and LLM coverage follows real persisted hand/session parsing,
 authorization, claim acquisition, allowance admission, engine validation and
 atomic action persistence. Human turns use the action service, and the next hand
 starts explicitly. Each step checks version/action counts, consumed claims,
@@ -871,7 +871,7 @@ The SQL suite additionally covers the 50-completed-hand bound, current-hand bind
 consistent versions, game isolation and actor-specific forced-departure exclusion.
 Sanitized pilot reports contain action types, case IDs, counts, numeric usage/cost
 and latency only; never save raw requests/responses, historical cards or exceptions.
-Jev may omit usage/cost; report missing values rather than estimate actual charges.
+Jev and Eevo may omit usage/cost; report missing values rather than estimate actual charges.
 
 ## Provider failure regressions
 
@@ -912,7 +912,7 @@ See [docs/fair-use.md](docs/fair-use.md) for provisional server-owned allowances
 privacy, proxy assumptions, and rollout. Deploy
 `20261016000000_add_usage_admission.sql` and the server-only
 `USAGE_LIMIT_HASH_SECRET` (at least 32 random bytes) before application code.
-All creation endpoints share owner/IP counters; external TypeSafe/LLM attempts
+All creation endpoints share owner/IP counters; external TypeSafe/Eevo/LLM attempts
 charge the durable table host and game only after context validation and claim
 verification. Rules turns bypass inference allowances. Denials preserve tables
 and require explicit retry; rules-only Quick Play creates a separate private game.
@@ -1203,3 +1203,26 @@ Pure mechanics and frequency compliance are not playing-strength evidence.
 Memory changes are sensitivity observations; quality needs an independently
 supported reference. Paired chip reports exclude unfinished four-hand blocks and
 bootstrap whole blocks by opponent; fewer than 30 blocks are exploratory.
+
+### Eevo verification
+
+Eevo shares `lib/systemone/` and `lib/bots/systemone.ts` with Jev. Keep Jev's
+prompts, policy version, difficulty sampling and exact river safeguards unchanged
+when adjusting transport. Mock HTTP in unit tests; unsupported decisions fail
+without fallback. Eevo has distinct safe diagnostics and never takes the LLM
+credit-departure path. Production execution shares authorization, database claims,
+allowances, deadline and explicit retry behavior.
+
+Run `npm run check`, `npm run build`, pinned `db:types:generate` and
+`db:types:check`, `test:sql:seats`, `test:sql:bot-context`,
+`test:integration:bot-pipeline` and `test:e2e:ci` against migrated local Supabase.
+The deterministic pipeline includes Eevo lifecycle/history, competing claims,
+unauthorized/stale calls, allowance denials and provider failures without keys.
+Isolated launchers clear/reject `EEVO_API_KEY`, and production browsers also force
+`EEVO_QUICK_PLAY_ENABLED=false`. Real credentials belong only in ignored `.env.test`
+for opt-in live evaluations with a shared `BOT_DECISION_CALL_CAP`.
+
+The SystemOne extraction has a separate offline source freeze at
+`benchmarks/baselines/systemone-v4-freeze.json`. Historical paid evidence and the
+dated live runner retain their original freeze and refuse changed dependencies;
+do not rewrite evidence hashes to authorize a new live comparison.

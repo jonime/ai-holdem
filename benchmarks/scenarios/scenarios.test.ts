@@ -3,7 +3,21 @@ import { legacyDecisionHistory } from "@/lib/poker/bot-history";
 import { createLegacySizingOptions, createSizingOptions } from "@/lib/typesafe/questions";
 import { pokerEngineAdapter } from "@/lib/poker/adapter";
 import { emptyDiagnostics } from "@/lib/bots/types";
-import { buildScenario, evaluateScenario, gradeAction, scenarios, riverScenarios } from "./harness";
+import { buildScenario, evaluateScenario, gradeAction, scenarios, riverScenarios, type Scenario } from "./harness";
+
+// Keep each test to two full equity calculations so CI CPU contention does not
+// combine all provider privacy checks into one timeout budget.
+function withChangedHiddenCards(scenario: Scenario): Scenario {
+  // Mutate every fixed hidden holding and append different undealt cards.
+  // Keep hero and public board fixed: neither sampling nor history may change.
+  const visible = new Set([...scenario.expected.hole, ...scenario.expected.board]);
+  const hiddenIndexes = scenario.deck.map((card, i) => visible.has(card) ? -1 : i).filter(i => i >= 0);
+  const changed = [...scenario.deck];
+  const replacements = hiddenIndexes.map(i => changed[i]).reverse();
+  hiddenIndexes.forEach((index, i) => { changed[index] = replacements[i]; });
+  const unused = ["As", "Ks", "Qs", "Js", "Ts", "9s", "8s", "7s", "6s", "5s", "4s", "3s", "2s"].filter(card => !changed.includes(card));
+  return { ...scenario, deck: [...changed, ...unused] };
+}
 
 describe("engine-backed bot scenarios", () => {
   for (const river of riverScenarios) {
@@ -57,24 +71,19 @@ describe("engine-backed bot scenarios", () => {
           ? { type: legal.type, amount: legal.minAmount } : legal;
         expect(gradeAction(scenario, fixture, action).status).toBe(scenario.forbidden.includes(action.type) ? "blunder" : "pass");
       }
-      // Mutate every fixed hidden holding and append different undealt cards.
-      // Keep hero and public board fixed: neither sampling nor history may change.
-      const visible = new Set([...scenario.expected.hole, ...scenario.expected.board]);
-      const hiddenIndexes = scenario.deck.map((card, i) => visible.has(card) ? -1 : i).filter(i => i >= 0);
-      const changed = [...scenario.deck];
-      const replacements = hiddenIndexes.map(i => changed[i]).reverse();
-      hiddenIndexes.forEach((index, i) => { changed[index] = replacements[i]; });
-      const unused = ["As", "Ks", "Qs", "Js", "Ts", "9s", "8s", "7s", "6s", "5s", "4s", "3s", "2s"].filter(card => !changed.includes(card));
-      expect(buildScenario({ ...scenario, deck: [...changed, ...unused] }).context).toEqual(fixture.context);
-      for (const provider of ["typesafe", "llm"] as const) {
+      expect(buildScenario(withChangedHiddenCards(scenario)).context).toEqual(fixture.context);
+    }, 15_000);
+
+    for (const provider of ["typesafe", "llm"] as const) {
+      it(`${scenario.id}: preserves ${provider} context when hidden cards change`, () => {
         const context = buildScenario(scenario, { provider }).context;
         expect(context.hand.pot).toBe(scenario.expected.pot);
         expect(context.hero.amountToCall).toBe(context.analysis.callCost);
         expect(context.sizingOptions).toEqual(createSizingOptions(context));
         expect(context.actionHistory.length).toBe(scenario.actions.length);
-        expect(buildScenario({ ...scenario, deck: [...changed, ...unused] }, { provider }).context).toEqual(context);
-      }
-    }, 15_000);
+        expect(buildScenario(withChangedHiddenCards(scenario), { provider }).context).toEqual(context);
+      }, 15_000);
+    }
   }
 
   it("supports four and five seats as well as the two, three and six-seat fixtures", () => {

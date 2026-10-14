@@ -34,6 +34,10 @@ TypeSafe Jev envoie le contexte structuré et l'ensemble des coups légaux à [T
 
 La difficulté agit uniquement sur la sélection du coup. Elle ne donne jamais d'autres cartes, d'informations cachées ou d'actions légales supplémentaires.
 
+### Upright Eevo
+
+Upright Eevo envoie le même contexte structuré et les mêmes coups légaux que Jev à [Eevo](https://eevo.io/), avec le modèle `eevo-1`. Il partage les niveaux de difficulté, la stratégie et les protections sur la river de Jev. Il est proposé aux tables personnalisées lorsque le serveur est configuré ; la partie rapide l’exclut par défaut. Les erreurs du fournisseur nécessitent une nouvelle tentative explicite.
+
 ### Bots LLM
 
 Chaque bot LLM configuré fournit un libellé et un modèle. Le modèle reçoit un contexte limité via le fournisseur LLM configuré et doit retourner une action légale et une taille de mise structurées.

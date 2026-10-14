@@ -1,6 +1,6 @@
 import { afterEach, describe, it } from "vitest";
 import { isDeepStrictEqual } from "node:util";
-import { getBotCatalog } from "@/lib/bots/registry";
+import { eevoBotDescriptor, getBotCatalog } from "@/lib/bots/registry";
 import type { BotRegistry } from "@/lib/bots/registry";
 import { BotProviderError, emptyDiagnostics, type BotContext, type BotDecision } from "@/lib/bots/types";
 import { stepBotAction } from "@/lib/poker/bot-turn-service";
@@ -24,7 +24,7 @@ afterEach(async () => {
   invariant(mismatches.length === 0, "response matches authoritative action fields " + [...new Set(mismatches)].join(" "));
 });
 function newFixture() { const f = fixture(); fixtures.push(f); return f; }
-const catalog = getBotCatalog();
+const catalog = [...getBotCatalog(), eevoBotDescriptor];
 const llm = catalog.find(bot => bot.provider === "llm")!;
 const jev = catalog.find(bot => bot.provider === "typesafe")!;
 
@@ -123,9 +123,9 @@ async function unchanged(f: Fixture, id: string, before: Awaited<ReturnType<Fixt
 }
 
 describe("production external bot pipeline", () => {
-  it.each(["Quick Play", "heads-up LLM", "heads-up TypeSafe"])("%s creation, first hand and next-hand session context", async mode => {
+  it.each(["Quick Play", "heads-up LLM", "heads-up TypeSafe", "heads-up Eevo"])("%s creation, first hand and next-hand session context", async mode => {
     const f = newFixture();
-    const id = await f.create(mode === "Quick Play" ? undefined : mode === "heads-up LLM" ? llm : jev);
+    const id = await f.create(mode === "Quick Play" ? undefined : mode === "heads-up LLM" ? llm : mode === "heads-up Eevo" ? eevoBotDescriptor : jev);
     const initial = await f.read(id);
     if (mode === "Quick Play") {
       invariant(initial.state.config.seatCount === 6 && initial.game.status === "playing", "Quick Play starts six-seat game");
@@ -168,8 +168,8 @@ describe("production external bot pipeline", () => {
     await verifiedStep(f, id, testRegistry(f, id).registry);
   });
 
-  it("separate clients compete behind a decision barrier with one inference charge", async () => {
-    const f = newFixture(); const id = await f.create(llm);
+  it.each([llm, eevoBotDescriptor])("separate clients compete behind a decision barrier with one inference charge ($id)", async descriptor => {
+    const f = newFixture(); const id = await f.create(descriptor);
     const before = await f.botTurn(id); const old = await f.counts(id);
     const entered = barrier(); const resume = barrier();
     const injected = testRegistry(f, id, async context => {
@@ -189,8 +189,8 @@ describe("production external bot pipeline", () => {
     invariant((await f.read(id)).game.version === before.game.version + 1, "competition advances one version");
   });
 
-  it("unauthorized and stale steps never resolve bots or consume allowances", async () => {
-    const f = newFixture(); const id = await f.create(jev);
+  it.each([jev, eevoBotDescriptor])("unauthorized and stale steps never resolve bots or consume allowances ($id)", async descriptor => {
+    const f = newFixture(); const id = await f.create(descriptor);
     const before = await f.botTurn(id); const old = await f.counts(id); const injected = testRegistry(f, id);
     await rejectsAs(stepBotAction(f.repository, injected.registry, id, before.game.version, "unowned-fixture"), BotStepForbiddenError);
     await rejectsAs(stepBotAction(f.repository, injected.registry, id, before.game.version - 1, f.owner), GameConflictError);
@@ -218,8 +218,8 @@ describe("production external bot pipeline", () => {
     await unchanged(f, id, before, old, 1);
   });
 
-  it("provider failure propagates without automatic retry; explicit retry charges again", async () => {
-    const f = newFixture(); const id = await f.create(llm);
+  it.each([llm, eevoBotDescriptor])("provider failure propagates without automatic retry; explicit retry charges again ($id)", async descriptor => {
+    const f = newFixture(); const id = await f.create(descriptor);
     const before = await f.botTurn(id); const old = await f.counts(id);
     const failure = new BotProviderError("Simulated fixture failure");
     const injected = testRegistry(f, id, async () => { throw failure; });
@@ -231,8 +231,8 @@ describe("production external bot pipeline", () => {
     invariant((await f.counts(id)).owner === old.owner + 2, "explicit retry charges second attempt");
   });
 
-  it("exhausted fixture allowance denies inference and cleans up claim", async () => {
-    const f = newFixture(); const id = await f.create(jev);
+  it.each([jev, eevoBotDescriptor])("exhausted fixture allowance denies inference and cleans up claim ($id)", async descriptor => {
+    const f = newFixture(); const id = await f.create(descriptor);
     const before = await f.botTurn(id);
     const exhausted = await f.client.from("usage_allowances").upsert({ key: `inference:game:${id}`, attempts: Array.from({ length: usagePolicy.gameAI.allowance }, () => new Date().toISOString()), last_seen: new Date().toISOString() });
     invariant(!exhausted.error, "fixture allowance exhausted");

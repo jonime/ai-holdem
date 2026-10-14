@@ -1,7 +1,7 @@
 # AI Hold’em
 
 An open-source no-limit Texas Hold’em game for two to six human and AI players.
-Play against Equity Rules, TypeSafe Jev, or configurable LLM bots; the poker engine remains
+Play against Equity Rules, TypeSafe Jev, Upright Eevo, or configurable LLM bots; the poker engine remains
 authoritative for cards, turns, legal actions, betting, pots, and winners.
 
 [Play AI Hold’em](https://www.aiholdem.gg) ·
@@ -84,12 +84,14 @@ EXTERNAL_INFERENCE_ENABLED=false
 Equity Rules runs without external inference. The application still requires a
 Supabase database, either local or hosted.
 
-For TypeSafe Jev or LLM bots, enable external inference and configure the
+For TypeSafe Jev, Upright Eevo or LLM bots, enable external inference and configure the
 corresponding provider:
 
 ```env
 EXTERNAL_INFERENCE_ENABLED=true
 TYPESAFE_API_KEY=
+EEVO_API_KEY=
+EEVO_QUICK_PLAY_ENABLED=false
 LLM_API_ENDPOINT=
 LLM_API_KEY=
 LLM_BOT_MODELS=[]
@@ -107,7 +109,7 @@ LLM_BOT_MODELS='[{"id":"my-llm","label":"My LLM","modelId":"provider/model","rea
 LLM playstyles (Balanced, Tight, Aggressive) are server-owned and selected
 independently of model configuration; custom prompt text is not accepted.
 
-`SUPABASE_SECRET_KEY`, `TYPESAFE_API_KEY`, and `LLM_API_KEY` are server-only.
+`SUPABASE_SECRET_KEY`, `TYPESAFE_API_KEY`, `EEVO_API_KEY`, and `LLM_API_KEY` are server-only.
 Never give them a `NEXT_PUBLIC_` prefix or commit `.env`.
 See [`.env.example`](.env.example) for all settings, including the optional
 canonical public origin.
@@ -154,6 +156,11 @@ Enable Speed Insights in the Vercel project dashboard to collect Web Vitals;
 the application includes its SDK with private table URLs redacted.
 
 ## References and inspiration
+
+- [Upright Eevo announcement](https://www.uprightproject.com/eevo/)
+  — motivates evaluating Eevo with the existing Jev poker policy. Its vendor-reported
+  PokerBench preflop scores do not establish full-game strength in this app; see
+  [scenario evaluation limits](benchmarks/scenarios/README.md#eevo-comparisons).
 
 - [PokerKit](https://github.com/uoftcprg/pokerkit)
   — pinned offline independent hand evaluator for the

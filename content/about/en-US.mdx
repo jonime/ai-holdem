@@ -34,6 +34,10 @@ TypeSafe Jev sends structured game context and complete legal move candidates to
 
 Difficulty affects move selection only. It never gives the bot different cards, hidden information, or extra legal actions.
 
+### Upright Eevo
+
+Upright Eevo sends the same structured context and legal move candidates as Jev to [Eevo](https://eevo.io/), using model `eevo-1`. It shares Jev’s difficulty behavior and poker policy, including river safeguards. It is available in custom tables when configured by the server; Quick Play excludes it by default. Provider failures require explicit retry.
+
 ### LLM bots
 
 Each configured LLM bot supplies a display label and model. The model receives constrained game context through the configured LLM provider and must return a structured legal action and sizing choice.

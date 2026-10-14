@@ -10,7 +10,7 @@
 
 The application uses the Supabase Data API from Next.js server routes, so keep
 the Supabase Data API enabled. The browser never receives the Supabase secret
-or TypeSafe API key.
+or any provider API key.
 
 ## Bot-step duration release check
 
@@ -57,6 +57,20 @@ Coordinate the application rollout because the old return signature is replaced.
 Run `test:sql:my-games`, `test:sql:removal` and `test:e2e:ci` against the migrated
 local stack. Personal responses remain private/no-store and excluded from logs,
 shared caches and Realtime.
+
+## Eevo rollout
+
+Apply `20261029000000_add_eevo_bot.sql` before the application. It extends provider
+and difficulty constraints without changing Jev seats/history or adding tables.
+Generate/check database types with pinned CLI 2.119.0 against the fully migrated
+local schema. Deploy the code with Eevo unavailable, wait until old instances that
+reject `eevo` provider values drain, then configure the server-only `EEVO_API_KEY`.
+Keep `EEVO_QUICK_PLAY_ENABLED=false` for the initial custom-table trial; enabling
+it later adds configured Eevo to Quick Play. No endpoint/model settings are used.
+`EXTERNAL_INFERENCE_ENABLED=false` disables Eevo requests and new selections too.
+Existing seats still parse after credentials are removed, and failures pause visibly.
+Verify the effective 90-second bot-step duration and the authorized Vercel lifecycle
+smoke before release. This local implementation does not deploy or call providers.
 
 ## Migration prerequisites
 

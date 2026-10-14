@@ -165,3 +165,27 @@ correct live-bet sizing and short-stack odds, and retention of uncertain choices
 # Run the configured GPT models on synthetic fixtures (paid external calls)
 BOT_DECISION_CALL_CAP=100 EXTERNAL_INFERENCE_ENABLED=true BOT_SCENARIO_LIVE=true npm run test:bots -- -t 'gpt'
 ```
+
+## Eevo comparisons
+
+Configure `EEVO_API_KEY` in ignored `.env.test` and use an explicit shared call cap:
+
+```sh
+BOT_DECISION_CALL_CAP=100 EXTERNAL_INFERENCE_ENABLED=true BOT_SCENARIO_LIVE=true npm run test:bots -- -t 'eevo|jev'
+```
+
+Both adapters use the same scenario/context, current Jev policy, difficulty
+variants and exact river safeguards. No live requests run in ordinary checks.
+The cap is shared across selected external bots, including failed attempts; never
+substitute providers or retry automatically. Report legality, failures, latency
+and playing results separately. Missing usage/cost is unknown. Scenario success
+is deterministic correctness evidence, not full-game playing strength.
+
+[Upright's announcement](https://www.uprightproject.com/eevo/) reports 87.7% for
+Eevo versus 72.6% for Jev on PokerBench preflop questions. These user-supplied,
+vendor-reported figures motivate this integration; they are not measurements of
+full-game performance in AI Hold'em. The
+[official compatible questions example](https://eevo.io/docs/tutorials/questions)
+informs the `state`/`questions` and choice/probability transport. No vendor code or
+benchmark data is reused, and the native consequence/stakeholder API is outside
+this poker-policy integration.

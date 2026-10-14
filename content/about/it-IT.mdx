@@ -34,6 +34,10 @@ TypeSafe Jev invia il contesto strutturato e tutte le mosse legali candidate a [
 
 La difficoltà influenza solo la scelta della mossa e non concede mai carte diverse, informazioni nascoste o azioni legali aggiuntive.
 
+### Upright Eevo
+
+Upright Eevo invia lo stesso contesto strutturato e le stesse mosse legali di Jev a [Eevo](https://eevo.io/), usando il modello `eevo-1`. Condivide difficoltà, strategia e protezioni sul river con Jev. È disponibile nei tavoli personalizzati quando il server è configurato; la partita rapida lo esclude per impostazione predefinita. Gli errori del provider richiedono un nuovo tentativo esplicito.
+
 ### Bot LLM
 
 Ogni bot LLM configurato fornisce un'etichetta e un modello. Il modello riceve un contesto limitato tramite il provider LLM configurato e deve restituire un'azione legale e una dimensione della puntata strutturate.

@@ -7,7 +7,7 @@ export type SeatStatus = "open" | "claimed" | "bot";
 export type AIDifficulty = "easy" | "medium" | "hard";
 export type BotPlaystyleId = "balanced" | "tight" | "aggressive";
 
-export type BotProvider = "typesafe" | "llm" | "rules";
+export type BotProvider = "typesafe" | "eevo" | "llm" | "rules";
 
 export type BotDescriptor = Immutable<z.infer<typeof botDescriptorSchema>>;
 

@@ -16,7 +16,7 @@ import { logBotProviderFailure } from "@/lib/bots/provider-logging";
 import { GameConflictError } from "@/lib/supabase/queries";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import { TypesafeRequestError } from "@/lib/typesafe/client";
-import { TypesafeResponseError } from "@/lib/typesafe/types";
+import { SystemOneResponseError } from "@/lib/systemone/types";
 import { scheduleGameEvent } from "@/lib/realtime/schedule";
 
 // Allow database processing and notification cleanup around the provider deadline.
@@ -77,7 +77,7 @@ export async function POST(request: Request, context: StepRouteContext) {
     }
     if (
       error instanceof TypesafeRequestError ||
-      error instanceof TypesafeResponseError ||
+      error instanceof SystemOneResponseError ||
       error instanceof BotProviderError ||
       (error instanceof Error && error.message === "External inference is disabled")
     ) {
@@ -85,7 +85,7 @@ export async function POST(request: Request, context: StepRouteContext) {
       return NextResponse.json(
         { error: "AI decision failed", code: botFailureCodes[
           error instanceof BotProviderError ? error.category
-            : error instanceof TypesafeResponseError ? "invalid_response" : "provider"
+            : error instanceof SystemOneResponseError ? "invalid_response" : "provider"
         ] },
         { status: 502 },
       );

@@ -34,6 +34,10 @@ TypeSafe Jev envía el contexto estructurado y todas las jugadas legales candida
 
 La dificultad solo afecta a la selección de la jugada. Nunca concede cartas distintas, información oculta ni acciones legales adicionales.
 
+### Upright Eevo
+
+Upright Eevo envía el mismo contexto estructurado y las mismas jugadas legales que Jev a [Eevo](https://eevo.io/), con el modelo `eevo-1`. Comparte la dificultad, la estrategia y las protecciones del river de Jev. Está disponible en mesas personalizadas cuando el servidor está configurado; la partida rápida lo excluye por defecto. Los errores del proveedor requieren un reintento explícito.
+
 ### Bots LLM
 
 Cada bot LLM configurado proporciona una etiqueta y un modelo. El modelo recibe un contexto limitado a través del proveedor LLM configurado y debe devolver una acción legal y un tamaño de apuesta estructurados.

@@ -51,3 +51,14 @@ describe("bot registry", () => {
     expect(resolved.bot).toMatchObject({ reasoning: "high" });
   });
 });
+
+ describe("Eevo availability", () => {
+  it.each([ ["", "true", false], ["configured", "false", false], ["configured", "true", true] ])("key %s and inference %s => %s", (key, inference, available) => {
+    vi.stubEnv("EEVO_API_KEY", key);
+    vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", inference);
+    expect(getBotCatalog().some(bot => bot.id === "eevo")).toBe(available);
+    const registry = new ServerBotRegistry();
+    expect(registry.get({ botId: "eevo" }).descriptor).toMatchObject({ provider: "eevo", modelId: "eevo-1", configuration: { difficulty: true, playstyle: false } });
+    expect(() => registry.get({ botId: "eevo", profileId: "tight" })).toThrow("only supported by LLM");
+  });
+});
