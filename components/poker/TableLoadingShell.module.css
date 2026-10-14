@@ -1,10 +1,38 @@
-.toolbar { min-height: 60px; }
-.emptyFelt { display: grid; place-items: center; grid-template-rows: 1fr; }
-.status { margin: 0; color: #eaf5ef; font-size: 13px; }
-.controls { min-height: 204px; }
+.loadingPage {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+.loadingPage > main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.loader {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+}
+.status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: inherit;
+  font-size: 13px;
+}
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  opacity: 0.55;
+  animation: spin 1s linear infinite;
+}
 .headerSpace { visibility: hidden; }
-@media (max-width: 560px) {
-  .toolbar { min-height: 56px; }
-  .emptyFelt { min-height: 490px; }
-  .controls { min-height: 194px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
 }

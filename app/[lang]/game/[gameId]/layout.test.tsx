@@ -117,7 +117,7 @@ describe("game layout", () => {
   );
 
   it.each([["en-US", enUsGame], ["fi-FI", fiFiGame]] as const)(
-    "%s shows an empty branded table while game content suspends",
+    "%s shows a neutral branded loader while game content suspends",
     async (locale, dictionary) => {
       function Pending(): never { throw new Promise(() => {}); }
       const boundary = await GameI18nBoundary({ params: Promise.resolve({ lang: locale }), children: <Pending /> });
@@ -128,7 +128,7 @@ describe("game layout", () => {
       expect(html).toContain('aria-busy="true"');
       expect(html).toContain(`href="${locale === "en-US" ? "/" : "/fi-FI"}"`);
       expect(html).not.toContain("<button");
-      expect(html).not.toContain("data-playing-card");
+      expect(html).not.toMatch(/data-playing-card|felt|tableShell|actionTray/);
       expect(html).not.toContain("Player 1");
     },
   );

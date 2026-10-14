@@ -330,8 +330,16 @@ error-detail privacy. The production UI suite includes `storage-preferences.spec
 storage-object/read/write failures, desktop/mobile Actions controls, name drafts,
 reload persistence and hydration errors. It also includes `table-loading.spec.ts`:
 English/Finnish server-read and initial-browser-read delays on fresh URLs,
-desktop/mobile empty felt, accessible status and no gameplay data or controls,
-direct visits and client navigation, followed by waiting/active/completed views.
+desktop/mobile neutral loaders with branding, accessible localized status, reduced
+motion and no felt, seats, gameplay controls or Actions skeleton. Direct visits
+and client navigation transition into waiting/active/completed views, respecting
+desktop Actions defaults and saved preferences while keeping the mobile modal
+closed. When changing these boundaries, also refresh valid and missing game URLs
+in `next dev` for English and a prefixed locale and check browser/server logs for
+uncached-data diagnostics; production builds do not run this development-only
+instant-navigation validation. Keep the game-ID `loading.tsx` boundaries as well
+as the shared parent boundary. Frame samples guard against an intermediate
+full-width table; delayed subsequent reads retain the current screen.
 It also covers missing and malformed links, keyboard Lobby navigation, mobile
 layout and noindex, plus keyboard retry through repeated render failures into a
 successful table with URL and identity preserved.

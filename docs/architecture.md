@@ -281,15 +281,25 @@ required database migrations.
 ## Game route loading failures
 
 Locale resolution and server-owned dictionaries precede the game layout's
-Suspense boundary. Its prerendered `TableLoadingShell` shows branding, empty
-felt, a localized loading status and reserved toolbar/control space. Header
-controls reserve invisible space until the client app is ready. The shared
-`EmptyLoadingTable` also covers the initial browser fetch, with an explicit
-mobile felt height and Actions collapsed. No players, cards, chips or game
-controls appear before authoritative data. The server existence check and
-browser snapshot read remain uncached; subsequent refreshes retain the table.
-Waiting tables still transition into the lobby; active and completed tables
-retain their existing views.
+Suspense boundary. Both game-ID segments also provide `loading.tsx`, creating
+segment-local Suspense boundaries around `GamePageContent` for refreshes and
+navigation when Next.js reuses the shared parent layout. These fallbacks render
+`TableRouteLoading`, which receives the server-owned dictionary through the
+parent I18nProvider and uses the same neutral shell. The parent boundary alone
+is insufficient for development instant-navigation validation of live reads.
+Its prerendered `TableLoadingShell` preserves the header's
+branding and dimensions and the page background. Header controls reserve invisible
+space until the client app is ready. The shared `TableLoadingIndicator` also
+covers the initial browser fetch: a small CSS spinner and localized, accessible
+loading status centered in the available space below the header. Reduced motion
+disables spinner animation. No felt, seats, controls or Actions skeleton appear
+before authoritative data; there is no artificial delay or minimum display time.
+The server existence check and browser snapshot read remain uncached; subsequent
+refreshes retain the current screen. Waiting tables transition into the lobby;
+active and completed tables render their actual layout with Actions open by
+default on desktop, respecting saved desktop preferences, and the Actions modal
+closed on mobile. Partial prerendering and Next.js 16.3.8 remain unchanged;
+framework upgrades and Partial Prefetching adoption are separate changes.
 
 The localized and unprefixed English game segments share branded missing-table and
 render-error fallbacks under the game layout’s I18nProvider. Malformed UUIDs are

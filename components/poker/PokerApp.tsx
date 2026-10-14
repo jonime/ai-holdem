@@ -10,7 +10,8 @@ import { hasAutomaticTurn } from "./bot-advancement";
 import { useSettings } from "./useSettings";
 import { SettingsModal } from "./SettingsModal";
 import { useTurnNotifications } from "./useTurnNotifications";
-import { EmptyLoadingTable } from "./TableLoadingShell";
+import { TableLoadingIndicator } from "./TableLoadingShell";
+import loadingStyles from "./TableLoadingShell.module.css";
 import { GameHeader } from "./GameHeader";
 import { addLocalePrefix } from "@/lib/i18n";
 
@@ -307,7 +308,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   ]);
 
   return (
-    <div className={styles.cardPalette} data-card-colours={settings.preferences.cardColours}>
+    <div className={`${styles.cardPalette} ${!game && !unavailable ? loadingStyles.loadingPage : ""}`} data-card-colours={settings.preferences.cardColours}>
     <CreationFeedback creation={creation} labels={creationLabels} />
     <GameHeader helpRef={helpOpenerRef} onHelp={opener => openOverlay("help", opener)} settingsRef={settingsOpenerRef} onSettings={opener => openOverlay("settings", opener)} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={releaseSeat} />
     <main className={styles.pokerApp}>
@@ -337,7 +338,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
       {unavailable ? (
         <Link href={addLocalePrefix("/play", locale)}>{t("gameHeader.lobby")}</Link>
       ) : !game ? (
-        <EmptyLoadingTable label={t("table.loading")} />
+        <TableLoadingIndicator label={t("table.loading")} />
       ) : game.status === "waiting" ? (
         <LobbyPanel
           busy={requestBusy}

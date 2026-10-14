@@ -3,20 +3,16 @@ import { APP_NAME } from "@/lib/constants";
 import button from "../Button.module.css";
 import header from "./GameHeader.module.css";
 import app from "./PokerApp.module.css";
-import table from "./PokerTable.module.css";
 import styles from "./TableLoadingShell.module.css";
 
 /** Presentation only: shared by the prerendered fallback and initial browser read. */
-export function EmptyLoadingTable({ label }: { readonly label: string }) {
+export function TableLoadingIndicator({ label }: { readonly label: string }) {
   return (
-    <div className={app.gameLayout} data-testid="table-loading-shell" aria-busy="true">
-      <div className={table.tableShell}>
-        <div className={`${table.tableMeta} ${styles.toolbar}`} aria-hidden="true" />
-        <div className={`${table.felt} ${styles.emptyFelt}`}>
-          <p className={styles.status} role="status" aria-live="polite">{label}</p>
-        </div>
-        <div className={`${table.actionTray} ${styles.controls}`} aria-hidden="true" />
-      </div>
+    <div className={styles.loader} data-testid="table-loading-shell" aria-busy="true">
+      <p className={styles.status} role="status" aria-live="polite" aria-atomic="true">
+        <span className={styles.spinner} aria-hidden="true" />
+        {label}
+      </p>
     </div>
   );
 }
@@ -26,7 +22,7 @@ export function TableLoadingShell({ label, homeHref, controlLabels }: {
   readonly homeHref: string;
   readonly controlLabels: readonly string[];
 }) {
-  return <>
+  return <div className={styles.loadingPage}>
     <header className={header.gameHeader}>
       <div className={header.gameHeaderInner}>
         <Link href={homeHref} className={header.gameHeaderTitle}>{APP_NAME}</Link>
@@ -35,6 +31,6 @@ export function TableLoadingShell({ label, homeHref, controlLabels }: {
         </div>
       </div>
     </header>
-    <main className={app.pokerApp}><EmptyLoadingTable label={label} /></main>
-  </>;
+    <main className={app.pokerApp}><TableLoadingIndicator label={label} /></main>
+  </div>;
 }

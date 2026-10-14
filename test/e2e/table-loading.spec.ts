@@ -78,80 +78,124 @@ for (const locale of ["en-US", "fi-FI"]) {
 for (const locale of ["en-US", "fi-FI"]) {
   for (const mobile of [false, true]) {
     for (const destination of ["waiting", "active", "completed"]) {
-      test(`empty loading table ${locale} ${mobile ? "mobile navigation" : "desktop direct"} to ${destination}`, { tag: "@ui-regression" }, async ({ page }) => {
-        test.skip(process.env.E2E_PRODUCTION !== "true", "Server delay uses the isolated production build.");
-        test.setTimeout(60_000);
-        await page.setViewportSize({ width: mobile ? 375 : 1280, height: mobile ? 812 : 900 });
-        const prefix = locale === "en-US" ? "" : `/${locale}`;
-        const gameId = await createUITable(page, destination !== "waiting");
-        if (destination === "completed") {
-          for (let turns = 0; turns < 100; turns++) {
-            const game: Game = (await (await page.request.get(`/api/games/${gameId}`)).json()).game;
-            if (game.poker.street === "complete") break;
-            const human = game.poker.players.find(p => p.id === game.poker.currentActorId)?.controller === "human";
-            const response = await page.request.post(`/api/games/${gameId}/${human ? "action" : "step"}`, {
-              data: { expectedVersion: game.version, ...(human ? { action: { type: "fold" } } : {}) },
-            });
-            expect(response.ok()).toBe(true);
+      for (const preference of mobile ? ["false"] : [null, "true", "false"]) {
+        test(`neutral loading table ${locale} ${mobile ? "mobile navigation" : "desktop direct"} to ${destination} Actions ${preference ?? "default"}`, { tag: "@ui-regression" }, async ({ page }) => {
+          test.skip(process.env.E2E_PRODUCTION !== "true", "Server delay uses the isolated production build.");
+          test.setTimeout(60_000);
+          await page.setViewportSize({ width: mobile ? 375 : 1280, height: mobile ? 812 : 900 });
+          await page.emulateMedia({ reducedMotion: mobile ? "reduce" : "no-preference" });
+          await page.addInitScript(preference => {
+            if (preference === null) localStorage.removeItem("ai-holdem-feed-collapsed");
+            else localStorage.setItem("ai-holdem-feed-collapsed", preference);
+            const widths: number[] = [];
+            Object.assign(window, { loadingTableWidths: widths });
+            function sample() {
+              const table = document.querySelector('[class*="tableShell"]');
+              if (table) widths.push(table.getBoundingClientRect().width);
+              requestAnimationFrame(sample);
+            }
+            requestAnimationFrame(sample);
+          }, preference);
+          const prefix = locale === "en-US" ? "" : `/${locale}`;
+          const gameId = await createUITable(page, destination !== "waiting");
+          if (destination === "completed") {
+            for (let turns = 0; turns < 100; turns++) {
+              const game: Game = (await (await page.request.get(`/api/games/${gameId}`)).json()).game;
+              if (game.poker.street === "complete") break;
+              const human = game.poker.players.find(p => p.id === game.poker.currentActorId)?.controller === "human";
+              const response = await page.request.post(`/api/games/${gameId}/${human ? "action" : "step"}`, {
+                data: { expectedVersion: game.version, ...(human ? { action: { type: "fold" } } : {}) },
+              });
+              expect(response.ok()).toBe(true);
+            }
+            expect((await (await page.request.get(`/api/games/${gameId}`)).json()).game.poker.street).toBe("complete");
           }
-          expect((await (await page.request.get(`/api/games/${gameId}`)).json()).game.poker.street).toBe("complete");
-        }
-        const marker = join(process.env.E2E_WORKSPACE!, `table-read-delay-${gameId}`);
-        writeFileSync(marker, "delay");
-        let release!: () => void;
-        const pending = new Promise<void>(resolve => { release = resolve; });
-        let browserReadStarted = false;
-        await page.route(`**/api/games/${gameId}`, async route => {
-          if (route.request().method() !== "GET") return route.continue();
-          browserReadStarted = true;
-          await pending;
-          await route.continue();
+          const marker = join(process.env.E2E_WORKSPACE!, `table-read-delay-${gameId}`);
+          writeFileSync(marker, "delay");
+          let release!: () => void;
+          let pending = new Promise<void>(resolve => { release = resolve; });
+          let browserReadStarted = false;
+          await page.route(`**/api/games/${gameId}`, async route => {
+            if (route.request().method() !== "GET") return route.continue();
+            browserReadStarted = true;
+            await pending;
+            await route.continue();
+          });
+          const shell = page.getByTestId("table-loading-shell");
+          const label = locale === "en-US" ? "Loading table…" : "Ladataan pöytää…";
+          const assertNeutral = async () => {
+            await expect(shell).toBeVisible();
+            await expect(shell.getByRole("status")).toHaveText(label);
+            await expect(shell.locator('button, input, [data-playing-card], article')).toHaveCount(0);
+            await expect(shell).not.toContainText(/Player|Seat|Equity|[0-9]/);
+            await expect(page.getByRole("complementary")).toHaveCount(0);
+            await expect(page.locator('[class*="felt"], [class*="tableShell"], [class*="actionTray"], [class*="feedColumn"]')).toHaveCount(0);
+            await expect(shell.getByRole("status")).toHaveAttribute("aria-live", "polite");
+            const animation = await shell.locator('[class*="spinner"]').evaluate(n => getComputedStyle(n).animationName);
+            if (mobile) expect(animation).toBe("none");
+            else expect(animation).toMatch(/spin/);
+            const status = await shell.getByRole("status").boundingBox();
+            const header = await page.locator("header").boundingBox();
+            expect(Math.abs(status!.y + status!.height / 2 - (header!.y + header!.height + (mobile ? 812 : 900)) / 2)).toBeLessThan(12);
+            expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+          };
+          try {
+            if (mobile) {
+              await page.goto(`${prefix}/play`);
+              await page.locator(`a[href="${prefix}/game/${gameId}"]`).first().click();
+            } else {
+              await page.goto(`${prefix}/game/${gameId}`, { waitUntil: "commit" });
+            }
+            await assertNeutral();
+            await expect(page.getByRole("link", { name: "AI Hold'em", exact: true })).toBeVisible();
+            expect(browserReadStarted).toBe(false);
+            await expect(page.getByRole("button")).toHaveCount(0);
+            const serverGeometry = await shell.boundingBox();
+            await page.screenshot({ path: test.info().outputPath("server-loading.png"), fullPage: true });
+            rmSync(marker, { force: true });
+            await expect.poll(() => browserReadStarted).toBe(true);
+            await assertNeutral();
+            await expect(page.getByRole("button", { name: locale === "en-US" ? "Help" : "Ohje", exact: true })).toBeEnabled();
+            expect(await shell.boundingBox()).toEqual(serverGeometry);
+            await page.screenshot({ path: test.info().outputPath("browser-loading.png"), fullPage: true });
+            release();
+            await expect(shell).toHaveCount(0);
+            if (destination === "waiting") {
+              await expect(page.getByRole("button", { name: locale === "en-US" ? "Start hand" : "Aloita käsi", exact: true })).toBeVisible();
+            } else {
+              await expect(page.locator('[class*="tableShell"]').first()).toBeVisible();
+              await expect(page.locator("[data-playing-card]:visible").first()).toBeVisible();
+              await expect(page.getByRole("dialog")).toHaveCount(0);
+              const actions = page.getByRole("complementary");
+              if (mobile || preference === "true") await expect(actions).toBeHidden();
+              else await expect(actions).toBeVisible();
+              const width = await page.locator('[class*="tableShell"]').first().evaluate(n => n.getBoundingClientRect().width);
+              await expect.poll(() => page.evaluate(() => (Reflect.get(window, "loadingTableWidths") as number[]).length)).toBeGreaterThan(0);
+              const widths = await page.evaluate(() => Reflect.get(window, "loadingTableWidths") as number[]);
+              expect(widths.every(sample => Math.abs(sample - width) < 1)).toBe(true);
+              if (destination === "completed") await expect(page.locator("[data-hand-result]")).toBeVisible();
+            }
+            if (locale === "en-US" && !mobile && preference === null) {
+              browserReadStarted = false;
+              pending = new Promise<void>(resolve => { release = resolve; });
+              await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+              await expect.poll(() => browserReadStarted).toBe(true);
+              await expect(shell).toHaveCount(0);
+              if (destination === "waiting") {
+                await expect(page.getByRole("button", { name: "Start hand", exact: true })).toBeVisible();
+              } else {
+                await expect(page.locator('[class*="tableShell"]').first()).toBeVisible();
+                await expect(page.getByRole("complementary")).toBeVisible();
+              }
+              release();
+            }
+            expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+          } finally {
+            rmSync(marker, { force: true });
+            release();
+          }
         });
-        const shell = page.getByTestId("table-loading-shell");
-        const label = locale === "en-US" ? "Loading table…" : "Ladataan pöytää…";
-        const assertEmpty = async () => {
-          await expect(shell).toBeVisible();
-          await expect(shell.getByRole("status")).toHaveText(label);
-          await expect(shell.locator('button, input, [data-playing-card], article')).toHaveCount(0);
-          await expect(shell).not.toContainText(/Player|Seat|Equity|[0-9]/);
-          await expect(page.getByRole("complementary")).toHaveCount(0);
-          expect(await shell.locator('[class*="emptyFelt"]').evaluate(n => n.getBoundingClientRect().height)).toBeGreaterThanOrEqual(490);
-          expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-        };
-        try {
-          if (mobile) {
-            await page.goto(`${prefix}/play`);
-            await page.locator(`a[href="${prefix}/game/${gameId}"]`).first().click();
-          } else {
-            await page.goto(`${prefix}/game/${gameId}`, { waitUntil: "commit" });
-          }
-          await assertEmpty();
-          await expect(page.getByRole("link", { name: "AI Hold'em", exact: true })).toBeVisible();
-          expect(browserReadStarted).toBe(false);
-          await expect(page.getByRole("button")).toHaveCount(0);
-          const serverGeometry = await shell.boundingBox();
-          await page.screenshot({ path: test.info().outputPath("server-loading.png"), fullPage: true });
-          rmSync(marker, { force: true });
-          await expect.poll(() => browserReadStarted).toBe(true);
-          await assertEmpty();
-          await expect(page.getByRole("button", { name: locale === "en-US" ? "Help" : "Ohje", exact: true })).toBeEnabled();
-          expect(await shell.boundingBox()).toEqual(serverGeometry);
-          await page.screenshot({ path: test.info().outputPath("browser-loading.png"), fullPage: true });
-          release();
-          await expect(shell).toHaveCount(0);
-          if (destination === "waiting") {
-            await expect(page.getByRole("button", { name: locale === "en-US" ? "Start hand" : "Aloita käsi", exact: true })).toBeVisible();
-          } else {
-            await expect(page.locator('[class*="tableShell"]').first()).toBeVisible();
-            await expect(page.locator("[data-playing-card]:visible").first()).toBeVisible();
-            if (destination === "completed") await expect(page.locator("[data-hand-result]")).toBeVisible();
-          }
-          expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-        } finally {
-          rmSync(marker, { force: true });
-          release();
-        }
-      });
+      }
     }
   }
 }

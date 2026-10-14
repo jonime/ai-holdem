@@ -1,5 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { TableLoadingShell, TableLoadingIndicator } from "./TableLoadingShell";
+import { TableRouteLoading } from "./TableRouteLoading";
+import EnglishLoading from "@/app/(english)/game/[gameId]/loading";
+import LocaleLoading from "@/app/[lang]/game/[gameId]/loading";
 import { I18nProvider } from "./I18nProvider";
 import { MissingTable, TableLoadingError } from "./TableLoadingFallback";
 import { SUPPORTED_LOCALES, addLocalePrefix } from "@/lib/i18n";
@@ -14,6 +18,34 @@ vi.mock("react", async importOriginal => ({
 
 describe("table loading fallbacks", () => {
   beforeEach(() => { hooks.pending = false; hooks.tasks = []; });
+
+  it.each(SUPPORTED_LOCALES)("shares a neutral localized loader for %s", async locale => {
+    const dictionary = await getGameDictionary(locale);
+    const indicator = renderToStaticMarkup(<TableLoadingIndicator label={dictionary.table.loading} />);
+    const shell = renderToStaticMarkup(<TableLoadingShell label={dictionary.table.loading}
+      homeHref={addLocalePrefix("/", locale)}
+      controlLabels={[dictionary.gameHeader.help, dictionary.settings.title, dictionary.gameHeader.lobby]} />);
+    expect(shell).toContain(indicator);
+    expect(shell).toContain("AI Hold&#x27;em");
+    expect(indicator).toContain(dictionary.table.loading);
+    expect(indicator).toContain('role="status" aria-live="polite" aria-atomic="true"');
+    expect(indicator).toContain('aria-busy="true"');
+    expect(indicator).toContain('aria-hidden="true"');
+    expect(shell).not.toMatch(/felt|tableShell|actionTray|playing-card|<button|<input|<article|<aside/);
+  });
+
+  it.each(SUPPORTED_LOCALES)("uses the shared neutral shell at the %s game segment", async locale => {
+    const dictionary = await getGameDictionary(locale);
+    expect(EnglishLoading).toBe(TableRouteLoading);
+    expect(LocaleLoading).toBe(TableRouteLoading);
+    const expected = renderToStaticMarkup(<I18nProvider locale={locale} dictionary={dictionary}>
+      <TableLoadingShell label={dictionary.table.loading} homeHref={addLocalePrefix("/", locale)}
+        controlLabels={[dictionary.gameHeader.help, dictionary.settings.title, dictionary.gameHeader.lobby]} />
+    </I18nProvider>);
+    expect(renderToStaticMarkup(<I18nProvider locale={locale} dictionary={dictionary}>
+      <LocaleLoading />
+    </I18nProvider>)).toBe(expected);
+  });
 
   it("invokes only explicit retry and guards duplicate invocations", async () => {
     let finish!: () => void;
