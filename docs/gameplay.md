@@ -178,8 +178,9 @@ automatic refresh on Play. Public joining retains optional player names and pagi
 Quick Play still starts a separate private six-seat game in one click.
 
 With JavaScript initialized, landing Quick Play, Play creation, and New Quick Play
-capture one creation attempt and disable competing buttons. Landing Quick Play shows
-a spinner inside the button while creating, keeping the layout steady. The button
+capture one creation attempt and disable competing buttons. Landing Quick Play and
+both Play creation buttons show a spinner inside the selected button while creating,
+keeping the layout steady without a separate visible creation message. The selected button
 changes to **Retry creation** after an unconfirmed request, without extra recovery text
 or a second button. **Retry creation**
 recovers the same table after a 15-second timeout, network failure, or invalid

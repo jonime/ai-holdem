@@ -13,7 +13,6 @@ import { listMyGames } from "@/lib/poker/my-games";
 import { createSupabaseGameRepository } from "@/lib/supabase/server";
 import type { MyGameSummary } from "@/lib/http/discovery-contracts";
 import { getPageMetadata } from "@/lib/seo";
-import { Button } from "@/components/Button";
 import { JoinDirectory } from "./JoinDirectory";
 import { MyTables } from "./MyTables";
 import { PlayerName } from "./PlayerName";
@@ -48,10 +47,8 @@ export default async function PlayPage({ params }: PageProps<"/[lang]/play">) {
   const [d, directory, gameDictionary] = await Promise.all([getPlayDictionary(lang), getJoinGameDictionary(lang), getGameDictionary(lang)]);
   return <main className={styles.page}><div className={styles.panel}>
     <div className={styles.headingRow}><div><h1>{d.title}</h1><p>{d.intro}</p></div><Link href={addLocalePrefix("/", lang)}>{directory.back}</Link></div>
-    <CreationForm locale={lang} labels={gameDictionary.creation} className={styles.controls} action={addLocalePrefix("/quick-game", lang)}>
+    <CreationForm locale={lang} labels={gameDictionary.creation} className={styles.controls} action={addLocalePrefix("/quick-game", lang)} quickPlayLabel={d.quickPlay} createTableLabel={d.createTable}>
       <PlayerName dictionary={directory} />
-      <Button type="submit">{d.quickPlay}</Button>
-      <Button type="submit" formAction={addLocalePrefix("/new-game", lang)}>{d.createTable}</Button>
     </CreationForm>
       <Suspense fallback={<p role="status">{d.loadingPersonal}</p>}><PersonalContent lang={lang} dictionary={d} /></Suspense>
       <section className={`${styles.section} ${styles.publicSection}`} aria-labelledby="public-tables-heading"><h2 id="public-tables-heading">{d.publicTables}</h2>

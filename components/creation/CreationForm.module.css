@@ -1,19 +1,23 @@
-.busy button[type="submit"] {
+.busy {
   color: transparent;
   cursor: wait;
 }
 
-.busy button[type="submit"]::after {
+.busy::after {
   content: "";
   position: absolute;
   inset: 0;
   width: 20px;
   height: 20px;
   margin: auto;
-  border: 2px solid var(--button-primary-color);
+  border: 2px solid var(--creation-spinner-color, var(--button-primary-color));
   border-right-color: transparent;
   border-radius: 50%;
   animation: spin 800ms linear infinite;
+}
+
+.secondary {
+  --creation-spinner-color: #173a34;
 }
 
 @keyframes spin {
@@ -21,7 +25,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .busy button[type="submit"]::after { animation: none; }
+  .busy::after { animation: none; }
 }
 
 .srOnly {

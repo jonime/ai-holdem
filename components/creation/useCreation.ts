@@ -14,6 +14,7 @@ export function useCreation(locale: Locale, labels: CreationLabels) {
   const [ready, setReady] = useState(false);
   const [working, setWorking] = useState(false);
   const [hasPending, setHasPending] = useState(false);
+  const [mode, setMode] = useState<Intent["mode"] | null>(null);
   const [message, setMessage] = useState("");
   const [memoryOnly, setMemoryOnly] = useState(false);
   const [terminal, setTerminal] = useState(false);
@@ -34,7 +35,7 @@ export function useCreation(locale: Locale, labels: CreationLabels) {
         let raw: unknown;
         try { raw = JSON.parse(stored); } catch { raw = null; }
         const parsed = attemptSchema.safeParse(raw);
-        if (parsed.success) { pending.current = parsed.data; setHasPending(true); setMessage(labels.recovery); }
+        if (parsed.success) { pending.current = parsed.data; setMode(parsed.data.intent.mode); setHasPending(true); setMessage(labels.recovery); }
         else { setTerminal(true); setHasPending(true); setMessage(labels.unavailable); }
       }
       sessionStorage.setItem(`${attemptStorageKey}-probe`, "1");
@@ -54,6 +55,7 @@ export function useCreation(locale: Locale, labels: CreationLabels) {
   const run = async (intent?: Intent) => {
     if (!ready || busy.current || terminal || Date.now() < retryAt || (intent && hasPending)) return;
     busy.current = true; setWorking(true); setMessage(labels.creating);
+    setMode(pending.current?.intent.mode ?? intent?.mode ?? null);
     const current = generation.current;
     const controller = new AbortController(); abort.current = controller;
     try {
@@ -95,6 +97,6 @@ export function useCreation(locale: Locale, labels: CreationLabels) {
       if (current === generation.current) { busy.current = false; setWorking(false); abort.current = null; }
     }
   };
-  return { ready, wait, working, hasPending, message, memoryOnly, terminal, begin: (intent: Intent) => run(intent), retry: () => run(),
-    discard: () => { if (busy.current) return; persist(null); pending.current = null; setHasPending(false); setTerminal(false); setMessage(""); } };
+  return { ready, wait, working, hasPending, mode, message, memoryOnly, terminal, begin: (intent: Intent) => run(intent), retry: () => run(),
+    discard: () => { if (busy.current) return; persist(null); pending.current = null; setMode(null); setHasPending(false); setTerminal(false); setMessage(""); } };
 }

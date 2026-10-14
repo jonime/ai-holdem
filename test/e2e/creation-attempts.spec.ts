@@ -1,5 +1,45 @@
 import { expect, test } from "./fixtures";
 
+for (const mode of ["quick", "custom"] as const) {
+  test(`@ui-regression Play ${mode} creation loads and retries inside the selected button`, async ({ page }) => {
+    const label = mode === "quick" ? "Quick Play vs AI" : "Create table";
+    const otherLabel = mode === "quick" ? "Create table" : "Quick Play vs AI";
+    const attempts: string[] = [];
+    let release!: () => void;
+    const held = new Promise<void>(resolve => { release = resolve; });
+    await page.route(mode === "quick" ? "**/quick-game" : "**/api/games", async route => {
+      attempts.push(route.request().postDataJSON().creationAttemptId);
+      if (attempts.length === 1) await held;
+      await route.abort("failed");
+    });
+    await page.goto("/play");
+    const selected = page.getByRole("button", { name: label, exact: true });
+    const other = page.getByRole("button", { name: otherLabel, exact: true });
+    const bounds = await selected.boundingBox();
+    await selected.click();
+    await expect.poll(() => attempts.length).toBe(1);
+    await expect(selected).toBeDisabled();
+    await expect(other).toBeDisabled();
+    await expect(selected).toHaveAttribute("aria-busy", "true");
+    await expect(other).toHaveAttribute("aria-busy", "false");
+    expect(await selected.boundingBox()).toEqual(bounds);
+    expect(await selected.evaluate(button => getComputedStyle(button, "::after").content)).toBe('""');
+    expect(await other.evaluate(button => getComputedStyle(button, "::after").content)).toBe("none");
+    await expect(page.getByText("Creating table…", { exact: true })).toHaveClass(/srOnly/);
+    release();
+    const retry = page.getByRole("button", { name: "Retry creation", exact: true });
+    await expect(retry).toBeEnabled();
+    await expect(other).toBeDisabled();
+    await expect(page.getByText("The result could not be confirmed. Retry creation to recover the same table.")).toBeHidden();
+    await page.reload();
+    await expect(retry).toBeEnabled();
+    await expect(other).toBeDisabled();
+    await retry.click();
+    await expect.poll(() => attempts.length).toBe(2);
+    expect(attempts[1]).toBe(attempts[0]);
+  });
+}
+
 test("@smoke creation captures one attempt, recovers a committed lost response after reload, and allows intentional subsequent creation", async ({ page }) => {
   await page.goto("/play");
   await page.getByLabel("Your name (optional)").fill(" Ada Recovery ");
@@ -21,7 +61,8 @@ test("@smoke creation captures one attempt, recovers a committed lost response a
   const owner = (await page.context().cookies()).find(cookie => cookie.name === "ai-holdem-player-id")!.value;
   expect(stored).not.toContain(owner);
   await page.reload();
-  await expect(page.getByText("A creation attempt is pending. Retry to recover the same table.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Retry creation" })).toBeEnabled();
+  await expect(page.getByText("A creation attempt is pending. Retry to recover the same table.")).toBeHidden();
   expect(attempts).toHaveLength(1);
   await page.getByRole("button", { name: "Retry creation" }).click();
   await expect(page).toHaveURL(new RegExp(`/game/${committedId}$`));
