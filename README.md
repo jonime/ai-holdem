@@ -153,6 +153,22 @@ See the [deployment guide](docs/deployment.md) for the full procedure.
 Enable Speed Insights in the Vercel project dashboard to collect Web Vitals;
 the application includes its SDK with private table URLs redacted.
 
+## References and inspiration
+
+- [PokerSkill: LLMs Can Play Expert-Level Poker without Training or Solvers](https://arxiv.org/html/2605.30094v1)
+  — research informing deterministic decision context and situation-specific
+  guidance for LLM bots, with an extensive explanation of the approach.
+- [marcbara/jev-preflop-poker](https://github.com/marcbara/jev-preflop-poker)
+  — a reproducible Jev preflop benchmark that inspired weighted starting-hand
+  chart reporting in our evaluations.
+- [TencentEdgeOne/jev-holdem](https://github.com/TencentEdgeOne/jev-holdem)
+  — an early project reference for combining typed Jev decisions with an
+  authoritative poker engine.
+
+See the [research attribution](benchmarks/poker-context.md#research-attribution)
+for adaptation details and evaluation limits. PokerSkill's reported results
+concern heads-up play and do not establish the strength of this project's bots.
+
 ## Documentation
 
 - [Gameplay](docs/gameplay.md): lobby, betting controls, watching, and results.

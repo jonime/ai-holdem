@@ -53,6 +53,15 @@ earlier state.
   Do not append a section for every new feature or use it as a changelog.
   Update it only when a change affects that introductory scope; keeping docs
   synchronized does not mean documenting every change in every file.
+- Keep the README's **References and inspiration** list current when sources
+  supplied by the user or consulted during development materially inform the
+  project's design, implementation, strategy, or evaluations. Review new sources
+  for inclusion and update attribution in the same change that uses them. Give
+  each entry a direct source link and a brief, accurate description of its role;
+  routine documentation lookups do not need an entry. Keep detailed attribution,
+  adaptation differences, and evaluation limits in the relevant guide or benchmark
+  document, linked from the README. Distinguish inspiration from reused code or
+  data, and preserve any required license notices.
 - Document feature behavior in `docs/gameplay.md`, implementation details in
   `docs/architecture.md`, rollout/migration prerequisites in `docs/deployment.md`,
   and contributor workflows/checks in `CONTRIBUTING.md`. Use focused guides such
