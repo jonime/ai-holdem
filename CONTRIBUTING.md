@@ -1168,6 +1168,16 @@ deadline; native forms remain usable without duplicate-safe retry guarantees.
 Pending session records must never contain tokens, and creation diagnostics must
 never log attempt IDs, fingerprints, submitted names or payloads.
 
+### Conditional range-equity evaluation
+
+The independent Plan 1 range calculator lives under `benchmarks/range-equity/`.
+Run `npm run benchmark:range-equity` for conditional weighted-range sensitivity,
+exact river/seeded sampling checks, convergence and latency by opponent count.
+See its [reproduction guide](benchmarks/range-equity/README.md) for pinned offline
+PokerKit validation. This tooling makes no inference requests and changes no
+production policies. Run `check`, offline `test:bots`, and `benchmark:poker-context`
+after changes to it; automatic range inference remains deferred.
+
 ### Explicit heads-up Jev evaluation
 
 Run `npm run benchmark:jev:heads-up` for frozen offline memory mechanics and

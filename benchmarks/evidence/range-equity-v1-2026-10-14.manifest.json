@@ -1,0 +1,14 @@
+{
+  "reportSha256": "c5b888202ac96deaa5caf5bf7081bb35cb4aeb84eb885ffaea4aff53c5816316",
+  "fixtureSha256": "33e2bef00fb5ba98b9356b4f1591daac1dddb720d6516a18939ce87ba375edd0",
+  "sourceSha256": {
+    "benchmarks/range-equity/calculator.ts": "e1413bb9a762a452f7fdbb795ac8620830e0694a6e56c62f921ce3d9264a68b2",
+    "benchmarks/range-equity/showdown.ts": "f83293ef37acea8a39f9e1efaa95a3a7626792befcf6952955537537a1b261a1",
+    "benchmarks/range-equity/fixtures.ts": "8c6e1d86bd6a531c3baf141815f15c5777766ddf3c89d0a24af990ff7c3e840f",
+    "benchmarks/range-equity/pokerkit-oracle.py": "d9baae5c34ce499a92ee0379a9761f251a9d284b3e72e15929b3b36b71455a73",
+    "lib/poker/adapter.ts": "43122cd9e182822e61ee1ee4a643bcf4319712334a5cb0e3c1c672323fa5c06b",
+    "benchmarks/baselines/random-equity-v1.ts": "3de93201511bdf2c9ff4479321620058f386c1c345e69dd7b8ff46ab8680ca8a"
+  },
+  "pokerkitVersion": "0.7.7",
+  "scope": "Synthetic conditional equity only; no production data or inference"
+}

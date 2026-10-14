@@ -1,0 +1,1641 @@
+{
+  "fixtureVersion": "range-hypotheses-v1",
+  "fixtureSha256": "33e2bef00fb5ba98b9356b4f1591daac1dddb720d6516a18939ce87ba375edd0",
+  "seedProtocol": "fixed fixture seed at each sample budget",
+  "sourceSha256": {
+    "benchmarks/range-equity/calculator.ts": "e1413bb9a762a452f7fdbb795ac8620830e0694a6e56c62f921ce3d9264a68b2",
+    "benchmarks/range-equity/showdown.ts": "f83293ef37acea8a39f9e1efaa95a3a7626792befcf6952955537537a1b261a1",
+    "benchmarks/range-equity/fixtures.ts": "8c6e1d86bd6a531c3baf141815f15c5777766ddf3c89d0a24af990ff7c3e840f",
+    "benchmarks/range-equity/pokerkit-oracle.py": "d9baae5c34ce499a92ee0379a9761f251a9d284b3e72e15929b3b36b71455a73",
+    "lib/poker/adapter.ts": "43122cd9e182822e61ee1ee4a643bcf4319712334a5cb0e3c1c672323fa5c06b",
+    "benchmarks/baselines/random-equity-v1.ts": "3de93201511bdf2c9ff4479321620058f386c1c345e69dd7b8ff46ab8680ca8a"
+  },
+  "nodeVersion": "v24.21.0",
+  "engineVersion": "1.0.1",
+  "baselineSha256": "3de93201511bdf2c9ff4479321620058f386c1c345e69dd7b8ff46ab8680ca8a",
+  "oracle": {
+    "pokerkitVersion": "0.7.7",
+    "inputSha256": "33e2bef00fb5ba98b9356b4f1591daac1dddb720d6516a18939ce87ba375edd0",
+    "rows": [
+      {
+        "id": "preflop-broad",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.653575,
+        "sampleCount": 20000,
+        "standardError": 0.0033334541491639317,
+        "attempts": 20000
+      },
+      {
+        "id": "preflop-narrow",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.29545,
+        "sampleCount": 20000,
+        "standardError": 0.002792777265598308,
+        "attempts": 20000
+      },
+      {
+        "id": "flop-value",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.040725,
+        "sampleCount": 20000,
+        "standardError": 0.0013920472723763465,
+        "attempts": 20000
+      },
+      {
+        "id": "flop-draw",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.5542,
+        "sampleCount": 20000,
+        "standardError": 0.003514788142517887,
+        "attempts": 20000
+      },
+      {
+        "id": "turn-known",
+        "method": "independent-monte-carlo",
+        "showdownShare": 1,
+        "sampleCount": 20000,
+        "standardError": 0,
+        "attempts": 20000
+      },
+      {
+        "id": "river-blockers",
+        "method": "exact-river",
+        "showdownShare": 0.6666666666666666,
+        "sampleCount": 3,
+        "standardError": 0,
+        "attempts": 3
+      },
+      {
+        "id": "river-board-tie",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.3333333333333333,
+        "sampleCount": 20000,
+        "standardError": 0,
+        "attempts": 21945
+      },
+      {
+        "id": "river-known-nuts",
+        "method": "exact-river",
+        "showdownShare": 1,
+        "sampleCount": 1,
+        "standardError": 0,
+        "attempts": 1
+      },
+      {
+        "id": "uniform-2-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.23846666666666666,
+        "sampleCount": 20000,
+        "standardError": 0.00299935993675713,
+        "attempts": 21907
+      },
+      {
+        "id": "uniform-3-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.14441666666666667,
+        "sampleCount": 20000,
+        "standardError": 0.002470885339496811,
+        "attempts": 26316
+      },
+      {
+        "id": "uniform-4-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.09285,
+        "sampleCount": 20000,
+        "standardError": 0.0020400127346656147,
+        "attempts": 34990
+      },
+      {
+        "id": "uniform-5-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.07064166666666666,
+        "sampleCount": 20000,
+        "standardError": 0.0018011254056677737,
+        "attempts": 51725
+      }
+    ]
+  },
+  "rows": [
+    {
+      "id": "preflop-broad",
+      "opponentCount": 1,
+      "requestedSamples": 1000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 1000,
+        "attempts": 1000,
+        "showdownShare": 0.6609999999999995,
+        "standardError": 0.01489297823810943,
+        "confidence95": [
+          0.6180530591653257,
+          0.7039469408346732
+        ]
+      },
+      "milliseconds": 104.686417,
+      "reference": {
+        "id": "preflop-broad",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.653575,
+        "sampleCount": 20000,
+        "standardError": 0.0033334541491639317,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": 0.00742499999999946,
+      "comparisonTolerance": 0.05727490660523447
+    },
+    {
+      "id": "preflop-broad",
+      "opponentCount": 1,
+      "requestedSamples": 5000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 5000,
+        "attempts": 5000,
+        "showdownShare": 0.6458000000000009,
+        "standardError": 0.006709506352564169,
+        "confidence95": [
+          0.6265935441736025,
+          0.6650064558263994
+        ]
+      },
+      "milliseconds": 381.07016699999997,
+      "reference": {
+        "id": "preflop-broad",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.653575,
+        "sampleCount": 20000,
+        "standardError": 0.0033334541491639317,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": -0.007774999999999088,
+      "comparisonTolerance": 0.031399936191043816
+    },
+    {
+      "id": "preflop-broad",
+      "opponentCount": 1,
+      "requestedSamples": 20000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 20000,
+        "attempts": 20000,
+        "showdownShare": 0.6496499999999998,
+        "standardError": 0.0033432099436972815,
+        "confidence95": [
+          0.6400467720868006,
+          0.6592532279131991
+        ]
+      },
+      "milliseconds": 1448.2967079999999,
+      "reference": {
+        "id": "preflop-broad",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.653575,
+        "sampleCount": 20000,
+        "standardError": 0.0033334541491639317,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": -0.003925000000000178,
+      "comparisonTolerance": 0.02093329079402921
+    },
+    {
+      "id": "preflop-narrow",
+      "opponentCount": 1,
+      "requestedSamples": 1000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:premium-preflop-hypothesis"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 1000,
+        "attempts": 1000,
+        "showdownShare": 0.2744999999999995,
+        "standardError": 0.012249481613513274,
+        "confidence95": [
+          0.23155305916532576,
+          0.3174469408346733
+        ]
+      },
+      "milliseconds": 67.1662080000001,
+      "reference": {
+        "id": "preflop-narrow",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.29545,
+        "sampleCount": 20000,
+        "standardError": 0.002792777265598308,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": -0.020950000000000468,
+      "comparisonTolerance": 0.05727490660523447
+    },
+    {
+      "id": "preflop-narrow",
+      "opponentCount": 1,
+      "requestedSamples": 5000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:premium-preflop-hypothesis"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 5000,
+        "attempts": 5000,
+        "showdownShare": 0.2894000000000002,
+        "standardError": 0.005587107583914138,
+        "confidence95": [
+          0.2701935441736018,
+          0.3086064558263986
+        ]
+      },
+      "milliseconds": 337.7226660000001,
+      "reference": {
+        "id": "preflop-narrow",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.29545,
+        "sampleCount": 20000,
+        "standardError": 0.002792777265598308,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": -0.006049999999999778,
+      "comparisonTolerance": 0.031399936191043816
+    },
+    {
+      "id": "preflop-narrow",
+      "opponentCount": 1,
+      "requestedSamples": 20000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:premium-preflop-hypothesis"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 20000,
+        "attempts": 20000,
+        "showdownShare": 0.2909749999999994,
+        "standardError": 0.002777172681551362,
+        "confidence95": [
+          0.28137177208680014,
+          0.3005782279131986
+        ]
+      },
+      "milliseconds": 1377.324208,
+      "reference": {
+        "id": "preflop-narrow",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.29545,
+        "sampleCount": 20000,
+        "standardError": 0.002792777265598308,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": -0.004475000000000617,
+      "comparisonTolerance": 0.02093329079402921
+    },
+    {
+      "id": "flop-value",
+      "opponentCount": 1,
+      "requestedSamples": 1000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:value-heavy-postflop-hypothesis"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 1000,
+        "attempts": 1000,
+        "showdownShare": 0.04099999999999996,
+        "standardError": 0.006273624021118758,
+        "confidence95": [
+          0,
+          0.08394694083467372
+        ]
+      },
+      "milliseconds": 67.7588340000002,
+      "reference": {
+        "id": "flop-value",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.040725,
+        "sampleCount": 20000,
+        "standardError": 0.0013920472723763465,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": 0.0002749999999999628,
+      "comparisonTolerance": 0.05727490660523447
+    },
+    {
+      "id": "flop-value",
+      "opponentCount": 1,
+      "requestedSamples": 5000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:value-heavy-postflop-hypothesis"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 5000,
+        "attempts": 5000,
+        "showdownShare": 0.04190000000000016,
+        "standardError": 0.0028285116396470997,
+        "confidence95": [
+          0.022693544173601744,
+          0.06110645582639858
+        ]
+      },
+      "milliseconds": 335.35520799999995,
+      "reference": {
+        "id": "flop-value",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.040725,
+        "sampleCount": 20000,
+        "standardError": 0.0013920472723763465,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": 0.001175000000000162,
+      "comparisonTolerance": 0.031399936191043816
+    },
+    {
+      "id": "flop-value",
+      "opponentCount": 1,
+      "requestedSamples": 20000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:value-heavy-postflop-hypothesis"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 20000,
+        "attempts": 20000,
+        "showdownShare": 0.038475000000000245,
+        "standardError": 0.001356632131893929,
+        "confidence95": [
+          0.028871772086801036,
+          0.048078227913199455
+        ]
+      },
+      "milliseconds": 1354.8930839999994,
+      "reference": {
+        "id": "flop-value",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.040725,
+        "sampleCount": 20000,
+        "standardError": 0.0013920472723763465,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": -0.002249999999999752,
+      "comparisonTolerance": 0.02093329079402921
+    },
+    {
+      "id": "flop-draw",
+      "opponentCount": 1,
+      "requestedSamples": 1000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:draw-heavy-postflop-hypothesis"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 1000,
+        "attempts": 1000,
+        "showdownShare": 0.5539999999999993,
+        "standardError": 0.015726771166750378,
+        "confidence95": [
+          0.5110530591653255,
+          0.596946940834673
+        ]
+      },
+      "milliseconds": 69.79762500000015,
+      "reference": {
+        "id": "flop-draw",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.5542,
+        "sampleCount": 20000,
+        "standardError": 0.003514788142517887,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": -0.00020000000000075513,
+      "comparisonTolerance": 0.05727490660523447
+    },
+    {
+      "id": "flop-draw",
+      "opponentCount": 1,
+      "requestedSamples": 5000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:draw-heavy-postflop-hypothesis"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 5000,
+        "attempts": 5000,
+        "showdownShare": 0.5538000000000003,
+        "standardError": 0.007030718185195581,
+        "confidence95": [
+          0.5345935441736018,
+          0.5730064558263988
+        ]
+      },
+      "milliseconds": 382.82037500000024,
+      "reference": {
+        "id": "flop-draw",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.5542,
+        "sampleCount": 20000,
+        "standardError": 0.003514788142517887,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": -0.0003999999999997339,
+      "comparisonTolerance": 0.031399936191043816
+    },
+    {
+      "id": "flop-draw",
+      "opponentCount": 1,
+      "requestedSamples": 20000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:draw-heavy-postflop-hypothesis"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 20000,
+        "attempts": 20000,
+        "showdownShare": 0.5513000000000015,
+        "standardError": 0.0035169637404581892,
+        "confidence95": [
+          0.5416967720868022,
+          0.5609032279132007
+        ]
+      },
+      "milliseconds": 1433.1909170000008,
+      "reference": {
+        "id": "flop-draw",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.5542,
+        "sampleCount": 20000,
+        "standardError": 0.003514788142517887,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": -0.0028999999999985704,
+      "comparisonTolerance": 0.02093329079402921
+    },
+    {
+      "id": "turn-known",
+      "opponentCount": 1,
+      "requestedSamples": 1000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:known-pair"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 1000,
+        "attempts": 1000,
+        "showdownShare": 1,
+        "standardError": 0,
+        "confidence95": [
+          0.9570530591653262,
+          1
+        ]
+      },
+      "milliseconds": 86.80779199999961,
+      "reference": {
+        "id": "turn-known",
+        "method": "independent-monte-carlo",
+        "showdownShare": 1,
+        "sampleCount": 20000,
+        "standardError": 0,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": 0,
+      "comparisonTolerance": 0.05727490660523447
+    },
+    {
+      "id": "turn-known",
+      "opponentCount": 1,
+      "requestedSamples": 5000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:known-pair"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 5000,
+        "attempts": 5000,
+        "showdownShare": 1,
+        "standardError": 0,
+        "confidence95": [
+          0.9807935441736015,
+          1
+        ]
+      },
+      "milliseconds": 348.2110419999999,
+      "reference": {
+        "id": "turn-known",
+        "method": "independent-monte-carlo",
+        "showdownShare": 1,
+        "sampleCount": 20000,
+        "standardError": 0,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": 0,
+      "comparisonTolerance": 0.031399936191043816
+    },
+    {
+      "id": "turn-known",
+      "opponentCount": 1,
+      "requestedSamples": 20000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:known-pair"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 20000,
+        "attempts": 20000,
+        "showdownShare": 1,
+        "standardError": 0,
+        "confidence95": [
+          0.9903967720868008,
+          1
+        ]
+      },
+      "milliseconds": 1344.5320410000004,
+      "reference": {
+        "id": "turn-known",
+        "method": "independent-monte-carlo",
+        "showdownShare": 1,
+        "sampleCount": 20000,
+        "standardError": 0,
+        "attempts": 20000
+      },
+      "exact": null,
+      "referenceError": 0,
+      "comparisonTolerance": 0.02093329079402921
+    },
+    {
+      "id": "river-blockers",
+      "opponentCount": 1,
+      "requestedSamples": 1000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:blocker-test"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 1000,
+        "attempts": 1000,
+        "showdownShare": 0.6640000000000001,
+        "standardError": 0.014944140233794903,
+        "confidence95": [
+          0.6210530591653264,
+          0.7069469408346739
+        ]
+      },
+      "milliseconds": 71.12070799999856,
+      "reference": {
+        "id": "river-blockers",
+        "method": "exact-river",
+        "showdownShare": 0.6666666666666666,
+        "sampleCount": 3,
+        "standardError": 0,
+        "attempts": 3
+      },
+      "exact": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:blocker-test"
+        ],
+        "status": "supported",
+        "method": "exact-river",
+        "sampleCount": 3,
+        "attempts": 3,
+        "showdownShare": 0.6666666666666666,
+        "standardError": 0,
+        "confidence95": [
+          0.6666666666666666,
+          0.6666666666666666
+        ]
+      },
+      "referenceError": -0.002666666666666484,
+      "comparisonTolerance": 0.04680826120821986
+    },
+    {
+      "id": "river-blockers",
+      "opponentCount": 1,
+      "requestedSamples": 5000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:blocker-test"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 5000,
+        "attempts": 5000,
+        "showdownShare": 0.6654000000000002,
+        "standardError": 0.006673640348048359,
+        "confidence95": [
+          0.6461935441736018,
+          0.6846064558263987
+        ]
+      },
+      "milliseconds": 356.5729169999995,
+      "reference": {
+        "id": "river-blockers",
+        "method": "exact-river",
+        "showdownShare": 0.6666666666666666,
+        "sampleCount": 3,
+        "standardError": 0,
+        "attempts": 3
+      },
+      "exact": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:blocker-test"
+        ],
+        "status": "supported",
+        "method": "exact-river",
+        "sampleCount": 3,
+        "attempts": 3,
+        "showdownShare": 0.6666666666666666,
+        "standardError": 0,
+        "confidence95": [
+          0.6666666666666666,
+          0.6666666666666666
+        ]
+      },
+      "referenceError": -0.0012666666666664161,
+      "comparisonTolerance": 0.02093329079402921
+    },
+    {
+      "id": "river-blockers",
+      "opponentCount": 1,
+      "requestedSamples": 20000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:blocker-test"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 20000,
+        "attempts": 20000,
+        "showdownShare": 0.6746500000000042,
+        "standardError": 0.0033129167882520586,
+        "confidence95": [
+          0.665046772086805,
+          0.6842532279132034
+        ]
+      },
+      "milliseconds": 1529.4877079999987,
+      "reference": {
+        "id": "river-blockers",
+        "method": "exact-river",
+        "showdownShare": 0.6666666666666666,
+        "sampleCount": 3,
+        "standardError": 0,
+        "attempts": 3
+      },
+      "exact": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:blocker-test"
+        ],
+        "status": "supported",
+        "method": "exact-river",
+        "sampleCount": 3,
+        "attempts": 3,
+        "showdownShare": 0.6666666666666666,
+        "standardError": 0,
+        "confidence95": [
+          0.6666666666666666,
+          0.6666666666666666
+        ]
+      },
+      "referenceError": 0.007983333333337561,
+      "comparisonTolerance": 0.010466645397014605
+    },
+    {
+      "id": "river-board-tie",
+      "opponentCount": 2,
+      "requestedSamples": 1000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 1000,
+        "attempts": 1105,
+        "showdownShare": 0.3333333333333333,
+        "standardError": 0,
+        "confidence95": [
+          0.29038639249865955,
+          0.3762802741680071
+        ]
+      },
+      "milliseconds": 112.15374999999949,
+      "reference": {
+        "id": "river-board-tie",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.3333333333333333,
+        "sampleCount": 20000,
+        "standardError": 0,
+        "attempts": 21945
+      },
+      "exact": null,
+      "referenceError": 0,
+      "comparisonTolerance": 0.05727490660523447
+    },
+    {
+      "id": "river-board-tie",
+      "opponentCount": 2,
+      "requestedSamples": 5000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 5000,
+        "attempts": 5523,
+        "showdownShare": 0.3333333333333333,
+        "standardError": 0,
+        "confidence95": [
+          0.3141268775069349,
+          0.3525397891597317
+        ]
+      },
+      "milliseconds": 576.9162090000009,
+      "reference": {
+        "id": "river-board-tie",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.3333333333333333,
+        "sampleCount": 20000,
+        "standardError": 0,
+        "attempts": 21945
+      },
+      "exact": null,
+      "referenceError": 0,
+      "comparisonTolerance": 0.031399936191043816
+    },
+    {
+      "id": "river-board-tie",
+      "opponentCount": 2,
+      "requestedSamples": 20000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 20000,
+        "attempts": 21951,
+        "showdownShare": 0.3333333333333333,
+        "standardError": 0,
+        "confidence95": [
+          0.3237301054201341,
+          0.34293656124653255
+        ]
+      },
+      "milliseconds": 2267.266917000001,
+      "reference": {
+        "id": "river-board-tie",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.3333333333333333,
+        "sampleCount": 20000,
+        "standardError": 0,
+        "attempts": 21945
+      },
+      "exact": null,
+      "referenceError": 0,
+      "comparisonTolerance": 0.02093329079402921
+    },
+    {
+      "id": "river-known-nuts",
+      "opponentCount": 1,
+      "requestedSamples": 1000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:known-loser"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 1000,
+        "attempts": 1000,
+        "showdownShare": 1,
+        "standardError": 0,
+        "confidence95": [
+          0.9570530591653262,
+          1
+        ]
+      },
+      "milliseconds": 73.09791600000062,
+      "reference": {
+        "id": "river-known-nuts",
+        "method": "exact-river",
+        "showdownShare": 1,
+        "sampleCount": 1,
+        "standardError": 0,
+        "attempts": 1
+      },
+      "exact": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:known-loser"
+        ],
+        "status": "supported",
+        "method": "exact-river",
+        "sampleCount": 1,
+        "attempts": 1,
+        "showdownShare": 1,
+        "standardError": 0,
+        "confidence95": [
+          1,
+          1
+        ]
+      },
+      "referenceError": 0,
+      "comparisonTolerance": 0.04680826120821986
+    },
+    {
+      "id": "river-known-nuts",
+      "opponentCount": 1,
+      "requestedSamples": 5000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:known-loser"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 5000,
+        "attempts": 5000,
+        "showdownShare": 1,
+        "standardError": 0,
+        "confidence95": [
+          0.9807935441736015,
+          1
+        ]
+      },
+      "milliseconds": 331.27841700000135,
+      "reference": {
+        "id": "river-known-nuts",
+        "method": "exact-river",
+        "showdownShare": 1,
+        "sampleCount": 1,
+        "standardError": 0,
+        "attempts": 1
+      },
+      "exact": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:known-loser"
+        ],
+        "status": "supported",
+        "method": "exact-river",
+        "sampleCount": 1,
+        "attempts": 1,
+        "showdownShare": 1,
+        "standardError": 0,
+        "confidence95": [
+          1,
+          1
+        ]
+      },
+      "referenceError": 0,
+      "comparisonTolerance": 0.02093329079402921
+    },
+    {
+      "id": "river-known-nuts",
+      "opponentCount": 1,
+      "requestedSamples": 20000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:known-loser"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 20000,
+        "attempts": 20000,
+        "showdownShare": 1,
+        "standardError": 0,
+        "confidence95": [
+          0.9903967720868008,
+          1
+        ]
+      },
+      "milliseconds": 1371.2840829999986,
+      "reference": {
+        "id": "river-known-nuts",
+        "method": "exact-river",
+        "showdownShare": 1,
+        "sampleCount": 1,
+        "standardError": 0,
+        "attempts": 1
+      },
+      "exact": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:known-loser"
+        ],
+        "status": "supported",
+        "method": "exact-river",
+        "sampleCount": 1,
+        "attempts": 1,
+        "showdownShare": 1,
+        "standardError": 0,
+        "confidence95": [
+          1,
+          1
+        ]
+      },
+      "referenceError": 0,
+      "comparisonTolerance": 0.010466645397014605
+    },
+    {
+      "id": "river-weighted-joint",
+      "opponentCount": 2,
+      "requestedSamples": 1000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:weighted-one",
+          "range-hypotheses-v1:weighted-two"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 1000,
+        "attempts": 1188,
+        "showdownShare": 0.5949999999999995,
+        "standardError": 0.015531136990452962,
+        "confidence95": [
+          0.5520530591653258,
+          0.6379469408346733
+        ]
+      },
+      "milliseconds": 103.59416699999929,
+      "reference": null,
+      "exact": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:weighted-one",
+          "range-hypotheses-v1:weighted-two"
+        ],
+        "status": "supported",
+        "method": "exact-river",
+        "sampleCount": 3,
+        "attempts": 6,
+        "showdownShare": 0.6000000000000001,
+        "standardError": 0,
+        "confidence95": [
+          0.6000000000000001,
+          0.6000000000000001
+        ]
+      },
+      "referenceError": -0.0050000000000005596,
+      "comparisonTolerance": 0.04680826120821986
+    },
+    {
+      "id": "river-weighted-joint",
+      "opponentCount": 2,
+      "requestedSamples": 5000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:weighted-one",
+          "range-hypotheses-v1:weighted-two"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 5000,
+        "attempts": 5973,
+        "showdownShare": 0.600200000000001,
+        "standardError": 0.006928318145009201,
+        "confidence95": [
+          0.5809935441736025,
+          0.6194064558263994
+        ]
+      },
+      "milliseconds": 505.8942080000015,
+      "reference": null,
+      "exact": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:weighted-one",
+          "range-hypotheses-v1:weighted-two"
+        ],
+        "status": "supported",
+        "method": "exact-river",
+        "sampleCount": 3,
+        "attempts": 6,
+        "showdownShare": 0.6000000000000001,
+        "standardError": 0,
+        "confidence95": [
+          0.6000000000000001,
+          0.6000000000000001
+        ]
+      },
+      "referenceError": 0.00020000000000086615,
+      "comparisonTolerance": 0.02093329079402921
+    },
+    {
+      "id": "river-weighted-joint",
+      "opponentCount": 2,
+      "requestedSamples": 20000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:weighted-one",
+          "range-hypotheses-v1:weighted-two"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 20000,
+        "attempts": 24012,
+        "showdownShare": 0.6026500000000008,
+        "standardError": 0.003460310327467482,
+        "confidence95": [
+          0.5930467720868016,
+          0.6122532279132
+        ]
+      },
+      "milliseconds": 2679.0060410000006,
+      "reference": null,
+      "exact": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:weighted-one",
+          "range-hypotheses-v1:weighted-two"
+        ],
+        "status": "supported",
+        "method": "exact-river",
+        "sampleCount": 3,
+        "attempts": 6,
+        "showdownShare": 0.6000000000000001,
+        "standardError": 0,
+        "confidence95": [
+          0.6000000000000001,
+          0.6000000000000001
+        ]
+      },
+      "referenceError": 0.0026500000000007073,
+      "comparisonTolerance": 0.010466645397014605
+    },
+    {
+      "id": "uniform-2-opponents",
+      "opponentCount": 2,
+      "requestedSamples": 1000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 1000,
+        "attempts": 1101,
+        "showdownShare": 0.242,
+        "standardError": 0.01347655807755147,
+        "confidence95": [
+          0.19905305916532623,
+          0.28494694083467376
+        ]
+      },
+      "milliseconds": 236.53320800000074,
+      "reference": {
+        "id": "uniform-2-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.23846666666666666,
+        "sampleCount": 20000,
+        "standardError": 0.00299935993675713,
+        "attempts": 21907
+      },
+      "exact": null,
+      "referenceError": 0.0035333333333333328,
+      "comparisonTolerance": 0.05727490660523447
+    },
+    {
+      "id": "uniform-2-opponents",
+      "opponentCount": 2,
+      "requestedSamples": 5000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 5000,
+        "attempts": 5480,
+        "showdownShare": 0.23060000000000005,
+        "standardError": 0.005930578584967114,
+        "confidence95": [
+          0.21139354417360165,
+          0.24980645582639846
+        ]
+      },
+      "milliseconds": 922.6535000000003,
+      "reference": {
+        "id": "uniform-2-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.23846666666666666,
+        "sampleCount": 20000,
+        "standardError": 0.00299935993675713,
+        "attempts": 21907
+      },
+      "exact": null,
+      "referenceError": -0.007866666666666605,
+      "comparisonTolerance": 0.031399936191043816
+    },
+    {
+      "id": "uniform-2-opponents",
+      "opponentCount": 2,
+      "requestedSamples": 20000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 20000,
+        "attempts": 21842,
+        "showdownShare": 0.24179166666666543,
+        "standardError": 0.00301279705948005,
+        "confidence95": [
+          0.23218843875346623,
+          0.25139489457986464
+        ]
+      },
+      "milliseconds": 4170.449375,
+      "reference": {
+        "id": "uniform-2-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.23846666666666666,
+        "sampleCount": 20000,
+        "standardError": 0.00299935993675713,
+        "attempts": 21907
+      },
+      "exact": null,
+      "referenceError": 0.0033249999999987734,
+      "comparisonTolerance": 0.02093329079402921
+    },
+    {
+      "id": "uniform-3-opponents",
+      "opponentCount": 3,
+      "requestedSamples": 1000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 1000,
+        "attempts": 1338,
+        "showdownShare": 0.13649999999999998,
+        "standardError": 0.01078118657588226,
+        "confidence95": [
+          0.09355305916532622,
+          0.17944694083467375
+        ]
+      },
+      "milliseconds": 243.84920899999997,
+      "reference": {
+        "id": "uniform-3-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.14441666666666667,
+        "sampleCount": 20000,
+        "standardError": 0.002470885339496811,
+        "attempts": 26316
+      },
+      "exact": null,
+      "referenceError": -0.007916666666666683,
+      "comparisonTolerance": 0.05727490660523447
+    },
+    {
+      "id": "uniform-3-opponents",
+      "opponentCount": 3,
+      "requestedSamples": 5000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 5000,
+        "attempts": 6562,
+        "showdownShare": 0.14376666666666707,
+        "standardError": 0.004932092726550071,
+        "confidence95": [
+          0.12456021084026865,
+          0.16297312249306548
+        ]
+      },
+      "milliseconds": 1360.501874999998,
+      "reference": {
+        "id": "uniform-3-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.14441666666666667,
+        "sampleCount": 20000,
+        "standardError": 0.002470885339496811,
+        "attempts": 26316
+      },
+      "exact": null,
+      "referenceError": -0.0006499999999995953,
+      "comparisonTolerance": 0.031399936191043816
+    },
+    {
+      "id": "uniform-3-opponents",
+      "opponentCount": 3,
+      "requestedSamples": 20000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 20000,
+        "attempts": 26234,
+        "showdownShare": 0.14411666666666692,
+        "standardError": 0.002467205190553639,
+        "confidence95": [
+          0.13451343875346772,
+          0.15371989457986612
+        ]
+      },
+      "milliseconds": 6617.398916000002,
+      "reference": {
+        "id": "uniform-3-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.14441666666666667,
+        "sampleCount": 20000,
+        "standardError": 0.002470885339496811,
+        "attempts": 26316
+      },
+      "exact": null,
+      "referenceError": -0.0002999999999997449,
+      "comparisonTolerance": 0.02093329079402921
+    },
+    {
+      "id": "uniform-4-opponents",
+      "opponentCount": 4,
+      "requestedSamples": 1000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 1000,
+        "attempts": 1727,
+        "showdownShare": 0.11350000000000007,
+        "standardError": 0.009998385755596643,
+        "confidence95": [
+          0.07055305916532631,
+          0.15644694083467384
+        ]
+      },
+      "milliseconds": 321.80825000000186,
+      "reference": {
+        "id": "uniform-4-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.09285,
+        "sampleCount": 20000,
+        "standardError": 0.0020400127346656147,
+        "attempts": 34990
+      },
+      "exact": null,
+      "referenceError": 0.02065000000000007,
+      "comparisonTolerance": 0.05727490660523447
+    },
+    {
+      "id": "uniform-4-opponents",
+      "opponentCount": 4,
+      "requestedSamples": 5000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 5000,
+        "attempts": 8720,
+        "showdownShare": 0.10369999999999989,
+        "standardError": 0.004287532925554928,
+        "confidence95": [
+          0.08449354417360147,
+          0.12290645582639831
+        ]
+      },
+      "milliseconds": 1575.37975,
+      "reference": {
+        "id": "uniform-4-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.09285,
+        "sampleCount": 20000,
+        "standardError": 0.0020400127346656147,
+        "attempts": 34990
+      },
+      "exact": null,
+      "referenceError": 0.010849999999999888,
+      "comparisonTolerance": 0.031399936191043816
+    },
+    {
+      "id": "uniform-4-opponents",
+      "opponentCount": 4,
+      "requestedSamples": 20000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 20000,
+        "attempts": 34915,
+        "showdownShare": 0.09544999999999926,
+        "standardError": 0.002067831876974907,
+        "confidence95": [
+          0.08584677208680006,
+          0.10505322791319846
+        ]
+      },
+      "milliseconds": 3140.379000000001,
+      "reference": {
+        "id": "uniform-4-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.09285,
+        "sampleCount": 20000,
+        "standardError": 0.0020400127346656147,
+        "attempts": 34990
+      },
+      "exact": null,
+      "referenceError": 0.0025999999999992557,
+      "comparisonTolerance": 0.02093329079402921
+    },
+    {
+      "id": "uniform-5-opponents",
+      "opponentCount": 5,
+      "requestedSamples": 1000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 1000,
+        "attempts": 2599,
+        "showdownShare": 0.08149999999999999,
+        "standardError": 0.00852528183876817,
+        "confidence95": [
+          0.03855305916532623,
+          0.12444694083467375
+        ]
+      },
+      "milliseconds": 162.15387499999633,
+      "reference": {
+        "id": "uniform-5-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.07064166666666666,
+        "sampleCount": 20000,
+        "standardError": 0.0018011254056677737,
+        "attempts": 51725
+      },
+      "exact": null,
+      "referenceError": 0.010858333333333331,
+      "comparisonTolerance": 0.05727490660523447
+    },
+    {
+      "id": "uniform-5-opponents",
+      "opponentCount": 5,
+      "requestedSamples": 5000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 5000,
+        "attempts": 13100,
+        "showdownShare": 0.0797000000000001,
+        "standardError": 0.00379769225889864,
+        "confidence95": [
+          0.060493544173601685,
+          0.09890645582639852
+        ]
+      },
+      "milliseconds": 1381.2654580000017,
+      "reference": {
+        "id": "uniform-5-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.07064166666666666,
+        "sampleCount": 20000,
+        "standardError": 0.0018011254056677737,
+        "attempts": 51725
+      },
+      "exact": null,
+      "referenceError": 0.009058333333333446,
+      "comparisonTolerance": 0.031399936191043816
+    },
+    {
+      "id": "uniform-5-opponents",
+      "opponentCount": 5,
+      "requestedSamples": 20000,
+      "result": {
+        "version": "conditional-range-equity-v1",
+        "conditionalOnSuppliedRanges": true,
+        "provenance": [
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations",
+          "range-hypotheses-v1:uniform-all-combinations"
+        ],
+        "status": "supported",
+        "method": "monte-carlo",
+        "sampleCount": 20000,
+        "attempts": 51737,
+        "showdownShare": 0.07377500000000048,
+        "standardError": 0.0018357303625664047,
+        "confidence95": [
+          0.06417177208680128,
+          0.08337822791319968
+        ]
+      },
+      "milliseconds": 2974.892209000005,
+      "reference": {
+        "id": "uniform-5-opponents",
+        "method": "independent-monte-carlo",
+        "showdownShare": 0.07064166666666666,
+        "sampleCount": 20000,
+        "standardError": 0.0018011254056677737,
+        "attempts": 51725
+      },
+      "exact": null,
+      "referenceError": 0.003133333333333821,
+      "comparisonTolerance": 0.02093329079402921
+    }
+  ],
+  "uniformComparison": [
+    {
+      "opponentCount": 1,
+      "randomEquity": 0.6557,
+      "rangeEquity": 0.6496499999999998,
+      "difference": -0.006050000000000111
+    },
+    {
+      "opponentCount": 2,
+      "randomEquity": 0.2406,
+      "rangeEquity": 0.24179166666666543,
+      "difference": 0.0011916666666654252
+    },
+    {
+      "opponentCount": 3,
+      "randomEquity": 0.141,
+      "rangeEquity": 0.14411666666666692,
+      "difference": 0.003116666666666934
+    },
+    {
+      "opponentCount": 4,
+      "randomEquity": 0.0922,
+      "rangeEquity": 0.09544999999999926,
+      "difference": 0.0032499999999992535
+    },
+    {
+      "opponentCount": 5,
+      "randomEquity": 0.0742,
+      "rangeEquity": 0.07377500000000048,
+      "difference": -0.000424999999999523
+    }
+  ],
+  "interpretation": "Conditional showdown share; no range inference, GTO reference, side-pot chip EV or playing-strength claim."
+}

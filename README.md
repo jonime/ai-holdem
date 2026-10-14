@@ -155,6 +155,9 @@ the application includes its SDK with private table URLs redacted.
 
 ## References and inspiration
 
+- [PokerKit](https://github.com/uoftcprg/pokerkit)
+  — pinned offline independent hand evaluator for the
+  [conditional range-equity experiment](benchmarks/range-equity/README.md).
 - [PokerSkill: LLMs Can Play Expert-Level Poker without Training or Solvers](https://arxiv.org/html/2605.30094v1)
   — research informing deterministic decision context and situation-specific
   guidance for Jev and LLM bots; detailed range/budget systems are not reproduced.

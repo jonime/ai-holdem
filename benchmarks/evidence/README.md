@@ -4,6 +4,9 @@ Keep dated, sanitized results here for future comparisons. Routine generated
 reports remain ignored in `benchmarks/results/`; explicitly preserve useful runs
 in this directory together with their human-readable interpretation.
 
+- [Range-equity sensitivity report v1](../range-equity/report-v1.md),
+  [synthetic calculation evidence](range-equity-v1-2026-10-14.json), and
+  [source/checksum manifest](range-equity-v1-2026-10-14.manifest.json).
 - [2026-10-14 heads-up pilot report](../heads-up-pilot-2026-10-14.md)
 - [Detailed decision and match results](heads-up-pilot-2026-10-14.json)
 - [Run metadata and SHA-256 checksum](heads-up-pilot-2026-10-14.manifest.json)

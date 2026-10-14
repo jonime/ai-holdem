@@ -1,0 +1,102 @@
+{
+  "pokerkitVersion": "0.7.7",
+  "inputSha256": "33e2bef00fb5ba98b9356b4f1591daac1dddb720d6516a18939ce87ba375edd0",
+  "rows": [
+    {
+      "id": "preflop-broad",
+      "method": "independent-monte-carlo",
+      "showdownShare": 0.653575,
+      "sampleCount": 20000,
+      "standardError": 0.0033334541491639317,
+      "attempts": 20000
+    },
+    {
+      "id": "preflop-narrow",
+      "method": "independent-monte-carlo",
+      "showdownShare": 0.29545,
+      "sampleCount": 20000,
+      "standardError": 0.002792777265598308,
+      "attempts": 20000
+    },
+    {
+      "id": "flop-value",
+      "method": "independent-monte-carlo",
+      "showdownShare": 0.040725,
+      "sampleCount": 20000,
+      "standardError": 0.0013920472723763465,
+      "attempts": 20000
+    },
+    {
+      "id": "flop-draw",
+      "method": "independent-monte-carlo",
+      "showdownShare": 0.5542,
+      "sampleCount": 20000,
+      "standardError": 0.003514788142517887,
+      "attempts": 20000
+    },
+    {
+      "id": "turn-known",
+      "method": "independent-monte-carlo",
+      "showdownShare": 1.0,
+      "sampleCount": 20000,
+      "standardError": 0.0,
+      "attempts": 20000
+    },
+    {
+      "id": "river-blockers",
+      "method": "exact-river",
+      "showdownShare": 0.6666666666666666,
+      "sampleCount": 3,
+      "standardError": 0,
+      "attempts": 3
+    },
+    {
+      "id": "river-board-tie",
+      "method": "independent-monte-carlo",
+      "showdownShare": 0.3333333333333333,
+      "sampleCount": 20000,
+      "standardError": 0.0,
+      "attempts": 21945
+    },
+    {
+      "id": "river-known-nuts",
+      "method": "exact-river",
+      "showdownShare": 1.0,
+      "sampleCount": 1,
+      "standardError": 0,
+      "attempts": 1
+    },
+    {
+      "id": "uniform-2-opponents",
+      "method": "independent-monte-carlo",
+      "showdownShare": 0.23846666666666666,
+      "sampleCount": 20000,
+      "standardError": 0.00299935993675713,
+      "attempts": 21907
+    },
+    {
+      "id": "uniform-3-opponents",
+      "method": "independent-monte-carlo",
+      "showdownShare": 0.14441666666666667,
+      "sampleCount": 20000,
+      "standardError": 0.002470885339496811,
+      "attempts": 26316
+    },
+    {
+      "id": "uniform-4-opponents",
+      "method": "independent-monte-carlo",
+      "showdownShare": 0.09285,
+      "sampleCount": 20000,
+      "standardError": 0.0020400127346656147,
+      "attempts": 34990
+    },
+    {
+      "id": "uniform-5-opponents",
+      "method": "independent-monte-carlo",
+      "showdownShare": 0.07064166666666666,
+      "sampleCount": 20000,
+      "standardError": 0.0018011254056677737,
+      "attempts": 51725
+    }
+  ]
+}
