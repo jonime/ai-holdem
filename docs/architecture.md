@@ -42,7 +42,13 @@ not validate poker state or result envelopes; runtime parsing, engine validation
 SQL permissions, ownership/privacy filtering and version checks remain required.
 
 The integration job compares freshly generated local types after migrations and
-before SQL tests. The fast job compiles committed types without Docker. See
+before SQL tests. After SQL checks, a dedicated local bot-pipeline suite uses
+production creation, context parsing, claimed stepping, allowance admission and
+persistence with an injected deterministic `BotRegistry`. It runs with sanitized
+local credentials and loopback-only networking, then removes fixture-owned
+games and counters. Provider HTTP and playing strength remain outside this
+coverage; see CONTRIBUTING.md for the command and isolation boundaries.
+The fast job compiles committed types without Docker. See
 [the contributor workflow](../CONTRIBUTING.md#database-contracts) for regeneration
 and prerequisites.
 

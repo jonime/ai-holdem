@@ -124,6 +124,10 @@ jobs:
         timeout-minutes: 3
         run: npm run test:sql:usage
 
+      - name: Verify external bot application pipeline
+        timeout-minutes: 3
+        run: npm run test:integration:bot-pipeline
+
       - name: Build and test the production application
         timeout-minutes: 18
         run: npm run test:e2e:ci

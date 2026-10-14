@@ -242,6 +242,36 @@ describe("SupabaseGameRepository", () => {
     ]);
   });
 
+  it("orders shuffled human, bot, and open seats without changing rows or metadata", async () => {
+    const rows = [
+      { seat: 5, name: "Open", status: "open", controller: "human",
+        player_token: null, is_host: false, leaving: false, engine_player_id: null },
+      { seat: 2, name: "Host", status: "claimed", controller: "human",
+        player_token: "owner", is_host: true, leaving: true, engine_player_id: "human" },
+      { seat: 0, name: "TypeSafe AI", status: "bot", controller: "typesafe_ai",
+        ai_difficulty: "hard", player_token: null, is_host: false,
+        leaving: false, engine_player_id: "ai", bot_id: "jev", bot_label: "TypeSafe Jev",
+        bot_provider: "typesafe", bot_model_id: "jev-latest" },
+    ];
+    const original = structuredClone(rows);
+    const { client } = createClient({ loadResult: rows });
+
+    await expect(new SupabaseGameRepository(client).getSeatAssignments("game-1"))
+      .resolves.toEqual([
+        { gameId: "game-1", seat: 0, name: "TypeSafe AI", status: "bot", controller: "bot",
+          bot: { id: "jev", label: "TypeSafe Jev", provider: "typesafe", modelId: "jev-latest" },
+          aiDifficulty: "hard", botProfileId: null, playerToken: null,
+          isHost: false, leaving: false, enginePlayerId: "ai" },
+        { gameId: "game-1", seat: 2, name: "Host", status: "claimed", controller: "human",
+          bot: null, aiDifficulty: null, botProfileId: null, playerToken: "owner",
+          isHost: true, leaving: true, enginePlayerId: "human" },
+        { gameId: "game-1", seat: 5, name: "Open", status: "open", controller: "human",
+          bot: null, aiDifficulty: null, botProfileId: null, playerToken: null,
+          isHost: false, leaving: false, enginePlayerId: null },
+      ]);
+    expect(rows).toEqual(original);
+  });
+
   it.each([undefined, 0, 12])("selects the feed RPC for cursor %s", async sinceHand => {
     const { client, rpc } = createClient({ updateResult: [] });
     await expect(new SupabaseGameRepository(client).getGameFeed("game-1", undefined, sinceHand))
@@ -576,6 +606,15 @@ describe("game read snapshots", () => {
       revealedPlayerIds: ["bot"],
       assignments: [{ controller: "bot", bot: { id: "jev", provider: "typesafe" } }],
     });
+  });
+
+  it("rejects unordered snapshot assignments rather than sorting them", async () => {
+    const { client } = createClient({ updateResult: {
+      ...snapshotRow,
+      assignments: [{ ...snapshotRow.assignments[0], seat: 1 }, snapshotRow.assignments[0]],
+    } });
+    await expect(new SupabaseGameRepository(client).getGameReadSnapshot("game-1"))
+      .rejects.toThrow("Supabase returned invalid snapshot seat ordering");
   });
 
   it("parses host and publication fields", async () => {

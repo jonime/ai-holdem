@@ -166,6 +166,67 @@ Use a clean local database when validating migration-dependent behavior:
 npm run test:e2e:reset
 ```
 
+## External bot application integration
+
+With Node 24+, Docker, Supabase CLI 2.119.0, and an already-running healthy
+local Supabase with **every committed migration applied**, run:
+
+```sh
+npm run test:integration:bot-pipeline
+```
+
+The launcher validates the local status origin before creating clients and starts
+a separate Vitest process with an allowlisted environment. Neither `.env` nor
+`.env.test` is loaded; inherited provider credentials and `NODE_OPTIONS` are
+excluded. A random test-only usage secret and synthetic LLM catalog enable
+external seat selection only in that process. Network guards reject non-loopback
+fetch/TCP/HTTP(S) destinations and redirects. No provider registry is instantiated,
+provider endpoint is added, or production bypass is enabled.
+
+The suite injects deterministic decisions through `BotRegistry` into
+`stepBotAction`. Quick Play retains the real catalog descriptors and configuration
+metadata; two-seat custom tables use production creation, assignment and start
+services. TypeSafe and LLM coverage follows real persisted hand/session parsing,
+authorization, claim acquisition, allowance admission, engine validation and
+atomic action persistence. Human turns use the action service, and the next hand
+starts explicitly. Each step checks version/action counts, consumed claims,
+owner/game charges, privacy and authoritative response fields. Read-only host
+publication metadata is separate from action responses; each response's server
+timestamp is validated independently of committed-state equality.
+
+Promise barriers with deadlines exercise competing repository clients. Rejected
+ownership/stale versions, illegal decisions, simulated provider failures with
+explicit retries, and exhausted fixture counters check unchanged state, charges
+and claim cleanup. Tests report scenario names and safe invariant labels without
+assertion diffs, contexts, credentials or database dumps. They test pipeline
+correctness, **not provider HTTP behavior, provider availability, playing
+strength, or deployed Vercel response lifecycles**. Unit tests cover environment
+rejection, network guards, bounded barriers and cleanup error handling.
+
+Each fixture has a unique owner. Suite teardown discovers its games by that owner,
+including a creation that committed before response parsing failed, deletes only
+fixture histories/reveals/games, and removes its creation-attempt and allowance
+rows. Game dependents (including claims) and fixture allowances are checked for
+absence after cleanup. A simulated harness-failure scenario also verifies cleanup
+and repeat cleanup. The random hashing secret isolates IP allowance records from
+other runs. The command never resets or migrates the database. Hard process kills
+can prevent teardown; do not interrupt a running suite if cleanup is required.
+
+CI runs this command after SQL checks and before browser tests against the same
+migrated disposable stack. Browser inference remains disabled, and unconditional
+Supabase teardown is retained. The dedicated Vitest configuration is excluded
+from ordinary unit tests and bot benchmarks. A failing production invariant must
+remain a failing case and be reported, rather than weakened or fixed as an
+unannounced expansion of this test-only work.
+
+Bot action responses and authoritative snapshots guarantee ascending numeric
+seat order. `getSeatAssignments` validates rows before sorting the parsed
+assignments; snapshot RPC validation still rejects malformed or unordered results.
+The host-seat-move regression assigns the host to seat 1 and the external bot to
+seat 0, then strictly compares the response with the snapshot without normalizing
+either array. The comparison is deferred to scenario teardown so full lifecycle
+checks and cleanup still complete.
+
 ## Production browser integration
 
 CI runs an independent integration job alongside the unchanged
