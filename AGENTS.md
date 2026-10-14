@@ -89,7 +89,16 @@ containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
 disposable database, then runs `db:types:check` before `test:sql:game-reads`, `test:sql:creation`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
-`test:sql:departures`, `test:sql:turn-timers`, `test:sql:bot-claims`, `test:sql:usage`, and `test:e2e:ci` in order. Startup/migration errors fail the job; never ignore
+`test:sql:departures`, `test:sql:turn-timers`, `test:sql:bot-claims`, `test:sql:usage`, `test:integration:bot-pipeline`, and `test:e2e:ci` in order.
+The bot-pipeline suite requires an already-running migrated local stack, injects
+only deterministic `BotRegistry` decisions, and retains real creation, context,
+authorization, claims, allowances, legality and persistence. Its isolated Vitest
+process loads no application/test environment files or provider credentials,
+blocks non-loopback network requests, and removes/verifies only fixture-owned
+games, histories, claims, creation attempts and allowances. It does not test
+provider HTTP or playing strength. Preserve failing production invariants and
+report defects without silently expanding test-only changes. See CONTRIBUTING.md.
+Startup/migration errors fail the job; never ignore
 health checks. Preserve workflow cancellation for superseded commits.
 
 Local production browser verification requires an already-running migrated local Supabase and

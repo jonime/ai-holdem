@@ -45,7 +45,8 @@
     "db:types:check": "node scripts/database-types.mjs check",
     "test:poker:simulation": "node scripts/poker-simulation.mjs",
     "benchmark:jev:heads-up": "BOT_SCENARIO_LIVE=false vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/heads-up/jev-heads-up.benchmark.ts",
-    "benchmark:jev:memory:live": "BOT_SCENARIO_LIVE=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/heads-up/jev-heads-up.benchmark.ts -t \"capped live memory\""
+    "benchmark:jev:memory:live": "BOT_SCENARIO_LIVE=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/heads-up/jev-heads-up.benchmark.ts -t \"capped live memory\"",
+    "test:integration:bot-pipeline": "node scripts/bot-pipeline.mjs"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",

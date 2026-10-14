@@ -12,7 +12,7 @@ if (existsSync(testEnvPath)) loadEnvFile(testEnvPath);
 export default defineConfig({
   test: {
     include: ["**/*.test.{ts,tsx,js,jsx}"],
-    exclude: ["node_modules/**", "test/e2e/**", ".next/**", "dist/**"],
+    exclude: ["node_modules/**", "test/e2e/**", "test/integration/**/*.integration.ts", ".next/**", "dist/**"],
   },
   resolve: {
     alias: {
