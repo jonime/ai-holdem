@@ -774,7 +774,10 @@ public-lobby suites after changes to these flows.
 
 ## Shared bot context checks
 
-Apply `20261013000000_add_bot_hand_context.sql` before deploying bot-context code.
+Apply `20261013000000_add_bot_hand_context.sql` and
+`20261028000000_add_bot_session_context.sql` before deploying bot-context code.
+After applying locally, run `db:types:generate` and `db:types:check` with pinned
+CLI 2.119.0. Keep generated output unchanged.
 Run `npm run benchmark:poker-context` for the offline weighted 169-class matrix
 and seeded heads-up/six-seat wrapper comparisons, and `npm run test:sql:bot-context`
 with migrated local Supabase running for private RPC roles and game/hand
@@ -783,7 +786,23 @@ suite alongside game reads and seats. Keep server-only facts, projected full
 history, independent policy/advice versions, provider privacy and conflict handling
 intact. See [methodology and capped live commands](benchmarks/poker-context.md).
 All live bot evaluation commands require explicit inference enablement and a
-positive `BOT_DECISION_CALL_CAP`, shared across the selected run.
+positive `BOT_DECISION_CALL_CAP`, shared across the selected run. The heads-up
+pilot requires 640–1,000 requests: 40 fixed decisions, twice, across eight variants
+(640 calls), then complete paired seat-swapped blocks against rules/aggressive/passive
+opponents when sufficient budget remains. Failures consume the cap; no automatic
+retry occurs. Incomplete match blocks are excluded from chip comparisons.
+`LLM_API_ENDPOINT` must be the configured OpenRouter gateway; pilot model IDs are
+`openai/gpt-5-nano` and `openai/gpt-5.4-mini`, with fallback disabled and strict
+parameter support. This does not edit `LLM_BOT_MODELS`.
+
+The unit suite exercises 169 weighted classes at 10/25/100 BB and unequal stacks,
+aggregation denominators, street opportunities, sparse evidence, continuity resets,
+private-card invariance, legacy coverage and session authorization/version fencing.
+The SQL suite additionally covers the 50-completed-hand bound, current-hand binding,
+consistent versions, game isolation and actor-specific forced-departure exclusion.
+Sanitized pilot reports contain action types, case IDs, counts, numeric usage/cost
+and latency only; never save raw requests/responses, historical cards or exceptions.
+Jev may omit usage/cost; report missing values rather than estimate actual charges.
 
 ## Provider failure regressions
 

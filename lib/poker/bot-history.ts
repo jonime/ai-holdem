@@ -7,8 +7,10 @@ import type { PokerAIDecisionHistoryItem } from "./ai-state";
 export interface BotHandContext {
   readonly version: number;
   readonly handNumber: number;
+  readonly finalState?: PokerGameState | null;
   readonly initialState: PokerGameState | null;
   readonly actions: readonly {
+    readonly forcedDeparture?: boolean;
     readonly sequence: number;
     readonly action: PokerAction | null;
     readonly stateBefore: PokerGameState | null;

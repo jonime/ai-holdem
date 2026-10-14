@@ -372,19 +372,55 @@ only on request.
 
 ## Private bot decision context
 
-Jev and LLMs share server-owned decision facts and exact sizing. The uncached,
-service-role-only `get_bot_hand_context` RPC returns one hand’s immutable initial
-state and ordered persisted pre-action states plus the current game version.
-Local replay resolves actors by engine turn and initial configuration, then
-projects only visible action facts. Version/replay conflicts stop before
-inference; legacy gaps are explicitly unknown and DB errors remain visible.
+Jev and LLMs share server-owned decision facts, exact sizing and selected original
+situational advice. The uncached, service-role-only `get_bot_session_context` RPC
+returns the current hand plus the latest 50 completed hands before it, bounding
+hands in SQL before fetching actions. A single stable SQL statement binds every
+component to the same game version. Deploy `20261028000000_add_bot_session_context.sql`
+first; it is additive and needs no backfill. Equity Rules keeps the existing
+`get_bot_hand_context` read and its legacy context/strategy.
 
-LLMs receive selected original advisory guidance in their system instructions.
-Facts, advice and policy have independent versions. Provider context, raw
-responses and decision diagnostics are not persisted. Candidate
-safeguards, authorization, one request per decision, and version-checked
-persistence are retained. See [context and evaluation methodology](../benchmarks/poker-context.md)
-for position, sizing, pressure and research assumptions.
+Server replay validates the current hand against the decision state and every
+historical hand against its completed final engine state. Actor resolution uses
+engine turns and immutable initial participants. Version/replay conflicts stop
+before inference; missing legacy states/gaps produce explicit incomplete coverage,
+and database/malformed-state failures remain visible. Authorization and the bot
+claim precede history preparation; claim verification and allowance admission
+still precede the provider request. Provider-specific output contracts are unchanged.
+
+Only compact `sessionStats` aggregates leave the server. They contain seat-relative
+hero/opponent roles, separate dealt-heads-up and dealt-multiway buckets, action counts,
+opportunity denominators, rates (null at zero opportunities) and evidence labels.
+Voluntary preflop participation/raises use one opportunity per participant-hand
+with a recorded preflop decision. Heads-up button opening outcomes and BB responses
+to opens up to 3 BB versus larger opens use their first relevant decisions.
+Postflop aggression counts each decision with a legal bet/raise; faced-bet folds
+count decisions with a legal call and an outstanding price, separately by street.
+
+Continuity requires immutable engine identity plus a human ownership token, or the
+complete bot descriptor/difficulty/playstyle, across consecutive validated hands.
+Names and seats never establish identity. A missing participant, uncertain record,
+hand gap or configuration/ownership change stops older attribution. Identifiable
+forced-departure participant-hands are conservatively excluded; other folds are
+recorded actions without guessed intent (historical timers and some credit folds
+lack durable provenance). Historical cards, private states, IDs, tokens and outcomes
+never enter aggregate context. There are no cross-table profiles or notebooks.
+
+Facts (`poker-facts-v1`), advice (`poker-advice-v2`), session statistics
+(`poker-session-stats-v1`) and provider policies (`typesafe-poker-v4.0`,
+`llm-poker-v4.0`) have independent versions. Fewer than ten opportunities are
+insufficient for opponent-specific adaptation; this is a conservative product
+default, not a statistical guarantee. Larger samples remain uncertain evidence,
+including hero table image; repeated folds never create an obligation to call.
+Dealt-player count, current remaining players and pending actors are distinct.
+Originally larger tables with two dealt players receive heads-up opening guidance;
+a multiway hand reduced to two retains its original preflop context. Advice never
+removes candidates or overrides legality, exact river safeguards or playstyles.
+
+Provider context, raw responses and decision diagnostics are not persisted or
+exposed through public DTOs, browser APIs or Realtime. Production model settings
+remain unchanged. See [context and evaluation methodology](../benchmarks/poker-context.md)
+for qualitative strategy limits and the bounded OpenRouter model pilot.
 
 Provider failures normally keep the public generic 502 response. A confirmed
 LLM credit failure instead applies one engine-validated fold and atomically marks

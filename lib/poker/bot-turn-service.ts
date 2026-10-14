@@ -1,3 +1,4 @@
+import { projectSessionStats, type BotSessionContext } from "./session-stats";
 import { randomUUID } from "node:crypto";
 import { BotStepInProgressError, type BotStepClaimRepository } from "./bot-step-claims";
 import {
@@ -45,6 +46,7 @@ export interface AIActionWriter {
 }
 
 export interface BotHandContextReader {
+  getBotSessionContext?(gameId: string, handNumber: number): Promise<BotSessionContext | null>;
   getBotHandContext(gameId: string, handNumber: number): Promise<BotHandContext | null>;
 }
 
@@ -86,11 +88,19 @@ async function stepResolvedBotAction(
     throw new Error("The current hand is not accepting actions");
   }
 
-  const history = repository.getBotHandContext
-    ? await repository.getBotHandContext(gameId, snapshotBefore.handNumber) : null;
+  const session = botDescriptor.provider !== "rules" && repository.getBotSessionContext
+    ? await repository.getBotSessionContext(gameId, snapshotBefore.handNumber) : null;
+  if (session && (session.gameId !== gameId || session.version !== expectedVersion)) throw new GameConflictError(gameId, expectedVersion);
+  const history = botDescriptor.provider !== "rules" && repository.getBotSessionContext
+    ? session?.currentHand ?? null
+    : repository.getBotHandContext ? await repository.getBotHandContext(gameId, snapshotBefore.handNumber) : null;
   if (history && history.version !== expectedVersion) throw new GameConflictError(gameId, expectedVersion);
+  let sessionStats: ReturnType<typeof projectSessionStats> | undefined;
   let projectedHistory: ReturnType<typeof projectBotHistory>;
-  try { projectedHistory = projectBotHistory(history, stateBefore, botPlayer.id); }
+  try {
+    projectedHistory = projectBotHistory(history, stateBefore, botPlayer.id);
+    if (botDescriptor.provider !== "rules") sessionStats = projectSessionStats(session, stateBefore, botPlayer.id);
+  }
   catch (error) {
     if (error instanceof BotHistoryConflictError) throw new GameConflictError(gameId, expectedVersion);
     throw error;
@@ -101,7 +111,7 @@ async function stepResolvedBotAction(
     historyStatus: projectedHistory.status,
     correctedContext: botDescriptor.provider !== "rules",
   });
-  const context = { ...aiState, sizingOptions: botDescriptor.provider === "rules"
+  const context = { ...aiState, ...(sessionStats ? { sessionStats } : {}), sizingOptions: botDescriptor.provider === "rules"
     ? createLegacySizingOptions(aiState) : createSizingOptions(aiState) };
   if (botDescriptor.provider !== "rules") await beforeInference();
   let decision: BotDecision;

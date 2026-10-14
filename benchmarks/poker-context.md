@@ -1,15 +1,15 @@
-# Shared context and selective LLM guidance
+# Shared context, heads-up guidance and session observations
 
-Production defaults use `typesafe-poker-v3.0` and
-`llm-poker-v3.1-guided-{balanced|tight|aggressive}`. The analysis and advisory
-library are independently versioned as `poker-facts-v1` and `poker-advice-v1`.
+Production policies use `typesafe-poker-v4.0` and
+`llm-poker-v4.0-guided-{balanced|tight|aggressive}`; model configuration is unchanged. The analysis and advisory
+library are independently versioned as `poker-facts-v1` and `poker-advice-v2`.
 There is one provider request per decision. Equity Rules' strategy code is
 unchanged; production retains its legacy fractional sizing.
 
 ## Context and privacy
 
 Apply `20261013000000_add_bot_hand_context.sql` before the application release.
-The additive RPC is service-role-only, reads one game/hand and its ordered
+The original RPC is service-role-only, reads one game/hand and its ordered
 pre-action states in one SQL statement, and needs no backfill. It never joins
 actors to mutable names. Repository parsing validates the envelope and states;
 empty legacy states or gaps give an explicit unknown classification. Database
@@ -80,52 +80,140 @@ for speed; they verify wiring and legal arithmetic, not strategy or equity
 accuracy. Full-hand comparisons use 100 equity samples, paired seeded deals,
 seat-swapped heads-up and all six subject-seat rotations.
 
-`benchmarks/results/poker-context-offline.json` contains the detailed generated
-report. Results are ignored by Git. The frozen v2.1 context and provider policies
-in `benchmarks/baselines/` are benchmark-only; production never imports them.
-LLMs compare baseline, corrected facts, and facts plus guidance. Jev compares
-baseline and corrected facts because it receives no strategy guidance.
+`benchmarks/results/poker-context-offline.json` contains the generated legacy
+matrix/control report. Results are ignored by Git. The v2.1 context baselines are
+retained as historical controls. Both Jev and LLM now have guidance ablations.
+`heads-up-offline.json` records fixed-pilot wiring across all eight variants.
+The unit suite additionally exercises all 169 classes at 10/25/100 BB with unequal
+stacks, sparse samples, identity changes, history gaps, per-street opportunities,
+forced departures, hidden-card invariance and server claim/version ordering.
+All LLM playstyles run through the fixed cases offline, including exact river checks.
+Three-to-two-player and larger-table controls preserve original dealt context;
+`seatCount` does not determine whether the current hand is heads-up.
 
-Offline provider outputs are scripted. Legal actions, deterministic agreement,
-chart frequencies and confidence intervals here **do not establish playing
-strength**. No hand-written chart is treated as GTO ground truth. A future chart
-comparison must label its range source as a descriptive reference. Random-hand
-equity is not betting-range equity.
+Offline provider outputs are scripted. Legal actions, agreement, frequencies and
+intervals here **do not establish playing strength**. There are no GTO pass
+thresholds, copied reference ranges or blanket classifications of legal folds as
+mistakes. Random-hand equity remains distinct from betting-range equity.
 
-## Explicit capped live evidence
+## Session statistics
 
-No paid run or deployment is part of this implementation. To deliberately run
-live, supply credentials via existing environment configuration and a decision
-cap shared across every variant, model, playstyle and repetition:
+Deploy `20261028000000_add_bot_session_context.sql` before application code.
+The stable, service-role-only RPC returns current-hand history and the latest 50
+completed earlier hands, selecting hands before fetching their actions and binding
+the entire read to one game version. No backfill or historical mutation occurs.
+Equity Rules continues using the original hand RPC and legacy context.
+
+Replay every historical hand through the adapter against its final engine state.
+Missing/legacy records make coverage incomplete; malformed records/DB failures
+remain visible. Only server-produced `poker-session-stats-v1` aggregates enter
+provider requests. Current participants are attributed through immutable engine
+identity plus human ownership token or full bot configuration (descriptor,
+difficulty and playstyle). Names/seats do not establish continuity. Gaps, missing
+participants and changes stop older attribution, even if an old occupant returns.
+No historical cards, holdings, outcomes, ownership tokens or raw states are sent.
+
+Counts and opportunity denominators are separate for hands dealt heads-up and
+with at least three participants. VPIP/PFR have one denominator per participant-hand
+with a preflop decision; button raise/limp/fold use the opening decision. BB fold,
+call and raise observations use the first response to a button open, separating
+opens up to 3 BB from larger ones. A street aggression opportunity requires a
+legal bet or raise; a faced-bet fold opportunity requires an outstanding price and
+legal call. Record these separately for flop, turn and river. Zero opportunities
+have null rates and unknown evidence; fewer than ten are insufficient for
+opponent-specific adaptation. Ten is a conservative product default, not a
+statistical guarantee. Larger samples are still uncertain evidence of tendencies
+and table image, never an obligation to reverse previous folds.
+
+Conservatively exclude a participant-hand with identifiable departure provenance.
+The RPC resolves its actor from the authoritative pre-action engine turn, then
+checks leaving flags in before/after configurations. Unmarked folds remain recorded
+folds, not inferred intent: timer and some credit-departure provenance is unavailable.
+
+Shared advice is original qualitative guidance for button opening/limping, BB price
+sensitivity, re-raised pots, shallow stacks, modest-hand value, semi-bluffs and
+bluff-catching. It never supplies forced frequencies, explicit ranges, solver
+restrictions or fine-tuning. Jev replaces its variance preference with expected
+chip value. LLM playstyles remain preferences subordinate to exact safeguards.
+Facts, advice, session aggregates and provider policies are independently versioned.
+Frozen current policies in `baselines/jev-v3.ts`, `questions-v3.ts`, `decision-v3.ts`,
+`llm-v3.ts` and `strategy-advice-v1.ts` preserve the pre-change prompts/output
+contracts; benchmark boundaries omit new session/count fields for current baselines.
+Engine legality/exact river safeguards remain shared across all variants.
+
+See the [2026-10-14 pilot evidence and recommendation](heads-up-pilot-2026-10-14.md)
+for measured behavior, latency, cost and excluded match blocks.
+
+## Explicit capped OpenRouter pilot
+
+The live entry point extends this benchmark and requires existing credentials in
+`.env.test`, both inference opt-ins and a shared 640–1,000-request cap:
 
 ```sh
-EXTERNAL_INFERENCE_ENABLED=true BOT_DECISION_CALL_CAP=100 \
+EXTERNAL_INFERENCE_ENABLED=true BOT_DECISION_CALL_CAP=1000 \
   npm run benchmark:poker-context:live
 ```
 
-The cap is a maximum, not a request to spend exactly that many calls. The full
-matrix is much larger than this example cap; exhaustion stops before the next
-request and fails visibly. Completed reports and partial rows are saved to
-`benchmarks/results/poker-context-live.json`. Failed provider decisions are
-recorded without fallback. `BOT_EVAL_REPETITIONS` defaults to two. Live matrix
-contexts use production's 5,000 equity samples. LLM models/reasoning come from
-`LLM_BOT_MODELS`, covering all three playstyles. Jev retains medium difficulty
-and its complete-move contract. Model, variant/policy, playstyle, seeds,
-repetitions, rotations and provider usage/cost are recorded.
+The exact 40 fixed cases are repeated twice across eight variants (640 requests):
 
-Full-hand reports compare variants against Equity Rules with paired seed means.
-Each seed averages rotations and repetitions; those seed means, rather than
-correlated individual hands, are the uncertainty units. Reports include normal
-approximation 95% intervals for facts-minus-baseline, guidance-minus-baseline
-and guidance-minus-facts. Fewer than two paired seeds yield no interval; small
-samples and a single offline opponent limit interpretation. These matches are
-not a solver benchmark or evidence of broad six-seat strength.
+| Family | Variant | Reasoning |
+| --- | --- | --- |
+| Jev | current / guidance / guidance + history | provider-owned |
+| `openai/gpt-5-nano` | current / guidance / guidance + history | minimal |
+| `openai/gpt-5-nano` | guidance + history | low |
+| `openai/gpt-5.4-mini` | guidance + history | low |
 
-Existing `test:bots` live groups and `benchmark:typesafe:live` also require
-`BOT_DECISION_CALL_CAP` and explicit inference enablement. The SQL runner uses
-rolled-back fixtures in the local Docker database, checks ordering, roles and
-cross-game/hand isolation, and never loads `.env`, resets the DB, or calls a bot.
-CI runs it after applying migrations alongside the existing integration checks.
+Balanced is the primary LLM playstyle. The fixed cases include 24 openings/BB
+responses (four holdings at 10/25/100 BB), eight limp/large-open/re-raise/unequal-stack
+cases, and eight postflop pressure/exact-river cases. Guidance + history uses the
+same fixed, adapter-replayed 20-hand synthetic observation window for each case,
+with paired alternating-button lines restoring stacks. This tests a controlled
+history ablation; it is not a claim of natural opponent adaptation or persistent
+memory strength. All decision variants see identical cards, prices and lines.
+
+The gateway is the configured OpenRouter endpoint. Requests disable fallback and
+require supported parameters. The returned model ID must match the requested ID
+(or its dated snapshot); unavailable models fail visibly with no substitution.
+Compatibility decisions count toward the same cap. Failed attempts count too;
+there are no automatic retries. Production `LLM_BOT_MODELS` is never changed.
+
+The remaining budget starts only complete paired blocks: all eight variants in
+both seats with the same seeded deal, against Equity Rules and fixed minimum-size
+aggressive/passive opponents. Reserve 96 calls before each block; each hand is
+bounded to 12 actions and six subject decisions. Failures or truncation invalidate
+the entire block for chip comparisons. Such a small sample is exploratory.
+Comparative estimates use complete seed/opponent blocks as units, not correlated
+individual hands. Fewer than two blocks yield no uncertainty interval; normal
+approximation intervals at this size are descriptive, not strength gates.
+
+The live command exits nonzero on provider/invariant failures, retaining the report.
+Reports are saved after progress and in `finally` to
+`benchmarks/results/poker-context-live.json`, including sanitized partial results.
+Useful completed runs can be preserved as dated sanitized snapshots in
+[`benchmarks/evidence/`](evidence/README.md), together with their interpretation,
+model/context versions, budget and checksum. Routine generated reports remain ignored.
+They contain action counts by opportunity (with denominators), exact invariant
+failures, missed guaranteed value, provably unproductive river aggression, successful
+request median/p95 latency, token counts and reported actual cost. Strategic missed
+value/over-aggression for ordinary legal decisions is **ungraded**: a legal fold
+is not automatically an error. Jev may omit usage/cost, and failed requests may
+lack billing details; totals explicitly show known-request coverage and must not
+be presented as complete billing. Repeat agreement and case-paired comparisons
+must retain sample sizes; case mixtures do not estimate population poker frequency.
+
+[Official mini documentation](https://developers.openai.com/api/docs/models/gpt-5.4-mini)
+confirms low reasoning and structured outputs; its listed input/output prices are
+$0.75/$4.50 per million tokens, versus $0.05/$0.40 for
+[nano](https://developers.openai.com/api/docs/models/gpt-5-nano).
+These are documentation prices, not a substitute for gateway-reported actual cost.
+Use the exact [OpenRouter nano](https://openrouter.ai/openai/gpt-5-nano) and
+[mini](https://openrouter.ai/openai/gpt-5.4-mini) IDs and verify their live responses.
+
+Existing `test:bots` and `benchmark:typesafe:live` keep their explicit opt-ins/caps.
+The SQL runner uses rolled-back local fixtures, checks ordering, completed-hand
+bounds, permissions, actor-specific forced departures and game/hand isolation. It
+never loads application `.env`, resets a database or calls providers. CI runs it
+with the other integration suites after all migrations.
 
 ## Research attribution
 
@@ -136,3 +224,13 @@ without importing its implementation, tables, numerical attack/defense budgets,
 or non-commercial code. See its [repository license](https://github.com/lbn187/PokerSkill#license).
 [jev-preflop-poker](https://github.com/marcbara/jev-preflop-poker) motivated
 weighted starting-hand chart reporting; no reference ranges are copied.
+
+[Readable Minds](https://arxiv.org/html/2604.04157v1) motivates observed-history
+context as an experiment. [Poker Arena](https://arxiv.org/html/2606.13815v1) reports
+model-dependent memory benefits and regressions; memory is not assumed to improve
+play. [PokerBench](https://arxiv.org/html/2501.08328v2) informs scenario evaluation;
+no dataset or trained policy is reused. [ToolPoker](https://arxiv.org/html/2602.00528v1)
+uses solver-assisted reasoning and [SpinGPT](https://arxiv.org/html/2509.22387v2)
+uses specialized training. Their results do not establish that this application's
+qualitative prompts or model changes achieve comparable strength. We use none of
+these papers' restricted assets, detailed ranges, budget systems or training data.

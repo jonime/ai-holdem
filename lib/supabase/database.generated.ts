@@ -496,6 +496,9 @@ isOneToOne: false
 "get_bot_hand_context":
 { Args: { "p_game_id": string,"p_hand_number": number }; Returns: Json
                            },
+"get_bot_session_context":
+{ Args: { "p_game_id": string,"p_hand_number": number }; Returns: Json
+                           },
 "get_game_feed":
 { Args: { "p_game_id": string,"p_hand_limit"?: number }; Returns: Json
                            },

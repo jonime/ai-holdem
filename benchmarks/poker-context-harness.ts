@@ -49,13 +49,14 @@ export function evaluationContext(state: PokerGameState, history: BotHandContext
   if (rules) return { ...ai,sizingOptions:createLegacySizingOptions(ai) };
   return prepareProviderContext({ ...ai, sizingOptions:createSizingOptions(ai) });
 }
-export function buildPreflopNode(node: typeof preflopNodes[number], cards: readonly string[], variant: EvaluationVariant = "facts", samples = 100) {
+export function buildPreflopNode(node: typeof preflopNodes[number], cards: readonly string[], variant: EvaluationVariant = "facts", samples = 100, options: { stackBB?: number; opponentStackBB?: number; openBB?: number } = {}) {
   const config = { smallBlind:1, bigBlind:2, seatCount:node.seats,
-    players:Array.from({ length:node.seats }, (_,seat) => ({ id:`p${seat}`, name:`Seat ${seat}`, seat, controller:"bot" as const, stack:200 })) };
-  const waiting = engine.createGame(config);
+    players:Array.from({ length:node.seats }, (_,seat) => ({ id:`p${seat}`, name:`Seat ${seat}`, seat, controller:"bot" as const, stack:2 * (options.stackBB ?? 100) })) };
+  let waiting = engine.createGame(config);
   const preliminary = engine.startHand(waiting, createDeterministicDeck());
   const view = engine.decisionView(preliminary);
   const heroSeat = view.players.find(p => p.position === node.position)!.seat;
+  if (options.opponentStackBB !== undefined) waiting = engine.createGame({ ...config, players: config.players.map(player => player.seat === heroSeat ? player : { ...player, stack: 2 * options.opponentStackBB! }) });
   const dealOrder = view.postflopOrder;
   const prefix: string[] = [];
   const available = [...createDeterministicDeck()].map(c => c.rank+c.suit).filter(c => !cards.includes(c));
@@ -68,7 +69,7 @@ export function buildPreflopNode(node: typeof preflopNodes[number], cards: reado
     const legal = engine.getLegalActions(state);
     let action: PokerAction = { type:"fold" };
     if (actions.length === 0 && node.line === "limped") action = { type:"call", amount:legal.find(a => a.type === "call")!.amount };
-    else if ((actions.length === 0 && node.line !== "open") || (actions.length === 1 && node.line === "reraised")) action = { type:"raise", amount:actions.length === 0 ? 6 : 18 };
+    else if ((actions.length === 0 && node.line !== "open") || (actions.length === 1 && node.line === "reraised")) action = { type:"raise", amount:actions.length === 0 ? 2 * (options.openBB ?? 3) : 18 };
     const before = state, actor = current.players.find(p => p.seat === current.currentActorSeat)!;
     state = engine.applyAction(state, actor.id, action);
     actions.push({ sequence:actions.length+1, action, stateBefore:before });
@@ -181,7 +182,7 @@ export async function compareVariants(subjects: Readonly<Partial<Record<Evaluati
     const differences=seeds.flatMap(seed => {
       const baseline=rows.filter(row => row.seed === seed && row.variant === reference);
       const upgraded=rows.filter(row => row.seed === seed && row.variant === variant);
-      if ([...baseline,...upgraded].some(row => row.profitBB === null)) return [];
+      if (baseline.length !== seats * repetitions || upgraded.length !== seats * repetitions || [...baseline,...upgraded].some(row => row.profitBB === null)) return [];
       const mean=(r:typeof rows) => r.reduce((sum,row) => sum+row.profitBB!,0)/r.length;
       return [mean(upgraded)-mean(baseline)];
     });

@@ -4,7 +4,7 @@ import type { LegalAction, PokerAction } from "@/lib/poker/types";
 
 import type { ChoiceQuestion, SystemOneRequest } from "./types";
 
-export const typesafePokerPolicyVersion = "typesafe-poker-v3.0";
+export const typesafePokerPolicyVersion = "typesafe-poker-v4.0";
 
 export type SizingChoice =
   | "two_big_blinds"
@@ -256,7 +256,7 @@ export function createPokerDecisionRequest(
   const move: ChoiceQuestion = {
     type: "choice",
     instructions:
-      "Choose the complete legal move with the highest expected chip value for HERO in this no-rake cash-game hand. The supplied showdown equity is explicitly against random opponent hands, not the probability of beating the opponent's betting range; adjust for ranges implied by position and the complete action history. Compare that adjusted assessment with the supplied contestable-pot odds and account for effective stacks, stack-to-pot ratio, board texture, blockers, previous aggression, value available from worse hands, and realistic fold equity. Evaluate the complete best five-card hand including kickers: a strong hand category shared by the board is not necessarily a strong HERO hand. With four of a kind on the board, the fifth-card kicker decides the winner. On the river there are no future cards and no draws to complete. Never fold an unbeatable river hand when calling has nonnegative chip EV. If every possible opponent holding ties, check or call for the guaranteed split instead of folding or raising. If every possible opponent holding beats HERO, do not call; a strong category alone does not justify it. Prefer robust value decisions over unnecessary variance. Do not treat returned probabilities as poker bluffing frequencies. Do not use tournament survival, bankroll concerns, future cards, hidden cards, or information absent from the state.",
+      "Choose the complete legal move with the highest expected chip value for HERO in this no-rake cash-game hand. The supplied showdown equity is explicitly against random opponent hands, not the probability of beating the opponent's betting range; adjust for ranges implied by position and the complete action history. Compare that adjusted assessment with the supplied contestable-pot odds and account for effective stacks, stack-to-pot ratio, board texture, blockers, previous aggression, value available from worse hands, and realistic fold equity. Evaluate the complete best five-card hand including kickers: a strong hand category shared by the board is not necessarily a strong HERO hand. With four of a kind on the board, the fifth-card kicker decides the winner. On the river there are no future cards and no draws to complete. Never fold an unbeatable river hand when calling has nonnegative chip EV. If every possible opponent holding ties, check or call for the guaranteed split instead of folding or raising. If every possible opponent holding beats HERO, do not call; a strong category alone does not justify it. Compare actions by expected chip value; variance alone is not a reason to reject a profitable action. Shared strategyAdvice is advisory; sparse sessionStats are uncertain evidence, never an obligation to compensate for previous folds. Do not treat returned probabilities as poker bluffing frequencies. Do not use tournament survival, bankroll concerns, future cards, hidden cards, or information absent from the state.",
     criteria: Object.fromEntries(
       moves.map((option) => [option.choice, option.description]),
     ),

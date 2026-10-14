@@ -384,7 +384,21 @@ credentials. Live bot evaluations still require their explicit opt-in flags.
 
 ## Shared Jev/LLM context and evaluations
 
-Use `get_bot_hand_context` for inference history.
+Use `get_bot_session_context` for Jev/LLM inference history and bounded previous-hand
+statistics; Equity Rules retains `get_bot_hand_context`. Apply
+`20261028000000_add_bot_session_context.sql` before deploying the session-context code.
+The stable RPC bounds the latest 50 completed hands before loading actions. Replay
+historical states server-side; send only versioned seat-relative aggregates, never
+historical holdings, identities, tokens or outcomes. Attribute only through immutable
+identity plus ownership/controller/configuration continuity; gaps or changes reset
+older attribution. Keep dealt-heads-up/multiway statistics separate, opportunity
+counts explicit, zero opportunities unknown and fewer than ten insufficient for
+opponent-specific adaptation. This threshold is a product default, not a guarantee.
+Exclude identifiable forced departures; never infer intent or compensate for prior
+folds. Both providers receive shared advisory guidance with unchanged output contracts.
+Production models stay unchanged during the capped 640–1,000-request OpenRouter pilot;
+no fallback/substitution or automatic retry. Freeze current policies in benchmark
+baselines and exclude incomplete paired match blocks from chip comparisons.
 Apply `20261013000000_add_bot_hand_context.sql` before app deployment. Resolve
 actors by authoritative pre-action engine turns and immutable hand configuration.
 Validate the version and replay before inference; incomplete legacy history is

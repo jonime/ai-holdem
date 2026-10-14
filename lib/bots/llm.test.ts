@@ -75,7 +75,7 @@ describe("LlmPokerBot", () => {
     ).decide(context);
     expect(decision.action).toEqual({ type: "call", amount: 1 });
     expect(decision.diagnostics).toMatchObject({
-      promptVersion: "llm-poker-v3.1-guided-balanced",
+      promptVersion: "llm-poker-v4.0-guided-balanced",
       botProfileId: "balanced",
       cost: 0.001,
     });
@@ -135,7 +135,7 @@ describe("LlmPokerBot", () => {
         analysis: { callCost: 1, potOddsToCall: 0.25 },
       });
       expect(decision.diagnostics).toMatchObject({
-        promptVersion: `llm-poker-v3.1-guided-${profileId}`,
+        promptVersion: `llm-poker-v4.0-guided-${profileId}`,
         botProfileId: profileId,
       });
     },
@@ -206,11 +206,11 @@ describe("LLM supplied analysis audit and strict output", () => {
     vi.stubEnv("EXTERNAL_INFERENCE_ENABLED","true"); vi.stubEnv("LLM_API_ENDPOINT","https://offline.invalid"); vi.stubEnv("LLM_API_KEY","offline");
     const fetcher=vi.fn<(url:string,init:RequestInit) => Promise<Response>>(async () => new Response(JSON.stringify({ choices:[{ message:{ content:'{"action":"call","sizing":null}' } }] })));
     const result=await new LlmPokerBot("mock","tight",fetcher).decide(context);
-    expect(result.suppliedContext).toMatchObject({ facts:{ version:"poker-facts-v1" },strategyAdvice:{ version:"poker-advice-v1",scope:"general" } });
+    expect(result.suppliedContext).toMatchObject({ facts:{ version:"poker-facts-v1" },strategyAdvice:{ version:"poker-advice-v2",scope:"general" } });
     const request=JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body));
     const payload=JSON.parse(request.messages[1].content);
     expect(payload.facts.startingHand.notation).toBe("AKs");
-    expect(request.messages[0].content).toContain("poker-advice-v1");
+    expect(request.messages[0].content).toContain("poker-advice-v2");
     expect(fetcher).toHaveBeenCalledOnce();
   });
   it.each(['{"action":"call","sizing":"all_in"}','{"action":"call","sizing":null,"extra":true}','{"action":"call"}'])("rejects invalid local output %s", async content => {

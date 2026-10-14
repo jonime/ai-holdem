@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "poker-benchmark-evidence-v1",
+  "runDate": "2026-10-14",
+  "timezone": "Europe/Helsinki",
+  "report": "../heads-up-pilot-2026-10-14.md",
+  "dataFile": "heads-up-pilot-2026-10-14.json",
+  "sha256": "dd788e3074da99a783f92f73e5ea0c47dc158192ae26457099bec259f59c2f04",
+  "requests": {
+    "cap": 1000,
+    "used": 892,
+    "fixedDecisions": 640,
+    "initialMatches": 177,
+    "replacementRulesMatches": 75
+  },
+  "versions": {
+    "facts": "poker-facts-v1",
+    "guidance": "poker-advice-v2",
+    "sessionStats": "poker-session-stats-v1"
+  },
+  "models": {
+    "jev": "jev-latest",
+    "nano": "openai/gpt-5-nano",
+    "mini": "openai/gpt-5.4-mini"
+  },
+  "reasoning": {
+    "jev": "provider-owned",
+    "nano": [
+      "minimal",
+      "low"
+    ],
+    "mini": [
+      "low"
+    ]
+  },
+  "llmPlaystyle": "balanced",
+  "limits": [
+    "Three fixed-case provider failures; no automatic retries.",
+    "Initial rules match block superseded; its requests and costs remain counted.",
+    "Only one complete paired match block supports chip comparisons; no uncertainty interval.",
+    "Jev and failed-request billing coverage is incomplete.",
+    "Fixed synthetic history and cases do not establish overall poker strength."
+  ],
+  "sourceNote": "Archived after the run from the sanitized local report. The report documents the match-context correction; no exact source commit was captured at execution."
+}

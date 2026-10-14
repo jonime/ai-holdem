@@ -220,7 +220,7 @@ export class LlmPokerBot implements PokerBot {
               confidence: null,
             }
           : null,
-        promptVersion: `llm-poker-v3.1-${this.guidance ? "guided" : "facts"}-${this.profileId}`,
+        promptVersion: `llm-poker-v4.0-${this.guidance ? "guided" : "facts"}-${this.profileId}`,
         botProfileId: this.profileId,
         durationMs: Math.round(performance.now() - started),
         usage,

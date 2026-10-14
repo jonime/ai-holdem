@@ -847,3 +847,29 @@ describe("structured timer and departure persistence", () => {
     expect(rpc.mock.calls[0]).toEqual(["create_game_with_attempt", { ...creationAttempt, p_arguments: { p_current_state: state, p_status: "playing", p_state_schema_version: 1, p_hand_number: 1, p_host_token: "owner", p_players: [{ engine_player_id: "human-0", seat: 0, name: "Human", controller: "human", stack: 1000, player_token: "owner" }] }, p_transition: seconds === null ? null : pokerEngineAdapter.timerTransition(state) }]);
   });
 });
+
+describe("private bot session context read", () => {
+  const hand = (handNumber: number, version = 4) => ({ handNumber, version, initialState: {}, finalState: {}, actions: [] });
+  it("uses a single bounded RPC and parses legacy coverage without a follow-up query", async () => {
+    const { client, rpc } = createClient({ updateResult: { gameId: "game-1", version: 4, currentHand: hand(2), previousHands: [hand(1)] } });
+    const result = await new SupabaseGameRepository(client).getBotSessionContext("game-1", 2);
+    expect(result?.previousHands[0].initialState).toBeNull();
+    expect(rpc).toHaveBeenCalledExactlyOnceWith("get_bot_session_context", { p_game_id: "game-1", p_hand_number: 2 });
+  });
+  it("rejects cross-game, cross-hand, inconsistent versions, duplicate hands and unbounded reads", async () => {
+    const { client, rpc } = createClient({ updateResult: {} });
+    const repo = new SupabaseGameRepository(client);
+    for (const data of [
+      { gameId: "other", version: 4, currentHand: hand(2), previousHands: [] },
+      { gameId: "game-1", version: 4, currentHand: hand(3), previousHands: [] },
+      { gameId: "game-1", version: 4, currentHand: hand(2), previousHands: [hand(1, 3)] },
+      { gameId: "game-1", version: 4, currentHand: hand(2), previousHands: [hand(1), hand(1)] },
+      { gameId: "game-1", version: 4, currentHand: hand(2), previousHands: Array(51).fill(hand(1)) },
+    ]) {
+      rpc.mockResolvedValue({ data, error: null });
+      await expect(repo.getBotSessionContext("game-1", 2)).rejects.toThrow();
+    }
+    rpc.mockResolvedValue({ data: null, error: { message: "private DB detail" } });
+    await expect(repo.getBotSessionContext("game-1", 2)).rejects.toThrow("Unable to load bot session context");
+  });
+});

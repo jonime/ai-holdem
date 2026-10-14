@@ -47,10 +47,14 @@ export interface CreatePokerAIStateOptions {
 }
 
 export interface PokerAIState {
+  readonly sessionStats?: import("./session-stats").BotSessionStats;
+  readonly strategyAdvice?: import("./strategy-advice").PokerStrategyAdvice;
   readonly facts?: import("./decision-facts").PokerDecisionFacts;
   readonly situation?: {
     readonly historyStatus: "complete" | "unknown";
     readonly preflop: "unopened" | "limped" | "raised" | "re-raised" | "unknown";
+    readonly dealtPlayerCount?: number;
+    readonly playersRemaining?: number;
     readonly activeOpponentCount: number;
     readonly playersStillToAct: readonly number[];
     readonly postflopPosition: "in_position" | "out_of_position" | "between";
@@ -223,6 +227,7 @@ export function createPokerAIState(
     situation: {
       historyStatus,
       preflop: historyStatus === "unknown" ? "unknown" : raises > 1 ? "re-raised" : raises === 1 ? "raised" : preflopActions.some(a => a.action === "call") ? "limped" : "unopened",
+      ...(corrected ? { dealtPlayerCount: hand.players.length, playersRemaining: active.length } : {}),
       activeOpponentCount: active.filter(p => p.id !== heroId).length,
       playersStillToAct: hand.remainingOrder.filter(seat => hand.players.some(p => p.seat === seat && p.id !== heroId && p.needsAction)),
       postflopPosition: order.at(-1) === hero.seat ? "in_position" : order[0] === hero.seat ? "out_of_position" : "between",

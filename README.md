@@ -157,7 +157,17 @@ the application includes its SDK with private table URLs redacted.
 
 - [PokerSkill: LLMs Can Play Expert-Level Poker without Training or Solvers](https://arxiv.org/html/2605.30094v1)
   — research informing deterministic decision context and situation-specific
-  guidance for LLM bots, with an extensive explanation of the approach.
+  guidance for Jev and LLM bots; detailed range/budget systems are not reproduced.
+- [Readable Minds](https://arxiv.org/html/2604.04157v1)
+  — motivates treating observed opponent history as uncertain decision context.
+- [Poker Arena](https://arxiv.org/html/2606.13815v1)
+  — motivates evaluating memory ablations because benefits and regressions depend on the model.
+- [PokerBench](https://arxiv.org/html/2501.08328v2)
+  — informs scenario evaluation, without reusing training data or claiming its results.
+- [ToolPoker](https://arxiv.org/html/2602.00528v1)
+  — a solver-assisted research comparison illustrating the limits of qualitative prompts.
+- [SpinGPT](https://arxiv.org/html/2509.22387v2)
+  — specialized poker training research; its results do not establish this app's strength.
 - [marcbara/jev-preflop-poker](https://github.com/marcbara/jev-preflop-poker)
   — a reproducible Jev preflop benchmark that inspired weighted starting-hand
   chart reporting in our evaluations.

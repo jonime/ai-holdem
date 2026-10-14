@@ -350,3 +350,32 @@ describe("bot history validation before inference", () => {
     expect(persistAIAction).not.toHaveBeenCalled();
   });
 });
+
+describe("claimed session context pipeline", () => {
+  it("loads session history only after authorization and a claim, and before allowance admission", async () => {
+    const f = orderedTurn();
+    const getBotSessionContext = vi.fn(async () => { f.calls.push("session"); return { gameId: "game", version: 1, currentHand: null, previousHands: [] }; });
+    Object.assign(f.repository, { getBotSessionContext });
+    await f.step();
+    expect(f.calls.indexOf("session")).toBeGreaterThan(f.calls.indexOf("claim"));
+    expect(f.calls.indexOf("session")).toBeLessThan(f.calls.indexOf("admit"));
+    expect(f.repository.getBotHandContext).not.toHaveBeenCalled();
+    expect(f.decide.mock.calls[0]).toBeDefined();
+  });
+  it("rejects a changed session version before allowance accounting or inference", async () => {
+    const f = orderedTurn();
+    Object.assign(f.repository, { getBotSessionContext: vi.fn(async () => ({ gameId: "game", version: 2, currentHand: null, previousHands: [] })) });
+    await expect(f.step()).rejects.toBeInstanceOf(GameConflictError);
+    expect(f.repository.admitExternalBotCall).not.toHaveBeenCalled();
+    expect(f.decide).not.toHaveBeenCalled();
+    expect(f.repository.releaseBotStepClaim).toHaveBeenCalled();
+  });
+  it("keeps database failures visible and releases the claim without inference", async () => {
+    const f = orderedTurn();
+    Object.assign(f.repository, { getBotSessionContext: vi.fn(async () => { throw new Error("database unavailable"); }) });
+    await expect(f.step()).rejects.toThrow("database unavailable");
+    expect(f.repository.admitExternalBotCall).not.toHaveBeenCalled();
+    expect(f.decide).not.toHaveBeenCalled();
+    expect(f.repository.releaseBotStepClaim).toHaveBeenCalled();
+  });
+});

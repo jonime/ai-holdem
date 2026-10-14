@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { buildPreflopNode, preflopNodes } from "@/benchmarks/poker-context-harness";
+import { createDeterministicDeck, pokerEngineAdapter as engine } from "./adapter";
+import { createPokerAIState } from "./ai-state";
+import { prepareProviderContext } from "./provider-context";
+import { createSizingOptions } from "@/lib/typesafe/questions";
 import { selectPokerAdvice } from "./strategy-advice";
 
 describe("advisory strategy selection", () => {
@@ -20,7 +24,7 @@ describe("advisory strategy selection", () => {
   });
   it("uses general guidance for unknown and unsupported situations", () => {
     const ctx=buildPreflopNode(preflopNodes[0],["As","Ks"]).context;
-    expect(selectPokerAdvice({ ...ctx,situation:undefined }).items.map(i => i.id)).toEqual(["advisory","unknown"]);
+    expect(selectPokerAdvice({ ...ctx,situation:undefined }).items.map(i => i.id)).toEqual(["advisory","session-evidence","unknown"]);
     expect(selectPokerAdvice({ ...ctx,opponents:[] }).scope).toBe("general");
   });
   it("keeps heads-up patterns off streets with earlier multiway actions", () => {
@@ -42,4 +46,17 @@ describe("advisory strategy selection", () => {
     expect(advice.items.map(i => i.id)).toContain("river-blockers");
     expect(advice.items.map(i => i.id)).toContain("low-spr");
   });
+});
+
+it("recognizes two dealt participants at an originally larger table", () => {
+  const state = engine.startHand(engine.createGame({ smallBlind: 1, bigBlind: 2, seatCount: 6,
+    players: [0, 5].map(seat => ({ id: `p${seat}`, seat, name: "Same", controller: "bot" as const, stack: 200 })) }), createDeterministicDeck());
+  const ai = createPokerAIState(state, engine.snapshot(state).currentActorId!, { correctedContext: true, historyStatus: "complete", equitySamples: 5 });
+  const context = prepareProviderContext({ ...ai, sizingOptions: createSizingOptions(ai) });
+  expect(context.situation).toMatchObject({ dealtPlayerCount: 2, playersRemaining: 2 });
+  expect(selectPokerAdvice(context).items.map(item => item.id)).toContain("hu-button");
+  const reduced = buildPreflopNode(preflopNodes.find(node => node.id === "six-open-small_blind")!, ["As", "Ks"]).context;
+  expect(reduced.situation).toMatchObject({ dealtPlayerCount: 6, playersRemaining: 2 });
+  expect(selectPokerAdvice(reduced).items.map(item => item.id)).toContain("multiway-origin");
+  expect(selectPokerAdvice(reduced).items.map(item => item.id)).not.toContain("hu-button");
 });

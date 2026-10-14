@@ -1,7 +1,7 @@
 import "server-only";
 import type { PokerAIState } from "./ai-state";
 
-export const pokerAdviceVersion = "poker-advice-v1";
+export const pokerAdviceVersion = "poker-advice-v2";
 export interface PokerStrategyAdvice {
   readonly version: string;
   readonly scope: "heads_up" | "multiway" | "general";
@@ -17,19 +17,35 @@ export function selectPokerAdvice(context: PokerAIState): PokerStrategyAdvice {
   const situation = context.situation;
   const supported = ["preflop","flop","turn","river"].includes(context.hand.street) && context.opponents.some(p => p.status !== "folded");
   const known = facts?.historyStatus === "complete" && situation?.historyStatus === "complete";
+  const dealtPlayerCount = situation?.dealtPlayerCount ?? situation?.preflopOrder.length;
+  const playersRemaining = situation?.playersRemaining ?? (situation ? situation.activeOpponentCount + 1 : undefined);
   const streetEvents = context.actionHistory.filter(e => e.street === context.hand.street);
   const headsUp = supported && known && situation.activeOpponentCount === 1 &&
-    (context.hand.street === "preflop" ? situation.preflopOrder.length === 2 :
+    (context.hand.street === "preflop" ? dealtPlayerCount === 2 :
       streetEvents.every(e => e.activeSeats !== undefined && e.activeSeats.length === 2));
   const patternHeadsUp = headsUp && context.actionHistory.filter(event => event.street !== "preflop")
     .every(event => event.activeSeats !== undefined && event.activeSeats.length === 2);
   const scope = !supported || !known ? "general" : headsUp ? "heads_up" : "multiway";
   add("advisory", "These recommendations are advisory. Keep every supplied candidate available; exact river safeguards and legal bounds take priority. Playstyle is a preference, and observed pressure is not equity.");
+  add("session-evidence", "Session statistics describe recorded actions, not intent or decision quality. Zero opportunities are unknown; fewer than ten are insufficient for opponent-specific adaptation. Treat larger samples as uncertain evidence about tendencies and HERO table image, not known ranges. Never reason that repeated HERO folds require a call now. Timeout/departure intent cannot be inferred without provenance.");
   if (scope === "general" || !facts || !situation) {
     add("unknown", "Some situation or history assumptions are unknown. Use observed cards, exact costs and legal sizes; avoid guessed action lines or positional range certainty.");
     return { version:pokerAdviceVersion,scope,items };
   }
   if (scope === "multiway") add("multiway", "Account for multiple continuing ranges, including all-in opponents. Bluffs must get through everyone who can continue; assume less fold equity and require clearer value or draw justification. Do not apply heads-up defense frequencies.");
+  if (dealtPlayerCount !== undefined && dealtPlayerCount > 2 && playersRemaining === 2) add("multiway-origin", "Only two players remain, but this hand was dealt multiway. Preserve its original preflop ranges and earlier multiway pressure; do not treat it as a hand dealt heads-up.");
+  if (dealtPlayerCount === 2) {
+    add("hu-value", "In a hand dealt heads-up, both starting ranges are wider and modest made hands can have showdown or value-bet value. Seek worse continuing hands; weigh price, position, board texture and the opponent's observed line rather than automatically calling or bluffing more.");
+    if (context.analysis.effectiveStack / context.game.bigBlind <= 25) add("hu-shallow", "At shallow effective stacks, speculative implied value shrinks and raises can commit the stack. Compare the full commitment with calls and folds; small pairs and high cards can have immediate value, but shallow stacks do not justify every shove.");
+    if (context.hand.street === "preflop") {
+      if (situation.preflop === "unopened" && context.hero.position === "button") add("hu-button", "The button may open-raise or limp with a wider set of playable hands than at a larger table. Compare stealing value, postflop position and the risk of a re-raise. Limping keeps the pot smaller but gives the big blind a cheap realization opportunity; folding remains available for poor value.");
+      if (situation.preflop === "raised" && context.hero.position === "big_blind") add("hu-bb-price", "Against a button open up to 3 big blinds, the big blind receives a better price than against a larger open. Consider wider playable calls and selective value or credible bluff re-raises while accounting for being out of position. Larger opens require a stronger price-adjusted case; neither category mandates defense.");
+      if (situation.preflop === "re-raised") add("hu-reraised", "Heads-up re-raised pots may contain wider value and bluff ranges, but additional investment is evidence of pressure. Consider dominance, effective stacks and the actual raise size. Do not apply an unopened button range to a re-raise decision.");
+    } else {
+      add("hu-semi-bluff", "On flop and turn, a real draw can support a semi-bluff when plausible folds combine with clean equity. Board texture, blockers, opponent pressure and remaining stacks matter; a missed river draw has no future completion equity.");
+      if (context.hero.amountToCall > 0) add("hu-bluff-catch", "Modest pairs or ace-high may catch some heads-up bluffs, but compare the exact price with credible value and bluffs in this observed line. Large or repeated bets and unfavorable blockers can justify folding. Random-hand equity is not equity against that betting range.");
+    }
+  }
   if (context.hand.street === "preflop") {
     const late = context.hero.position === "button" || context.hero.position === "cutoff";
     if (situation.preflop === "unopened") add(late ? "open-late" : "open-early",

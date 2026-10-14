@@ -218,3 +218,21 @@ attempt records have no automatic expiry. Keep deletion tombstones and do not
 truncate this store: doing so would allow old retries to create replacement tables.
 Retention changes need a separate replay-safety design. Run `test:sql:creation`,
 `test:sql:usage` and `test:e2e:ci` against the migrated local stack.
+
+## Heads-up provider session context
+
+Deploy `20261028000000_add_bot_session_context.sql` before the matching application.
+It adds a service-role-only, stable snapshot RPC for current-hand history and up to
+50 earlier completed hands, bounded before action loading. No backfill, historical
+mutation or new environment variable is required. Keep `get_bot_hand_context` for
+Equity Rules and rolling deployment. Generate/check database types using CLI 2.119.0
+after applying every local migration; run check, offline context/bot benchmarks,
+`test:sql:bot-context` and the production build. Privacy, claim ordering and version
+checks must pass before release.
+
+Production model configuration stays unchanged during the OpenRouter pilot.
+Gateway compatibility is tested using the exact requested model/reasoning and
+structured output, with fallback disabled. Treat the small paired match sample as
+exploratory behavior evidence, not proof of stronger overall poker. Select a model
+only after reviewing measured quality, latency, actual reported cost and unknown
+billing coverage in the benchmark report.

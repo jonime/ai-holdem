@@ -1,3 +1,4 @@
+import { selectPokerAdvice } from "@/lib/poker/strategy-advice";
 import { prepareProviderContext } from "@/lib/poker/provider-context";
 import { decidePokerAction, type TypesafeDecisionClient } from "@/lib/typesafe/decision";
 import { typesafePokerPolicyVersion } from "@/lib/typesafe/questions";
@@ -5,11 +6,12 @@ import { typesafePokerPolicyVersion } from "@/lib/typesafe/questions";
 import { emptyDiagnostics, type BotContext, type BotDecision, type PokerBot } from "./types";
 
 export class JevPokerBot implements PokerBot {
-  constructor(private readonly client: TypesafeDecisionClient) {}
+  constructor(private readonly client: TypesafeDecisionClient, private readonly guidance = true) {}
 
   async decide(context: BotContext): Promise<BotDecision> {
     const started = performance.now();
-    const suppliedContext = prepareProviderContext(context);
+    const prepared = prepareProviderContext(context);
+    const suppliedContext = { ...prepared, ...(this.guidance ? { strategyAdvice: selectPokerAdvice(prepared) } : {}) };
     const decision = await decidePokerAction(this.client, suppliedContext);
     const audit = decision.rawResponse;
     const provider = typeof audit === "object" && audit !== null && "providerResponse" in audit ? audit.providerResponse : null;
