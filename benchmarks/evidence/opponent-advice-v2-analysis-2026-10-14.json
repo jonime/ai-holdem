@@ -1,0 +1,643 @@
+{
+  "fixtureVersion": "opponent-advice-twelve-v2",
+  "adviceVersion": "opponent-fold-advice-v1",
+  "inputHash": "7ca78faeedbdeb2964e9dc0c013902a43046d5a79cf3488fed9fe6c9178dcc00",
+  "reportSha256": "5782749cde4a9da4aef223505830383fd2d83bdcf8b44248ca58f5aa07f76a63",
+  "analysisSourceSha256": "c5c4405109cd2dbc0dbd4f37a3347142e72c9abbc1c398452a91d8e39a391ef8",
+  "cap": 960,
+  "attempts": 960,
+  "successes": 960,
+  "failures": 0,
+  "stopReason": null,
+  "completePolicyPairs": 480,
+  "excludedPolicyPairs": 0,
+  "providers": [
+    {
+      "provider": "jev",
+      "attempts": 480,
+      "successes": 480,
+      "failures": 0,
+      "reportedCost": null,
+      "costCovered": 0,
+      "latencyMs": {
+        "median": 338.79779099998996,
+        "p95": 475.56875000009313
+      },
+      "tokens": {
+        "input": {
+          "reported": 0,
+          "coveredRequests": 0
+        },
+        "output": {
+          "reported": 0,
+          "coveredRequests": 0
+        },
+        "total": {
+          "reported": 0,
+          "coveredRequests": 0
+        }
+      }
+    },
+    {
+      "provider": "mini",
+      "attempts": 480,
+      "successes": 480,
+      "failures": 0,
+      "reportedCost": 0.9207938999999999,
+      "costCovered": 480,
+      "latencyMs": {
+        "median": 3557.020666999975,
+        "p95": 6949.402457999997
+      },
+      "tokens": {
+        "input": {
+          "reported": 1798660,
+          "coveredRequests": 480
+        },
+        "output": {
+          "reported": 137817,
+          "coveredRequests": 480
+        },
+        "total": {
+          "reported": 1936477,
+          "coveredRequests": 480
+        }
+      }
+    }
+  ],
+  "pairs": [
+    {
+      "provider": "jev",
+      "condition": "omitted",
+      "completePairs": 60,
+      "excludedPairs": 0,
+      "changedActionOrSize": 2,
+      "changedActionType": 2,
+      "adviceEligiblePairs": 0
+    },
+    {
+      "provider": "jev",
+      "condition": "insufficient",
+      "completePairs": 60,
+      "excludedPairs": 0,
+      "changedActionOrSize": 4,
+      "changedActionType": 4,
+      "adviceEligiblePairs": 0
+    },
+    {
+      "provider": "jev",
+      "condition": "folding",
+      "completePairs": 60,
+      "excludedPairs": 0,
+      "changedActionOrSize": 27,
+      "changedActionType": 22,
+      "adviceEligiblePairs": 50
+    },
+    {
+      "provider": "jev",
+      "condition": "continuation",
+      "completePairs": 60,
+      "excludedPairs": 0,
+      "changedActionOrSize": 2,
+      "changedActionType": 2,
+      "adviceEligiblePairs": 50
+    },
+    {
+      "provider": "mini",
+      "condition": "omitted",
+      "completePairs": 60,
+      "excludedPairs": 0,
+      "changedActionOrSize": 29,
+      "changedActionType": 9,
+      "adviceEligiblePairs": 0
+    },
+    {
+      "provider": "mini",
+      "condition": "insufficient",
+      "completePairs": 60,
+      "excludedPairs": 0,
+      "changedActionOrSize": 28,
+      "changedActionType": 6,
+      "adviceEligiblePairs": 0
+    },
+    {
+      "provider": "mini",
+      "condition": "folding",
+      "completePairs": 60,
+      "excludedPairs": 0,
+      "changedActionOrSize": 31,
+      "changedActionType": 7,
+      "adviceEligiblePairs": 50
+    },
+    {
+      "provider": "mini",
+      "condition": "continuation",
+      "completePairs": 60,
+      "excludedPairs": 0,
+      "changedActionOrSize": 35,
+      "changedActionType": 15,
+      "adviceEligiblePairs": 50
+    }
+  ],
+  "distributions": [
+    {
+      "provider": "jev",
+      "condition": "omitted",
+      "policy": "current",
+      "denominator": 60,
+      "actions": {
+        "raise": 11,
+        "check": 40,
+        "call": 4,
+        "fold": 5
+      },
+      "sizings": {
+        "two_big_blinds": 11,
+        "none": 49
+      }
+    },
+    {
+      "provider": "jev",
+      "condition": "omitted",
+      "policy": "advice",
+      "denominator": 60,
+      "actions": {
+        "raise": 11,
+        "check": 40,
+        "call": 3,
+        "fold": 6
+      },
+      "sizings": {
+        "two_big_blinds": 11,
+        "none": 49
+      }
+    },
+    {
+      "provider": "jev",
+      "condition": "insufficient",
+      "policy": "current",
+      "denominator": 60,
+      "actions": {
+        "raise": 11,
+        "check": 40,
+        "call": 3,
+        "fold": 6
+      },
+      "sizings": {
+        "two_big_blinds": 11,
+        "none": 49
+      }
+    },
+    {
+      "provider": "jev",
+      "condition": "insufficient",
+      "policy": "advice",
+      "denominator": 60,
+      "actions": {
+        "raise": 13,
+        "check": 40,
+        "fold": 5,
+        "call": 2
+      },
+      "sizings": {
+        "two_big_blinds": 13,
+        "none": 47
+      }
+    },
+    {
+      "provider": "jev",
+      "condition": "folding",
+      "policy": "current",
+      "denominator": 60,
+      "actions": {
+        "raise": 11,
+        "check": 40,
+        "call": 4,
+        "fold": 5
+      },
+      "sizings": {
+        "two_big_blinds": 11,
+        "none": 49
+      }
+    },
+    {
+      "provider": "jev",
+      "condition": "folding",
+      "policy": "advice",
+      "denominator": 60,
+      "actions": {
+        "raise": 11,
+        "bet": 20,
+        "call": 4,
+        "fold": 5,
+        "check": 20
+      },
+      "sizings": {
+        "two_big_blinds": 6,
+        "all_in": 17,
+        "one_third_pot": 8,
+        "none": 29
+      }
+    },
+    {
+      "provider": "jev",
+      "condition": "continuation",
+      "policy": "current",
+      "denominator": 60,
+      "actions": {
+        "raise": 12,
+        "check": 40,
+        "fold": 6,
+        "call": 2
+      },
+      "sizings": {
+        "two_big_blinds": 12,
+        "none": 48
+      }
+    },
+    {
+      "provider": "jev",
+      "condition": "continuation",
+      "policy": "advice",
+      "denominator": 60,
+      "actions": {
+        "raise": 12,
+        "check": 40,
+        "call": 3,
+        "fold": 5
+      },
+      "sizings": {
+        "two_big_blinds": 12,
+        "none": 48
+      }
+    },
+    {
+      "provider": "mini",
+      "condition": "omitted",
+      "policy": "current",
+      "denominator": 60,
+      "actions": {
+        "raise": 18,
+        "bet": 36,
+        "fold": 2,
+        "check": 4
+      },
+      "sizings": {
+        "two_and_half_big_blinds": 7,
+        "two_big_blinds": 10,
+        "one_third_pot": 30,
+        "full_pot": 3,
+        "none": 6,
+        "two_thirds_pot": 2,
+        "three_big_blinds": 1,
+        "one_half_pot": 1
+      }
+    },
+    {
+      "provider": "mini",
+      "condition": "omitted",
+      "policy": "advice",
+      "denominator": 60,
+      "actions": {
+        "raise": 16,
+        "bet": 37,
+        "fold": 4,
+        "check": 3
+      },
+      "sizings": {
+        "two_and_half_big_blinds": 6,
+        "two_big_blinds": 9,
+        "one_third_pot": 26,
+        "none": 7,
+        "two_thirds_pot": 5,
+        "one_half_pot": 3,
+        "full_pot": 3,
+        "three_big_blinds": 1
+      }
+    },
+    {
+      "provider": "mini",
+      "condition": "insufficient",
+      "policy": "current",
+      "denominator": 60,
+      "actions": {
+        "raise": 17,
+        "bet": 37,
+        "fold": 3,
+        "check": 3
+      },
+      "sizings": {
+        "two_and_half_big_blinds": 5,
+        "two_big_blinds": 11,
+        "one_third_pot": 26,
+        "full_pot": 7,
+        "three_big_blinds": 1,
+        "none": 6,
+        "two_thirds_pot": 3,
+        "one_half_pot": 1
+      }
+    },
+    {
+      "provider": "mini",
+      "condition": "insufficient",
+      "policy": "advice",
+      "denominator": 60,
+      "actions": {
+        "raise": 15,
+        "bet": 37,
+        "fold": 5,
+        "check": 3
+      },
+      "sizings": {
+        "two_and_half_big_blinds": 6,
+        "two_big_blinds": 7,
+        "one_third_pot": 25,
+        "three_big_blinds": 2,
+        "none": 8,
+        "full_pot": 5,
+        "one_half_pot": 3,
+        "two_thirds_pot": 4
+      }
+    },
+    {
+      "provider": "mini",
+      "condition": "folding",
+      "policy": "current",
+      "denominator": 60,
+      "actions": {
+        "raise": 18,
+        "bet": 36,
+        "check": 4,
+        "fold": 2
+      },
+      "sizings": {
+        "two_big_blinds": 13,
+        "one_third_pot": 23,
+        "full_pot": 5,
+        "all_in": 2,
+        "two_and_half_big_blinds": 3,
+        "two_thirds_pot": 6,
+        "none": 6,
+        "three_big_blinds": 2
+      }
+    },
+    {
+      "provider": "mini",
+      "condition": "folding",
+      "policy": "advice",
+      "denominator": 60,
+      "actions": {
+        "raise": 15,
+        "bet": 38,
+        "fold": 5,
+        "check": 2
+      },
+      "sizings": {
+        "three_big_blinds": 5,
+        "two_big_blinds": 4,
+        "full_pot": 12,
+        "one_third_pot": 21,
+        "two_and_half_big_blinds": 4,
+        "none": 7,
+        "two_thirds_pot": 3,
+        "all_in": 2,
+        "one_half_pot": 2
+      }
+    },
+    {
+      "provider": "mini",
+      "condition": "continuation",
+      "policy": "current",
+      "denominator": 60,
+      "actions": {
+        "raise": 15,
+        "call": 4,
+        "bet": 38,
+        "check": 2,
+        "fold": 1
+      },
+      "sizings": {
+        "three_big_blinds": 5,
+        "none": 7,
+        "one_third_pot": 30,
+        "two_and_half_big_blinds": 3,
+        "two_big_blinds": 7,
+        "two_thirds_pot": 5,
+        "full_pot": 2,
+        "one_half_pot": 1
+      }
+    },
+    {
+      "provider": "mini",
+      "condition": "continuation",
+      "policy": "advice",
+      "denominator": 60,
+      "actions": {
+        "raise": 14,
+        "call": 2,
+        "bet": 30,
+        "check": 10,
+        "fold": 4
+      },
+      "sizings": {
+        "two_big_blinds": 5,
+        "none": 16,
+        "one_third_pot": 21,
+        "full_pot": 7,
+        "three_big_blinds": 7,
+        "two_thirds_pot": 2,
+        "two_and_half_big_blinds": 2
+      }
+    }
+  ],
+  "pressure": [
+    {
+      "provider": "jev",
+      "condition": "omitted",
+      "policy": "current",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 10,
+      "aggressiveRate": 0.2
+    },
+    {
+      "provider": "jev",
+      "condition": "omitted",
+      "policy": "advice",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 9,
+      "aggressiveRate": 0.18
+    },
+    {
+      "provider": "jev",
+      "condition": "insufficient",
+      "policy": "current",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 9,
+      "aggressiveRate": 0.18
+    },
+    {
+      "provider": "jev",
+      "condition": "insufficient",
+      "policy": "advice",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 10,
+      "aggressiveRate": 0.2
+    },
+    {
+      "provider": "jev",
+      "condition": "folding",
+      "policy": "current",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 10,
+      "aggressiveRate": 0.2
+    },
+    {
+      "provider": "jev",
+      "condition": "folding",
+      "policy": "advice",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 30,
+      "aggressiveRate": 0.6
+    },
+    {
+      "provider": "jev",
+      "condition": "continuation",
+      "policy": "current",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 9,
+      "aggressiveRate": 0.18
+    },
+    {
+      "provider": "jev",
+      "condition": "continuation",
+      "policy": "advice",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 10,
+      "aggressiveRate": 0.2
+    },
+    {
+      "provider": "mini",
+      "condition": "omitted",
+      "policy": "current",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 46,
+      "aggressiveRate": 0.92
+    },
+    {
+      "provider": "mini",
+      "condition": "omitted",
+      "policy": "advice",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 47,
+      "aggressiveRate": 0.94
+    },
+    {
+      "provider": "mini",
+      "condition": "insufficient",
+      "policy": "current",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 47,
+      "aggressiveRate": 0.94
+    },
+    {
+      "provider": "mini",
+      "condition": "insufficient",
+      "policy": "advice",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 47,
+      "aggressiveRate": 0.94
+    },
+    {
+      "provider": "mini",
+      "condition": "folding",
+      "policy": "current",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 46,
+      "aggressiveRate": 0.92
+    },
+    {
+      "provider": "mini",
+      "condition": "folding",
+      "policy": "advice",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 48,
+      "aggressiveRate": 0.96
+    },
+    {
+      "provider": "mini",
+      "condition": "continuation",
+      "policy": "current",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 44,
+      "aggressiveRate": 0.88
+    },
+    {
+      "provider": "mini",
+      "condition": "continuation",
+      "policy": "advice",
+      "eligibleFixtureCount": 10,
+      "denominator": 50,
+      "aggressiveActions": 38,
+      "aggressiveRate": 0.76
+    }
+  ],
+  "effects": [
+    {
+      "provider": "jev",
+      "adviceMinusCurrentAggression": {
+        "omitted": -0.020000000000000018,
+        "insufficient": 0.020000000000000018,
+        "folding": 0.39999999999999997,
+        "continuation": 0.020000000000000018
+      },
+      "foldVsContinuationDifference": 0.37999999999999995,
+      "interpretation": "Descriptive fixed-case sensitivity; neither aggression nor this difference is poker quality or win rate."
+    },
+    {
+      "provider": "mini",
+      "adviceMinusCurrentAggression": {
+        "omitted": 0.019999999999999907,
+        "insufficient": 0,
+        "folding": 0.039999999999999925,
+        "continuation": -0.12
+      },
+      "foldVsContinuationDifference": 0.15999999999999992,
+      "interpretation": "Descriptive fixed-case sensitivity; neither aggression nor this difference is poker quality or win rate."
+    }
+  ],
+  "insufficientHistoryReviewFlags": 24,
+  "limitations": [
+    "Fixed synthetic decisions, not win-rate measurement",
+    "Repetitions share fixed situations; case mixtures are not population frequencies",
+    "Omitted and insufficient policy contrasts are identical-request stochastic controls",
+    "History changes on sparse statistics require review, not automatic quality grading",
+    "Reported costs may omit Jev and failed-request billing"
+  ],
+  "date": "2026-10-14",
+  "evidenceChecksums": {
+    "benchmarks/evidence/opponent-advice-v2-live-2026-10-14.json": "5782749cde4a9da4aef223505830383fd2d83bdcf8b44248ca58f5aa07f76a63",
+    "benchmarks/evidence/opponent-advice-v2-metadata-2026-10-14.json": "74dd5f9909d5f12a7830abdfd2f91e7fbec9f048f346c22d6199eda6246eb3b2"
+  },
+  "jevFoldAdviceAllIns": {
+    "current": 0,
+    "advice": 17,
+    "headsUpPostflop": 12,
+    "interpretation": "Legal but concerning sizing in deep synthetic fixtures; not a solver-certified mistake."
+  },
+  "recommendation": "No production promotion. First investigate Jev sizing behavior and representative stack-depth fixed decisions; a full-hand strength trial requires a separate plan and budget."
+}

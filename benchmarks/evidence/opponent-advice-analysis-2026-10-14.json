@@ -1,0 +1,137 @@
+{
+  "date": "2026-10-14",
+  "fixtureVersion": "opponent-advice-twelve-v1",
+  "adviceVersion": "opponent-fold-advice-v1",
+  "checksums": {
+    "benchmarks/evidence/opponent-advice-network-failures-2026-10-14.json": "a89025918abf0dea69134de8ff154616ccf6569392c811a82cdf71840432f054",
+    "benchmarks/evidence/opponent-advice-live-2026-10-14.json": "b4b18f9133e65c7005695f42f72722e3f82e8a8403d6beecf348f865300da29b",
+    "benchmarks/evidence/opponent-advice-inputs-2026-10-14.json": "af43539b5351590464a5f5d1b0650504d27a669d292c69e35fbd8282fbc81d76",
+    "benchmarks/evidence/opponent-advice-continuation-2026-10-14.json": "3902c56bd96aa4f71b57078a58849a5f0aee894401e3a8196ffd19c8bd6f099d"
+  },
+  "cap": 960,
+  "attempts": 960,
+  "networkFailures": 721,
+  "continuationSuccesses": 239,
+  "continuationFailures": 0,
+  "completePolicyPairs": 119,
+  "excludedPolicyPairs": 361,
+  "providers": [
+    {
+      "provider": "jev",
+      "attempts": 480,
+      "successes": 119,
+      "failures": 361,
+      "reportedCost": null,
+      "costCovered": 0,
+      "medianLatencyMs": 326.07325000001583,
+      "p95LatencyMs": 459.06650000001537,
+      "actions": {
+        "check": 83,
+        "call": 5,
+        "raise": 15,
+        "fold": 12,
+        "bet": 4
+      }
+    },
+    {
+      "provider": "mini",
+      "attempts": 480,
+      "successes": 120,
+      "failures": 360,
+      "reportedCost": 0.26649165,
+      "costCovered": 120,
+      "medianLatencyMs": 4299.474333999911,
+      "p95LatencyMs": 7878.768041000003,
+      "actions": {
+        "bet": 83,
+        "check": 5,
+        "raise": 25,
+        "call": 1,
+        "fold": 6
+      }
+    }
+  ],
+  "contrasts": [
+    {
+      "provider": "jev",
+      "condition": "omitted",
+      "completePairs": 14,
+      "excludedPairs": 46,
+      "changedActionOrSize": 2,
+      "changedActionType": 2,
+      "adviceEligiblePairs": 0
+    },
+    {
+      "provider": "jev",
+      "condition": "insufficient",
+      "completePairs": 15,
+      "excludedPairs": 45,
+      "changedActionOrSize": 2,
+      "changedActionType": 2,
+      "adviceEligiblePairs": 0
+    },
+    {
+      "provider": "jev",
+      "condition": "folding",
+      "completePairs": 15,
+      "excludedPairs": 45,
+      "changedActionOrSize": 5,
+      "changedActionType": 4,
+      "adviceEligiblePairs": 13
+    },
+    {
+      "provider": "jev",
+      "condition": "continuation",
+      "completePairs": 15,
+      "excludedPairs": 45,
+      "changedActionOrSize": 1,
+      "changedActionType": 1,
+      "adviceEligiblePairs": 13
+    },
+    {
+      "provider": "mini",
+      "condition": "omitted",
+      "completePairs": 15,
+      "excludedPairs": 45,
+      "changedActionOrSize": 8,
+      "changedActionType": 2,
+      "adviceEligiblePairs": 0
+    },
+    {
+      "provider": "mini",
+      "condition": "insufficient",
+      "completePairs": 15,
+      "excludedPairs": 45,
+      "changedActionOrSize": 4,
+      "changedActionType": 1,
+      "adviceEligiblePairs": 0
+    },
+    {
+      "provider": "mini",
+      "condition": "folding",
+      "completePairs": 15,
+      "excludedPairs": 45,
+      "changedActionOrSize": 8,
+      "changedActionType": 2,
+      "adviceEligiblePairs": 13
+    },
+    {
+      "provider": "mini",
+      "condition": "continuation",
+      "completePairs": 15,
+      "excludedPairs": 45,
+      "changedActionOrSize": 10,
+      "changedActionType": 3,
+      "adviceEligiblePairs": 13
+    }
+  ],
+  "insufficientHistoryFlags": 14,
+  "limitations": [
+    "721 network failures reduce coverage; failed cells never retried",
+    "v1 history-versus-omitted contrasts confound HERO statistics; v2 corrected offline only",
+    "five planned repetitions; only one or two successful repetitions per cell",
+    "fixed decisions with deep synthetic stacks do not establish win-rate improvement",
+    "cost coverage partial; no Jev or failed-request billing evidence"
+  ],
+  "recommendation": "No production promotion or full-hand strength claim. A fresh, separately authorized v2 fixed-decision pilot is needed before considering a full-hand experiment."
+}

@@ -567,3 +567,23 @@ no LLM playstyles and no automatic credit departure. Preserve claims, allowances
 first, drain old instances before adding the secret, and keep Quick Play disabled
 for the initial trial. Clear/reject Eevo keys in isolated environments. Live
 scenario evaluations require explicit inference opt-in and a shared call cap.
+
+## Confidence-aware opponent advice experiment
+
+The benchmark-only Plan 3 challenger lives in `benchmarks/opponent-advice/`.
+Run `npm run benchmark:opponent-advice` for the offline 960-decision matrix.
+`benchmark:opponent-advice:live` requires fresh explicit paid authorization, both
+inference opt-ins, the confirmation token and a shared cap at most 960.
+It changes no production policy or persistence and makes no automatic retries.
+See [the experiment guide](benchmarks/opponent-advice/README.md) for source
+freezing, eligibility, evidence limits and sanitized partial reports.
+
+`benchmark:opponent-advice:v2` tests corrected target-only omission controls
+offline, preserving the initial paid pilot's v1 source freeze. A separately authorized v2 pilot uses `benchmark:opponent-advice:v2:live`,
+a new 960-call cap, no-inference network preflight and a shared first-failure stop. See the experiment guide for the original network-failure ledger,
+remaining-cap continuation and the v1 history-control limitation.
+
+The corrected 960-call pilot completed with zero failures; its authorization is
+exhausted. Preserve v1 and v2 evidence separately. See the [v2 report](benchmarks/opponent-advice/live-v2-report-2026-10-14.md)
+for Jev's heads-up pressure response and extreme sizing. No production promotion
+or further paid evaluation follows automatically.

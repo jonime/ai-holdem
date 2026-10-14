@@ -2,6 +2,9 @@
 
 - [Bot decision scenarios](scenarios/README.md): engine-backed legality and
   obvious-blunder checks, with opt-in live providers.
+- [Confidence-aware opponent advice](opponent-advice/README.md): benchmark-only
+  situational fold interpretation, offline controls and a separately authorized
+  960-request Jev/mini pilot, preserved v1 limitations and corrected offline v2 controls.
 - [Shared poker context](poker-context.md): Jev/LLM facts, advisory guidance,
   weighted preflop matrices and paired full-hand comparisons.
 - [Equity Rules situation experiment](equity-rules/README.md): frozen/facts/structured

@@ -157,6 +157,10 @@ the application includes its SDK with private table URLs redacted.
 
 ## References and inspiration
 
+- [NIST proportion confidence intervals](https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm)
+  — Wilson uncertainty calculation for the benchmark-only
+  [opponent-advice experiment](benchmarks/opponent-advice/README.md); no poker strategy reference.
+
 - [Upright Eevo announcement](https://www.uprightproject.com/eevo/)
   — motivates evaluating Eevo with the existing Jev poker policy. Its vendor-reported
   PokerBench preflop scores do not establish full-game strength in this app; see

@@ -239,3 +239,16 @@ The subsequent [explicit heads-up Jev experiment](heads-up/README.md) preserves
 this pilot evidence and adds exact reference import/conditional scoring, full-hand
 paired comparisons and controlled memory contrasts. It does not expand the model
 comparison or alter production bots.
+
+The independent [confidence-aware opponent-advice experiment](opponent-advice/README.md)
+uses these existing aggregates without changing production prompts or settings.
+Its capped 960-request pilot requires fresh paid authorization.
+
+The [authorized Plan 3 evidence](opponent-advice/live-report-2026-10-14.md)
+is incomplete (721 network failures, 239 successful decisions) and has a v1
+omission-control limitation. Corrected v2 controls are offline-only; no production
+promotion or additional paid run is authorized.
+
+The subsequently authorized [complete corrected v2 pilot](opponent-advice/live-v2-report-2026-10-14.md)
+completed 960 additional calls without failures. Jev responds to heads-up fold
+advice but chooses concerning extreme sizes; neither challenger is promoted.

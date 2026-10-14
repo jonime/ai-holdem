@@ -1,0 +1,90 @@
+{
+  "fixtureVersion": "opponent-advice-twelve-v1",
+  "adviceVersion": "opponent-fold-advice-v1",
+  "sourceFreeze": "freeze.json",
+  "reportSha256": "e991348301433d8e7a544f04542addd34c91d9ac9cbe1b008c2d1fbb6b99c4cb",
+  "attempts": 960,
+  "failures": 0,
+  "paidRequests": 0,
+  "scriptedProviderOutputs": true,
+  "policyContrasts": 96,
+  "completePolicyPairs": 480,
+  "changedPolicyActions": 0,
+  "historyContrasts": 144,
+  "unsupportedAdaptationFlags": 0,
+  "adviceCoverage": {
+    "HU-preflop-small": {
+      "omitted": 0,
+      "insufficient": 0,
+      "folding": 3,
+      "continuation": 3
+    },
+    "HU-preflop-large": {
+      "omitted": 0,
+      "insufficient": 0,
+      "folding": 1,
+      "continuation": 1
+    },
+    "HU-flop-draw": {
+      "omitted": 0,
+      "insufficient": 0,
+      "folding": 1,
+      "continuation": 1
+    },
+    "HU-flop-made": {
+      "omitted": 0,
+      "insufficient": 0,
+      "folding": 1,
+      "continuation": 1
+    },
+    "HU-turn": {
+      "omitted": 0,
+      "insufficient": 0,
+      "folding": 1,
+      "continuation": 1
+    },
+    "HU-river": {
+      "omitted": 0,
+      "insufficient": 0,
+      "folding": 1,
+      "continuation": 1
+    },
+    "MW-preflop-small": {
+      "omitted": 0,
+      "insufficient": 0,
+      "folding": 0,
+      "continuation": 0
+    },
+    "MW-preflop-large": {
+      "omitted": 0,
+      "insufficient": 0,
+      "folding": 0,
+      "continuation": 0
+    },
+    "MW-flop-draw": {
+      "omitted": 0,
+      "insufficient": 0,
+      "folding": 1,
+      "continuation": 1
+    },
+    "MW-flop-made": {
+      "omitted": 0,
+      "insufficient": 0,
+      "folding": 1,
+      "continuation": 1
+    },
+    "MW-turn": {
+      "omitted": 0,
+      "insufficient": 0,
+      "folding": 1,
+      "continuation": 1
+    },
+    "MW-river": {
+      "omitted": 0,
+      "insufficient": 0,
+      "folding": 1,
+      "continuation": 1
+    }
+  },
+  "interpretation": "Fixed-decision sensitivity and safety only; no win-rate or ordinary action-quality claim. Omitted controls measure stochastic variability; insufficient-observation action changes require review, not automatic error grading."
+}

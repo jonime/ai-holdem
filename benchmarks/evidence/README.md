@@ -26,3 +26,18 @@ verify an allowlist of fields and omit credentials, raw provider requests/respon
 private game states, ownership tokens and historical cards. Only fixed synthetic
 case identifiers and sanitized metrics belong here. Do not copy application logs,
 status dumps or production data into this directory.
+
+- [2026-10-14 confidence-aware opponent-advice report](../opponent-advice/live-report-2026-10-14.md),
+  [combined sanitized results](opponent-advice-live-2026-10-14.json),
+  [source/model metadata](opponent-advice-inputs-2026-10-14.json), and
+  [derived counts/checksums](opponent-advice-analysis-2026-10-14.json).
+  This incomplete v1 pilot includes 721 restricted-network failures and 239
+  successful responses within its original cap. Its omitted-history control is
+  confounded; corrected v2 controls have offline evidence only. No promotion claim.
+
+- [Complete corrected Plan 3 pilot](../opponent-advice/live-v2-report-2026-10-14.md),
+  [960 successful decisions](opponent-advice-v2-live-2026-10-14.json),
+  [source/model metadata](opponent-advice-v2-metadata-2026-10-14.json), and
+  [reproducible analysis/checksums](opponent-advice-v2-analysis-2026-10-14.json).
+  All 480 policy pairs are complete. Jev responds strongly to heads-up fold advice
+  but selects concerning extreme all-in sizes; no production-strength claim.
