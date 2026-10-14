@@ -19,14 +19,12 @@ async function claim(page: Page, id: string, seat = 1) {
 }
 const personal = (page: Page) => page.getByRole("region", { name: "Your tables" });
 
-test("@smoke Hosted deletion blocks other humans, cancellation preserves history, and last-human Leave works", async ({ page, browser }) => {
+test("@smoke Hosted deletion blocks other humans, cancellation preserves history, and last-human Lobby preserves the seat", async ({ page, browser }) => {
   const id = await create(page);
   await page.goto(`/game/${id}`);
-  await expect(page.getByRole("button", { name: "Leave table", exact: true })).toBeVisible();
-  page.once("dialog",dialog=>dialog.accept());
-  await page.getByRole("button", { name: "Leave table", exact: true }).click();
+  await page.getByRole("button", { name: "Lobby", exact: true }).click();
   await expect(page).toHaveURL(/\/play$/);
-  expect((await read(page,id)).poker.players[0].status).toBe("open");
+  expect((await read(page,id)).poker.players[0].status).toBe("claimed");
   const guestContext = await browser.newContext();
   try {
     const guest = await guestContext.newPage(); await claim(guest,id);

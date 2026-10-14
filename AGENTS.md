@@ -166,9 +166,11 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
   safe structured LLM/Jev HTTP logs and the localized credit-departure notice;
   never log raw provider messages, inputs, responses, headers, keys or cards.
 - Header Lobby preserves seats and navigates to localized Play. Leave table is
-  available for any owned claimed non-departing human, including the last human,
-  including folded/eliminated humans. It confirms and navigates only after an
-  acknowledged departure; Stand up shares the departure service and stays watching.
+  available for an owned claimed non-departing human only when another human
+  has a claimed seat, including folded/eliminated/departing humans. With no other
+  claimed human, Lobby navigates directly without confirmation or departure.
+  Leave table confirms and navigates only after an acknowledged departure;
+  Stand up shares the departure service and stays watching.
   Deploy `20261019000000_add_human_departures.sql` before application code. Active
   human departures are irreversible and fold only on their legal turn; all-ins
   keep pot eligibility. Atomic departure/advance RPCs lock the game row and recheck

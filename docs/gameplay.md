@@ -36,10 +36,12 @@ turn order from left to right, then top to bottom, starting with your seat.
 
 ## Lobby navigation and departure
 
-The game header offers **Leave table** whenever you own a non-departing human
-seat, including the last human, folded players and eliminated players. Spectators,
-unseated hosts and already-departing players see **Lobby**, which returns to the
-localized **Play** page without changing seats. The application title links home.
+The game header offers **Leave table** when you own a non-departing human seat
+and another human has a claimed seat, including folded, eliminated or departing
+players. When no other human has a claimed seat, you see **Lobby**, which returns
+to the localized **Play** page without confirmation, folding or changing seats.
+Spectators, unseated hosts and already-departing players also see **Lobby**.
+The application title links home.
 
 Every page includes a localized **Send feedback** footer link to the hosted Tally
 form. It opens in a new tab without leaving your seat or submitting a game action.

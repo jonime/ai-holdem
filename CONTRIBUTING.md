@@ -943,7 +943,9 @@ hydration and production screenshots in the Play/component tests. Both creation 
 
 Apply `20261019000000_add_human_departures.sql` before the application. Header
 Leave table and Stand up use one atomic release service; only Leave table navigates
-on acknowledgement. Lobby preserves seats and goes to localized Play. New labels
+on acknowledgement. Header Leave table requires another claimed human seat;
+the last human sees Lobby without confirmation or departure. Lobby preserves
+seats and goes to localized Play. New labels
 and confirmations belong in every server-owned game dictionary; Play Quick Play
 uses the existing localized HTML creation and fair-use flow.
 

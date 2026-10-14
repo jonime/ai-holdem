@@ -29,16 +29,16 @@ async function start(page: Page, gameId: string) {
   await page.reload();
 }
 
-test("@smoke Last-human Leave supports cancellation, the title links home, and Play starts Quick Play", async ({ page }) => {
+test("@smoke Last-human Lobby preserves the seat without confirmation, the title links home, and Play starts Quick Play", async ({ page }) => {
   const gameId = await create(page);
   let mutations = 0; page.on("request", request => { if (request.url().endsWith("/release")) mutations++; });
   await expect(page.locator("header a")).toHaveAttribute("href", "/");
-  page.once("dialog", dialog => dialog.dismiss());
-  await page.getByRole("button", { name: "Leave table", exact: true }).click();
-  expect(mutations).toBe(0);
-  await page.goto("/play");
+  let confirmations = 0;
+  page.on("dialog", dialog => { confirmations++; void dialog.dismiss(); });
+  await page.getByRole("button", { name: "Lobby", exact: true }).click();
   await expect(page).toHaveURL(/\/play$/);
   expect(mutations).toBe(0);
+  expect(confirmations).toBe(0);
   expect((await read(page, gameId)).poker.players[0].status).toBe("claimed");
   await page.getByRole("button", { name: "Quick Play vs AI", exact: true }).click();
   await expect(page).toHaveURL(/\/game\/[0-9a-f-]+$/);

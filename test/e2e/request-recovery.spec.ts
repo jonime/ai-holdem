@@ -67,7 +67,7 @@ test("seat departure blocks mutations after failed recovery and remains on the t
     submissions++; f.failRead(true); await route.abort("failed");
   });
   page.on("dialog", dialog => dialog.accept());
-  await page.getByRole("button", { name: "Leave table", exact: true }).click();
+  await page.getByRole("button", { name: "Stand up", exact: true }).click();
   await expect(page.getByRole("button", { name: "Refresh table", exact: true })).toBeVisible();
   await expect(page).toHaveURL(new RegExp(`/game/${f.id}$`));
   await expect(page.getByRole("button", { name: "Check", exact: true })).toBeDisabled();

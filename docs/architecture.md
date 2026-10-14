@@ -71,6 +71,8 @@ continue to come from the existing HTTP contracts.
 ## Human departure
 
 Deploy `20261019000000_add_human_departures.sql` before application code.
+The header selects Leave table only for an owned non-departing human with another
+claimed human seat; otherwise Lobby navigates directly and preserves seats.
 Header Leave table and Stand up share `releaseSeat`, preserving the seat-response
 contract and existing owner/host permissions. The server prepares any current-turn
 fold through the adapter; `depart_game_seat_if_version` locks the game row, checks
