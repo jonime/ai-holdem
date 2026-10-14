@@ -13,12 +13,15 @@ describe("local smoke environment boundary", () => {
   it("replaces inherited hosted settings and disables inference", () => {
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://hosted.example");
     vi.stubEnv("TYPESAFE_API_KEY", "hosted-key");
+    vi.stubEnv("EEVO_API_KEY", "hosted-key");
     vi.stubEnv("LLM_API_KEY", "hosted-key");
     const env = localEnvironment();
     expect(env.NEXT_PUBLIC_SUPABASE_URL).toBe("http://127.0.0.1:54321");
     expect(env.SUPABASE_SECRET_KEY).toBe("local-secret");
     expect(env.EXTERNAL_INFERENCE_ENABLED).toBe("false");
     expect(env.TYPESAFE_API_KEY).toBe("");
+    expect(env.EEVO_API_KEY).toBe("");
+    expect(env.EEVO_QUICK_PLAY_ENABLED).toBe("false");
     expect(env.LLM_API_KEY).toBe("");
     expect(env.LLM_API_ENDPOINT).toBe("");
   });

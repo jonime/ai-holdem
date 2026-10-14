@@ -4,11 +4,19 @@ import { getLlmBotModels } from "@/lib/env/server";
 import type { BotDescriptor } from "@/lib/poker/types";
 import { TypesafeSystemOneClient } from "@/lib/typesafe/client";
 
+import { EevoSystemOneClient } from "@/lib/eevo/client";
+import { EevoPokerBot } from "./eevo";
+
 import { EquityRulesV2Bot } from "./equity-rules-v2";
 import { JevPokerBot } from "./jev";
 import { LlmPokerBot } from "./llm";
 import type { PokerBot } from "./types";
 import { DEFAULT_BOT_PLAYSTYLE_ID, isBotPlaystyleId } from "./llm-playstyles";
+
+export const eevoBotDescriptor: BotDescriptor = {
+  id: "eevo", label: "Upright Eevo", provider: "eevo", modelId: "eevo-1",
+  configuration: { difficulty: true, playstyle: false },
+};
 
 export const jevBotDescriptor: BotDescriptor = {
   id: "jev",
@@ -29,6 +37,11 @@ export const equityRulesV2BotDescriptor: BotDescriptor = {
 export function getBotCatalog(): readonly BotDescriptor[] {
   return [
     jevBotDescriptor,
+    ...(process.env.EEVO_API_KEY?.trim() &&
+    process.env.EEVO_API_KEY !== "your_eevo_api_key" &&
+    process.env.EXTERNAL_INFERENCE_ENABLED !== "false"
+      ? [eevoBotDescriptor]
+      : []),
     equityRulesV2BotDescriptor,
     ...getLlmBotModels().map((model) => ({
       id: model.id,
@@ -41,7 +54,7 @@ export function getBotCatalog(): readonly BotDescriptor[] {
 }
 
 export function resolveBotDescriptor(botId: string): BotDescriptor {
-  const descriptor = getBotCatalog().find((candidate) => candidate.id === botId);
+  const descriptor = botId === "eevo" ? eevoBotDescriptor : getBotCatalog().find((candidate) => candidate.id === botId);
 
   if (!descriptor) throw new Error(`Unknown bot: ${botId}`);
   return descriptor;
@@ -68,6 +81,9 @@ export class ServerBotRegistry implements BotRegistry {
     }
     if (descriptor.provider === "rules") {
       return { descriptor, bot: new EquityRulesV2Bot() };
+    }
+    if (descriptor.provider === "eevo") {
+      return { descriptor, bot: new EevoPokerBot(new EevoSystemOneClient()) };
     }
     if (descriptor.provider === "typesafe") {
       return {

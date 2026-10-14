@@ -20,3 +20,4 @@ The application supports two to six seats, private table links, configurable bli
 
 - [XML sitemap](https://www.aiholdem.gg/sitemap.xml): Index of localized public pages.
 - [TypeSafe](https://typesafe.ai/): Provider used by one available AI poker seat.
+- [Eevo](https://eevo.io/): Optional decision-model provider for Upright Eevo custom-table seats.

@@ -1,41 +1,17 @@
-import { selectPokerAdvice } from "@/lib/poker/strategy-advice";
-import { prepareProviderContext } from "@/lib/poker/provider-context";
-import { decidePokerAction, type TypesafeDecisionClient } from "@/lib/typesafe/decision";
-import { typesafePokerPolicyVersion } from "@/lib/typesafe/questions";
+import { SystemOnePokerBot } from "./systemone";
+import { SystemOneResponseError } from "@/lib/systemone/types";
+import { TypesafeResponseError } from "@/lib/typesafe/types";
+import type { BotContext } from "./types";
 
-import { emptyDiagnostics, type BotContext, type BotDecision, type PokerBot } from "./types";
-
-export class JevPokerBot implements PokerBot {
-  constructor(private readonly client: TypesafeDecisionClient, private readonly guidance = true) {}
-
-  async decide(context: BotContext): Promise<BotDecision> {
-    const started = performance.now();
-    const prepared = prepareProviderContext(context);
-    const suppliedContext = { ...prepared, ...(this.guidance ? { strategyAdvice: selectPokerAdvice(prepared) } : {}) };
-    const decision = await decidePokerAction(this.client, suppliedContext);
-    const audit = decision.rawResponse;
-    const provider = typeof audit === "object" && audit !== null && "providerResponse" in audit ? audit.providerResponse : null;
-    const usage = typeof provider === "object" && provider !== null && "usage" in provider ? provider.usage : null;
-    const cost = typeof usage === "object" && usage !== null && "cost" in usage && typeof usage.cost === "number" && Number.isFinite(usage.cost) ? usage.cost : null;
-    return {
-      action: decision.action,
-      suppliedContext,
-      diagnostics: emptyDiagnostics({
-        probabilities: decision.probabilities,
-        confidence: decision.confidence,
-        sizing: decision.sizing
-          ? {
-              choice: decision.sizing.choice,
-              probabilities: decision.sizing.probabilities,
-              confidence: decision.sizing.confidence,
-            }
-          : null,
-        promptVersion: typesafePokerPolicyVersion,
-        durationMs: Math.round(performance.now() - started),
-        usage,
-        cost,
-      }),
-      rawResponse: decision.rawResponse,
-    };
+export class JevPokerBot extends SystemOnePokerBot {
+  override async decide(context: BotContext) {
+    try {
+      return await super.decide(context);
+    } catch (error) {
+      if (error instanceof SystemOneResponseError) {
+        throw new TypesafeResponseError(error.message.replaceAll("SystemOne", "TypeSafe"));
+      }
+      throw error;
+    }
   }
 }

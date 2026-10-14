@@ -10,6 +10,27 @@ const sql = input => execFileSync("docker", args, { input, encoding: "utf8", tim
 const status = JSON.parse(execFileSync("supabase", ["status", "-o", "json"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
 assert(["localhost", "127.0.0.1", "::1"].includes(new URL(status.API_URL).hostname), "Only local Supabase is allowed");
 sql(readFileSync(new URL("../test/sql/bot-credit-departure.sql", import.meta.url), "utf8"));
+const eevoFixture = randomUUID();
+const eevoRow = JSON.parse(sql(`begin;
+  insert into public.games(id,current_state,hand_number,status) values('${eevoFixture}','{}',0,'waiting');
+  insert into public.game_players(game_id,seat,name,controller,stack,status)
+    values('${eevoFixture}',0,'Open','human',10000,'open');
+  insert into public.game_hosts(game_id,host_token) values('${eevoFixture}','eevo-host');
+  set local role service_role;
+  select public.assign_bot_to_seat_if_version('${eevoFixture}',0,0,'eevo-host','Upright Eevo #1','eevo','Upright Eevo','eevo','eevo-1','hard',null);
+  rollback;`).split("\n").find(line => line.startsWith("{")));
+assert.equal(eevoRow.outcome, 'ok');
+assert.equal(eevoRow.seat.bot_provider, 'eevo');
+assert.equal(eevoRow.seat.bot_model_id, 'eevo-1');
+assert.equal(eevoRow.seat.ai_difficulty, 'hard');
+assert.equal(eevoRow.seat.bot_profile_id, null);
+for (const [difficulty, profile] of [["null", "null"], ["'medium'", "'tight'"]]) {
+  assert.throws(() => sql(`begin;
+    insert into public.games(id,current_state,hand_number,status) values('${eevoFixture}','{}',0,'waiting');
+    insert into public.game_players(game_id,seat,name,controller,stack,status,bot_id,bot_label,bot_provider,bot_model_id,ai_difficulty,bot_profile_id)
+      values('${eevoFixture}',0,'Eevo','bot',10000,'bot','eevo','Upright Eevo','eevo','eevo-1',${difficulty},${profile});
+    rollback;`), error => String(error.stderr).includes('game_players_bot_matches_controller'));
+}
 const id = randomUUID();
 const claim = (version, seat, token) => `public.claim_game_seat_if_version('${id}',${version},${seat},'${token}',null)`;
 const release = (version, seat, token) => `public.release_game_seat_if_version('${id}',${version},${seat},'${token}')`;

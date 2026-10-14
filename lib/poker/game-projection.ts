@@ -17,7 +17,7 @@ export function enginePlayerIdForAssignment(
 export function supportsDifficulty(
   provider: BotDescriptor["provider"] | null | undefined,
 ) {
-  return provider === "typesafe" || provider === "rules";
+  return provider === "typesafe" || provider === "eevo" || provider === "rules";
 }
 
 export function playerConfigForAssignment(

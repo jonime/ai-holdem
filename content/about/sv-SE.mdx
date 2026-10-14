@@ -34,6 +34,10 @@ TypeSafe Jev skickar strukturerad spelkontext och fullständiga lagliga dragalte
 
 Svårighetsgraden påverkar bara dragvalet och ger aldrig andra kort, dold information eller fler lagliga handlingar.
 
+### Upright Eevo
+
+Upright Eevo skickar samma strukturerade spelkontext och tillåtna drag som Jev till [Eevo](https://eevo.io/) med modellen `eevo-1`. Svårighetsgraderna, pokerstrategin och skydden på river är samma som för Jev. Botten kan väljas vid egna bord när servern är konfigurerad; snabbspel utesluter den som standard. Leverantörsfel kräver ett uttryckligt nytt försök.
+
 ### LLM-bottar
 
 Varje konfigurerad LLM-bot anger visningsnamn och modell. Modellen får begränsad spelkontext via den konfigurerade LLM-leverantören och måste returnera en strukturerad laglig handling och insatsstorlek.

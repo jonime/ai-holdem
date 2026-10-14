@@ -114,3 +114,8 @@ export function getLlmBotModels(): readonly LlmModelDefinition[] {
     };
   });
 }
+
+export function getEevoServerEnv() {
+  assertExternalInferenceEnabled();
+  return { eevoApiKey: requiredServerVariable("EEVO_API_KEY") };
+}

@@ -7,7 +7,7 @@ import {
 } from "@/lib/poker/adapter";
 import type { GameConfig } from "@/lib/poker/types";
 
-import { decidePokerAction } from "./decision";
+import { decidePokerAction as sharedDecidePokerAction } from "./decision";
 import {
   createMoveOptions,
   createPokerDecisionRequest,
@@ -88,7 +88,8 @@ function responseFor(
   };
 }
 
-describe("TypeSafe poker decision", () => {
+describe.each(["jev-latest", "eevo-1"])("SystemOne poker decision (%s)", model => {
+  const decidePokerAction: typeof sharedDecidePokerAction = (client, state, options) => sharedDecidePokerAction(client, state, { ...options, model });
   it("creates private structured context with corrected numerical labels", () => {
     const pokerState = state({ difficulty: "hard" });
 

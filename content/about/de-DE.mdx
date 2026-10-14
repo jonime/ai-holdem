@@ -34,6 +34,10 @@ TypeSafe Jev sendet den strukturierten Spielkontext und alle vollständigen lega
 
 Die Schwierigkeit beeinflusst nur die Zugauswahl. Sie gewährt niemals andere Karten, versteckte Informationen oder zusätzliche legale Aktionen.
 
+### Upright Eevo
+
+Upright Eevo sendet denselben strukturierten Spielkontext und dieselben legalen Zugoptionen wie Jev an [Eevo](https://eevo.io/) mit dem Modell `eevo-1`. Schwierigkeitsverhalten, Pokerstrategie und River-Schutzregeln entsprechen Jev. Der Bot ist bei entsprechender Serverkonfiguration an eigenen Tischen verfügbar; Quick Play enthält ihn standardmäßig nicht. Anbieterfehler erfordern einen ausdrücklichen neuen Versuch.
+
 ### LLM-Bots
 
 Jeder konfigurierte LLM-Bot enthält einen Anzeigenamen und ein Modell. Das Modell erhält über den konfigurierten LLM-Anbieter begrenzten Spielkontext und muss eine strukturierte legale Aktion mit Einsatzgröße zurückgeben.

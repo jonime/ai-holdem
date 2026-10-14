@@ -51,6 +51,8 @@ jobs:
       SUPABASE_CLI_VERSION: "2.119.0"
       EXTERNAL_INFERENCE_ENABLED: "false"
       TYPESAFE_API_KEY: ""
+      EEVO_API_KEY: ""
+      EEVO_QUICK_PLAY_ENABLED: "false"
       LLM_API_ENDPOINT: ""
       LLM_API_KEY: ""
       NEXT_TELEMETRY_DISABLED: "1"

@@ -18,7 +18,7 @@ function context(bot: BotDescriptor) {
 }
 
 describe("bot history descriptor validation", () => {
-  it.each(["llm", "typesafe", "rules"] as const)("preserves %s catalog metadata in every historical state", provider => {
+  it.each(["llm", "typesafe", "eevo", "rules"] as const)("preserves %s catalog metadata in every historical state", provider => {
     const bot = { id: "test-bot", label: "Test bot", provider, modelId: provider === "rules" ? null : "test-model",
       configuration: { difficulty: provider !== "llm", playstyle: provider === "llm" } };
     const parsed = parseBotHandContext(context(bot));

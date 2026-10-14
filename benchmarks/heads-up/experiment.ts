@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import policyFreeze from "../evidence/jev-hu-freeze-2026-10-14.json";
+import policyFreeze from "../baselines/systemone-v4-freeze.json";
 import { JevPokerBot } from "@/lib/bots/jev";
 import { BotProviderError, emptyDiagnostics, type BotContext, type PokerBot } from "@/lib/bots/types";
 import type { TypesafeDecisionClient } from "@/lib/typesafe/decision";

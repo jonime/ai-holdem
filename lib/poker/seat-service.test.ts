@@ -38,14 +38,14 @@ describe("atomic seat service", () => {
     expect(repo.assignBotIfVersion).toHaveBeenCalledExactlyOnceWith({ gameId: "game-1", seat: 1, hostToken: "host", expectedVersion: 7,
       name: "TypeSafe Jev #2", bot: { id: "jev", label: "TypeSafe Jev", provider: "typesafe", modelId: "jev-latest" }, aiDifficulty: "medium", botProfileId: null });
   });
-  it.each(["rules", "llm"] as const)("retains %s defaults and explicit options", async provider => {
+  it.each(["rules", "eevo", "llm"] as const)("retains %s defaults and explicit options", async provider => {
     const repo = fixture();
     const bot = { id: provider, label: provider, provider, modelId: null };
     const args = { gameId: "game-1", seat: 1, hostToken: "host", expectedVersion: 7, bot };
     await assignBotToSeat(repo, args);
-    expect(repo.assignBotIfVersion).toHaveBeenLastCalledWith(expect.objectContaining({ aiDifficulty: provider === "rules" ? "medium" : null, botProfileId: provider === "llm" ? "balanced" : null }));
+    expect(repo.assignBotIfVersion).toHaveBeenLastCalledWith(expect.objectContaining({ aiDifficulty: provider !== "llm" ? "medium" : null, botProfileId: provider === "llm" ? "balanced" : null }));
     await assignBotToSeat(repo, { ...args, difficulty: "hard", botProfileId: "tight" });
-    expect(repo.assignBotIfVersion).toHaveBeenLastCalledWith(expect.objectContaining({ aiDifficulty: provider === "rules" ? "hard" : null, botProfileId: provider === "llm" ? "tight" : null }));
+    expect(repo.assignBotIfVersion).toHaveBeenLastCalledWith(expect.objectContaining({ aiDifficulty: provider !== "llm" ? "hard" : null, botProfileId: provider === "llm" ? "tight" : null }));
   });
   it.each([null, "someone-else"])("rejects missing or different durable hosts despite seat flags", async hostToken => {
     const repo = fixture();

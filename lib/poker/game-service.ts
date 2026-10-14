@@ -86,7 +86,7 @@ function shuffled<T>(values: readonly T[]): T[] {
 }
 
 function quickPlayBotSelections(botMode?: "rules"): readonly BotDescriptor[] {
-  const catalog = getBotCatalog();
+  const catalog = getBotCatalog().filter(bot => bot.provider !== "eevo" || process.env.EEVO_QUICK_PLAY_ENABLED === "true");
   const availableCatalog =
     botMode === "rules" || process.env.EXTERNAL_INFERENCE_ENABLED === "false"
       ? catalog.filter((bot) => bot.provider === "rules")
@@ -95,7 +95,7 @@ function quickPlayBotSelections(botMode?: "rules"): readonly BotDescriptor[] {
     return Array.from({ length: 5 }, () => equityRulesV2BotDescriptor);
   }
 
-  const selections = (["rules", "typesafe", "llm"] as const).flatMap(
+  const selections = (["rules", "typesafe", "llm", "eevo"] as const).flatMap(
     (provider) => {
       const providerBots = availableCatalog.filter(
         (bot) => bot.provider === provider,

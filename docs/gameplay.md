@@ -2,6 +2,16 @@
 
 ## Lobby and invitations
 
+Custom tables offer **Upright Eevo** when its server key is configured and external
+inference is enabled. Like TypeSafe Jev, it supports Easy, Medium and Hard difficulty
+rather than LLM playstyles. Eevo uses the same poker policy, legal candidates and
+sanitized decision context as Jev. Provider failures pause the turn for explicit
+retry; Eevo credit failures do not automatically fold or remove the seat.
+Quick Play excludes Eevo by default; the server can opt in with
+`EEVO_QUICK_PLAY_ENABLED=true`. External inference disabled always means rules-only
+Quick Play.
+
+
 Play and the table share a preferred player name. Play edits save immediately;
 seat claims remember the submitted name, and successful renames remember the new
 name. Existing seated names remain authoritative until you edit them. Preference
@@ -149,7 +159,7 @@ event.
 
 ## Provider pauses and retry
 
-TypeSafe and LLM requests have a 60-second deadline, including reading the response.
+TypeSafe, Eevo and LLM requests have a 60-second deadline, including reading the response.
 A timeout, connection failure, rate limit, invalid response, or provider error
 pauses play and leaves the bot seated without changing the game. The error banner
 explains the failure in the selected language. Use **Retry bot** to refresh the

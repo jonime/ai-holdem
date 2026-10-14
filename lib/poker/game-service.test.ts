@@ -1892,3 +1892,20 @@ it("projects the same private current category in action responses and snapshot 
   const spectator = await getPublicGame(repository, "game-1", null);
   expect(spectator.poker.players.every(p => p.currentHandCategory === null)).toBe(true);
 });
+
+describe("Eevo Quick Play admission", () => {
+  it.each(["false", "true"])("uses the explicit switch %s", async enabled => {
+    vi.stubEnv("EEVO_API_KEY", "configured");
+    vi.stubEnv("EXTERNAL_INFERENCE_ENABLED", "true");
+    vi.stubEnv("EEVO_QUICK_PLAY_ENABLED", enabled);
+    vi.stubEnv("LLM_BOT_MODELS", JSON.stringify([{ id: "configured-llm", label: "LLM", modelId: "test/model" }]));
+    const createGameSession = vi.fn().mockResolvedValue({ id: "eevo-quick", version: 0 });
+    try {
+      await createQuickPlayGame({ createGameSession }, { hostToken: "host" });
+      const bots = createGameSession.mock.calls[0][0].players.slice(1);
+      expect(bots.some((player: { bot: { provider: string } }) => player.bot.provider === "eevo")).toBe(enabled === "true");
+      for (const provider of ["rules", "typesafe", "llm"]) expect(bots.some((player: { bot: { provider: string } }) => player.bot.provider === provider)).toBe(true);
+      for (const bot of bots.filter((player: { bot: { provider: string } }) => player.bot.provider === "eevo")) expect(bot).toMatchObject({ aiDifficulty: "medium", botProfileId: null });
+    } finally { vi.unstubAllEnvs(); }
+  });
+});

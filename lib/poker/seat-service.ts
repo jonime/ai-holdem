@@ -44,7 +44,7 @@ export async function assignBotToSeat(
   return repository.assignBotIfVersion({
     gameId, seat, hostToken, expectedVersion, bot,
     name: `${bot.label} #${assignments.filter(entry => entry.status === "bot").length + 1}`,
-    aiDifficulty: bot.provider === "typesafe" || bot.provider === "rules" ? difficulty : null,
+    aiDifficulty: bot.provider === "typesafe" || bot.provider === "eevo" || bot.provider === "rules" ? difficulty : null,
     botProfileId: bot.provider === "llm" ? (botProfileId ?? "balanced") : null,
   });
 }

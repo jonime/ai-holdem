@@ -241,7 +241,7 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
 - Public DTOs are a security boundary. Reveal active hole cards only to the
 	browser that owns that seat. Do not broadcast private cards, player tokens,
 	TypeSafe inputs, or raw responses.
-- Keep `SUPABASE_SECRET_KEY` and `TYPESAFE_API_KEY` server-only. Never add a
+- Keep `SUPABASE_SECRET_KEY`, `TYPESAFE_API_KEY` and `EEVO_API_KEY` server-only. Never add a
 	`NEXT_PUBLIC_` prefix or import server modules into client components.
 - Translations are server-owned. Every dictionary module is `server-only`;
 	Server Components load them through `lib/i18n/server`, and client components
@@ -542,3 +542,16 @@ returns matching results before charging allowance, conflicts on changed intent,
 rolls back failed creation, and retains permanent deletion tombstones. No automatic
 retention expiry; never log attempt IDs, fingerprints, names, tokens or payloads.
 Run `test:sql:creation`, `test:sql:usage` and `test:e2e:ci`.
+
+## Upright Eevo
+
+Eevo (`eevo`, `eevo-1`) uses the shared provider-neutral `lib/systemone/` policy
+pipeline with Jev's unchanged prompts, difficulty sampling and river safeguards.
+New selections require its server-only `EEVO_API_KEY` plus enabled external
+inference; existing descriptors remain parseable without credentials. Quick Play
+excludes Eevo unless `EEVO_QUICK_PLAY_ENABLED=true`. It has difficulty controls,
+no LLM playstyles and no automatic credit departure. Preserve claims, allowances,
+60-second requests and explicit retries. Apply `20261029000000_add_eevo_bot.sql`
+first, drain old instances before adding the secret, and keep Quick Play disabled
+for the initial trial. Clear/reject Eevo keys in isolated environments. Live
+scenario evaluations require explicit inference opt-in and a shared call cap.
