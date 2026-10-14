@@ -1178,6 +1178,18 @@ PokerKit validation. This tooling makes no inference requests and changes no
 production policies. Run `check`, offline `test:bots`, and `benchmark:poker-context`
 after changes to it; automatic range inference remains deferred.
 
+### Equity Rules challenger evaluation
+
+Run `npm run benchmark:equity-rules` for the benchmark-only Plan 2 challenger.
+It compares frozen, corrected-facts and structured policies with 500 paired seed
+blocks per opponent/difficulty at two and six seats, plus fixed decisions for
+three through five seats. `RULES_BLOCKS=2` is a mechanics check only. See the
+[protocol and reproduction guide](benchmarks/equity-rules/README.md) for sampling,
+whole-block bootstrap intervals, exclusions, conditional range contrasts and
+worker isolation. No providers or database are used. Run `npm run check`, offline
+`npm run test:bots` and `npm run benchmark:poker-context` after changes; production
+promotion requires a later evidence-based plan.
+
 ### Explicit heads-up Jev evaluation
 
 Run `npm run benchmark:jev:heads-up` for frozen offline memory mechanics and

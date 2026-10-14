@@ -388,6 +388,15 @@ failures. It is separate from CI; fixture and evaluator regression tests run in
 commands and known weaknesses. Preserve production context options and do not
 weaken strategic expectations to hide a failing bot.
 
+The benchmark-only Equity Rules challenger lives in `benchmarks/equity-rules/`.
+Run `npm run benchmark:equity-rules` for frozen/facts/structured ablations with
+500 whole seed blocks per opponent/difficulty at two and six seats. Three through
+five players have fixed-decision coverage; supplied range equity is limited to
+separate heads-up fixed decisions. See `benchmarks/equity-rules/README.md` for
+sampling budgets, worker isolation, fallback coverage and bootstrap exclusions.
+No production selection, provider, session query or persistence changes are allowed;
+promotion requires a later evidence-based plan.
+
 Vitest automatically loads the optional root `.env.test` file for unit tests and
 benchmarks before collecting tests. Existing shell/CI variables take precedence;
 `.env` is not loaded. `.env.test` is ignored by Git and can hold local provider

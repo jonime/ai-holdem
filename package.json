@@ -47,7 +47,8 @@
     "benchmark:jev:heads-up": "BOT_SCENARIO_LIVE=false vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/heads-up/jev-heads-up.benchmark.ts",
     "benchmark:jev:memory:live": "BOT_SCENARIO_LIVE=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/heads-up/jev-heads-up.benchmark.ts -t \"capped live memory\"",
     "test:integration:bot-pipeline": "node scripts/bot-pipeline.mjs",
-    "benchmark:range-equity": "vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/range-equity/range-equity.benchmark.ts"
+    "benchmark:range-equity": "vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/range-equity/range-equity.benchmark.ts",
+    "benchmark:equity-rules": "BOT_SCENARIO_LIVE=false vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/equity-rules/equity-rules.benchmark.ts"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",

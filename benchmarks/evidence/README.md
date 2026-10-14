@@ -4,6 +4,9 @@ Keep dated, sanitized results here for future comparisons. Routine generated
 reports remain ignored in `benchmarks/results/`; explicitly preserve useful runs
 in this directory together with their human-readable interpretation.
 
+- [Equity Rules ablation report v1](../equity-rules/report-v1.md),
+  [compressed synthetic comparisons](equity-rules-v1-2026-10-14.json.gz), and
+  [execution/checksum manifest](equity-rules-v1-2026-10-14.manifest.json).
 - [Range-equity sensitivity report v1](../range-equity/report-v1.md),
   [synthetic calculation evidence](range-equity-v1-2026-10-14.json), and
   [source/checksum manifest](range-equity-v1-2026-10-14.manifest.json).

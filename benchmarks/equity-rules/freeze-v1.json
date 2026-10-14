@@ -1,0 +1,20 @@
+{
+  "version": "equity-rules-freeze-v1",
+  "date": "2026-10-14",
+  "notes": "Copied production rules strategy, hand analysis, context, random equity and sizing. Imports relocated; three private helpers exported. Shared adapter remains legality/evaluation authority. Optional memoization hook in copied context defaults to identical frozen estimator; benchmark cache keys include the entire visible equity input. Exact river-share import uses output-identical adapter memoization.",
+  "sha256": {
+    "benchmarks/equity-rules/frozen/ai-state.ts": "fec1113f0d557ddfa920f9ca94c384feae5fd4e0b781d427a71b67d48eef1cb6",
+    "benchmarks/equity-rules/frozen/hand-analysis.ts": "9baa5ff4e2e7bf12569a399da453a040167aec97bd4d8dae4714da9ca63797c2",
+    "benchmarks/equity-rules/frozen/strategy.ts": "ccdf0b787f876bab0439f469a0f42ffbf8ac11a3142368b030c6e0e7152444ee",
+    "benchmarks/equity-rules/frozen/questions.ts": "258f4e506c58d6bd2d4a5f71cc96a06b8a79afe63516924545bdf56a6c9dbc88",
+    "benchmarks/equity-rules/frozen/equity.ts": "2f8d8e22bbd8d52e76e7ca2f3d7a4c44d98a47cd8403926b3ca2da988383c805"
+  },
+  "sourceCommit": "b9b9dba37fb8006a4ba831174a2d11f4c0b842af",
+  "originalSha256": {
+    "lib/bots/equity-rules/strategy.ts": "506f0cf66df271fc6f565a9805c9532e5735de4a3736f0a2e39e9a42e379a36a",
+    "lib/bots/equity-rules/hand-analysis.ts": "c4bb0b383fcc6143098c8777910e01b7aeebdd2b8804c51dac7dc7b3beebc48c",
+    "lib/poker/ai-state.ts": "d42b69cf9cf84afba8ef1b26c986523307100d890968cf39ed9f9ef1bc6d67e4",
+    "lib/poker/equity.ts": "3de93201511bdf2c9ff4479321620058f386c1c345e69dd7b8ff46ab8680ca8a",
+    "lib/typesafe/questions.ts": "43ce974ddaa7f1494b792665900fc37becfd3ad300287975e26170ddef08a497"
+  }
+}

@@ -4,6 +4,8 @@
   obvious-blunder checks, with opt-in live providers.
 - [Shared poker context](poker-context.md): Jev/LLM facts, advisory guidance,
   weighted preflop matrices and paired full-hand comparisons.
+- [Equity Rules situation experiment](equity-rules/README.md): frozen/facts/structured
+  ablations, whole-block bootstrap comparisons and separate range sensitivity.
 - [Conditional range equity](range-equity/README.md): benchmark-only weighted
   holdings, joint rejection sampling, exact river checks and PokerKit validation.
 - [Preserved benchmark evidence](evidence/README.md): dated sanitized run snapshots,
