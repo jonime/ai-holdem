@@ -83,6 +83,15 @@ reading. Healthy polling and routine updates remain silent. If an action’s out
 is unknown, its specific explanation and one Refresh table button take precedence.
 Connection recovery never resubmits an action or dismisses a paused bot’s retry.
 
+## About this bot
+
+Select a bot’s name on the game table to see its bot type and supported seat settings. Human names remain plain text. Close, Escape or the backdrop
+returns to the table; the localized About link opens in a new tab. The compact dialog
+shares the single overlay with Help, Settings, Join and mobile Actions. Gameplay
+shortcuts are disabled while it is open, but bots, turn timers, refreshes and turn
+notifications continue. It remains available during pending requests and recovery.
+Missing legacy metadata stays generic; opening the dialog makes no requests.
+
 ## In-game Help
 
 The header Help button opens optional reference material for players and spectators

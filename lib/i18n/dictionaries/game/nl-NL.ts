@@ -3,6 +3,32 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  botInformation: {
+    "open": "Over {name}",
+    "title": "Over deze bot",
+    "genericLabel": "Bot",
+    "genericDescription": "Een automatische speler. Details over deze oudere bot ontbreken.",
+    "providers": {
+      "rules": "Equity Rules kiest lokaal legale zetten met berekende equity en pokerregels.",
+      "typesafe": "TypeSafe Jev stuurt gestructureerde spelcontext en legale zetten naar TypeSafe System One.",
+      "eevo": "Upright Eevo stuurt gestructureerde spelcontext en legale zetten naar Eevo.",
+      "llm": "Deze LLM-bot stuurt beperkte spelcontext naar het ingestelde model om een legale actie te kiezen."
+    },
+    "rulesDifficulty": {
+      "easy": "Voorzichtige drempels; geen blufs of semiblufs.",
+      "medium": "Lagere drempels en ingeschakelde semiblufs.",
+      "hard": "Laagste drempels, semiblufs en selectieve pure blufs."
+    },
+    "sampled": "Trekt uit de zetkansen van de aanbieder; zetten met kans nul zijn uitgesloten.",
+    "preferred": "Gebruikt de voorkeurszet van de aanbieder. Gemiddeld en Moeilijk gebruiken nu dezelfde lokale selectie.",
+    "playstyles": {
+      "balanced": "Zoekt verwachte chipwaarde zonder richtingsvoorkeur.",
+      "tight": "Vermijdt marginale zetten met hoge variantie, maar maakt duidelijk winstgevende calls.",
+      "aggressive": "Geeft voorkeur aan druk bij vergelijkbare verwachtingswaarden, met geloofwaardige draws en passende valuebets."
+    },
+    "learnMore": "Meer over de bots",
+    "newTab": "(opent in een nieuw tabblad)"
+  },
   creation: {"wait": "Opnieuw proberen kan over {seconds} seconden.", "creating": "Tafel maken…", "retry": "Opnieuw maken", "recovery": "Een aanmaakpoging staat open. Probeer opnieuw om dezelfde tafel te herstellen.", "memoryOnly": "Sessieopslag is niet beschikbaar. Bij herladen gaat dit herstel verloren.", "cookiesRequired": "Cookies zijn nodig om een tafel te maken. Schakel ze in en probeer opnieuw.", "identityChanged": "Je anonieme identiteit is gewijzigd. Deze poging kan niet veilig worden hervat.", "failed": "Het resultaat kon niet worden bevestigd. Probeer opnieuw om dezelfde tafel te herstellen.", "unavailable": "Deze poging kan niet worden hervat. De tafel is mogelijk verwijderd of de invoer gewijzigd.", "denied": "Aanmaaklimiet bereikt. Wacht voordat je opnieuw probeert.", "dismiss": "Poging verwijderen"},
   settings: {"showCurrentHand": "Huidige hand tonen", "cardColours": "Kaartkleuren", "classic": "Klassiek", "fourColour": "Vier kleuren", "title": "Instellingen", "close": "Sluiten", "shortcuts": "Spelsneltoetsen", "language": "Taal", "continues": "Het spel gaat door terwijl de instellingen open zijn.", "languageBlocked": "Je kunt de taal wijzigen nadat het verzoek of tafelherstel is afgerond."},
   tableLoading: {

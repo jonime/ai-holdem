@@ -3,6 +3,32 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  botInformation: {
+    "open": "Informazioni su {name}",
+    "title": "Informazioni sul bot",
+    "genericLabel": "Bot",
+    "genericDescription": "Un giocatore automatico. I dettagli di questo vecchio bot non sono disponibili.",
+    "providers": {
+      "rules": "Equity Rules sceglie mosse legali localmente usando equità calcolata e regole del poker.",
+      "typesafe": "TypeSafe Jev invia contesto strutturato e mosse legali a TypeSafe System One.",
+      "eevo": "Upright Eevo invia contesto strutturato e mosse legali a Eevo.",
+      "llm": "Questo bot LLM invia contesto limitato al modello configurato per scegliere un’azione legale."
+    },
+    "rulesDifficulty": {
+      "easy": "Soglie prudenti; niente bluff o semi-bluff.",
+      "medium": "Soglie più basse e semi-bluff abilitati.",
+      "hard": "Soglie minime, semi-bluff e bluff puri selettivi."
+    },
+    "sampled": "Campiona le probabilità del fornitore; esclude mosse a probabilità zero.",
+    "preferred": "Usa la mossa preferita del fornitore. Medio e Difficile usano oggi la stessa selezione locale.",
+    "playstyles": {
+      "balanced": "Cerca il valore atteso in chip senza preferenze direzionali.",
+      "tight": "Evita giocate marginali ad alta varianza, ma accetta call chiaramente redditizi.",
+      "aggressive": "Preferisce fare pressione a valori attesi simili, con progetti credibili e puntate di valore adeguate."
+    },
+    "learnMore": "Altre informazioni sui bot",
+    "newTab": "(si apre in una nuova scheda)"
+  },
   creation: {"wait": "Potrai riprovare tra {seconds} secondi.", "creating": "Creazione del tavolo…", "retry": "Riprova la creazione", "recovery": "Una creazione è in sospeso. Riprova per recuperare lo stesso tavolo.", "memoryOnly": "La memoria di sessione non è disponibile. Ricaricando si perde questo recupero.", "cookiesRequired": "I cookie sono necessari per creare un tavolo. Abilitali e riprova.", "identityChanged": "La tua identità anonima è cambiata. Non è possibile riprendere questo tentativo in sicurezza.", "failed": "Impossibile confermare il risultato. Riprova per recuperare lo stesso tavolo.", "unavailable": "Impossibile riprendere il tentativo. Il tavolo potrebbe essere stato eliminato o i dati modificati.", "denied": "Limite di creazione raggiunto. Attendi prima di riprovare.", "dismiss": "Scarta tentativo"},
   settings: {"showCurrentHand": "Mostra la mano attuale", "cardColours": "Colori delle carte", "classic": "Classici", "fourColour": "Quattro colori", "title": "Impostazioni", "close": "Chiudi", "shortcuts": "Scorciatoie di gioco", "language": "Lingua", "continues": "La partita continua mentre le impostazioni sono aperte.", "languageBlocked": "Puoi cambiare lingua al termine della richiesta o del recupero del tavolo."},
   tableLoading: {

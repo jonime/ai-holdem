@@ -1,6 +1,32 @@
 import "server-only";
 
 const dictionary = {
+  botInformation: {
+    "open": "About {name}",
+    "title": "About this bot",
+    "genericLabel": "Bot",
+    "genericDescription": "An automated player. Details of this older bot are unavailable.",
+    "providers": {
+      "rules": "Equity Rules uses calculated equity and poker rules to choose legal moves locally.",
+      "typesafe": "TypeSafe Jev sends structured game context and legal move candidates to TypeSafe System One.",
+      "eevo": "Upright Eevo sends structured game context and legal move candidates to Eevo.",
+      "llm": "This LLM bot sends constrained game context to its configured model to choose a legal action."
+    },
+    "rulesDifficulty": {
+      "easy": "Conservative thresholds; no bluffs or semi-bluffs.",
+      "medium": "Lower thresholds and semi-bluffs enabled.",
+      "hard": "Lowest thresholds, semi-bluffs and selective pure bluffs."
+    },
+    "sampled": "Samples from the provider’s move probabilities; zero-probability moves are excluded.",
+    "preferred": "Uses the provider’s preferred move. Medium and Hard currently use the same local selection.",
+    "playstyles": {
+      "balanced": "Seeks expected chip value without a directional preference.",
+      "tight": "Avoids marginal, high-variance plays; still takes clearly profitable calls.",
+      "aggressive": "Favors pressure when expected values are comparable, with credible draws and suitable value bets."
+    },
+    "learnMore": "More about the bots",
+    "newTab": "(opens in a new tab)"
+  },
   creation: {"wait": "Retry available in {seconds} seconds.", "creating": "Creating table…", "retry": "Retry creation", "recovery": "A creation attempt is pending. Retry to recover the same table.", "memoryOnly": "Session storage is unavailable. Reloading loses this recovery attempt.", "cookiesRequired": "Cookies are required to create a table. Enable cookies and try again.", "identityChanged": "Your anonymous identity changed. This attempt cannot be safely resumed.", "failed": "The result could not be confirmed. Retry creation to recover the same table.", "unavailable": "This attempt cannot be resumed. Its table may have been deleted or its inputs changed.", "denied": "Creation allowance reached. Wait before retrying this attempt.", "dismiss": "Dismiss attempt"},
   settings: {"showCurrentHand": "Show current hand", "cardColours": "Card colours", "classic": "Classic", "fourColour": "Four-colour", "title": "Settings", "close": "Close", "shortcuts": "Gameplay shortcuts", "language": "Language", "continues": "The game continues while Settings is open.", "languageBlocked": "Language is available after the current request or table recovery finishes."},
   tableLoading: {

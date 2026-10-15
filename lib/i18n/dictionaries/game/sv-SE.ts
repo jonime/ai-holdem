@@ -3,6 +3,32 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  botInformation: {
+    "open": "Om {name}",
+    "title": "Om den här boten",
+    "genericLabel": "Bot",
+    "genericDescription": "En automatisk spelare. Detaljer om den här äldre boten saknas.",
+    "providers": {
+      "rules": "Equity Rules väljer tillåtna drag lokalt med beräknad equity och pokerregler.",
+      "typesafe": "TypeSafe Jev skickar strukturerad spelkontext och tillåtna drag till TypeSafe System One.",
+      "eevo": "Upright Eevo skickar strukturerad spelkontext och tillåtna drag till Eevo.",
+      "llm": "Denna LLM-bot skickar begränsad spelkontext till sin inställda modell för att välja en tillåten handling."
+    },
+    "rulesDifficulty": {
+      "easy": "Försiktiga trösklar; inga bluffar eller semibluffar.",
+      "medium": "Lägre trösklar och aktiverade semibluffar.",
+      "hard": "Lägsta trösklarna, semibluffar och selektiva rena bluffar."
+    },
+    "sampled": "Samplar leverantörens dragsannolikheter; drag med noll sannolikhet utesluts.",
+    "preferred": "Använder leverantörens föredragna drag. Medel och Svår använder nu samma lokala urval.",
+    "playstyles": {
+      "balanced": "Söker förväntat markervärde utan riktningspreferens.",
+      "tight": "Undviker marginella spel med hög varians, men synar när det är tydligt lönsamt.",
+      "aggressive": "Föredrar press vid jämförbara väntevärden, med trovärdiga draghänder och lämpliga värdesatsningar."
+    },
+    "learnMore": "Mer om botarna",
+    "newTab": "(öppnas i en ny flik)"
+  },
   creation: {"wait": "Du kan försöka igen om {seconds} sekunder.", "creating": "Skapar bord…", "retry": "Försök skapa igen", "recovery": "Ett skapande väntar. Försök igen för att återställa samma bord.", "memoryOnly": "Sessionslagring är inte tillgänglig. Omladdning förlorar denna återställning.", "cookiesRequired": "Cookies krävs för att skapa ett bord. Aktivera cookies och försök igen.", "identityChanged": "Din anonyma identitet ändrades. Försöket kan inte återupptas säkert.", "failed": "Resultatet kunde inte bekräftas. Försök igen för att återställa samma bord.", "unavailable": "Försöket kan inte återupptas. Bordet kan ha raderats eller uppgifterna ändrats.", "denied": "Gränsen för skapande nådd. Vänta innan du försöker igen.", "dismiss": "Avfärda försök"},
   settings: {"showCurrentHand": "Visa aktuell hand", "cardColours": "Kortfärger", "classic": "Klassiska", "fourColour": "Fyra färger", "title": "Inställningar", "close": "Stäng", "shortcuts": "Spelgenvägar", "language": "Språk", "continues": "Spelet fortsätter medan inställningarna är öppna.", "languageBlocked": "Språket kan ändras när begäran eller återställningen av bordet är klar."},
   tableLoading: {

@@ -3,6 +3,32 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  botInformation: {
+    "open": "Tietoja botista {name}",
+    "title": "Tietoja tästä botista",
+    "genericLabel": "Botti",
+    "genericDescription": "Automaattinen pelaaja. Tämän vanhan botin tarkemmat tiedot puuttuvat.",
+    "providers": {
+      "rules": "Equity Rules valitsee sallitut siirrot paikallisesti laskennallisen osuuden ja pokerisääntöjen avulla.",
+      "typesafe": "TypeSafe Jev lähettää jäsennellyn pelitilanteen ja sallitut siirrot TypeSafe System Onelle.",
+      "eevo": "Upright Eevo lähettää jäsennellyn pelitilanteen ja sallitut siirrot Eevolle.",
+      "llm": "Tämä LLM-botti lähettää rajatun pelitilanteen määritetylle mallille sallitun toiminnon valitsemiseksi."
+    },
+    "rulesDifficulty": {
+      "easy": "Varovaiset kynnykset; ei bluffeja tai semibluffeja.",
+      "medium": "Matalammat kynnykset ja semibluffit käytössä.",
+      "hard": "Matalimmat kynnykset, semibluffit ja valikoidut bluffit."
+    },
+    "sampled": "Arpoo palveluntarjoajan siirtotodennäköisyyksistä; nollatodennäköiset siirrot ohitetaan.",
+    "preferred": "Käyttää palveluntarjoajan suosimaa siirtoa. Keskitaso ja vaikea käyttävät nyt samaa paikallista valintaa.",
+    "playstyles": {
+      "balanced": "Tavoittelee odotettua pelimerkkituottoa ilman suuntapainotusta.",
+      "tight": "Välttää rajatapauksia ja suurta vaihtelua, mutta maksaa selvästi kannattavat maksut.",
+      "aggressive": "Suosii painostusta vertailukelpoisilla odotusarvoilla, uskottavilla vedoilla ja sopivilla arvopanostuksilla."
+    },
+    "learnMore": "Lisätietoja boteista",
+    "newTab": "(avautuu uuteen välilehteen)"
+  },
   creation: {"wait": "Voit yrittää uudelleen {seconds} sekunnin kuluttua.", "creating": "Luodaan pöytää…", "retry": "Yritä luomista uudelleen", "recovery": "Pöydän luominen on kesken. Jatka samalla yrityksellä.", "memoryOnly": "Istuntotallennus ei ole käytettävissä. Sivun lataaminen uudelleen poistaa palautusmahdollisuuden.", "cookiesRequired": "Pöydän luominen edellyttää evästeitä. Salli evästeet ja yritä uudelleen.", "identityChanged": "Anonyymi henkilöllisyytesi muuttui. Yritystä ei voi jatkaa turvallisesti.", "failed": "Tulosta ei voitu vahvistaa. Yritä uudelleen palauttaaksesi saman pöydän.", "unavailable": "Yritystä ei voi jatkaa. Pöytä on ehkä poistettu tai tiedot muuttuneet.", "denied": "Luontiraja saavutettu. Odota ennen uutta yritystä.", "dismiss": "Hylkää yritys"},
   settings: {"showCurrentHand": "Näytä nykyinen käsi", "cardColours": "Korttien värit", "classic": "Perinteinen", "fourColour": "Nelivärinen", "title": "Asetukset", "close": "Sulje", "shortcuts": "Pelin pikanäppäimet", "language": "Kieli", "continues": "Peli jatkuu asetusten ollessa auki.", "languageBlocked": "Kielen voi vaihtaa, kun käynnissä oleva pyyntö tai pöydän palautus on valmis."},
   tableLoading: {

@@ -1076,10 +1076,10 @@ Preview verification uses ordinary durations and the existing Realtime two-brows
 smoke, because local DB fixture injection is intentionally unavailable for previews.
 
 The game UI owns a single active overlay in `PokerApp`: none, mobile Actions,
-Join table, Help, or Settings. These overlays use `components/poker/Modal.tsx`, opened through
+Join table, Help, Settings, or About this bot. These overlays use `components/poker/Modal.tsx`, opened through
 native `showModal()` for focus containment and inert background content. The
 wrapper owns Escape/backdrop dismissal, scroll locking, initial focus, and focus
-restoration to the opener or the stable table container. Restore only on the
+restoration to the opener or the stable table container (Help for bot information). Restore only on the
 same page while the table remains mounted; content refreshes must not refocus or
 remount the feed. The Actions collapsed preference remains independent of modal
 ownership. Gameplay keyboard shortcuts must return immediately while any
@@ -1087,6 +1087,16 @@ modal is open. Timers, bot/departure advancement, Realtime and authoritative
 refreshes continue normally. Dismissing Join table does not cancel a submitted
 claim. Verify changes with `test/e2e/dialogs.spec.ts` alongside betting controls
 and Actions-feed regressions using the existing Chromium configuration.
+
+The in-table bot-name buttons open `BotInformationModal` through the same overlay
+state. Store only immutable participant ID and resolve current public metadata from
+`poker.players`; never fetch a catalog or infer a provider from a display name.
+Close if the participant disappears or ceases to be a bot. Focus Close initially
+and restore the opener, falling back to Help if it disappears. Keep this overlay
+independent of request/recovery and turn advancement. Concise copy belongs in every
+server-owned game dictionary; provider/setting descriptions must agree with About
+MDX and production policy. `bot-information.spec.ts` covers Chromium dialog behavior
+and the focused desktop/mobile WebKit compatibility projects, with screenshots.
 
 Help content lives in `content/help/<locale>.mdx`, with a localized exported title
 and three matching sections: hand rankings, betting basics and keyboard shortcuts.

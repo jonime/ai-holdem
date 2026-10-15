@@ -58,3 +58,9 @@ it.each(["bet", "raise"])("shows %s once in the top badge, preserving authoritat
   expect(render({}, false, true, true, { ...state, latestAction: { action: "call", amount: 100 } })).toContain(">Call 100</span>");
   expect(render({ bestHand: "flush" }, false, true, false, { ...state, winner: true, winnerAmount: 100 })).toContain(">+100</span>");
 });
+
+it("renders native bot dialog buttons while human names remain text", () => {
+  expect(render({ controller: "bot", name: "Same", bot: null })).toContain('aria-label="About Same" aria-haspopup="dialog"');
+  expect(render({ controller: "bot", name: "Same", bot: null })).toMatch(/<button type="button"[^>]*>SAME<\/button>/);
+  expect(render({ controller: "human", name: "Same" })).not.toContain('aria-haspopup="dialog"');
+});

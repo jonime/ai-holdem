@@ -3,6 +3,32 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  botInformation: {
+    "open": "Acerca de {name}",
+    "title": "Acerca de este bot",
+    "genericLabel": "Bot",
+    "genericDescription": "Un jugador automático. No hay detalles de este bot antiguo.",
+    "providers": {
+      "rules": "Equity Rules elige jugadas legales localmente mediante equidad calculada y reglas de póquer.",
+      "typesafe": "TypeSafe Jev envía contexto estructurado y jugadas legales a TypeSafe System One.",
+      "eevo": "Upright Eevo envía contexto estructurado y jugadas legales a Eevo.",
+      "llm": "Este bot LLM envía contexto limitado al modelo configurado para elegir una acción legal."
+    },
+    "rulesDifficulty": {
+      "easy": "Umbrales conservadores; sin faroles ni semifaroles.",
+      "medium": "Umbrales más bajos y semifaroles activados.",
+      "hard": "Los umbrales más bajos, semifaroles y faroles puros selectivos."
+    },
+    "sampled": "Muestrea las probabilidades del proveedor; excluye jugadas de probabilidad cero.",
+    "preferred": "Usa la jugada preferida del proveedor. Medio y Difícil usan actualmente la misma selección local.",
+    "playstyles": {
+      "balanced": "Busca el valor esperado en fichas sin preferencia direccional.",
+      "tight": "Evita jugadas marginales de alta varianza, pero acepta pagos claramente rentables.",
+      "aggressive": "Prefiere presionar con valores esperados similares, proyectos creíbles y apuestas de valor adecuadas."
+    },
+    "learnMore": "Más sobre los bots",
+    "newTab": "(se abre en otra pestaña)"
+  },
   creation: {"wait": "Podrás reintentar en {seconds} segundos.", "creating": "Creando mesa…", "retry": "Reintentar creación", "recovery": "Hay una creación pendiente. Reintenta para recuperar la misma mesa.", "memoryOnly": "El almacenamiento de sesión no está disponible. Al recargar se pierde esta recuperación.", "cookiesRequired": "Se necesitan cookies para crear una mesa. Actívalas e inténtalo de nuevo.", "identityChanged": "Tu identidad anónima cambió. No se puede reanudar este intento de forma segura.", "failed": "No se pudo confirmar el resultado. Reintenta para recuperar la misma mesa.", "unavailable": "No se puede reanudar este intento. La mesa pudo eliminarse o los datos cambiaron.", "denied": "Límite de creación alcanzado. Espera antes de reintentar.", "dismiss": "Descartar intento"},
   settings: {"showCurrentHand": "Mostrar mano actual", "cardColours": "Colores de las cartas", "classic": "Clásicos", "fourColour": "Cuatro colores", "title": "Ajustes", "close": "Cerrar", "shortcuts": "Atajos de juego", "language": "Idioma", "continues": "La partida continúa mientras los ajustes están abiertos.", "languageBlocked": "El idioma se puede cambiar cuando termine la solicitud o recuperación de la mesa."},
   tableLoading: {

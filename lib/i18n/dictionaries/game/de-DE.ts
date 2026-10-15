@@ -3,6 +3,32 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  botInformation: {
+    "open": "Über {name}",
+    "title": "Über diesen Bot",
+    "genericLabel": "Bot",
+    "genericDescription": "Ein automatischer Spieler. Einzelheiten zu diesem älteren Bot fehlen.",
+    "providers": {
+      "rules": "Equity Rules wählt erlaubte Züge lokal anhand berechneter Equity und Pokerregeln.",
+      "typesafe": "TypeSafe Jev sendet strukturierten Spielkontext und erlaubte Züge an TypeSafe System One.",
+      "eevo": "Upright Eevo sendet strukturierten Spielkontext und erlaubte Züge an Eevo.",
+      "llm": "Dieser LLM-Bot sendet begrenzten Spielkontext an sein konfiguriertes Modell, um eine erlaubte Aktion zu wählen."
+    },
+    "rulesDifficulty": {
+      "easy": "Vorsichtige Schwellen; keine Bluffs oder Semi-Bluffs.",
+      "medium": "Niedrigere Schwellen und aktivierte Semi-Bluffs.",
+      "hard": "Niedrigste Schwellen, Semi-Bluffs und gezielte reine Bluffs."
+    },
+    "sampled": "Zufallsauswahl nach den Zugwahrscheinlichkeiten des Anbieters; Züge mit Wahrscheinlichkeit null sind ausgeschlossen.",
+    "preferred": "Nutzt den bevorzugten Zug des Anbieters. Mittel und Schwer nutzen derzeit dieselbe lokale Auswahl.",
+    "playstyles": {
+      "balanced": "Strebt erwarteten Chipwert ohne Richtungspräferenz an.",
+      "tight": "Vermeidet knappe, stark schwankende Spielzüge, nimmt aber klar profitable Calls an.",
+      "aggressive": "Bevorzugt Druck bei vergleichbaren Erwartungswerten, mit glaubwürdigen Draws und passenden Value Bets."
+    },
+    "learnMore": "Mehr über die Bots",
+    "newTab": "(öffnet in neuem Tab)"
+  },
   creation: {"wait": "Erneuter Versuch in {seconds} Sekunden möglich.", "creating": "Tisch wird erstellt…", "retry": "Erstellung erneut versuchen", "recovery": "Eine Erstellung ist offen. Wiederhole sie, um denselben Tisch wiederherzustellen.", "memoryOnly": "Sitzungsspeicher ist nicht verfügbar. Beim Neuladen geht diese Wiederherstellung verloren.", "cookiesRequired": "Zum Erstellen eines Tisches sind Cookies erforderlich. Aktiviere sie und versuche es erneut.", "identityChanged": "Deine anonyme Identität hat sich geändert. Dieser Versuch kann nicht sicher fortgesetzt werden.", "failed": "Das Ergebnis konnte nicht bestätigt werden. Wiederhole die Erstellung, um denselben Tisch wiederherzustellen.", "unavailable": "Dieser Versuch kann nicht fortgesetzt werden. Der Tisch wurde möglicherweise gelöscht oder die Eingaben geändert.", "denied": "Erstellungslimit erreicht. Warte vor einem erneuten Versuch.", "dismiss": "Versuch verwerfen"},
   settings: {"showCurrentHand": "Aktuelle Hand anzeigen", "cardColours": "Kartenfarben", "classic": "Klassisch", "fourColour": "Vierfarbig", "title": "Einstellungen", "close": "Schließen", "shortcuts": "Spiel-Tastenkürzel", "language": "Sprache", "continues": "Das Spiel läuft bei geöffneten Einstellungen weiter.", "languageBlocked": "Die Sprache kann nach Abschluss der Anfrage oder Tischwiederherstellung geändert werden."},
   tableLoading: {

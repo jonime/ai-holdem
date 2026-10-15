@@ -3,6 +3,32 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  botInformation: {
+    "open": "{name}について",
+    "title": "このボットについて",
+    "genericLabel": "ボット",
+    "genericDescription": "自動プレイヤーです。この旧ボットの詳細はありません。",
+    "providers": {
+      "rules": "Equity Rulesは計算したエクイティとポーカーのルールを使い、ローカルで合法手を選びます。",
+      "typesafe": "TypeSafe Jevは構造化したゲーム状況と合法手候補をTypeSafe System Oneに送信します。",
+      "eevo": "Upright Eevoは構造化したゲーム状況と合法手候補をEevoに送信します。",
+      "llm": "このLLMボットは限定されたゲーム状況を設定済みモデルに送り、合法なアクションを選びます。"
+    },
+    "rulesDifficulty": {
+      "easy": "慎重な閾値を使い、ブラフとセミブラフは行いません。",
+      "medium": "閾値を下げ、セミブラフを有効にします。",
+      "hard": "最も低い閾値を使い、セミブラフと選択的な純粋ブラフを有効にします。"
+    },
+    "sampled": "提供元の手の確率に従って抽選し、確率ゼロの手は除外します。",
+    "preferred": "提供元が推奨する手を使います。現在、中級と上級のローカルな選択方法は同じです。",
+    "playstyles": {
+      "balanced": "特定の方向に偏らず、チップの期待値を追求します。",
+      "tight": "僅差で分散の大きい手を避けますが、明確に利益のあるコールは行います。",
+      "aggressive": "期待値が同程度なら、信頼できるドローや適切なバリューベットで圧力をかけます。"
+    },
+    "learnMore": "ボットの詳細",
+    "newTab": "(新しいタブで開きます)"
+  },
   creation: {"wait": "{seconds}秒後に再試行できます。", "creating": "テーブルを作成中…", "retry": "作成を再試行", "recovery": "作成が保留中です。再試行して同じテーブルを復元してください。", "memoryOnly": "セッションストレージを利用できません。再読み込みすると、この復元情報は失われます。", "cookiesRequired": "テーブルの作成にはCookieが必要です。有効にして再試行してください。", "identityChanged": "匿名IDが変わりました。この試行を安全に再開できません。", "failed": "結果を確認できませんでした。再試行して同じテーブルを復元してください。", "unavailable": "この試行は再開できません。テーブルが削除されたか、入力が変更された可能性があります。", "denied": "作成上限に達しました。しばらく待ってから再試行してください。", "dismiss": "試行を破棄"},
   settings: {"showCurrentHand": "現在の役を表示", "cardColours": "カードの色", "classic": "クラシック", "fourColour": "4色", "title": "設定", "close": "閉じる", "shortcuts": "ゲームのショートカット", "language": "言語", "continues": "設定を開いている間もゲームは続行します。", "languageBlocked": "リクエストまたはテーブルの復旧が完了すると言語を変更できます。"},
   tableLoading: {

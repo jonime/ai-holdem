@@ -3,6 +3,32 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  botInformation: {
+    "open": "O bocie {name}",
+    "title": "O tym bocie",
+    "genericLabel": "Bot",
+    "genericDescription": "Automatyczny gracz. Szczegóły tego starszego bota są niedostępne.",
+    "providers": {
+      "rules": "Equity Rules lokalnie wybiera legalne ruchy na podstawie obliczonego equity i reguł pokera.",
+      "typesafe": "TypeSafe Jev wysyła uporządkowany kontekst gry i legalne ruchy do TypeSafe System One.",
+      "eevo": "Upright Eevo wysyła uporządkowany kontekst gry i legalne ruchy do Eevo.",
+      "llm": "Ten bot LLM wysyła ograniczony kontekst gry do skonfigurowanego modelu, aby wybrać legalną akcję."
+    },
+    "rulesDifficulty": {
+      "easy": "Ostrożne progi; bez blefów i półblefów.",
+      "medium": "Niższe progi i włączone półblefy.",
+      "hard": "Najniższe progi, półblefy i wybrane czyste blefy."
+    },
+    "sampled": "Losuje według prawdopodobieństw dostawcy; wyklucza ruchy o zerowym prawdopodobieństwie.",
+    "preferred": "Używa preferowanego ruchu dostawcy. Średni i Trudny mają obecnie ten sam lokalny wybór.",
+    "playstyles": {
+      "balanced": "Dąży do oczekiwanej wartości żetonów bez preferencji kierunku.",
+      "tight": "Unika marginalnych zagrań o dużej wariancji, ale sprawdza, gdy jest to wyraźnie opłacalne.",
+      "aggressive": "Preferuje presję przy zbliżonych wartościach oczekiwanych, wiarygodnych drawach i odpowiednich zakładach dla wartości."
+    },
+    "learnMore": "Więcej o botach",
+    "newTab": "(otwiera się w nowej karcie)"
+  },
   creation: {"wait": "Ponowna próba za {seconds} sekund.", "creating": "Tworzenie stołu…", "retry": "Ponów tworzenie", "recovery": "Tworzenie jest w toku. Ponów, aby odzyskać ten sam stół.", "memoryOnly": "Pamięć sesji jest niedostępna. Odświeżenie strony uniemożliwi odzyskanie tej próby.", "cookiesRequired": "Tworzenie stołu wymaga plików cookie. Włącz je i spróbuj ponownie.", "identityChanged": "Twoja anonimowa tożsamość się zmieniła. Nie można bezpiecznie wznowić tej próby.", "failed": "Nie udało się potwierdzić wyniku. Ponów, aby odzyskać ten sam stół.", "unavailable": "Nie można wznowić tej próby. Stół mógł zostać usunięty lub dane zmienione.", "denied": "Osiągnięto limit tworzenia. Poczekaj przed ponowieniem.", "dismiss": "Odrzuć próbę"},
   settings: {"showCurrentHand": "Pokaż aktualny układ", "cardColours": "Kolory kart", "classic": "Klasyczne", "fourColour": "Cztery kolory", "title": "Ustawienia", "close": "Zamknij", "shortcuts": "Skróty gry", "language": "Język", "continues": "Gra trwa dalej, gdy ustawienia są otwarte.", "languageBlocked": "Język można zmienić po zakończeniu żądania lub odzyskiwania stołu."},
   tableLoading: {

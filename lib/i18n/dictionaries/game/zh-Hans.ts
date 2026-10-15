@@ -3,6 +3,32 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  botInformation: {
+    "open": "关于{name}",
+    "title": "关于此机器人",
+    "genericLabel": "机器人",
+    "genericDescription": "自动玩家。此旧版机器人的详细信息不可用。",
+    "providers": {
+      "rules": "Equity Rules使用计算的胜率权益和扑克规则，在本地选择合法行动。",
+      "typesafe": "TypeSafe Jev将结构化游戏信息和合法行动候选发送给TypeSafe System One。",
+      "eevo": "Upright Eevo将结构化游戏信息和合法行动候选发送给Eevo。",
+      "llm": "此LLM机器人将受限的游戏信息发送给配置的模型，以选择合法行动。"
+    },
+    "rulesDifficulty": {
+      "easy": "采用保守阈值，不进行诈唬或半诈唬。",
+      "medium": "降低阈值并启用半诈唬。",
+      "hard": "采用最低阈值，启用半诈唬和选择性纯诈唬。"
+    },
+    "sampled": "根据提供方的行动概率抽样，排除概率为零的行动。",
+    "preferred": "使用提供方推荐的行动。目前中等和困难使用相同的本地选择方式。",
+    "playstyles": {
+      "balanced": "追求筹码期望值，不偏向特定行动方向。",
+      "tight": "避免边缘且高方差的打法，但仍会选择明显盈利的跟注。",
+      "aggressive": "在期望值相近时偏好施压，采用可信的听牌和适当的价值下注。"
+    },
+    "learnMore": "了解更多机器人信息",
+    "newTab": "（在新标签页打开）"
+  },
   creation: {"wait": "{seconds} 秒后可重试。", "creating": "正在创建牌桌…", "retry": "重试创建", "recovery": "有待完成的创建请求。重试可恢复同一牌桌。", "memoryOnly": "无法使用会话存储。重新加载将丢失此恢复记录。", "cookiesRequired": "创建牌桌需要 Cookie。请启用后重试。", "identityChanged": "您的匿名身份已更改，无法安全恢复此请求。", "failed": "无法确认结果。重试创建以恢复同一牌桌。", "unavailable": "无法恢复此请求。牌桌可能已删除或输入已更改。", "denied": "已达到创建上限。请稍后重试。", "dismiss": "丢弃请求"},
   settings: {"showCurrentHand": "显示当前牌型", "cardColours": "纸牌颜色", "classic": "经典", "fourColour": "四色", "title": "设置", "close": "关闭", "shortcuts": "游戏快捷键", "language": "语言", "continues": "设置打开时，游戏仍会继续。", "languageBlocked": "当前请求或牌桌恢复完成后即可切换语言。"},
   tableLoading: {

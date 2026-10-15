@@ -62,6 +62,7 @@ import { GameI18nBoundary, metadata } from "./layout";
 
 const gameTopLevelKeys = [
   "actions",
+  "botInformation",
   "cards",
   "connection",
   "creation",

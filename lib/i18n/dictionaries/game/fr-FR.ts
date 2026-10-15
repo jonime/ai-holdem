@@ -3,6 +3,32 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  botInformation: {
+    "open": "À propos de {name}",
+    "title": "À propos de ce bot",
+    "genericLabel": "Bot",
+    "genericDescription": "Un joueur automatique. Les détails de cet ancien bot sont indisponibles.",
+    "providers": {
+      "rules": "Equity Rules choisit localement des coups légaux à partir de l’équité calculée et de règles de poker.",
+      "typesafe": "TypeSafe Jev envoie le contexte structuré et les coups légaux à TypeSafe System One.",
+      "eevo": "Upright Eevo envoie le contexte structuré et les coups légaux à Eevo.",
+      "llm": "Ce bot LLM envoie un contexte limité au modèle configuré pour choisir une action légale."
+    },
+    "rulesDifficulty": {
+      "easy": "Seuils prudents ; aucun bluff ni semi-bluff.",
+      "medium": "Seuils abaissés et semi-bluffs activés.",
+      "hard": "Seuils les plus bas, semi-bluffs et bluffs purs sélectifs."
+    },
+    "sampled": "Échantillonne les probabilités du fournisseur ; exclut les coups de probabilité nulle.",
+    "preferred": "Utilise le coup préféré du fournisseur. Moyen et Difficile utilisent actuellement la même sélection locale.",
+    "playstyles": {
+      "balanced": "Recherche la valeur attendue en jetons sans préférence directionnelle.",
+      "tight": "Évite les coups marginaux à forte variance, mais suit si c’est clairement rentable.",
+      "aggressive": "Privilégie la pression à valeurs attendues comparables, avec des tirages crédibles et des mises de valorisation adaptées."
+    },
+    "learnMore": "En savoir plus sur les bots",
+    "newTab": "(s’ouvre dans un nouvel onglet)"
+  },
   creation: {"wait": "Nouvel essai possible dans {seconds} secondes.", "creating": "Création de la table…", "retry": "Réessayer la création", "recovery": "Une création est en attente. Réessayez pour retrouver la même table.", "memoryOnly": "Le stockage de session est indisponible. Recharger la page perd cette récupération.", "cookiesRequired": "Les cookies sont nécessaires pour créer une table. Activez-les et réessayez.", "identityChanged": "Votre identité anonyme a changé. Cette tentative ne peut pas reprendre en toute sécurité.", "failed": "Le résultat n’a pas pu être confirmé. Réessayez pour retrouver la même table.", "unavailable": "Cette tentative ne peut pas reprendre. La table a peut-être été supprimée ou les données modifiées.", "denied": "Limite de création atteinte. Attendez avant de réessayer.", "dismiss": "Abandonner la tentative"},
   settings: {"showCurrentHand": "Afficher la main actuelle", "cardColours": "Couleurs des cartes", "classic": "Classiques", "fourColour": "Quatre couleurs", "title": "Paramètres", "close": "Fermer", "shortcuts": "Raccourcis de jeu", "language": "Langue", "continues": "La partie continue pendant que les paramètres sont ouverts.", "languageBlocked": "La langue peut être modifiée après la requête ou la récupération de la table."},
   tableLoading: {

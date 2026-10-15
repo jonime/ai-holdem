@@ -8,6 +8,8 @@ import Link from "next/link";
 
 import { hasAutomaticTurn } from "./bot-advancement";
 import { useSettings } from "./useSettings";
+import { BotInformationModal } from "./BotInformationModal";
+import { selectedBot } from "./bot-information";
 import { SettingsModal } from "./SettingsModal";
 import { useTurnNotifications } from "./useTurnNotifications";
 import { TableLoadingIndicator } from "./TableLoadingShell";
@@ -64,7 +66,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const [playerName, setPlayerName] = useState("");
   const [playerNameEdited, setPlayerNameEdited] = useState(false);
   const [amountDraft, setAmountDraft] = useState({ scope: "", value: "" });
-  const [overlay, setOverlay] = useState<"none" | "actions" | "join" | "help" | "settings">("none");
+  const [overlay, setOverlay] = useState<"none" | "actions" | "join" | "help" | "settings" | { botId: string }>("none");
   const openerRef = useRef<HTMLElement | null>(null);
   const settingsOpenerRef = useRef<HTMLButtonElement>(null);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
@@ -124,6 +126,9 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     usageRetryAfterMs,
     refreshDirectoryState,
   } = useGameSession(gameId);
+
+  const informationPlayer = typeof overlay === "object" ? selectedBot(game?.poker.players ?? [], overlay.botId) : null;
+  if (typeof overlay === "object" && (!informationPlayer || unavailable || game?.status === "waiting")) setOverlay("none");
 
   const feedback = connectionFeedback(connectionNotice, recoveryBlocked);
   const connectionMessage = feedback.message === "none" ? null : t(`connection.${feedback.message}`);
@@ -374,6 +379,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
             className={`${styles.tableRow} ${feedCollapsed ? styles.feedCollapsed : ""}`}
           >
             <PokerTable
+              onAboutBot={(botId, opener) => { openerRef.current = opener; setOverlay({ botId }); }}
               showCurrentHand={settings.preferences.showCurrentHand}
               shortcuts={shortcuts}
               busy={requestBusy}
@@ -487,6 +493,10 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
         </div>
       )}
     </main>
+    {typeof overlay === "object" && informationPlayer && !unavailable && game?.status !== "waiting" ? (
+      <BotInformationModal player={informationPlayer} onClose={() => setOverlay("none")}
+        restoreFocus={openerRef} fallbackFocus={helpOpenerRef} />
+    ) : null}
     {overlay === "settings" ? (
       <SettingsModal preferences={settings.preferences} onUpdate={settings.update}
         onSound={turnNotification.preview} notice={turnNotification.notice}

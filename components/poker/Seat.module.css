@@ -252,3 +252,7 @@
 @media (max-width: 560px) {
   .currentHand { font-size: 9px; }
 }
+
+.botName { appearance: none; border: 0; padding: 0; margin: 0; background: transparent; color: inherit; cursor: pointer; text-decoration: underline dotted; text-decoration-color: #eff4e970; text-underline-offset: 3px; }
+.botName:hover { text-decoration-style: solid; text-decoration-color: currentColor; }
+.botName:focus-visible { outline: 2px solid var(--sun); outline-offset: 4px; border-radius: 2px; }

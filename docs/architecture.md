@@ -704,7 +704,14 @@ post-hydration loading switches the wrapper palette without game or HTTP changes
 No document-wide style mutation or client Help provider is needed. Four-colour
 blue (`#1856a0`) and green (`#21633e`) maintain at least 4.5:1 text contrast on
 card (`#fffdf6`) and Help (`#f8f7f0`) backgrounds.
-The single overlay state includes Help and uses the shared native `Modal` lifecycle.
+The single overlay state includes Help and bot information, using the shared native
+`Modal` lifecycle. Bot information stores an immutable participant ID and resolves
+only the latest `poker.players` public metadata. It closes when that participant
+is removed or ceases to be a bot. Native seat-name buttons restore focus on close;
+Help is the fallback if the opener disappears. Opening performs no requests or
+catalog lookup, and does not affect timers, bot advancement or session recovery.
+Concise provider and supported configuration descriptions live in server-owned
+game dictionaries and agree with About MDX; no inference details are exposed.
 
 ## Feedback link
 

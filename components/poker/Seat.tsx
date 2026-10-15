@@ -4,7 +4,6 @@ import type {
   PublicPokerPlayer,
 } from "@/components/poker/types";
 import {
-  describeBotConfiguration,
   describeSeatStatus,
   formatChips,
 } from "@/components/poker/view-model";
@@ -25,7 +24,9 @@ export function Seat({
   smallBlindSeat,
   bigBlindSeat,
   gameWinner,
+  onAboutBot,
 }: {
+  readonly onAboutBot?: (id: string, opener: HTMLButtonElement) => void;
   readonly isViewer: boolean;
   readonly showCurrentHand: boolean;
   readonly handActive: boolean;
@@ -58,11 +59,6 @@ export function Seat({
     player.inHand && !player.leaving && !player.folded && !player.allIn && !player.bestHand;
   const award = winner && winnerAmount !== null ? `+${formatChips(winnerAmount, locale)}` : null;
   const isBusted = player.stack === 0 && !player.inHand;
-  const botDetails = describeBotConfiguration(
-    player,
-    dictionary.seat,
-    dictionary.lobby,
-  );
   const role =
     player.seat === dealerSeat
       ? {
@@ -104,14 +100,11 @@ export function Seat({
     >
       <span className={styles.seatNumber}>{player.seat + 1}</span>
       <div className={styles.seatHeading}>
-        <span
-          className={styles.seatLabel}
-          title={botDetails ?? undefined}
-          aria-label={botDetails ? `${player.name}. ${botDetails}` : undefined}
-          tabIndex={botDetails ? 0 : undefined}
-        >
+        {isAi ? <button type="button" className={`${styles.seatLabel} ${styles.botName}`}
+          aria-label={t("botInformation.open", { name: player.name })} aria-haspopup="dialog"
+          onClick={event => onAboutBot?.(player.id, event.currentTarget)}>
           {player.name.toUpperCase()}
-        </span>
+        </button> : <span className={styles.seatLabel}>{player.name.toUpperCase()}</span>}
       </div>
       {role ? (
         <span

@@ -44,7 +44,9 @@ export function PokerTable({
   feedCollapsed,
   onToggleFeed,
   latestActions,
+  onAboutBot,
 }: {
+  readonly onAboutBot?: (id: string, opener: HTMLButtonElement) => void;
   readonly shortcuts?: boolean;
   readonly showCurrentHand?: boolean;
   readonly game: Game;
@@ -170,6 +172,7 @@ export function PokerTable({
             <Seat
               key={player.id}
               player={player}
+              onAboutBot={onAboutBot}
               isViewer={human !== null && human.id === player.id}
               showCurrentHand={showCurrentHand}
               handActive={game.poker.street !== null && game.poker.street !== "complete"}
@@ -208,6 +211,7 @@ export function PokerTable({
             <Seat
               key={player.id}
               player={player}
+              onAboutBot={onAboutBot}
               isViewer={human !== null && human.id === player.id}
               showCurrentHand={showCurrentHand}
               handActive={game.poker.street !== null && game.poker.street !== "complete"}
@@ -228,6 +232,7 @@ export function PokerTable({
             <Seat
               key={player.id}
               player={player}
+              onAboutBot={onAboutBot}
               isViewer={human !== null && human.id === player.id}
               showCurrentHand={showCurrentHand}
               handActive={game.poker.street !== null && game.poker.street !== "complete"}
