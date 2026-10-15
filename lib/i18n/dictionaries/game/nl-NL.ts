@@ -41,6 +41,13 @@ const dictionary = {
   timer: {"retry": "Beurttijd opnieuw verwerken", "setting": "Beurttijd voor mensen", "off": "Uit", "duration": "{seconds} seconden", "multiplayer": "Voor handen die met minstens twee mensen beginnen.", "countdown": "Resterend: {seconds}s", "warning": "Nog tien seconden.", "expired": "Tijd verstreken — tafel wordt bijgewerkt"},
   turnNotification: {"soundLabel": "Geluid", "title": "🟢 Jij bent aan de beurt · AI Hold’em", "sound": "Beurtgeluid", "audioUnavailable": "Geluid is niet beschikbaar. Probeer het opnieuw in deze browser in te schakelen."},
   gameHeader: {
+    cancel: "Annuleren",
+    leaving: "Tafel verlaten…",
+    departureUnavailable: "Je hoeft deze stoel niet meer te verlaten. Je kunt terug naar de lobby.",
+    departureRegistered: "Je vertrek is al geregistreerd of je stoel is vrijgegeven. Je kunt terug naar de lobby.",
+    departureFailed: "Je vertrek kon niet worden bevestigd. Bekijk de tafel voordat je het opnieuw probeert.",
+    allInDeparture: "Vertrek tijdens een hand is onomkeerbaar. All-in-spelers behouden hun recht op de pot.",
+
     help: "Help",
     closeHelp: "Help sluiten",
     retryDeparture: "Vertrek opnieuw proberen",

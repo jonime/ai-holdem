@@ -318,7 +318,7 @@ export function useGameSession(gameId?: string) {
   }, [locale, router, t]);
 
   // One synchronous gate covers clicks, keyboard actions and multi-request workflows.
-  const mutate = useCallback(async (work: (signal: AbortSignal, current: () => boolean) => Promise<void>, conflictMessage?: string) => {
+  const mutate = useCallback(async (work: (signal: AbortSignal, current: () => boolean) => Promise<void>, conflictMessage?: string, failureMessage?: string) => {
     if (!game || mutationPending.current || recoveryBlock.current || bots.loading || activeGameId.current !== game.id) return false;
     const generation = sessionGeneration.current;
     const current = () => sessionGeneration.current === generation && activeGameId.current === game.id;
@@ -350,8 +350,8 @@ export function useGameSession(gameId?: string) {
       } else if (failure instanceof HttpError && (failure.status === 409 || failure.code === "TURN_EXPIRED")) {
         try { await loadGame(game.id, current); }
         catch { /* loadGame owns connection failure state. */ }
-        if (current()) setError(failure.code === "TURN_EXPIRED" || failure.code === "GAME_VERSION_CONFLICT" ? null : conflictMessage ?? failure.message);
-      } else setError(failure instanceof Error ? failure.message : t("errors.submitAction"));
+        if (current()) setError(conflictMessage ?? (failure.code === "TURN_EXPIRED" || failure.code === "GAME_VERSION_CONFLICT" ? null : failure.message));
+      } else setError(failureMessage ?? (failure instanceof Error ? failure.message : t("errors.submitAction")));
       return false;
     } finally {
       if (current()) {
@@ -386,7 +386,7 @@ export function useGameSession(gameId?: string) {
     if (!current()) return;
     if (navigate) { botLifecycle.current?.reset(); router.push(addLocalePrefix("/play", locale)); }
     else await loadGame(game.id, current);
-  }, t("gameHeader.departureChanged")), [game, mutate, loadGame, router, locale, t]);
+  }, t("gameHeader.departureChanged"), t("gameHeader.departureFailed")), [game, mutate, loadGame, router, locale, t]);
   const assignBot = useCallback(async (seat: number, difficulty: AIDifficulty, botId = "jev", botProfileId: BotPlaystyleId | null = null) => {
     if (!game) return;
     await postSeatAction(signal => api.seats.assignBot({ gameId: game.id, seat, difficulty, botId, ...(botProfileId ? { botProfileId } : {}), expectedVersion: game.version }, { signal }));

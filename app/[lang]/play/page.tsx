@@ -46,7 +46,7 @@ export default async function PlayPage({ params }: PageProps<"/[lang]/play">) {
   if (!hasLocale(lang)) notFound();
   const [d, directory, gameDictionary] = await Promise.all([getPlayDictionary(lang), getJoinGameDictionary(lang), getGameDictionary(lang)]);
   return <main className={styles.page}><div className={styles.panel}>
-    <div className={styles.headingRow}><div><h1>{d.title}</h1><p>{d.intro}</p></div><Link href={addLocalePrefix("/", lang)}>{directory.back}</Link></div>
+    <div className={styles.headingRow}><div><h1 id="play-heading" tabIndex={-1}>{d.title}</h1><p>{d.intro}</p></div><Link href={addLocalePrefix("/", lang)}>{directory.back}</Link></div>
     <CreationForm locale={lang} labels={gameDictionary.creation} className={styles.controls} action={addLocalePrefix("/quick-game", lang)} quickPlayLabel={d.quickPlay} createTableLabel={d.createTable}>
       <PlayerName dictionary={directory} />
     </CreationForm>

@@ -2,6 +2,8 @@
 import { connectionFeedback } from "./connection-notice";
 import { useCreation } from "@/components/creation/useCreation";
 import { CreationFeedback } from "@/components/creation/CreationFeedback";
+import { ConfirmationDialog } from "./ConfirmationDialog";
+import { headerDepartureSeat } from "./header-navigation";
 import { Modal } from "./Modal";
 import { turnRemainingMs } from "./turn-clock";
 import Link from "next/link";
@@ -66,7 +68,9 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const [playerName, setPlayerName] = useState("");
   const [playerNameEdited, setPlayerNameEdited] = useState(false);
   const [amountDraft, setAmountDraft] = useState({ scope: "", value: "" });
-  const [overlay, setOverlay] = useState<"none" | "actions" | "join" | "help" | "settings" | { botId: string }>("none");
+  const [overlay, setOverlay] = useState<"none" | "actions" | "join" | "help" | "settings" | "leave" | { botId: string }>("none");
+  const [departureAttempted, setDepartureAttempted] = useState(false);
+  const [departureFailed, setDepartureFailed] = useState(false);
   const openerRef = useRef<HTMLElement | null>(null);
   const settingsOpenerRef = useRef<HTMLButtonElement>(null);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
@@ -74,7 +78,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const tableRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const joinPending = useRef(false);
-  const openOverlay = (next: "actions" | "join" | "help" | "settings", opener: HTMLElement) => {
+  const openOverlay = (next: "actions" | "join" | "help" | "settings" | "leave", opener: HTMLElement) => {
     openerRef.current = opener;
     setOverlay(next);
   };
@@ -134,6 +138,11 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const connectionMessage = feedback.message === "none" ? null : t(`connection.${feedback.message}`);
 
   const viewerToken = getClientPlayerToken();
+  const departureSeat = game && !unavailable ? headerDepartureSeat(game.poker.seats ?? game.poker.players, viewerToken) : null;
+  const departureRegistered = departureAttempted && !departureSeat && !!game &&
+    !(game.poker.seats ?? game.poker.players).some(p => p.controller === "human" && p.status === "claimed" && !p.leaving && p.playerToken === viewerToken);
+  const departureFeedback = overlay === "leave" && departureAttempted;
+
   const { viewerPlayer, human } = resolveViewer(
     game?.poker.players ?? [],
     viewerToken,
@@ -315,17 +324,17 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   return (
     <div className={`${styles.cardPalette} ${!game && !unavailable ? loadingStyles.loadingPage : ""}`} data-card-colours={settings.preferences.cardColours}>
     <CreationFeedback creation={creation} labels={creationLabels} />
-    <GameHeader helpRef={helpOpenerRef} onHelp={opener => openOverlay("help", opener)} settingsRef={settingsOpenerRef} onSettings={opener => openOverlay("settings", opener)} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={releaseSeat} />
+    <GameHeader helpRef={helpOpenerRef} onHelp={opener => openOverlay("help", opener)} settingsRef={settingsOpenerRef} onSettings={opener => openOverlay("settings", opener)} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={opener => { setDepartureAttempted(false); setDepartureFailed(false); openOverlay("leave", opener); }} />
     <main className={styles.pokerApp}>
-      <div className={connectionMessage || error || botNotice || feedback.refresh ? styles.errorBanner : undefined}>
+      <div className={connectionMessage || (!departureFeedback && (error || feedback.refresh)) || botNotice ? styles.errorBanner : undefined}>
         <div data-testid="connection-status" role="status" aria-live="polite" aria-atomic="true">
           {connectionMessage ? <p>{connectionMessage}</p> : null}
         </div>
-      {error || botNotice || feedback.refresh ? (
+      {(!departureFeedback && (error || feedback.refresh)) || botNotice ? (
         <p role={error || botNotice ? "alert" : undefined}>
-          {error}
+          {!departureFeedback ? error : null}
           {botNotice ? <span>{botNotice}</span> : null}
-          {feedback.refresh ? <Button className={styles.recoveryButton} size="small" disabled={!online || refreshing} onClick={refreshGame}>{t("errors.refreshTable")}</Button> : null}
+          {feedback.refresh && !departureFeedback ? <Button className={styles.recoveryButton} size="small" disabled={!online || refreshing} onClick={refreshGame}>{t("errors.refreshTable")}</Button> : null}
           {usageLimited ? <> <span>{t("errors.retryAvailable", { seconds: Math.ceil(usageRetryAfterMs / 1000) })}</span> <Button size="small" disabled={loading || replaying || creation.hasPending} onClick={() => void newQuickPlay("rules")}>{t("errors.rulesOnlyGame")}</Button></> : null}
           {botNotice && (botRetryAvailable || usageLimited) && !recoveryBlocked && game && canAdvanceBots(game, viewerToken) && hasAutomaticTurn(game) ? (
             <Button
@@ -497,6 +506,24 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
       <BotInformationModal player={informationPlayer} onClose={() => setOverlay("none")}
         restoreFocus={openerRef} fallbackFocus={helpOpenerRef} />
     ) : null}
+    {overlay === "leave" ? <ConfirmationDialog
+      title={t("gameHeader.leaveTable")}
+      explanation={!departureSeat ? t(departureRegistered ? "gameHeader.departureRegistered" : "gameHeader.departureUnavailable") :
+        `${t(game?.status === "waiting" ? "gameHeader.confirmWaiting" : game?.status === "complete" ? "gameHeader.confirmComplete" : "gameHeader.confirmDeparture")}${game?.status === "playing" ? ` ${t("gameHeader.allInDeparture")}` : ""}`}
+      cancelLabel={t("gameHeader.cancel")} confirmLabel={t("gameHeader.leaveTable")} pendingLabel={t("gameHeader.leaving")}
+      feedback={departureAttempted && departureSeat ? error ?? (departureFailed ? t("gameHeader.departureFailed") : null) : null}
+      blocked={!departureSeat || loading || recoveryBlocked || unavailable}
+      onClose={() => setOverlay("none")} restoreFocus={openerRef} fallbackFocus={helpOpenerRef}
+      onConfirm={async () => {
+        // Read the current render's authoritative assignment, never the opening seat.
+        if (!departureSeat || loading || recoveryBlocked || unavailable) return;
+        setDepartureAttempted(true); setDepartureFailed(false);
+        const acknowledged = await releaseSeat(departureSeat.seat, true);
+        if (!acknowledged) setDepartureFailed(true);
+      }}>
+      {!departureSeat && !navigationLoading ? <Link href={addLocalePrefix("/play", locale)}>{t("gameHeader.lobby")}</Link> : null}
+      {departureAttempted && feedback.refresh ? <Button disabled={!online || refreshing} onClick={refreshGame}>{t("errors.refreshTable")}</Button> : null}
+    </ConfirmationDialog> : null}
     {overlay === "settings" ? (
       <SettingsModal preferences={settings.preferences} onUpdate={settings.update}
         onSound={turnNotification.preview} notice={turnNotification.notice}

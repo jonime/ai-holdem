@@ -41,6 +41,13 @@ const dictionary = {
   timer: {"retry": "Försök avsluta turen igen", "setting": "Tidsgräns för mänskliga turer", "off": "Av", "duration": "{seconds} sekunder", "multiplayer": "För händer som börjar med minst två människor.", "countdown": "Tid kvar: {seconds}s", "warning": "Tio sekunder kvar.", "expired": "Tiden är slut — bordet uppdateras"},
   turnNotification: {"soundLabel": "Ljud", "title": "🟢 Din tur · AI Hold’em", "sound": "Turljud", "audioUnavailable": "Ljud är inte tillgängligt. Försök aktivera det igen i den här webbläsaren."},
   gameHeader: {
+    cancel: "Avbryt",
+    leaving: "Lämnar bordet…",
+    departureUnavailable: "Du behöver inte längre lämna denna plats. Du kan återvända till lobbyn.",
+    departureRegistered: "Ditt utträde har redan registrerats eller din plats har frigjorts. Du kan återvända till lobbyn.",
+    departureFailed: "Ditt utträde kunde inte bekräftas. Granska bordet innan du försöker igen.",
+    allInDeparture: "Utträde under en hand kan inte ångras. All-in-spelare behåller sin rätt till potten.",
+
     help: "Hjälp",
     closeHelp: "Stäng hjälpen",
     retryDeparture: "Försök lämna igen",

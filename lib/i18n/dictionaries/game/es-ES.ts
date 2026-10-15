@@ -41,6 +41,13 @@ const dictionary = {
   timer: {"retry": "Reintentar fin de turno", "setting": "Tiempo de turno humano", "off": "Desactivado", "duration": "{seconds} segundos", "multiplayer": "Se aplica a manos que comienzan con al menos dos humanos.", "countdown": "Tiempo restante: {seconds}s", "warning": "Quedan diez segundos.", "expired": "Tiempo agotado — actualizando la mesa"},
   turnNotification: {"soundLabel": "Sonido", "title": "🟢 Tu turno · AI Hold’em", "sound": "Sonido de turno", "audioUnavailable": "El sonido no está disponible. Intenta activarlo de nuevo en este navegador."},
   gameHeader: {
+    cancel: "Cancelar",
+    leaving: "Saliendo de la mesa…",
+    departureUnavailable: "Ya no necesitas dejar este asiento. Puedes volver al lobby.",
+    departureRegistered: "Tu salida ya está registrada o tu asiento se ha liberado. Puedes volver al lobby.",
+    departureFailed: "No se pudo confirmar tu salida. Revisa la mesa antes de volver a intentarlo.",
+    allInDeparture: "Salir durante una mano es irreversible. Los jugadores all-in mantienen su derecho al bote.",
+
     help: "Ayuda",
     closeHelp: "Cerrar ayuda",
     retryDeparture: "Reintentar salida",

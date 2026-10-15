@@ -50,6 +50,13 @@ const dictionary = {
   },
   turnNotification: {"soundLabel": "声音", "title": "🟢 轮到你了 · AI Hold’em", "sound": "回合提示音", "audioUnavailable": "声音不可用。请尝试在此浏览器中重新启用。"},
   "gameHeader": {
+    cancel: "取消",
+    leaving: "正在离桌…",
+    departureUnavailable: "你已无需离开此座位。可以返回大厅。",
+    departureRegistered: "离桌已登记或座位已释放。可以返回大厅。",
+    departureFailed: "无法确认离桌结果。请查看牌桌后再重试。",
+    allInDeparture: "一手牌进行期间离桌不可撤销。全押玩家保留赢取底池的资格。",
+
     "help": "帮助",
     "closeHelp": "关闭帮助",
     "retryDeparture": "重试离开",

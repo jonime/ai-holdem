@@ -20,19 +20,14 @@ export function GameHeader({ helpRef, onHelp, settingsRef, onSettings, game, loa
   readonly game: Game | null;
   readonly loading: boolean;
   readonly mutationsBlocked?: boolean;
-  readonly onLeave: (seat: number, navigate: boolean) => Promise<boolean>;
+  readonly onLeave: (opener: HTMLButtonElement) => void;
 }) {
   const router = useRouter();
   const { locale, t } = useI18n();
   const departing = game ? headerDepartureSeat(game.poker.seats ?? game.poker.players, getClientPlayerToken()) : null;
-  function handleExit() {
-    if (!departing) {
-      router.push(addLocalePrefix("/play", locale));
-      return;
-    }
-    const confirmation = game?.status === "waiting" ? "gameHeader.confirmWaiting"
-      : game?.status === "complete" ? "gameHeader.confirmComplete" : "gameHeader.confirmDeparture";
-    if (window.confirm(t(confirmation))) void onLeave(departing.seat, true);
+  function handleExit(opener: HTMLButtonElement) {
+    if (!departing) { router.push(addLocalePrefix("/play", locale)); return; }
+    onLeave(opener);
   }
   return (
     <header className={styles.gameHeader}>
@@ -45,7 +40,7 @@ export function GameHeader({ helpRef, onHelp, settingsRef, onSettings, game, loa
         <Button ref={settingsRef} variant="ghost" size="small" aria-haspopup="dialog" onClick={event => onSettings(event.currentTarget)}>
           {t("settings.title")}
         </Button>
-        <Button variant="primary" size="small" disabled={loading || (!!departing && mutationsBlocked)} onClick={handleExit}>
+        <Button variant="primary" size="small" disabled={loading || (!!departing && mutationsBlocked)} aria-haspopup={departing ? "dialog" : undefined} onClick={event => handleExit(event.currentTarget)}>
           {t(departing ? "gameHeader.leaveTable" : "gameHeader.lobby")}
         </Button>
         </div>

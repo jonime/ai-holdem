@@ -713,6 +713,17 @@ catalog lookup, and does not affect timers, bot advancement or session recovery.
 Concise provider and supported configuration descriptions live in server-owned
 game dictionaries and agree with About MDX; no inference details are exposed.
 
+The same overlay state owns Leave table confirmation. `ConfirmationDialog` wraps
+`Modal` with Cancel-first focus, a synchronous submission/dismissal guard and
+announced progress; callers retain API ownership. PokerApp resolves the current
+owned seat and phase on every render and uses the existing session departure and
+recovery flow. MyTables stores only the selected ID, title and intended operation,
+looks up the current row version at submission, and reconciles conflicts or
+unknown outcomes once. It latches changed operations until reopening and blocks
+submissions after failed reconciliation until an explicit refresh succeeds.
+Abort signals and lifecycle generations fence unmounted list requests. The stable
+Play heading receives focus when the original removal button disappears.
+
 ## Feedback link
 
 The shared locale layout renders a plain external feedback link using server-owned

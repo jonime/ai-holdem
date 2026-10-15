@@ -1057,6 +1057,23 @@ up after each test; browser removal mutations still use real application routes.
 The removal browser suite covers seated and unseated host personal removal,
 shared history preservation, cancellation, deletion blockers, list refill, explicit
 conflict retry, duplicate prevention, keyboard/mobile controls and deletion recovery.
+`confirmation-recovery.spec.ts` additionally covers changed operations, failed list
+reconciliation, invalid successes, acknowledged removal followed by list failure,
+live departure phase/eligibility changes and uncertain registered departures.
+Run the focused production selection with:
+
+```bash
+npm run test:e2e:smoke -- test/e2e/departure.spec.ts test/e2e/table-removal.spec.ts test/e2e/confirmation-recovery.spec.ts test/e2e/dialogs.spec.ts test/e2e/request-recovery.spec.ts --grep '@smoke|@ui-regression'
+```
+
+Screenshots in `test-results/` show the four confirmations, mobile layouts,
+pending requests, changed eligibility/operations and recovery feedback. Inspect
+them alongside traces/HTML reports. Confirm Cancel initially receives focus,
+Tab stays inside the dialog, Escape/backdrop dismissal works before submission
+and is disabled during submission, and removed-row focus falls back to the
+stable Play heading even when the list becomes empty. Confirmation presentation
+owns no API calls; MyTables and the game session retain mutation guards and
+recovery. No new migration or HTTP contract is required for these dialogs.
 Verify two-browser Realtime delivery on an authorized Vercel deployment containing
 this change; polling must still detect deletion if Broadcast fails.
 

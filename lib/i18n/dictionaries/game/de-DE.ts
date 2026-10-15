@@ -41,6 +41,13 @@ const dictionary = {
   timer: {"retry": "Zeitüberschreitung erneut verarbeiten", "setting": "Zeitlimit für menschliche Züge", "off": "Aus", "duration": "{seconds} Sekunden", "multiplayer": "Gilt für Hände, die mit mindestens zwei Menschen beginnen.", "countdown": "Verbleibend: {seconds}s", "warning": "Noch zehn Sekunden.", "expired": "Zeit abgelaufen — Tisch wird aktualisiert"},
   turnNotification: {"soundLabel": "Ton", "title": "🟢 Du bist dran · AI Hold’em", "sound": "Zugton", "audioUnavailable": "Ton ist nicht verfügbar. Versuche, ihn in diesem Browser erneut zu aktivieren."},
   gameHeader: {
+    cancel: "Abbrechen",
+    leaving: "Tisch wird verlassen…",
+    departureUnavailable: "Du musst diesen Platz nicht mehr verlassen. Du kannst zur Lobby zurückkehren.",
+    departureRegistered: "Dein Verlassen wurde bereits registriert oder dein Platz freigegeben. Du kannst zur Lobby zurückkehren.",
+    departureFailed: "Dein Verlassen konnte nicht bestätigt werden. Prüfe den Tisch vor einem erneuten Versuch.",
+    allInDeparture: "Das Verlassen während einer Hand ist unwiderruflich. All-in-Spieler behalten ihren Anspruch auf den Pot.",
+
     help: "Hilfe",
     closeHelp: "Hilfe schließen",
     retryDeparture: "Erneut verlassen",

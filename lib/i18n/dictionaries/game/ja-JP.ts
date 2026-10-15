@@ -50,6 +50,13 @@ const dictionary = {
   },
   turnNotification: {"soundLabel": "サウンド", "title": "🟢 あなたの番 · AI Hold’em", "sound": "ターン通知音", "audioUnavailable": "音声を利用できません。このブラウザーでもう一度有効にしてください。"},
   "gameHeader": {
+    cancel: "キャンセル",
+    leaving: "退席中…",
+    departureUnavailable: "この席から退席する必要はなくなりました。ロビーに戻れます。",
+    departureRegistered: "退席はすでに登録されているか、席は解放されています。ロビーに戻れます。",
+    departureFailed: "退席を確認できませんでした。再試行する前にテーブルを確認してください。",
+    allInDeparture: "ハンド中の退席は取り消せません。オールインのプレイヤーはポットを獲得する権利を保持します。",
+
     "help": "ヘルプ",
     "closeHelp": "ヘルプを閉じる",
     "retryDeparture": "退出を再試行",

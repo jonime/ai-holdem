@@ -17,6 +17,20 @@ async function claim(page: Page, id: string, seat = 1) {
   const response = await page.request.post(`/api/games/${id}/seats/${seat}/claim`, { data: { expectedVersion: (await read(page,id)).version, name: "Removal guest" } });
   expect(response.ok()).toBe(true);
 }
+async function screenshots(page: Page, name: string) {
+  await page.screenshot({ path:test.info().outputPath(`${name}.png`), fullPage:false });
+  await page.setViewportSize({width:390,height:844});
+  await page.screenshot({ path:test.info().outputPath(`${name}-mobile.png`), fullPage:false });
+  const box=await page.getByRole("dialog").locator('[class*="dialog"]').boundingBox();
+  expect(box!.x).toBeGreaterThanOrEqual(0); expect(box!.y).toBeGreaterThanOrEqual(0);
+  expect(box!.x+box!.width).toBeLessThanOrEqual(390);
+  await page.setViewportSize({width:1280,height:720});
+}
+async function confirm(page: Page) {
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("button", { name: "Cancel", exact: true })).toBeFocused();
+  await dialog.getByRole("button").last().click();
+}
 const personal = (page: Page) => page.getByRole("region", { name: "Your tables" });
 
 test("@smoke Hosted deletion blocks other humans, cancellation preserves history, and last-human Lobby preserves the seat", async ({ page, browser }) => {
@@ -32,11 +46,12 @@ test("@smoke Hosted deletion blocks other humans, cancellation preserves history
     const button = personal(page).getByRole("button", { name: /^Delete table:/ });
     const hide = personal(page).getByRole("button", { name: /^Remove from my tables:/ });
     await expect(hide).toBeEnabled();
-    page.once("dialog", dialog => { expect(dialog.message()).toContain("history remain available to other players"); return dialog.dismiss(); });
     await hide.click();
-    await expect(hide).toBeEnabled();
-    page.once("dialog", dialog => dialog.accept());
-    await hide.click();
+    await expect(page.getByRole("dialog")).toContainText("history remain available to other players");
+    await screenshots(page,"remove-from-my-tables");
+    await page.getByRole("dialog").getByRole("button", { name: "Cancel" }).click();
+    await expect(hide).toBeFocused();
+    await hide.click(); await confirm(page);
     await expect(personal(page)).toHaveCount(0);
     expect((await read(guest,id)).poker.players.find(p => p.seat === 1)?.status).toBe("claimed");
     await page.goto(`/game/${id}`); await page.goto("/play");
@@ -45,17 +60,24 @@ test("@smoke Hosted deletion blocks other humans, cancellation preserves history
     await claim(page,id,0); await page.goto("/play");
     await expect(hide).toBeEnabled();
     await guest.goto("/play");
-    guest.once("dialog", dialog => { expect(dialog.message()).toContain("irreversible during a hand"); return dialog.accept(); });
     await personal(guest).getByRole("button", { name: /^Leave and remove:/ }).click();
+    await screenshots(guest,"leave-and-remove");
+    await guest.keyboard.press("Escape");
+    await expect(personal(guest).getByRole("button", {name:/^Leave and remove:/})).toBeFocused();
+    await personal(guest).getByRole("button", {name:/^Leave and remove:/}).click();
+    await confirm(guest);
     await expect(personal(guest)).toHaveCount(0);
     await page.reload(); await expect(button).toBeEnabled();
     let calls = 0; page.on("request", request => { if (request.url().endsWith("/remove")) calls++; });
-    page.once("dialog", dialog => { expect(dialog.message()).toContain("history and shared URL will be permanently removed"); expect(dialog.message()).toContain(id.slice(0,8)); return dialog.dismiss(); });
-    await button.click(); expect(calls).toBe(0); await expect(button).toBeEnabled();
+    await button.click(); expect(calls).toBe(0);
+    await expect(page.getByRole("dialog")).toContainText(id.slice(0,8));
+    await screenshots(page,"delete-table");
+    await page.keyboard.press("Escape"); await expect(button).toBeFocused();
     await expect(personal(page).getByRole("link", { name: /^Return to table:/ })).toHaveCount(1);
-    page.once("dialog", dialog => dialog.accept()); await button.press("Enter");
+    await button.press("Enter"); await confirm(page);
     await expect(personal(page)).toHaveCount(0); expect(calls).toBe(1);
     expect((await page.request.get(`/api/games/${id}`)).status()).toBe(404);
+    await expect(page.getByRole("heading", { name: "Play", exact: true })).toBeFocused();
   } finally { await guestContext.close(); }
 });
 
@@ -74,13 +96,19 @@ test("@smoke Joined removal refills five rows, restores only on a new claim, and
     let calls=0; guest.on("request", request => { if (request.url().endsWith(`/${target}/remove`)) calls++; });
     let release!: () => void; const gate=new Promise<void>(resolve => { release=resolve; });
     await guest.route(`**/api/games/${target}/remove`, async route => { await gate; await route.continue(); });
-    guest.once("dialog",dialog => dialog.accept()); await remove.press("Enter");
+    await remove.press("Enter");
+    await guest.screenshot({ path:testInfo.outputPath("leave-and-remove-mobile.png"),fullPage:false });
+    await confirm(guest);
+    await expect(guest.getByRole("dialog").getByRole("button", { name: "Cancel" })).toBeDisabled();
+    await guest.keyboard.press("Escape");
+    await expect(guest.getByRole("dialog")).toBeVisible();
+    await guest.screenshot({ path:testInfo.outputPath("removal-pending-mobile.png"),fullPage:false });
     await expect(remove).toBeDisabled(); expect(calls).toBe(1); release();
     await expect(personal(guest).getByRole("link", { name: new RegExp(target.slice(0,8)) })).toHaveCount(0);
     await expect(personal(guest).getByRole("link")).toHaveCount(5);
     await expect(personal(guest).getByRole("link", { name: new RegExp(ids[0]) })).toBeVisible();
     expect(await guest.evaluate(() => document.documentElement.scrollWidth<=innerWidth)).toBe(true);
-    await guest.screenshot({ path:testInfo.outputPath("removal-mobile.png"),fullPage:true });
+    await guest.screenshot({ path:testInfo.outputPath("removal-mobile.png"),fullPage:false });
     await guest.goto(`/game/${target}`); await guest.goto("/play");
     await expect(personal(guest).getByRole("link", { name:new RegExp(target.slice(0,8)) })).toHaveCount(0);
     await guest.unroute("**/api/games/mine");
@@ -94,12 +122,12 @@ test("@smoke Removal conflicts require explicit retry and failures retain rows",
   const button=personal(page).getByRole("button", { name:/^Delete table:/ });
   let calls=0;
   await page.route(`**/api/games/${id}/remove`, route => { calls++; return route.fulfill({ status:409,json:{ error:"Game changed",code:"GAME_CONFLICT" } }); });
-  page.once("dialog",dialog=>dialog.accept()); await button.click();
-  await expect(personal(page).getByRole("alert")).toContainText("The table changed.");
+  await button.click(); await confirm(page);
+  await expect(page.getByRole("dialog").getByRole("alert")).toContainText("The table changed.");
   await expect(button).toBeEnabled(); expect(calls).toBe(1);
   await page.route(`**/api/games/${id}/remove`,route=>route.fulfill({ status:500,json:{ error:"Failed" } }));
-  page.once("dialog",dialog=>dialog.accept()); await button.click();
-  await expect(personal(page).getByRole("alert")).toContainText("The table could not be removed.");
+  await page.getByRole("dialog").getByRole("button", { name: "Delete table", exact:true }).click();
+  await expect(page.getByRole("dialog").getByRole("alert")).toContainText("The table could not be removed.");
   await expect(personal(page).getByRole("link")).toHaveCount(1);
 });
 
@@ -117,8 +145,8 @@ for (const polling of [false,true]) test(`@smoke Deleted-table recovery through 
       await observer.clock.pauseAt(await observer.evaluate(() => Date.now() + 1_000));
     }
     let steps=0; observer.on("request", request=>{ if (/\/(step|advance-departure)$/.test(request.url())) steps++; });
-    await page.goto("/play"); page.once("dialog",dialog=>dialog.accept());
-    await personal(page).getByRole("button", { name:/^Delete table:/ }).click();
+    await page.goto("/play");
+    await personal(page).getByRole("button", { name:/^Delete table:/ }).click(); await confirm(page);
     if (!polling) {
       await expect.poll(() => received.notifications,{ timeout:4000 }).toContainEqual({ type:"seat_released",gameId:id });
       await observer.clock.runFor(100);
@@ -138,8 +166,7 @@ test("@smoke Joined active-hand removal registers departure before hiding the ro
     expect((await page.request.post(`/api/games/${id}/start`,{ data:{ expectedVersion:before.version } })).ok()).toBe(true);
     const active=await read(page,id); expect(active.status).toBe("playing");
     await guest.goto("/play");
-    guest.once("dialog",dialog=>{ expect(dialog.message()).toContain("active seats fold on their next legal turn"); return dialog.accept(); });
-    await personal(guest).getByRole("button",{ name:/^Leave and remove:/ }).click();
+    await personal(guest).getByRole("button",{ name:/^Leave and remove:/ }).click(); await confirm(guest);
     await expect(personal(guest)).toHaveCount(0);
     const departed=await read(page,id);
     const seat=(departed.poker.seats??departed.poker.players).find(s=>s.seat===1)!;
@@ -168,8 +195,8 @@ for (const completed of [false, true]) test(`@smoke Host personal removal preser
     }
     const before = await read(page, id);
     const feed = await (await guest.request.get(`/api/games/${id}/feed`)).json();
-    await page.goto("/play"); page.once("dialog", dialog => dialog.accept());
-    await personal(page).getByRole("button", { name: /^Remove from my tables:/ }).click();
+    await page.goto("/play");
+    await personal(page).getByRole("button", { name: /^Remove from my tables:/ }).click(); await confirm(page);
     await expect(personal(page)).toHaveCount(0);
     const after = await read(guest, id);
     expect(after.poker.seats!.find(s => s.seat === 1)?.status).toBe("claimed");

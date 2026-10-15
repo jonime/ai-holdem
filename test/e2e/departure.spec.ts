@@ -32,6 +32,7 @@ async function start(page: Page, gameId: string) {
 test("@smoke Last-human Lobby preserves the seat without confirmation, the title links home, and Play starts Quick Play", async ({ page }) => {
   const gameId = await create(page);
   let mutations = 0; page.on("request", request => { if (request.url().endsWith("/release")) mutations++; });
+  await expect(page.getByText("Waiting room", {exact:true})).toBeVisible();
   await expect(page.locator("header a")).toHaveAttribute("href", "/");
   let confirmations = 0;
   page.on("dialog", dialog => { confirmations++; void dialog.dismiss(); });
@@ -55,12 +56,17 @@ test("@smoke Leave table supports cancellation, stale retry and mobile navigatio
     await page.setViewportSize({ width: 390, height: 844 });
     let releases = 0;
     page.on("request", request => { if (request.url().endsWith("/release")) releases++; });
-    page.once("dialog", async dialog => { expect(dialog.message()).toBe("Leave this table? Your seat will be released now."); await dialog.dismiss(); });
     await page.getByRole("button", { name: "Leave table", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Leave table", exact: true });
+    await expect(dialog).toContainText("Your seat will be released now.");
+    await expect(dialog.getByRole("button", { name: "Cancel" })).toBeFocused();
+    await page.screenshot({ path: test.info().outputPath("leave-table-mobile.png"), fullPage: false });
+    await dialog.getByRole("button", { name: "Cancel" }).click();
+    await expect(page.getByRole("button", { name: "Leave table", exact:true })).toBeFocused();
     expect(releases).toBe(0); await expect(page).toHaveURL(new RegExp(`/game/${gameId}$`));
     await page.route(`**/api/games/${gameId}/seats/0/release`, route => route.fulfill({ status: 409, json: { error: "Game changed", code: "GAME_CONFLICT" } }));
-    page.once("dialog", dialog => dialog.accept());
     await page.getByRole("button", { name: "Leave table", exact: true }).click();
+    await dialog.getByRole("button", { name: "Leave table", exact: true }).click();
     await expect(page.getByText("The table changed. Review it and try leaving again.")).toBeVisible();
     await expect(page).toHaveURL(new RegExp(`/game/${gameId}$`));
     await page.unroute(`**/api/games/${gameId}/seats/0/release`);
@@ -70,10 +76,11 @@ test("@smoke Leave table supports cancellation, stale retry and mobile navigatio
     await page.route(`**/api/games/${gameId}/seats/0/release`, async route => {
       intercepted(); await held; await route.continue();
     });
-    page.once("dialog", dialog => dialog.accept());
-    await page.getByRole("button", { name: "Leave table", exact: true }).click();
+    await dialog.getByRole("button", { name: "Leave table", exact: true }).click();
     await pending;
-    await expect(page.getByRole("button", { name: "Leave table", exact: true })).toBeDisabled();
+    await expect(dialog.getByRole("button", { name: "Leave table", exact: true })).toBeDisabled();
+    await expect(dialog.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    await page.keyboard.press("Escape"); await expect(dialog).toBeVisible();
     await expect(page).toHaveURL(new RegExp(`/game/${gameId}$`));
     acknowledge();
     await expect(page).toHaveURL(/\/play$/);
@@ -93,11 +100,11 @@ test("@smoke remaining browsers fold a departed human and finish after that brow
     await start(page, gameId);
     await expect(guest.getByRole("heading", { name: "Preflop", exact: true })).toBeVisible();
     expect((await read(page, gameId)).poker.currentActorId).toBe("human");
-    guest.once("dialog", async dialog => {
-      expect(dialog.message()).toBe("Leave this table? Your hand will fold when possible, and your seat will be released after this hand.");
-      await dialog.accept();
-    });
     await guest.getByRole("button", { name: "Leave table", exact: true }).click();
+    const dialog = guest.getByRole("dialog");
+    await expect(dialog).toContainText("All-in players keep their eligibility for the pot.");
+    await guest.screenshot({ path: test.info().outputPath("leave-table-active.png"), fullPage:false });
+    await dialog.getByRole("button", { name: "Leave table", exact:true }).click();
     await expect(guest).toHaveURL(/\/play$/); await guest.close();
     // Departure changes the version; settle the host's authoritative refresh before acting.
     const departureRefresh = page.waitForResponse(response => new URL(response.url()).pathname === `/api/games/${gameId}` && response.request().method() === "GET");

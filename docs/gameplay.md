@@ -58,7 +58,12 @@ form. It opens in a new tab without leaving your seat or submitting a game actio
 The game tab remains open; normal timers and bot advancement behavior still apply
 when it is in the background.
 
-Leave table confirms before submitting. Cancellation changes nothing. Navigation
+Leave table opens an application dialog explaining the current hand’s consequences.
+Cancel receives focus; Escape and clicking outside dismiss before submission.
+Bots, timers, refreshes and notifications continue while the dialog is open.
+The explanation follows the current hand; if leaving is no longer applicable,
+the dialog offers an explicit Lobby link and does not navigate automatically.
+Cancellation before submission changes nothing. Navigation
 happens only after server acknowledgement; a stale version refreshes the table
 and requires another click. Waiting or completed hands release the seat immediately.
 During an active hand, departure is irreversible: the engine folds you now if
@@ -66,7 +71,12 @@ it is your actionable turn, or on your next legal turn. Already-folded players
 need no extra action; all-ins retain their pots and showdown eligibility.
 Completing the hand releases departing human assignments atomically while keeping
 results, Actions, your private cards and voluntary reveals available for that hand.
-**Stand up** uses the same service but stays at the game as a watcher.
+**Stand up** uses the same service without a confirmation dialog and stays at the game as a watcher.
+
+Submission disables confirmation and dismissal and announces progress. Failures
+and recovery controls appear in the dialog. Uncertain outcomes reconcile once
+without replaying the request; a registered departure offers Lobby explicitly.
+Closing the dialog after a request does not undo that request.
 
 The durable host retains the table and its usage attribution; there is no host
 transfer. Released non-hosts disappear from Your tables. Remaining eligible browsers
@@ -240,7 +250,14 @@ Joined players can confirm **Leave and remove**. It registers the same irreversi
 departure as Leave table and privately hides the row only after acknowledgement.
 Older tables refill the five-row list. Visiting the URL does not restore a hidden
 row; successfully claiming a new seat does. Conflicts refresh the list and require
-explicit retry. No background worker advances pending departures.
+explicit retry. Each operation has its own confirmation title, explanation and
+button. A changed permitted operation requires closing and reopening from the
+updated list. An uncertain response refreshes the list once without replay;
+a missing row means only that it is no longer listed, not proof of deletion.
+If reconciliation fails, Refresh list must succeed before another submission.
+An acknowledged removal remains successful if refilling the list later fails.
+Cancel restores focus to the original button; if that row disappeared, focus
+returns to the Play heading. No background worker advances pending departures.
 
 ## Human turn timers
 
