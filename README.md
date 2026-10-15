@@ -157,6 +157,12 @@ the application includes its SDK with private table URLs redacted.
 
 ## References and inspiration
 
+- [GTO Wizard: Principles of GTO](https://blog.gtowizard.com/principles-of-gto/)
+  and [The Three Laws of Indifference](https://blog.gtowizard.com/the-three-laws-of-indifference/)
+  — conceptual distinction between EV and frequency mistakes in the
+  [predictability audit](benchmarks/bot-audit/README.md#interpretation-and-attribution);
+  no solver data or code is reused.
+
 - [NIST proportion confidence intervals](https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm)
   — Wilson uncertainty calculation for the benchmark-only
   [opponent-advice experiment](benchmarks/opponent-advice/README.md); no poker strategy reference.

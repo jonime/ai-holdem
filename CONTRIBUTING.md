@@ -1290,3 +1290,21 @@ paid allocations remain exhausted. See the promotion record.
 The Eevo extension has offline contract/safety coverage only; Jev pilot behavior
 is not evidence of Eevo playing strength. No additional provider calls are made
 without fresh explicit authorization.
+
+## Production bot predictability audit
+
+`npm run benchmark:bot-audit` disables external inference and evaluates current
+Equity Rules across 169 classes, all existing preflop nodes and difficulties, plus
+engine-replayed equivalent representations. `benchmark:bot-audit:analyze` rebuilds
+summaries from sanitized evidence without credentials or inference.
+`benchmark:bot-audit:live` requires fresh explicit authorization, a new immutable
+source/input manifest, all three provider credentials and a persistent shared
+972-decision allocation (hard cap 1,000). Failed calls consume budget; interrupted
+runs cannot resume automatically. See the [audit guide](benchmarks/bot-audit/README.md)
+for exact reproduction, privacy, freezing and interpretation limits. No build, SQL
+or browser checks are needed for changes confined to this benchmark.
+
+The dated 972-request bot-audit pilot is complete and its paid authorization is
+exhausted. Preserve its ledger and compressed evidence; do not delete a ledger
+or reuse its confirmation token to rerun it. See the
+[completed report](benchmarks/bot-audit/live-report-2026-10-15.md).

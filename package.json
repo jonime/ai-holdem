@@ -52,7 +52,10 @@
     "benchmark:opponent-advice": "BOT_SCENARIO_LIVE=false vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/opponent-advice/opponent-advice.benchmark.ts",
     "benchmark:opponent-advice:live": "BOT_SCENARIO_LIVE=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/opponent-advice/opponent-advice.benchmark.ts -t \"capped paid\"",
     "benchmark:opponent-advice:v2": "BOT_SCENARIO_LIVE=false vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/opponent-advice/controlled-fixtures.benchmark.ts",
-    "benchmark:opponent-advice:v2:live": "BOT_SCENARIO_LIVE=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/opponent-advice/controlled-pilot.live.ts"
+    "benchmark:opponent-advice:v2:live": "BOT_SCENARIO_LIVE=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/opponent-advice/controlled-pilot.live.ts",
+    "benchmark:bot-audit": "BOT_AUDIT_MODE=offline BOT_SCENARIO_LIVE=false EXTERNAL_INFERENCE_ENABLED=false vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/bot-audit/audit.benchmark.ts",
+    "benchmark:bot-audit:live": "BOT_AUDIT_MODE=live BOT_SCENARIO_LIVE=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/bot-audit/audit.benchmark.ts",
+    "benchmark:bot-audit:analyze": "node benchmarks/bot-audit/analyze.mjs"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",

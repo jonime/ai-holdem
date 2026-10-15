@@ -602,3 +602,21 @@ LLM, rules, models, persistence, claims,
 allowances and request deadlines remain unchanged. The old wrapper stays a
 benchmark baseline; reconstruct frozen Plan 3 experiments at archival commit
 `62d7bc6` instead of rewriting paid-run hashes after promotion.
+
+## Production bot predictability audit
+
+`benchmarks/bot-audit/` evaluates current registry confidence-aware Jev/Eevo,
+explicit mini/low/balanced LLM settings and production Equity Rules at fixed
+decisions. `benchmark:bot-audit` disables external inference;
+`benchmark:bot-audit:analyze` reads sanitized evidence without credentials. The
+frozen `benchmark:bot-audit:live` pilot requires fresh explicit paid authorization
+for 972 decisions, consumes failed allocations and refuses replay of an existing
+ledger. Preserve native Monte Carlo/hash differences separately from controlled
+equity comparisons. No production policy changes follow from concentration alone.
+See [the guide](benchmarks/bot-audit/README.md).
+
+The frozen 972-request bot audit completed on 2026-10-15 with 957 accepted
+provider decisions and fifteen Eevo river-split failures. Its authorization is
+exhausted; preserve its ledger/evidence and do not replay it or add paid probes
+without fresh explicit authorization. See the
+[paid audit report](benchmarks/bot-audit/live-report-2026-10-15.md).

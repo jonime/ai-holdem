@@ -1,5 +1,9 @@
 # Benchmarks and bot evaluations
 
+- [Production predictability and representation audit](bot-audit/README.md):
+  offline production rules coverage, equivalent-input mechanics and a frozen
+  972-request Jev/Eevo/mini pilot. Its [completed report](bot-audit/live-report-2026-10-15.md)
+  records fifteen Eevo river-split failures; its paid authorization is exhausted.
 - [Bot decision scenarios](scenarios/README.md): engine-backed legality and
   obvious-blunder checks, with opt-in live providers.
 - [Confidence-aware opponent advice](opponent-advice/README.md): benchmark-only
@@ -32,7 +36,9 @@ uncertainty interval, action frequencies, failures, and decision latency. This
 is a regression harness for policy mechanics, not evidence that Jev plays
 stronger poker.
 
-The current Jev wrapper policy is `typesafe-poker-v4.0`. Easy mode samples the
+The current registry Jev wrapper is `typesafe-poker-v4.1-confidence`, layered on
+`typesafe-poker-v4.0`; Eevo uses `eevo-poker-v4.1-confidence` with the same
+confidence-advice envelope. Easy mode samples the
 provider distribution without adding uniform randomness; medium and hard use
 the provider's selected move. Before asking Jev, exact heads-up river evaluation
 removes folds when calling guarantees nonnegative chip EV, calls that lose to

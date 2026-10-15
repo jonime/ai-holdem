@@ -14,3 +14,8 @@ integration-logs
 
 .next-context-check
 benchmarks/results/
+
+# Bot audit: keep committed evidence immutable; derived and paid outputs are local.
+benchmarks/bot-audit/*-summary.json
+benchmarks/bot-audit/analysis.json
+benchmarks/bot-audit/live-ledger.json
