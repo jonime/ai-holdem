@@ -523,6 +523,75 @@ export const pokerEngineAdapter = {
     );
   },
 
+  /** Recreate the exact after-blinds state to reject truncated initial histories. */
+  replayStart(state: PokerGameState): PokerGameState {
+    const table = engineStateFrom(state);
+    const hand = table.hand;
+    if (!hand || hand.stage !== "preflop" || hand.communityCards.length !== 0 || hand.burnCards.length !== 0) {
+      throw new PokerRuleError("Replay requires an initial preflop snapshot");
+    }
+    const ordered = [...hand.players].sort((a, b) => a.seat - b.seat);
+    const dealOrder = [...ordered.filter(p => p.seat > hand.buttonSeat), ...ordered.filter(p => p.seat <= hand.buttonSeat)];
+    const deck = [
+      ...dealOrder.map(p => p.holeCards[0]), ...dealOrder.map(p => p.holeCards[1]), ...hand.deck,
+    ];
+    const predecessor = dealOrder.at(-2)?.seat;
+    if (predecessor === undefined) throw new PokerRuleError("Insufficient replay participants");
+    return this.startHand(withEngineState(state.config, { ...table, hand: null,
+      handNumber: hand.handNumber - 1, buttonSeat: predecessor,
+      seats: table.seats.map((seat, index) => {
+        const participant = hand.players.find(p => p.seat === index);
+        return seat && participant ? { ...seat, stack: seat.stack + participant.committedHand } : seat;
+      }),
+    }), deck);
+  },
+
+  /** Display transitions come from engine events, including automatic street deals.
+   * The service projects these server-only transitions into explicit replay fields. */
+  replayTransition(state: PokerGameState, playerId: string, action: PokerAction) {
+    // Apply through the ordinary legality boundary first.
+    const after = this.applyAction(state, playerId, action);
+    const result = transition(engineStateFrom(state), { type: "act", playerId, action: toEngineAction(action) });
+    if (!result.ok) throw new PokerRuleError("Invalid replay transition");
+    const before = this.decisionView(state);
+    let board = [...before.communityCards];
+    let street = before.street;
+    let pot = before.pot;
+    const players = before.players.map(p => ({ seat: p.seat, id: p.id, stack: p.stack,
+      bet: p.committedStreet, folded: p.folded, allIn: p.allIn }));
+    const frames: { kind: "action" | "street"; street: typeof street; board: string[]; pot: number;
+      nextActorSeat: number | null; players: typeof players }[] = [];
+    for (const event of result.events) {
+      if (event.type === "player-acted") {
+        const player = players.find(p => p.id === event.playerId)!;
+        player.stack -= event.paid; player.bet += event.paid; pot += event.paid;
+        player.folded = action.type === "fold";
+        player.allIn = player.stack === 0;
+        frames.push({ kind: "action", street, board: [...board], pot, nextActorSeat: null,
+          players: players.map(p => ({ ...p })) });
+      }
+      if (event.type === "street-dealt") {
+        street = event.street; board = [...board, ...event.cards.map(cardToString)];
+        players.forEach(p => { p.bet = 0; });
+        frames.push({ kind: "street", street, board: [...board], pot, nextActorSeat: null,
+          players: players.map(p => ({ ...p })) });
+      }
+    }
+    const last = frames.at(-1);
+    if (last) last.nextActorSeat = this.decisionView(after).currentActorSeat;
+    return { after, frames };
+  },
+
+  replayPots(state: PokerGameState) {
+    const hand = engineStateFrom(state).hand;
+    if (!hand || hand.stage !== "complete") throw new PokerRuleError("Hand is unfinished");
+    return hand.pots.map(pot => ({ amount: pot.amount, awards: pot.awards.map(award => {
+      const player = hand.players.find(p => p.playerId === award.playerId);
+      if (!player) throw new PokerRuleError("Unknown award participant");
+      return { seat: player.seat, amount: award.amount };
+    }) }));
+  },
+
   blindPostings(state: PokerGameState): readonly {
     readonly playerId: string;
     readonly blind: "small" | "big";

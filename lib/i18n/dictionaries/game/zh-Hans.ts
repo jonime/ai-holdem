@@ -226,6 +226,26 @@ const dictionary = {
       "straight-flush": "同花顺"
     }
   },
+  replay: {
+    "title": "回顾牌局",
+    "previous": "上一步",
+    "next": "下一步",
+    "result": "结果",
+    "start": "盲注已下",
+    "runout": "发出新一轮公共牌",
+    "counter": "{current}/{total}",
+    "loading": "正在加载牌局…",
+    "unavailable": "无法回顾此牌局。",
+    "error": "无法加载牌局。",
+    "retry": "重试",
+    "close": "关闭回顾",
+    "back": "返回操作记录",
+    "yourTurn": "轮到你了",
+    "stack": "筹码",
+    "bet": "下注",
+    "pot": "底池",
+    "review": "回顾"
+},
   "feed": {
     "latestAction": "最新行动",
     "title": "行动记录",

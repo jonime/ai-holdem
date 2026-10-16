@@ -259,6 +259,7 @@ migrations, then run these commands in order:
 ```sh
 npm run db:types:check
 npm run test:sql:game-reads
+npm run test:sql:replay
 npm run test:sql:creation
 npm run test:sql:my-games
 npm run test:sql:removal
@@ -809,6 +810,7 @@ The endpoint-to-contract/client checklist is complete:
 | `POST /api/games` | `createGameRouteRequestSchema` | `createGameResponseSchema` | `creation.custom` |
 | `POST /:lang/quick-game` (JSON) | `quickPlayParamsSchema` + `quickPlayRequestSchema` | `quickPlayResponseSchema` | `creation.quickPlay` |
 | `GET /api/bots` | no parameters | `botCatalogResponseSchema` | `bots.catalog` |
+| `GET /api/games/:gameId/hands/:handNumber/replay` | `replayParamsSchema` | `replayResponseSchema` | `games.replay` |
 | `GET /api/games/:gameId/feed?sinceHand=N` | game params / `feedRouteQuerySchema` | `feedResponseSchema` | `games.feed` |
 | `GET /api/games/mine` | cookie identity only | `myGamesResponseSchema` (strict assignment counts and `viewerSeated`) | `discovery.mine` |
 | `GET /api/games/public?cursor=...` | `directoryRouteQuerySchema`, `directoryCursorSchema` | `directoryResponseSchema` | `discovery.list` |
@@ -1093,17 +1095,35 @@ Preview verification uses ordinary durations and the existing Realtime two-brows
 smoke, because local DB fixture injection is intentionally unavailable for previews.
 
 The game UI owns a single active overlay in `PokerApp`: none, mobile Actions,
-Join table, Help, Settings, or About this bot. These overlays use `components/poker/Modal.tsx`, opened through
+Join table, Help, Settings, Review hand, or About this bot. These overlays use `components/poker/Modal.tsx`, opened through
 native `showModal()` for focus containment and inert background content. The
 wrapper owns Escape/backdrop dismissal, scroll locking, initial focus, and focus
-restoration to the opener or the stable table container (Help for bot information). Restore only on the
+restoration to the opener or the stable table container (Help for bot information or replay). Restore only on the
 same page while the table remains mounted; content refreshes must not refocus or
 remount the feed. The Actions collapsed preference remains independent of modal
 ownership. Gameplay keyboard shortcuts must return immediately while any
 modal is open. Timers, bot/departure advancement, Realtime and authoritative
 refreshes continue normally. Dismissing Join table does not cancel a submitted
-claim. Verify changes with `test/e2e/dialogs.spec.ts` alongside betting controls
+claim. Replay replaces mobile Actions; Back to Actions restores its saved reading
+position. Replacement skips old-dialog focus restoration while another dialog is
+open. Verify changes with `test/e2e/dialogs.spec.ts` alongside betting controls
 and Actions-feed regressions using the existing Chromium configuration.
+
+Replay verification uses `lib/poker/hand-replay.test.ts`, route contract tests and
+`test/e2e/hand-replay.spec.ts`. Keep privacy assertions on serialized fields and
+immutable ownership (including reused seats, duplicate names and departures),
+fail-closed invalid histories, engine runout/street frames and exact per-pot awards.
+Run `npm run test:sql:replay` against the migrated local stack: disposable fixtures
+verify SQL roles, ordered actions, cross-game/hand reveal isolation, missing/deleted
+hands and consistent reads during a partially written uncommitted transaction.
+The integration workflow runs this after SQL game reads. It never resets the stack,
+loads application environments or calls providers. Keep generated types pinned.
+Run `npm run test:e2e:ui -- hand-replay.spec.ts hand-results-actions.spec.ts dialogs.spec.ts settings.spec.ts`
+for both entry points, boundaries, mobile return, focus/keys, load/retry, late
+responses, frame preservation and a live timed turn during review. Arrow navigation is owned by the open replay modal’s lifetime, so native focus
+loss when a boundary button disables must not strand navigation. Ignore modified
+keys and editable controls, and remove the listener on close/navigation. Replay must
+never gate the live session's polling, bots, departure advancement or timers.
 
 The in-table bot-name buttons open `BotInformationModal` through the same overlay
 state. Store only immutable participant ID and resolve current public metadata from

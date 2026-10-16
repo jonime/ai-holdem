@@ -209,6 +209,26 @@ const dictionary = {
       "straight-flush": "Straight flush",
     },
   },
+  replay: {
+    "title": "Rever mão",
+    "previous": "Anterior",
+    "next": "Próximo",
+    "result": "Resultado",
+    "start": "Blinds pagos",
+    "runout": "Nova street",
+    "counter": "{current}/{total}",
+    "loading": "Carregando mão…",
+    "unavailable": "Esta mão não pode ser revista.",
+    "error": "Não foi possível carregar a mão.",
+    "retry": "Tentar novamente",
+    "close": "Fechar revisão",
+    "back": "Voltar às ações",
+    "yourTurn": "Sua vez",
+    "stack": "Stack",
+    "bet": "Aposta",
+    "pot": "Pote",
+    "review": "Rever"
+},
   feed: {
     latestAction: "Última ação",
 

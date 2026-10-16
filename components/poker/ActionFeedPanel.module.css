@@ -57,6 +57,10 @@
 }
 
 .handHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
   position: sticky;
   top: 0;
   padding: 8px 0 4px;
@@ -163,3 +167,5 @@
 .modalOverlay::backdrop {
   background: rgba(13, 34, 30, 0.55);
 }
+
+.handHeader .reviewButton { min-height: 26px; padding: 4px 8px; font-size: 11px; letter-spacing: normal; text-transform: none; }

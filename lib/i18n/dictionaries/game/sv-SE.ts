@@ -209,6 +209,26 @@ const dictionary = {
       "straight-flush": "Färgstege",
     },
   },
+  replay: {
+    "title": "Granska hand",
+    "previous": "Föregående",
+    "next": "Nästa",
+    "result": "Resultat",
+    "start": "Mörkar lagda",
+    "runout": "Ny gata",
+    "counter": "{current}/{total}",
+    "loading": "Laddar hand…",
+    "unavailable": "Den här handen kan inte granskas.",
+    "error": "Kunde inte ladda handen.",
+    "retry": "Försök igen",
+    "close": "Stäng granskning",
+    "back": "Tillbaka till handlingar",
+    "yourTurn": "Din tur",
+    "stack": "Marker",
+    "bet": "Insats",
+    "pot": "Pott",
+    "review": "Granska"
+},
   feed: {
     latestAction: "Senaste handling",
 

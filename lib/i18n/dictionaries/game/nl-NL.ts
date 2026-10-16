@@ -209,6 +209,26 @@ const dictionary = {
       "straight-flush": "Straight flush",
     },
   },
+  replay: {
+    "title": "Hand bekijken",
+    "previous": "Vorige",
+    "next": "Volgende",
+    "result": "Resultaat",
+    "start": "Blinds geplaatst",
+    "runout": "Nieuwe straat",
+    "counter": "{current}/{total}",
+    "loading": "Hand laden…",
+    "unavailable": "Deze hand kan niet worden bekeken.",
+    "error": "Kan hand niet laden.",
+    "retry": "Opnieuw proberen",
+    "close": "Weergave sluiten",
+    "back": "Terug naar acties",
+    "yourTurn": "Jouw beurt",
+    "stack": "Stack",
+    "bet": "Inzet",
+    "pot": "Pot",
+    "review": "Bekijken"
+},
   feed: {
     latestAction: "Laatste actie",
 

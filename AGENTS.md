@@ -91,7 +91,7 @@ images are pulled normally during startup; do not cache Docker image archives,
 containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
-disposable database, then runs `db:types:check` before `test:sql:game-reads`, `test:sql:creation`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
+disposable database, then runs `db:types:check` before `test:sql:game-reads`, `test:sql:replay`, `test:sql:creation`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
 `test:sql:departures`, `test:sql:turn-timers`, `test:sql:bot-claims`, `test:sql:usage`, `test:integration:bot-pipeline`, and `test:e2e:ci` in order.
 The bot-pipeline suite requires an already-running migrated local stack, injects
 only deterministic `BotRegistry` decisions, and retains real creation, context,
@@ -662,3 +662,18 @@ fallbacks and visible invariant failures. QQ remains deferred. Benchmark sources
 and evidence stay historical. Frozen reanalysis requires the verified source bundle
 restored into a new directory; never update old manifest hashes to match production.
 See [the recovery guide](benchmarks/preflop-candidate/README.md#preserved-baseline-reanalysis).
+
+## Completed-hand replay
+
+Deploy `20261030000000_add_hand_replay.sql` before the replay route. The single-statement
+service-role read keeps initial/final/pre-action snapshots and hand-scoped reveals
+server-only. Validate sequences, actors, legality and engine snapshot equality;
+legacy gaps fail closed without backfill. Immutable initial participants own names
+and historical cookie identity. Only own cards appear before Result; Result uses
+existing showdown/reveal visibility and authoritative per-pot awards. Explicit
+strict DTOs only, private/no-store on every outcome, no providers or writes.
+Replay shares the single overlay, aborts/fences lazy requests and preserves its
+frame through live updates. It never pauses bots/timers/refreshes. Mobile Back to
+Actions restores history position. Run `test:sql:replay`, `check`, `build` and
+production replay/results/dialog/settings UI coverage. CI runs SQL replay after
+game reads. See the focused documentation and localized Help.

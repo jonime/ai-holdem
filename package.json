@@ -62,7 +62,8 @@
     "benchmark:bot-improvements:analyze": "node benchmarks/bot-improvements/run.mjs analyze",
     "benchmark:preflop-action-value": "node benchmarks/preflop-action-value/run.mjs",
     "benchmark:preflop-action-value:analyze": "node benchmarks/preflop-action-value/run.mjs analyze",
-    "benchmark:preflop-candidate": "node benchmarks/preflop-candidate/run.mjs"
+    "benchmark:preflop-candidate": "node benchmarks/preflop-candidate/run.mjs",
+    "test:sql:replay": "node scripts/local-hand-replay.mjs"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",

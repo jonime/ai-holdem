@@ -347,7 +347,7 @@ test("localized Help fits desktop and narrow screens for waiting players and spe
       await opener.click();
       const dialog = page.getByRole("dialog", { name: title, exact: true });
       await expect(dialog).toBeVisible();
-      await expect(dialog.getByRole("heading", { level: 2 })).toHaveCount(4);
+      await expect(dialog.getByRole("heading", { level: 2 })).toHaveCount(5);
       if ((locale === "" || locale === "de-DE") && (width === 320 || width === 1280)) {
         await page.screenshot({ path: test.info().outputPath(`help-${locale || "en-US"}-${width}.png`) });
       }

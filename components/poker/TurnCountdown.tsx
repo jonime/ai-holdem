@@ -5,7 +5,7 @@ import { turnRemainingMs } from "./turn-clock";
 import type { Game } from "./types";
 import styles from "./TurnCountdown.module.css";
 
-export function TurnCountdown({ game, announce = false }: { game: Game; announce?: boolean }) {
+export function TurnCountdown({ game, announce = false, always = false }: { game: Game; announce?: boolean; always?: boolean }) {
   const { t } = useI18n();
   const [, tick] = useState(0);
   const [announcement, setAnnouncement] = useState("");
@@ -29,7 +29,7 @@ export function TurnCountdown({ game, announce = false }: { game: Game; announce
       {announcement}
     </span>
   </>;
-  if (!urgent) return null;
+  if (!urgent && !always) return null;
   const seconds = Math.ceil(remaining / 1000);
   return <span data-turn-countdown className={styles.countdown}
     aria-label={t("timer.countdown", { seconds })}>{seconds}</span>;

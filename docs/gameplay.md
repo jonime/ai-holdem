@@ -187,6 +187,35 @@ events. The panel follows updates within 24 pixels of the bottom; scrolling up
 pauses following, and Latest action resumes it. Reopening starts at the latest
 event.
 
+**Review hand** opens a read-only review from the current completed result or a
+completed hand in Actions, within the same 50-hand window. It starts after blinds;
+Previous/Next and left/right arrows move manually while review is open, including
+when a navigation button becomes disabled or no button is focused. Street buttons select
+the first frame of each street, including automatic all-in runouts. Result shows
+each recipient’s total authoritative pot awards in a floating pill below their
+seat, with the game’s winner border. Totals include split and side pots; hover
+the pill for its per-pot breakdown. Immutable
+participant names and dealer/blind positions stay attached to the historical hand.
+Positive street contributions appear in floating Bet badges above seats; the
+stack line shows only the remaining stack. Settled Result frames hide these bet
+badges. The selected action’s player is highlighted. The action counter and description
+share one compact line (for example, “1/13: Alex folds”).
+
+Your historical ownership cookie reveals your own cards throughout. Other cards
+appear only at Result under the existing showdown/authorized-reveal rules. Reused
+seats and duplicate names never grant historical ownership. Incomplete or
+inconsistent old records are unavailable; there is no backfill. Replay loads on
+request, with one selected hand in memory, independent loading/retry feedback and
+no autoplay, coaching, export or game actions.
+
+Review shares the single overlay; opening from mobile Actions replaces it, and
+Back to Actions restores the reading position. Closing restores focus and the
+latest live table. The selected historical frame survives live updates. Bots,
+refreshes and human timers continue; gameplay shortcuts are suppressed. A live
+**Your turn** notice beside **Close review** includes the current countdown when
+timed. Close the review to return to the live table.
+A timed turn may expire and fold while you review.
+
 ## Provider pauses and retry
 
 TypeSafe, Eevo and LLM requests have a 60-second deadline, including reading the response.

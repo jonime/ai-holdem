@@ -210,6 +210,26 @@ const dictionary = {
       "straight-flush": "Poker",
     },
   },
+  replay: {
+    "title": "Przejrzyj rozdanie",
+    "previous": "Poprzedni",
+    "next": "Następny",
+    "result": "Wynik",
+    "start": "Ciemne wpłacone",
+    "runout": "Nowa ulica",
+    "counter": "{current}/{total}",
+    "loading": "Ładowanie rozdania…",
+    "unavailable": "Tego rozdania nie można przejrzeć.",
+    "error": "Nie udało się wczytać rozdania.",
+    "retry": "Spróbuj ponownie",
+    "close": "Zamknij podgląd",
+    "back": "Wróć do akcji",
+    "yourTurn": "Twój ruch",
+    "stack": "Żetony",
+    "bet": "Zakład",
+    "pot": "Pula",
+    "review": "Przejrzyj"
+},
   feed: {
     latestAction: "Ostatnia akcja",
 

@@ -209,6 +209,26 @@ const dictionary = {
       "straight-flush": "Värisuora",
     },
   },
+  replay: {
+    "title": "Tarkastele jakoa",
+    "previous": "Edellinen",
+    "next": "Seuraava",
+    "result": "Tulos",
+    "start": "Blindit asetettu",
+    "runout": "Katukortit jaettu",
+    "counter": "{current}/{total}",
+    "loading": "Ladataan jakoa…",
+    "unavailable": "Tätä jakoa ei voi tarkastella.",
+    "error": "Jaon lataaminen epäonnistui.",
+    "retry": "Yritä uudelleen",
+    "close": "Sulje tarkastelu",
+    "back": "Takaisin toimintoihin",
+    "yourTurn": "Sinun vuorosi",
+    "stack": "Pino",
+    "bet": "Panos",
+    "pot": "Potti",
+    "review": "Tarkastele"
+},
   feed: {
     latestAction: "Viimeisin toiminto",
 

@@ -4,6 +4,7 @@ import { useCreation } from "@/components/creation/useCreation";
 import { CreationFeedback } from "@/components/creation/CreationFeedback";
 import { ConfirmationDialog } from "./ConfirmationDialog";
 import { headerDepartureSeat } from "./header-navigation";
+import { HandReplayModal } from "./HandReplayModal";
 import { Modal } from "./Modal";
 import { turnRemainingMs } from "./turn-clock";
 import Link from "next/link";
@@ -68,7 +69,18 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const [playerName, setPlayerName] = useState("");
   const [playerNameEdited, setPlayerNameEdited] = useState(false);
   const [amountDraft, setAmountDraft] = useState({ scope: "", value: "" });
-  const [overlay, setOverlay] = useState<"none" | "actions" | "join" | "help" | "settings" | "leave" | { botId: string }>("none");
+  const [overlay, setOverlay] = useState<"none" | "actions" | "join" | "help" | "settings" | "leave" | { botId: string } | { handNumber: number; fromActions: boolean } >("none");
+  const [overlayGameId, setOverlayGameId] = useState(gameId);
+  if (overlayGameId !== gameId) {
+    setOverlayGameId(gameId);
+    setOverlay("none");
+  }
+  const actionsPosition = useRef<number | null>(null);
+  const openBot = (botId: string, opener: HTMLButtonElement) => { openerRef.current = opener; setOverlay({ botId }); };
+  const reviewHand = (handNumber: number, opener: HTMLButtonElement) => {
+    if (overlay !== "actions") openerRef.current = opener;
+    setOverlay({ handNumber, fromActions: overlay === "actions" });
+  };
   const [departureAttempted, setDepartureAttempted] = useState(false);
   const [departureFailed, setDepartureFailed] = useState(false);
   const openerRef = useRef<HTMLElement | null>(null);
@@ -87,7 +99,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const toggleFeed = (opener: HTMLButtonElement) => {
     if (window.matchMedia("(max-width: 900px)").matches) {
       const next = overlay !== "actions";
-      if (next) openOverlay("actions", opener);
+      if (next) { actionsPosition.current = null; openOverlay("actions", opener); }
       else setOverlay("none");
       setFeedCollapsed(!next);
       return;
@@ -131,8 +143,8 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     refreshDirectoryState,
   } = useGameSession(gameId);
 
-  const informationPlayer = typeof overlay === "object" ? selectedBot(game?.poker.players ?? [], overlay.botId) : null;
-  if (typeof overlay === "object" && (!informationPlayer || unavailable || game?.status === "waiting")) setOverlay("none");
+  const informationPlayer = typeof overlay === "object" && "botId" in overlay ? selectedBot(game?.poker.players ?? [], overlay.botId) : null;
+  if (typeof overlay === "object" && "botId" in overlay && (!informationPlayer || unavailable || game?.status === "waiting")) setOverlay("none");
 
   const feedback = connectionFeedback(connectionNotice, recoveryBlocked);
   const connectionMessage = feedback.message === "none" ? null : t(`connection.${feedback.message}`);
@@ -388,7 +400,8 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
             className={`${styles.tableRow} ${feedCollapsed ? styles.feedCollapsed : ""}`}
           >
             <PokerTable
-              onAboutBot={(botId, opener) => { openerRef.current = opener; setOverlay({ botId }); }}
+              onReviewHand={opener => reviewHand(game.poker.handNumber, opener)}
+              onAboutBot={openBot}
               showCurrentHand={settings.preferences.showCurrentHand}
               shortcuts={shortcuts}
               busy={requestBusy}
@@ -428,13 +441,15 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
             {feedCollapsed ? null : (
               <div className={styles.feedColumn}>
                 <div className={styles.desktopFeed}>
-                  <ActionFeedPanel feed={feed} loading={feedLoading} viewerPlayerId={viewerPlayer?.id ?? null} />
+                  <ActionFeedPanel onReviewHand={reviewHand} feed={feed} loading={feedLoading} viewerPlayerId={viewerPlayer?.id ?? null} />
                 </div>
               </div>
             )}
           </div>
           {overlay === "actions" ? (
             <ActionFeedModal
+              onReviewHand={reviewHand}
+              positionRef={actionsPosition}
               viewerPlayerId={viewerPlayer?.id ?? null}
               feed={feed}
               loading={feedLoading}
@@ -502,6 +517,10 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
         </div>
       )}
     </main>
+    {typeof overlay === "object" && "handNumber" in overlay ? <HandReplayModal key={`${gameId}:${overlay.handNumber}`}
+      gameId={game?.id ?? gameId ?? ""} handNumber={overlay.handNumber} game={game} yourTurn={isHumanTurn}
+      onClose={() => setOverlay("none")} onBack={overlay.fromActions ? () => setOverlay("actions") : undefined}
+      restoreFocus={openerRef} fallbackFocus={helpOpenerRef} /> : null}
     {typeof overlay === "object" && informationPlayer && !unavailable && game?.status !== "waiting" ? (
       <BotInformationModal player={informationPlayer} onClose={() => setOverlay("none")}
         restoreFocus={openerRef} fallbackFocus={helpOpenerRef} />

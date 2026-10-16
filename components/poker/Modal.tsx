@@ -56,7 +56,7 @@ export function Modal({ open, title, onDismiss, initialFocus, restoreFocus, fall
       body.style.setProperty("overflow", bodyOverflow, bodyPriority);
       queueMicrotask(() => {
         // Strict Mode may have reopened the dialog; navigation may have removed the table.
-        if (lifecycle.current !== opening || window.location.href !== location || !fallback?.isConnected) return;
+        if (lifecycle.current !== opening || window.location.href !== location || !fallback?.isConnected || document.querySelector("dialog[open]")) return;
         const target = opener?.isConnected && !opener.matches(":disabled") && opener.getClientRects().length ? opener : fallback;
         target.focus({ preventScroll: true });
       });

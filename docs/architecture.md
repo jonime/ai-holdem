@@ -114,6 +114,37 @@ Run `npm run test:sql:departures` for rollback, identity, role and independent-c
 races, plus the production `departure.spec.ts` browser scenarios. Verify the two-browser
 flow on an authorized Vercel preview before release.
 
+## Completed-hand replay
+
+`get_hand_replay(uuid, integer)` is a stable service-role-only SQL read. One statement
+selects hand status, initial/final snapshots, ordered actions with pre-action states
+and actor seats, and reveals filtered by game, hand ID and hand number. No current
+seat ownership or provider context participates. Missing/deleted hands return null.
+
+`lib/poker/hand-replay.ts` reconstructs through the engine adapter. It recreates
+the after-blinds state first, rejecting truncated preflop history disguised as an
+initial snapshot. It rejects
+missing legacy snapshots, noncontiguous sequences, mismatched actor/street,
+illegal actions, differing pre-action engine states or a differing final engine
+state. Immutable initial participants determine names, identity and cookie ownership.
+Engine events provide action and street frames, including automatic runouts before
+settlement. Per-pot awards come from the validated completed engine state. Other
+players' cards appear only in Result through the existing public projection rules;
+only the viewer's own cards appear earlier. Private snapshots never leave the service.
+
+The strict browser-safe `replay-contracts.ts` allowlist is shared by the route and
+`api.games.replay`. Successes and errors use `private, no-store`. Expected missing,
+unfinished and invalid history outcomes have distinct `REPLAY_*` codes; database
+failures use sanitized `replay` application-failure logging and remain retryable.
+The route performs no writes, provider calls, inference-context changes or broadcasts.
+
+`HandReplayModal` has no game-session hook or betting controls. The single overlay
+owns its lifecycle; close/navigation abort its request and request generations fence
+late responses. Only one requested hand is retained until close. Live state continues
+outside replay, preserving its frame index and delivering a turn/countdown notice.
+Mobile Actions saves its scroll position for Back to Actions; overlay replacement
+never stacks dialogs or lets old focus restoration steal the new dialog's focus.
+
 ## Debug history removal
 
 Apply `20261018000000_remove_debug_history.sql` before deploying the debug-history

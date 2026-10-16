@@ -1,7 +1,7 @@
 {
   "policy": "typesafe-poker-v4.0",
   "model": "jev-latest",
-  "purpose": "Offline regression freeze after provider-neutral SystemOne extraction. Historical paid evidence remains bound to the original dated manifest.",
+  "purpose": "Offline regression freeze after provider-neutral SystemOne extraction and additive read-only replay adapter methods. Existing decision/apply/projection methods are unchanged. Historical paid evidence remains bound to the original dated manifest.",
   "files": {
     "lib/bots/jev.ts": "d225b4b5e46a244152a18534267f02faf6a61cafca1d2b2fa755ece2c1f2848f",
     "lib/typesafe/questions.ts": "39b6ae52bb12754d98717b471fc8512175acdc46a217dcd445dc8474dd608369",
@@ -16,7 +16,7 @@
     "lib/poker/bot-history.ts": "9060108a5479f452771dfb5dcf3b102ee036e6c2a57ad649b865568c12c0492d",
     "lib/poker/ai-state.ts": "d42b69cf9cf84afba8ef1b26c986523307100d890968cf39ed9f9ef1bc6d67e4",
     "lib/poker/equity.ts": "3de93201511bdf2c9ff4479321620058f386c1c345e69dd7b8ff46ab8680ca8a",
-    "lib/poker/adapter.ts": "14b10e3ef973749fe6dd52aa7875cc7e0ee0136b9f8c4928fb8e7276400db268",
+    "lib/poker/adapter.ts": "8b53385d601540c7cf7fd53808f2d5e4da95db7aa83e5b41b7e17542017a7578",
     "benchmarks/heads-up/memory.ts": "e6e90422a66c4cd2fa8731e604f11869b868a636f5c4df7c1d92bd29c5c0dba5",
     "lib/bots/systemone.ts": "51c683bea7abab49fd295d1bd945bfbedef182bacd038c0182f9abff9ee42d03",
     "lib/systemone/questions.ts": "b679944efd5144d2d3423424c7ff56f38d85ea6949d1df9fa0f426141f47bb5c",

@@ -28,17 +28,23 @@ function groupByHand(events: readonly GameFeedEvent[]): readonly FeedHandGroup[]
 }
 
 interface FeedProps {
+  readonly onReviewHand?: (handNumber: number, opener: HTMLButtonElement) => void;
+  readonly positionRef?: { current: number | null };
   readonly feed: GameFeed | null;
   readonly loading: boolean;
   readonly viewerPlayerId: string | null;
 }
 
-function FeedBody({ feed, loading, viewerPlayerId }: FeedProps) {
+function FeedBody({ feed, loading, viewerPlayerId, onReviewHand, positionRef }: FeedProps) {
   const { locale, t, dictionary } = useI18n();
   const scrollRef = useRef<HTMLDivElement>(null);
   const events = feed?.events;
   const hasEvents = Boolean(events?.length);
   const following = useRef(true);
+  useLayoutEffect(() => {
+    const node = scrollRef.current;
+    if (node && positionRef?.current != null) { following.current = false; node.scrollTop = positionRef.current; }
+  }, [positionRef]);
   const [paused, setPaused] = useState(false);
 
   const jumpToLatest = () => {
@@ -77,6 +83,7 @@ function FeedBody({ feed, loading, viewerPlayerId }: FeedProps) {
         ref={scrollRef}
         onScroll={(event) => {
           const node = event.currentTarget;
+          if (positionRef) positionRef.current = node.scrollTop;
           following.current =
             node.scrollHeight - node.clientHeight - node.scrollTop <= 24;
           setPaused(!following.current);
@@ -85,7 +92,8 @@ function FeedBody({ feed, loading, viewerPlayerId }: FeedProps) {
         {groupByHand(events).map((hand) => (
           <section key={hand.handNumber} className={styles.hand}>
             <div className={styles.handHeader}>
-              {t("feed.hand", { hand: hand.handNumber })}
+              <span>{t("feed.hand", { hand: hand.handNumber })}</span>
+              {onReviewHand && hand.events.some(event => event.type === "win") ? <Button size="small" className={styles.reviewButton} onClick={event => onReviewHand(hand.handNumber, event.currentTarget)}>{t("replay.review")}</Button> : null}
             </div>
             <ol className={styles.eventList}>
               {hand.events

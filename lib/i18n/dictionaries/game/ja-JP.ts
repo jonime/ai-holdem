@@ -226,6 +226,26 @@ const dictionary = {
       "straight-flush": "ストレートフラッシュ"
     }
   },
+  replay: {
+    "title": "ハンドを振り返る",
+    "previous": "前へ",
+    "next": "次へ",
+    "result": "結果",
+    "start": "ブラインド支払い後",
+    "runout": "次のストリート",
+    "counter": "{current}/{total}",
+    "loading": "ハンドを読み込み中…",
+    "unavailable": "このハンドは再生できません。",
+    "error": "ハンドを読み込めませんでした。",
+    "retry": "再試行",
+    "close": "閉じる",
+    "back": "アクションに戻る",
+    "yourTurn": "あなたの番",
+    "stack": "スタック",
+    "bet": "ベット",
+    "pot": "ポット",
+    "review": "振り返る"
+},
   "feed": {
     "latestAction": "最新のアクション",
     "title": "アクション履歴",

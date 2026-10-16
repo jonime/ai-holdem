@@ -209,6 +209,26 @@ const dictionary = {
       "straight-flush": "Straight flush",
     },
   },
+  replay: {
+    "title": "Review hand",
+    "previous": "Previous",
+    "next": "Next",
+    "result": "Result",
+    "start": "Blinds posted",
+    "runout": "Street dealt",
+    "counter": "{current}/{total}",
+    "loading": "Loading hand…",
+    "unavailable": "This hand cannot be reviewed.",
+    "error": "Unable to load hand.",
+    "retry": "Retry",
+    "close": "Close review",
+    "back": "Back to Actions",
+    "yourTurn": "Your turn",
+    "stack": "Stack",
+    "bet": "Bet",
+    "pot": "Pot",
+    "review": "Review"
+},
   feed: {
     latestAction: "Latest action",
 

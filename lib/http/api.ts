@@ -1,3 +1,4 @@
+import { replayParamsSchema, replayResponseSchema } from "./replay-contracts";
 import { TransportError, withDeadline } from "./deadline";
 export { TransportError, unknownOutcome } from "./deadline";
 import { addLocalePrefix } from "@/lib/i18n";
@@ -165,6 +166,10 @@ export const api = {
     },
   },
   games: {
+    replay(params: { gameId: string; handNumber: number }, options: Options = {}) {
+      const { gameId, handNumber } = replayParamsSchema.parse(params);
+      return withDeadline(signal => send(`${gameUrl({ gameId })}/hands/${handNumber}/replay`, replayResponseSchema.refine(({ replay }) => replay.gameId === gameId && replay.handNumber === handNumber), { cache: "no-store", signal }), 15_000, options.signal);
+    },
     feed({ gameId, ...query }: GameParams & FeedQuery, options: Options = {}) {
       return send(`${gameUrl({ gameId })}/feed${queryString(feedQuerySchema.parse(query))}`, feedResponseSchema, { cache: "no-store", signal: options.signal });
     },

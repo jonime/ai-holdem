@@ -165,3 +165,9 @@ an exclusive start marker prevents concurrent or accidental repeat paid runs.
 No automatic retry, substitution or unbudgeted probe exists. Offline tests only
 verify mechanics. See the [dated recommendation](../jev-heads-up-2026-10-14.md) and verification manifest for
 checks and evidence limits.
+
+The current offline `benchmarks/baselines/systemone-v4-freeze.json` includes the
+additive completed-hand replay adapter methods. Existing decision, action and
+projection methods and bot strategy are unchanged. Dated paid manifests and
+evidence remain untouched; this offline hash refresh authorizes no live calls
+and does not make historical paid runners compatible with changed sources.

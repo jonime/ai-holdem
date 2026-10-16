@@ -10,18 +10,18 @@ import { InlineCardExample } from "@/components/poker/InlineCardExample";
 import { evaluateVisibleCards } from "@/lib/poker/adapter";
 
 const sections = {
-  "en-US": ["Hand rankings", "Betting basics", "Keyboard shortcuts"],
-  "fi-FI": ["Käsien arvojärjestys", "Panostamisen perusteet", "Pikanäppäimet"],
-  "es-ES": ["Clasificación de manos", "Conceptos básicos de apuestas", "Atajos de teclado"],
-  "de-DE": ["Rangfolge der Hände", "Grundlagen des Setzens", "Tastenkürzel"],
-  "sv-SE": ["Handrankning", "Grunder för satsningar", "Kortkommandon"],
-  "fr-FR": ["Classement des mains", "Bases des mises", "Raccourcis clavier"],
-  "pt-BR": ["Classificação das mãos", "Noções básicas de apostas", "Atalhos de teclado"],
-  "it-IT": ["Classifica delle mani", "Nozioni di puntata", "Scorciatoie da tastiera"],
-  "nl-NL": ["Rangorde van handen", "Basis van inzetten", "Sneltoetsen"],
-  "pl-PL": ["Ranking układów", "Podstawy licytacji", "Skróty klawiaturowe"],
-  "ja-JP": ["役の強さ", "ベットの基本", "キーボードショートカット"],
-  "zh-Hans": ["牌型大小", "下注基础", "键盘快捷键"],
+  "en-US": ["Hand rankings", "Betting basics", "Keyboard shortcuts", "Review hand"],
+  "fi-FI": ["Käsien arvojärjestys", "Panostamisen perusteet", "Pikanäppäimet", "Jaon tarkastelu"],
+  "es-ES": ["Clasificación de manos", "Conceptos básicos de apuestas", "Atajos de teclado", "Revisar mano"],
+  "de-DE": ["Rangfolge der Hände", "Grundlagen des Setzens", "Tastenkürzel", "Hand ansehen"],
+  "sv-SE": ["Handrankning", "Grunder för satsningar", "Kortkommandon", "Granska hand"],
+  "fr-FR": ["Classement des mains", "Bases des mises", "Raccourcis clavier", "Revoir la main"],
+  "pt-BR": ["Classificação das mãos", "Noções básicas de apostas", "Atalhos de teclado", "Rever mão"],
+  "it-IT": ["Classifica delle mani", "Nozioni di puntata", "Scorciatoie da tastiera", "Rivedi mano"],
+  "nl-NL": ["Rangorde van handen", "Basis van inzetten", "Sneltoetsen", "Hand bekijken"],
+  "pl-PL": ["Ranking układów", "Podstawy licytacji", "Skróty klawiaturowe", "Przegląd rozdania"],
+  "ja-JP": ["役の強さ", "ベットの基本", "キーボードショートカット", "ハンドの振り返り"],
+  "zh-Hans": ["牌型大小", "下注基础", "键盘快捷键", "回顾牌局"],
 };
 const categories = ["straight-flush", "four-of-a-kind", "full-house", "flush", "straight", "three-of-a-kind", "two-pair", "one-pair", "high-card"];
 const suits: Record<string, string> = { "♠": "s", "♥": "h", "♦": "d", "♣": "c" };
@@ -61,6 +61,7 @@ describe("localized Help documents", () => {
       dictionary.actions.bet, dictionary.actions.raise, dictionary.table.allIn]) {
       expect(source).toContain(label);
     }
+    expect(source).toContain(dictionary.replay.yourTurn);
     for (const key of ["A", "S", "D", "Q", "E", "←", "→", "Shift", "Ctrl/Alt/Meta"]) expect(source).toContain(key);
   });
 

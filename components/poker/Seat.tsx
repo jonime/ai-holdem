@@ -1,3 +1,4 @@
+import { SeatRoleBadge } from "./SeatRoleBadge";
 import { PlayingCard } from "@/components/poker/PlayingCard";
 import type {
   LatestPlayerAction,
@@ -59,26 +60,6 @@ export function Seat({
     player.inHand && !player.leaving && !player.folded && !player.allIn && !player.bestHand;
   const award = winner && winnerAmount !== null ? `+${formatChips(winnerAmount, locale)}` : null;
   const isBusted = player.stack === 0 && !player.inHand;
-  const role =
-    player.seat === dealerSeat
-      ? {
-          label: dictionary.seat.dealerBadge,
-          className: styles.dealerBadge,
-          name: dictionary.seat.dealer,
-        }
-      : player.seat === smallBlindSeat
-        ? {
-            label: dictionary.seat.smallBlindBadge,
-            className: styles.smallBlindBadge,
-            name: dictionary.seat.smallBlind,
-          }
-        : player.seat === bigBlindSeat
-          ? {
-              label: dictionary.seat.bigBlindBadge,
-              className: styles.bigBlindBadge,
-              name: dictionary.seat.bigBlind,
-            }
-          : null;
 
   if (isOpen) {
     return (
@@ -106,14 +87,7 @@ export function Seat({
           {player.name.toUpperCase()}
         </button> : <span className={styles.seatLabel}>{player.name.toUpperCase()}</span>}
       </div>
-      {role ? (
-        <span
-          className={`${styles.roleBadge} ${role.className}`}
-          title={role.name}
-        >
-          {role.label}
-        </span>
-      ) : null}
+      <SeatRoleBadge seat={player.seat} dealerSeat={dealerSeat} smallBlindSeat={smallBlindSeat} bigBlindSeat={bigBlindSeat} />
       {winner || gameWinner ? (
         <span className={styles.winnerBadge}>
           {gameWinner ? dictionary.seat.gameWinner : dictionary.seat.potWinner}

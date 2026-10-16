@@ -245,3 +245,13 @@ it("enhanced creation transports captured IDs and names through both named metho
   await api.creation.custom({ creationAttemptId: id, hostName: "Ada", seatCount: 4, humanTurnSeconds: null });
   expect(fetch).toHaveBeenLastCalledWith("/api/games", expect.objectContaining({ body: JSON.stringify({ creationAttemptId: id, humanTurnSeconds: null, seatCount: 4, hostName: "Ada" }) }));
 });
+
+it("requests replay lazily with a validated path, deadline and private read policy", async () => {
+  const gameId = "11111111-1111-4111-8111-111111111111";
+  const fetch = mockResponse({ error: "Not complete", code: "REPLAY_UNFINISHED" },409);
+  await expect(api.games.replay({ gameId, handNumber: 3 })).rejects.toMatchObject({ status: 409, code: "REPLAY_UNFINISHED" });
+  expect(fetch).toHaveBeenCalledWith(`/api/games/${gameId}/hands/3/replay`, expect.objectContaining({ cache: "no-store", credentials: "same-origin", signal: expect.any(AbortSignal) }));
+  expect(() => api.games.replay({ gameId, handNumber: 0 })).toThrow();
+  mockResponse({ replay: { engineState: {} } });
+  await expect(api.games.replay({ gameId, handNumber: 1 })).rejects.toThrow("Invalid response payload");
+});

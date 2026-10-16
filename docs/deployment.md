@@ -12,6 +12,19 @@ The application uses the Supabase Data API from Next.js server routes, so keep
 the Supabase Data API enabled. The browser never receives the Supabase secret
 or any provider API key.
 
+## Completed-hand replay rollout
+
+Apply `20261030000000_add_hand_replay.sql` before deploying the replay route. It adds
+only `get_hand_replay`, restricted to `service_role`; no backfill or provider settings
+are needed. Older hands are reviewable only when their stored snapshots and actions
+pass strict reconstruction. Apply all migrations locally, then regenerate/check
+`database.generated.ts` with pinned Supabase CLI 2.120.0.
+
+Run `test:sql:replay`, `check`, `build` and the relevant production UI suites
+(`hand-replay`, `hand-results-actions`, `dialogs`, `settings`). Verify a completed
+hand from both entry points and a live timed turn arriving during review. No
+notification publishing lifecycle changes are introduced.
+
 ## Bot-step duration release check
 
 `app/api/games/[gameId]/step/route.ts` exports `maxDuration = 90`, leaving

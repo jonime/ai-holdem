@@ -209,6 +209,26 @@ const dictionary = {
       "straight-flush": "Quinte flush",
     },
   },
+  replay: {
+    "title": "Revoir la main",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "result": "Résultat",
+    "start": "Blindes posées",
+    "runout": "Nouvelle rue",
+    "counter": "{current}/{total}",
+    "loading": "Chargement de la main…",
+    "unavailable": "Cette main ne peut pas être revue.",
+    "error": "Impossible de charger la main.",
+    "retry": "Réessayer",
+    "close": "Fermer la revue",
+    "back": "Retour aux actions",
+    "yourTurn": "À vous de jouer",
+    "stack": "Tapis",
+    "bet": "Mise",
+    "pot": "Pot",
+    "review": "Revoir"
+},
   feed: {
     latestAction: "Dernière action",
 

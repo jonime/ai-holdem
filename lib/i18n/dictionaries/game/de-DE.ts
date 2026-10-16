@@ -209,6 +209,26 @@ const dictionary = {
       "straight-flush": "Straight Flush",
     },
   },
+  replay: {
+    "title": "Hand ansehen",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "result": "Ergebnis",
+    "start": "Blinds gesetzt",
+    "runout": "Neue Straße",
+    "counter": "{current}/{total}",
+    "loading": "Hand wird geladen…",
+    "unavailable": "Diese Hand kann nicht angesehen werden.",
+    "error": "Hand konnte nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "close": "Ansicht schließen",
+    "back": "Zurück zu Aktionen",
+    "yourTurn": "Du bist dran",
+    "stack": "Stack",
+    "bet": "Einsatz",
+    "pot": "Pot",
+    "review": "Ansehen"
+},
   feed: {
     latestAction: "Letzte Aktion",
 

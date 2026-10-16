@@ -209,6 +209,26 @@ const dictionary = {
       "straight-flush": "Escalera de color",
     },
   },
+  replay: {
+    "title": "Revisar mano",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "result": "Resultado",
+    "start": "Ciegas puestas",
+    "runout": "Nueva calle",
+    "counter": "{current}/{total}",
+    "loading": "Cargando mano…",
+    "unavailable": "Esta mano no se puede revisar.",
+    "error": "No se pudo cargar la mano.",
+    "retry": "Reintentar",
+    "close": "Cerrar revisión",
+    "back": "Volver a Acciones",
+    "yourTurn": "Tu turno",
+    "stack": "Fichas",
+    "bet": "Apuesta",
+    "pot": "Bote",
+    "review": "Revisar"
+},
   feed: {
     latestAction: "Última acción",
 

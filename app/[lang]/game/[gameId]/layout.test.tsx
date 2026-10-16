@@ -70,6 +70,7 @@ const gameTopLevelKeys = [
   "feed",
   "gameHeader",
   "lobby",
+  "replay",
   "result",
   "seat",
   "settings",
