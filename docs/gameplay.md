@@ -93,6 +93,17 @@ reading. Healthy polling and routine updates remain silent. If an action’s out
 is unknown, its specific explanation and one Refresh table button take precedence.
 Connection recovery never resubmits an action or dismisses a paused bot’s retry.
 
+## Equity Rules opening policy
+
+Medium Equity Rules uses a confirmed narrow opening adjustment: if its baseline
+would fold pocket kings in an unopened six-seat UTG pot, with complete empty
+history and all six players starting at exactly 100 big blinds, it raises to
+three big blinds. All five opponents must still be active; posted blinds count
+toward their starting stacks. Existing calls/raises and all other situations keep
+the baseline policy. Hard-difficulty pocket queens received no adjustment. The
+[study report](../benchmarks/preflop-candidate/report-2026-10-16.md) describes the
+conditional evidence and its limits; this is not a general opening chart.
+
 ## About this bot
 
 Select a bot’s name on the game table to see its bot type and supported seat settings. Human names remain plain text. Close, Escape or the backdrop

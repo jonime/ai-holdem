@@ -78,3 +78,22 @@ four-hand paired comparisons and isolated memory contrasts. No chart source
 passed the audit; chart-dependent calls are deferred. Use
 `npm run benchmark:jev:heads-up` for offline mechanics; the dated memory-only live
 command has its own 108-call cap and persistent one-run ledger.
+
+- [Focused bot improvement experiment](bot-improvements/README.md): benchmark-only
+  canonical-input Jev/LLM candidates and an isolated Rules seed comparison, with a
+  separate completed 600-request pilot excluding Eevo. See its
+  [dated report](bot-improvements/report-2026-10-15.md); authorization is exhausted.
+
+- [Offline preflop action values](preflop-action-value/README.md): paired premium-hand
+  opening actions with current Rules continuations and explicit opponent policies,
+  including a larger-equity-budget sensitivity check. No provider calls or
+  production strategy changes. See the [completed report](preflop-action-value/report-2026-10-15.md).
+
+- [Focused KK/QQ preflop candidates](preflop-candidate/README.md): isolated call/3-BB
+  raise ablations at the production equity budget, with immutable development
+  selection and independent, stratified confirmation. Benchmark-only; no paid calls.
+  See the [completed report](preflop-candidate/report-2026-10-16.md): medium KK
+  raise-to-3-BB passed the conditional-value gate; hard QQ call remains deferred.
+  The [promotion review](preflop-candidate/promotion-review-2026-10-16.md)
+  records the subsequent narrow medium-KK implementation. QQ remains deferred;
+  frozen reanalysis uses the verified baseline bundle described in the guide.

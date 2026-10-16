@@ -369,6 +369,26 @@ uses a 15-second header/body deadline, and fences late results on navigation. Ex
 retry reuses captured inputs/ID; reload only offers recovery. Identity changes stop
 replay. An acknowledged JSON success clears the record and navigates.
 
+## Equity Rules policy boundary
+
+`ServerBotRegistry` resolves the existing `equity-rules-v2` catalog entry to
+`OpeningAwareEquityRulesBot`. This wrapper first computes the unchanged
+`EquityRulesV2Bot` baseline and applies only the confirmed medium-KK fold-to-3-BB
+opening rule. The guard requires preflop/no board, complete empty/unopened history,
+UTG, five active opponents, zero hero street investment and equal 100-BB initial
+stacks reconstructed from remaining stacks plus positional blinds. Missing or
+out-of-bounds target raises fail visibly; sizing is never clamped to another
+candidate. Diagnostics follow the existing exact-amount sizing convention.
+The engine validation/commit path still decides legality. QQ, equity sampling,
+seeds, all other baseline decisions and provider contracts are unchanged.
+
+The historical baseline class and strategy remain directly available to frozen
+benchmarks; production selection belongs to the registry. See the
+[promotion review](../benchmarks/preflop-candidate/promotion-review-2026-10-16.md).
+The completed source/data bundle preserves reanalysis independently of later live
+source changes; recovery commands are in the
+[benchmark guide](../benchmarks/preflop-candidate/README.md#preserved-baseline-reanalysis).
+
 ## Quick Play endpoint
 
 Quick Play atomically creates an already-playing private six-seat game with

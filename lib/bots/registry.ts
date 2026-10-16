@@ -7,7 +7,7 @@ import { TypesafeSystemOneClient } from "@/lib/typesafe/client";
 import { EevoSystemOneClient } from "@/lib/eevo/client";
 import { ConfidenceAwareEevoPokerBot } from "./eevo-confidence";
 
-import { EquityRulesV2Bot } from "./equity-rules-v2";
+import { OpeningAwareEquityRulesBot } from "./equity-rules-opening";
 import { ConfidenceAwareJevPokerBot } from "./jev-confidence";
 import { LlmPokerBot } from "./llm";
 import type { PokerBot } from "./types";
@@ -80,7 +80,7 @@ export class ServerBotRegistry implements BotRegistry {
       throw new Error("Bot playstyle is only supported by LLM bots");
     }
     if (descriptor.provider === "rules") {
-      return { descriptor, bot: new EquityRulesV2Bot() };
+      return { descriptor, bot: new OpeningAwareEquityRulesBot() };
     }
     if (descriptor.provider === "eevo") {
       return { descriptor, bot: new ConfidenceAwareEevoPokerBot(new EevoSystemOneClient()) };

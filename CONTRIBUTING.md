@@ -1325,3 +1325,49 @@ The dated 972-request bot-audit pilot is complete and its paid authorization is
 exhausted. Preserve its ledger and compressed evidence; do not delete a ledger
 or reuse its confirmation token to rerun it. See the
 [completed report](benchmarks/bot-audit/live-report-2026-10-15.md).
+
+The benchmark-only bot improvement follow-up uses `npm run benchmark:bot-improvements`
+for offline Rules traces/invariants and paired matches. Its separate frozen live pilot
+uses only Jev and OpenRouter with a shared 600-attempt cap, durable no-replay ledger
+and no retries/fallbacks. See [the experiment guide](benchmarks/bot-improvements/README.md).
+Never reuse the exhausted original audit allocation or overwrite its evidence.
+
+The 2026-10-15 improvement pilot completed all 600 approved Jev/OpenRouter
+requests with no failures, plus 72,000 offline hand attempts with no excluded
+blocks. Its authorization is exhausted. All candidates remain benchmark-only;
+see [the report](benchmarks/bot-improvements/report-2026-10-15.md).
+
+The offline preflop action-value study uses `npm run benchmark:preflop-action-value`
+(and `-- smoke` for two small blocks). Its source-frozen workers have no provider
+credentials or environment-file loading. Whole-seed failures exclude every paired
+alternative; no fallback actions replace them. `benchmark:preflop-action-value:analyze`
+rebuilds summaries from completed compressed evidence. Preserve existing evidence;
+changed experiments need a new version. See [the guide](benchmarks/preflop-action-value/README.md)
+for sampling, checkpoint recovery, decision-point stack accounting and interpretation.
+
+The completed preflop action-value study contains 54,000 paired seed blocks and
+184,500 continuations after deduplication within each seed block with zero exclusions. See [its report](benchmarks/preflop-action-value/report-2026-10-15.md)
+for conditional findings and sampling-budget limits; no production candidate was promoted.
+
+The focused KK/QQ candidate study uses `npm run benchmark:preflop-candidate` for
+fixed checks, screen, selection and confirmation at 5,000 equity samples per Rules
+decision. `-- smoke` is credential-free and writes no evidence; `-- analyze`
+reproduces saved results. A single coordinator checkpoints complete paired blocks
+and resumes only matching frozen work. Never overlap schedulers, replace failed
+blocks, change selection after holdout, or promote a candidate automatically.
+See [the guide](benchmarks/preflop-candidate/README.md) for allocations, gates,
+lock recovery, archive integrity and interpretation.
+
+The [completed candidate report](benchmarks/preflop-candidate/report-2026-10-16.md)
+records 192 development and 480 confirmation blocks with zero exclusions. Medium
+KK raise-to-3-BB passed the conditional-value gate; hard QQ call remains deferred.
+The historical benchmark itself does not promote candidates; the subsequent reviewed implementation promotes only the medium-KK guard described below.
+
+
+Production now promotes only the confirmed medium-KK 3-BB opening via
+`OpeningAwareEquityRulesBot`; the original Rules class remains the historical
+baseline. For frozen candidate reanalysis, use the
+[verified baseline recovery procedure](benchmarks/preflop-candidate/README.md#preserved-baseline-reanalysis)
+in a fresh directory. Live source changes must fail the old freeze checks.
+Run `npm run check` for promotion regression tests; do not rerun confirmation or
+modify the saved selection. QQ remains deferred.
