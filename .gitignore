@@ -28,3 +28,14 @@ benchmarks/bot-improvements/live-summary.json
 benchmarks/bet-sizing/live-ledger.json
 benchmarks/bet-sizing/live-summary.json
 benchmarks/bet-sizing/*.tmp
+
+# Session adaptation pilot: exclusive local evidence and freeze
+benchmarks/session-adaptation/live-ledger.json*
+benchmarks/session-adaptation/freeze.json
+benchmarks/session-adaptation/*.tmp
+
+benchmarks/session-adaptation/continuation-freeze.json
+benchmarks/session-adaptation/continuation-ledger.json*
+
+benchmarks/session-adaptation/llm-freeze.json
+benchmarks/session-adaptation/llm-ledger.json*

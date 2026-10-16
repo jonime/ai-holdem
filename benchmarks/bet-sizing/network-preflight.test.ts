@@ -17,16 +17,46 @@ it.each([429, 500, 503])("stops preflight on status %i", async status => {
   expect(fetcher).toHaveBeenCalledTimes(1);
 });
 it("loads the actual live branch in Node 24 and stops before ledger/inference", () => {
+  const runnerUrl = new URL("./run.mjs", import.meta.url).href;
+  const runtimeUrl = new URL("../bot-audit/runtime.mjs", import.meta.url).href;
+  const experimentUrl = new URL("./experiment.ts", import.meta.url).href;
   const script = `
+    import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs';
+    import { tmpdir } from 'node:os';
+    import { join } from 'node:path';
+    import { createHash } from 'node:crypto';
+    import { fileURLToPath } from 'node:url';
+    let requests = 0;
     globalThis.fetch = async (_url, init) => {
       if (init?.method !== 'HEAD' || init.headers || init.body) throw new Error('Inference forbidden');
+      requests++;
       return new Response(null, {status: 503});
     };
-    process.argv[2] = 'live';
-    try { await import('./benchmarks/bet-sizing/run.mjs'); throw new Error('Unexpected success'); }
-    catch (error) {
-      if (error.message !== 'Provider connectivity preflight unavailable; no inference started') throw error;
-      console.log('Live startup reached safe HEAD preflight; no inference');
+    await import(${JSON.stringify(runtimeUrl)});
+    const { prepare } = await import(${JSON.stringify(experimentUrl)});
+    const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+    // Use a disposable current-source fixture. The completed pilot's immutable
+    // freeze must reject later source edits, including unrelated npm commands.
+    const runner = fileURLToPath(${JSON.stringify(runnerUrl)});
+    const files = { [runner]: createHash('sha256').update(readFileSync(runner)).digest('hex') };
+    const manifest = { plan: prepare().plan, files };
+    const directory = mkdtempSync(join(tmpdir(), 'bet-sizing-startup-'));
+    const previous = process.cwd();
+    try {
+      process.chdir(directory);
+      mkdirSync('benchmarks/bet-sizing', { recursive: true });
+      writeFileSync('benchmarks/bet-sizing/plan.json', JSON.stringify(manifest));
+      writeFileSync('benchmarks/bet-sizing/freeze.json', JSON.stringify({ files, planHash: digest(manifest) }));
+      process.argv[2] = 'live';
+      try { await import(${JSON.stringify(runnerUrl)}); throw new Error('Unexpected success'); }
+      catch (error) {
+        if (error.message !== 'Provider connectivity preflight unavailable; no inference started') throw error;
+        if (requests !== 1 || existsSync('benchmarks/bet-sizing/live-ledger.json')) throw new Error('Unexpected request or ledger');
+        console.log('Live startup reached safe HEAD preflight; no inference');
+      }
+    } finally {
+      process.chdir(previous);
+      rmSync(directory, { recursive: true, force: true });
     }
   `;
   const output = execFileSync(process.execPath, ["--input-type=module", "-e", script], { encoding: "utf8", timeout: 60000,

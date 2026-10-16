@@ -71,6 +71,10 @@ exclusive `plan.json`/`freeze.json` files. It freezes source, runner, policy, me
 fixture, configuration, input and screening hashes. Prepare only after source edits
 and checks are complete. Existing freezes cannot be overwritten by the command.
 Source changes invalidate a prepared run; do not rewrite hashes to bypass failure.
+The Node live-startup regression test uses a disposable current-source plan/freeze
+fixture so later repository edits do not depend on the completed pilot’s frozen
+hashes. It still runs the actual live entry point and stops at a scripted,
+credential-free HEAD failure before ledger creation or inference.
 
 **Historical launch command for the completed allocation; do not run again.**
 A later paid study needs a new plan and explicit authorization:

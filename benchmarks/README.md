@@ -1,5 +1,11 @@
 # Benchmarks and bot evaluations
 
+- [Session adaptation pilot](session-adaptation/README.md): isolated 60-hand memory
+  ablations, mirrored paired blocks, offline controls and a separately authorized
+  maximum 4,800-request Jev/mini design. The [amended pilot report](session-adaptation/pilot-report.md)
+  records one complete block and heavy missingness across 2,609 reserved requests;
+  no production promotion or paid Eevo evidence.
+
 - [Production predictability and representation audit](bot-audit/README.md):
   offline production rules coverage, equivalent-input mechanics and a frozen
   972-request Jev/Eevo/mini pilot. Its [completed report](bot-audit/live-report-2026-10-15.md)

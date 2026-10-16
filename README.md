@@ -157,6 +157,11 @@ the application includes its SDK with private table URLs redacted.
 
 ## References and inspiration
 
+- [Game Arena](https://arxiv.org/html/2609.31473v1#S2.SS2)
+  — episode and mirrored-deal methodology for the
+  [session adaptation pilot](benchmarks/session-adaptation/README.md#attribution);
+  no code or datasets reused, with a different production-visible information boundary.
+
 - [GTO Wizard: Principles of GTO](https://blog.gtowizard.com/principles-of-gto/)
   and [The Three Laws of Indifference](https://blog.gtowizard.com/the-three-laws-of-indifference/)
   — conceptual distinction between EV and frequency mistakes in the

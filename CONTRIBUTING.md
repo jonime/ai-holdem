@@ -1426,3 +1426,21 @@ Neither Jev addition nor LLM 1.5-pot qualifies. This is usage evidence only; all
 production menus remain current. Any next paid match study needs a separate plan
 and explicit authorization. See the
 [completed report](benchmarks/bet-sizing/live-report-2026-10-16.md).
+
+## Session adaptation benchmark
+
+The [session adaptation guide](benchmarks/session-adaptation/README.md) documents
+offline verification, source freezing, fresh paid authorization, progress output,
+exclusive non-resumable request accounting and credential-free report generation.
+Run the full offline benchmark before preparing a freeze; existing pilot allocations
+cannot authorize this experiment. Production code and SQL remain unchanged.
+
+The session pilot has a separately authorized [one-time continuation amendment](benchmarks/session-adaptation/README.md#explicit-amendment-six-untouched-blocks-after-first-interruption)
+for six untouched blocks after a recorded provider timeout. It preserves and excludes
+the two incomplete original blocks, pins both evidence lineages, and caps combined
+reservations at 4,489. It permits no replay or automatic further restart.
+
+A subsequent [LLM-only amendment](benchmarks/session-adaptation/README.md#explicit-amendment-llm-only-after-quota-increase)
+after an operator-reported OpenRouter quota failure permits only two untouched
+LLM blocks, skips the remaining Jev blocks and caps further/combined reservations
+at 1,200/2,757. All four incomplete blocks stay excluded; no replay is permitted.

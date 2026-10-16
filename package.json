@@ -67,7 +67,15 @@
     "benchmark:bet-sizing": "node benchmarks/bet-sizing/run.mjs offline",
     "benchmark:bet-sizing:prepare": "node benchmarks/bet-sizing/run.mjs prepare",
     "benchmark:bet-sizing:live": "node benchmarks/bet-sizing/run.mjs live",
-    "benchmark:bet-sizing:analyze": "node benchmarks/bet-sizing/run.mjs analyze"
+    "benchmark:bet-sizing:analyze": "node benchmarks/bet-sizing/run.mjs analyze",
+    "benchmark:session-adaptation": "node benchmarks/session-adaptation/run.mjs offline",
+    "benchmark:session-adaptation:prepare": "node benchmarks/session-adaptation/run.mjs prepare",
+    "benchmark:session-adaptation:live": "node benchmarks/session-adaptation/run.mjs live",
+    "benchmark:session-adaptation:report": "node benchmarks/session-adaptation/run.mjs report",
+    "benchmark:session-adaptation:continue:prepare": "node benchmarks/session-adaptation/run.mjs continue-prepare",
+    "benchmark:session-adaptation:continue": "node benchmarks/session-adaptation/run.mjs continue-live",
+    "benchmark:session-adaptation:llm:prepare": "node benchmarks/session-adaptation/run.mjs llm-prepare",
+    "benchmark:session-adaptation:llm": "node benchmarks/session-adaptation/run.mjs llm-live"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",
