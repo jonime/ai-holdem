@@ -209,8 +209,11 @@ for (const locale of ["", "/fi-FI"]) {
     await page.screenshot({ path: testInfo.outputPath(`your-tables-${locale ? "fi" : "en"}-mobile.png`), fullPage: true });
     await row(custom).getByRole("link").click(); await expect(page).toHaveURL(new RegExp(`/game/${custom}$`));
     await page.goto(`${locale}/play`);
-    page.once("dialog", dialog => { expect(dialog.message()).toContain(custom.slice(0, 8)); return dialog.accept(); });
     await row(custom).getByRole("button").click();
+    const confirmation = page.getByRole("dialog");
+    await expect(confirmation).toContainText(custom.slice(0, 8));
+    await confirmation.getByRole("button", { name: locale ? "Poista pöytä" : "Delete table", exact: true }).click();
+    await expect(confirmation).toHaveCount(0);
     await expect(row(custom)).toHaveCount(0); await expect(row(quick)).toBeVisible();
   });
 }

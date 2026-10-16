@@ -19,3 +19,7 @@ benchmarks/results/
 benchmarks/bot-audit/*-summary.json
 benchmarks/bot-audit/analysis.json
 benchmarks/bot-audit/live-ledger.json
+
+# Local improvement pilot ledger and derived summaries
+benchmarks/bot-improvements/live-ledger.json
+benchmarks/bot-improvements/live-summary.json

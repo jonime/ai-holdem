@@ -55,7 +55,14 @@
     "benchmark:opponent-advice:v2:live": "BOT_SCENARIO_LIVE=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/opponent-advice/controlled-pilot.live.ts",
     "benchmark:bot-audit": "BOT_AUDIT_MODE=offline BOT_SCENARIO_LIVE=false EXTERNAL_INFERENCE_ENABLED=false vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/bot-audit/audit.benchmark.ts",
     "benchmark:bot-audit:live": "BOT_AUDIT_MODE=live BOT_SCENARIO_LIVE=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/bot-audit/audit.benchmark.ts",
-    "benchmark:bot-audit:analyze": "node benchmarks/bot-audit/analyze.mjs"
+    "benchmark:bot-audit:analyze": "node benchmarks/bot-audit/analyze.mjs",
+    "benchmark:bot-improvements": "node benchmarks/bot-improvements/run.mjs offline",
+    "benchmark:bot-improvements:prepare": "node benchmarks/bot-improvements/run.mjs prepare",
+    "benchmark:bot-improvements:live": "node benchmarks/bot-improvements/run.mjs live",
+    "benchmark:bot-improvements:analyze": "node benchmarks/bot-improvements/run.mjs analyze",
+    "benchmark:preflop-action-value": "node benchmarks/preflop-action-value/run.mjs",
+    "benchmark:preflop-action-value:analyze": "node benchmarks/preflop-action-value/run.mjs analyze",
+    "benchmark:preflop-candidate": "node benchmarks/preflop-candidate/run.mjs"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",

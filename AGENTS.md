@@ -620,3 +620,45 @@ provider decisions and fifteen Eevo river-split failures. Its authorization is
 exhausted; preserve its ledger/evidence and do not replay it or add paid probes
 without fresh explicit authorization. See the
 [paid audit report](benchmarks/bot-audit/live-report-2026-10-15.md).
+
+The benchmark-only bot improvement follow-up uses `npm run benchmark:bot-improvements`
+for offline Rules traces/invariants and paired matches. Its separate frozen live pilot
+uses only Jev and OpenRouter with a shared 600-attempt cap, durable no-replay ledger
+and no retries/fallbacks. See [the experiment guide](benchmarks/bot-improvements/README.md).
+Never reuse the exhausted original audit allocation or overwrite its evidence.
+
+The 2026-10-15 improvement pilot completed all 600 approved Jev/OpenRouter
+requests with no failures, plus 72,000 offline hand attempts with no excluded
+blocks. Its authorization is exhausted. All candidates remain benchmark-only;
+see [the report](benchmarks/bot-improvements/report-2026-10-15.md).
+
+## Offline preflop action values
+
+`npm run benchmark:preflop-action-value` compares premium opening actions with
+unchanged production Rules continuations under explicit frozen/passive/aggressive
+opponent policies. It uses source-frozen, credential-free workers, paired decks,
+whole-block exclusions and separate equity-budget sensitivity groups. It makes no
+provider calls and authorizes no production strategy promotion. Preserve completed
+versioned evidence; use `benchmark:preflop-action-value:analyze` for reanalysis.
+See [the guide](benchmarks/preflop-action-value/README.md).
+
+The focused follow-up in `benchmarks/preflop-candidate/` tests medium KK and hard
+QQ six-seat UTG baseline folds with benchmark-only call/3-BB overrides. All Rules
+decisions use 5,000 samples. `benchmark:preflop-candidate` runs fixed/screen/frozen
+selection/independent confirmation; `-- analyze` reuses evidence. Preserve exact
+fallbacks, per-block checkpoints, the single-coordinator lock, disjoint seed
+namespaces and preregistered stratified gates. No paid calls, replacement failures,
+holdout-driven reselection or automatic production promotion are allowed.
+See [the guide](benchmarks/preflop-candidate/README.md).
+
+
+## Confirmed medium-KK Rules opening
+
+Production selects `OpeningAwareEquityRulesBot` for `equity-rules-v2`; it wraps the
+unchanged historical `EquityRulesV2Bot` baseline. Only medium KK baseline folds at
+unopened six-seat UTG, complete empty history, all five opponents active and equal
+100-BB starting stacks become exact legal 3-BB raises. Preserve the guard, exact
+fallbacks and visible invariant failures. QQ remains deferred. Benchmark sources
+and evidence stay historical. Frozen reanalysis requires the verified source bundle
+restored into a new directory; never update old manifest hashes to match production.
+See [the recovery guide](benchmarks/preflop-candidate/README.md#preserved-baseline-reanalysis).

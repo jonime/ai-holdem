@@ -1,0 +1,9 @@
+{
+  "manifestHash": "68ef0892086d0e15ad2f29f40a76612b4c74749d420b7053a1e91bd00f69b5e9",
+  "screenHash": "0a2208ca556d5161b3fd6e2822e6c9075046616e1c7ded131d89e587e7a5f0d0",
+  "selected": {
+    "medium-kk": "raise3",
+    "hard-qq": "call"
+  },
+  "rule": "positive lower bounds for all controls; maximize worst lower bound; call wins ties"
+}
