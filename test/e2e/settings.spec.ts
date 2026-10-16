@@ -109,7 +109,7 @@ test("storage changes synchronize without previews and game refresh continues in
   await expect(page.getByRole("switch", { name: "Turn sound", exact: true })).toHaveAttribute("aria-checked", "false");
 });
 
-test("language waits for bot advancement and replay creation", { tag: "@ui-regression" }, async ({ page }) => {
+test("language waits for bot advancement and Quick Play creation", { tag: "@ui-regression" }, async ({ page }) => {
   const f = await table(page);
   let steps = 0;
   await page.route(`**/api/games/${f.id}/step`, () => { steps++; });

@@ -767,8 +767,35 @@ post-hydration loading switches the wrapper palette without game or HTTP changes
 No document-wide style mutation or client Help provider is needed. Four-colour
 blue (`#1856a0`) and green (`#21633e`) maintain at least 4.5:1 text contrast on
 card (`#fffdf6`) and Help (`#f8f7f0`) backgrounds.
-The single overlay state includes Help and bot information, using the shared native
-`Modal` lifecycle. Bot information stores an immutable participant ID and resolves
+`game-overlay.ts` defines the discriminated `GameOverlay` union and pure navigation
+transitions; `useGameOverlay` owns the active navigation instance, game-scoped opener
+reference and Actions scroll position. `PokerApp` calls named open, close, replay and
+Back operations and uses the derived `isOverlayOpen` flag for gameplay shortcuts.
+Dialog rendering and feature work stay in existing components: no mutations, replay
+requests, departure recovery, betting state or bot loops belong in the controller.
+Each close/Back callback captures its navigation instance; the transition rejects
+callbacks after replacement, reopening or game changes, including late Join success.
+Game changes reset navigation and stored return context. Eligibility reconciliation
+closes Join after seating and bot information when its bot disappears, the table is
+unavailable or waiting. Leave remains open through eligibility and recovery changes,
+with pending dismissal guarded by `ConfirmationDialog`.
+
+| Current overlay / event | Result |
+| --- | --- |
+| Any / open dialog | Replace with requested kind; capture new opener |
+| Actions / open replay | Replay with Actions origin; retain external opener and scroll |
+| Table, result, desktop Actions / open replay | Replay with table origin; capture opener |
+| Replay with Actions origin / Back | Actions at saved scroll position |
+| Any current instance / Close | Live table; no implicit Actions return |
+| Join no longer spectator / refresh | Close |
+| Bot information missing, unavailable or waiting / refresh | Close |
+| Leave / eligibility change | Keep explanatory or recovery state |
+| Any / game ID change | None; discard return context |
+| Any / stale Close or Back | No change |
+
+All dialogs retain the shared native `Modal` lifecycle. Only `Modal` handles focus
+trapping, initial focus, scroll locking and restoration, including replacement and
+navigation safeguards. Bot information stores an immutable participant ID and resolves
 only the latest `poker.players` public metadata. It closes when that participant
 is removed or ceases to be a bot. Native seat-name buttons restore focus on close;
 Help is the fallback if the opener disappears. Opening performs no requests or

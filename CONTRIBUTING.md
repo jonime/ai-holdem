@@ -1094,8 +1094,18 @@ The existing bot-advancement Quick Play fixtures also assert timer Off.
 Preview verification uses ordinary durations and the existing Realtime two-browser
 smoke, because local DB fixture injection is intentionally unavailable for previews.
 
-The game UI owns a single active overlay in `PokerApp`: none, mobile Actions,
-Join table, Help, Settings, Review hand, or About this bot. These overlays use `components/poker/Modal.tsx`, opened through
+The game UI coordinates a single typed overlay through `useGameOverlay` and the
+pure `game-overlay.ts` transitions: none, mobile Actions, Join table, Help,
+Settings, Leave table, Review hand, or About this bot. Keep DOM references and
+Actions reading position in the hook, navigation rules in the pure module, and
+rendering/requests/mutations in existing feature components. Close and Back
+callbacks capture an instance token; never bypass it in asynchronous Join completion.
+A game ID change resets navigation and return context. Join and bot information
+have eligibility invalidation; Leave retains its explanatory/recovery states and
+pending-dismissal protection. See the compact transition table in
+[architecture](docs/architecture.md). `game-overlay.test.ts` covers every kind,
+replacement, replay origins, Back/Close, eligibility and stale completions across
+replacement, reopening and game changes. These overlays use `components/poker/Modal.tsx`, opened through
 native `showModal()` for focus containment and inert background content. The
 wrapper owns Escape/backdrop dismissal, scroll locking, initial focus, and focus
 restoration to the opener or the stable table container (Help for bot information or replay). Restore only on the
@@ -1195,7 +1205,7 @@ to the complete default object rather than filling individual missing fields.
 Language uses the supported locales’ native names and the current route locale.
 Switching navigates to the same game with its query string and fragment, retaining
 seat identity; English uses the unprefixed URL. The selector is disabled during
-game mutations, bot advancement, replay creation, unresolved recovery and language
+game mutations, bot advancement, Quick Play creation, unresolved recovery and language
 navigation. The handler rechecks this guard. Language and player identity are never
 stored in settings. Cross-tab sound changes never preview or unlock audio.
 

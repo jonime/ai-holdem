@@ -186,8 +186,12 @@ test("Join form retains typing, containment and retry; dismissal keeps pending c
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
   await expect(page.locator("html")).not.toHaveCSS("overflow", "hidden");
+  await page.getByRole("button", { name: "Help", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Game help", exact: true })).toBeVisible();
   release();
   await expect(opener).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Game help", exact: true })).toBeVisible();
+  await expect(page.locator("dialog[open]")).toHaveCount(1);
   expect(claims).toBe(3);
 });
 

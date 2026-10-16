@@ -26,9 +26,9 @@ export function PokerTable({
   viewerToken,
   isSpectator,
   canStartNextHand,
-  replaying,
+  creatingQuickPlay,
   creationBlocked = false,
-  replayError,
+  quickPlayCreationError,
   onNewQuickPlay,
   isHumanTurn,
   sizedAction,
@@ -61,9 +61,9 @@ export function PokerTable({
   readonly viewerToken: string | null;
   readonly isSpectator: boolean;
   readonly canStartNextHand: boolean;
-  readonly replaying: boolean;
+  readonly creatingQuickPlay: boolean;
   readonly creationBlocked?: boolean;
-  readonly replayError: boolean;
+  readonly quickPlayCreationError: boolean;
   readonly onNewQuickPlay: () => void;
   readonly isHumanTurn: boolean;
   readonly sizedAction:
@@ -260,11 +260,11 @@ export function PokerTable({
             : flow.watching ? t("table.watching")
             : flow.eliminated ? t("table.outOfChips") : null}
         </div>
-        {replayError ? <p className={styles.replayError} role="alert">{t("table.replayError")}</p> : null}
+        {quickPlayCreationError ? <p className={styles.replayError} role="alert">{t("table.replayError")}</p> : null}
         {endActions ? (
           <div className={`${styles.actionControls} ${styles.endControls}`}>
             <Button variant="primary" disabled={loading || creationBlocked} onClick={onNewQuickPlay}>
-              {replaying ? t("table.starting") : t("table.newQuickPlay")}
+              {creatingQuickPlay ? t("table.starting") : t("table.newQuickPlay")}
             </Button>
             {!gameOver ? <Button variant="outline" disabled={loading || !canStartNextHand} onClick={onBeginNextHand}>
               {t("table.watchNextHand")}

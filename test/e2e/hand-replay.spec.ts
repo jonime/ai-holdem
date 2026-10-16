@@ -41,6 +41,7 @@ test("reviews persisted hands from results and Actions, with private cards, manu
     expect(replay.frames[0].players.filter(p => p.cards !== null)).toHaveLength(1);
     await page.locator('[class*="resultOverlay"]').getByRole("button", { name: "Review hand" }).click();
     await expect(dialog(page)).toBeVisible();
+    await expect(dialog(page).getByRole("button", { name: "Back to Actions" })).toHaveCount(0);
     await expect(dialog(page).getByRole("button", { name: "Close review" })).toBeFocused();
     await expect(dialog(page).locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame","0");
     for (const key of ["Tab", "Shift+Tab"]) {
@@ -113,22 +114,56 @@ test("reviews persisted hands from results and Actions, with private cards, manu
     await expect(dialog(page).locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame",String(replay.frames.length-1));
     await page.keyboard.press("Escape");
     await expect(page.locator('[class*="resultOverlay"]').getByRole("button", { name: "Review hand" })).toBeFocused();
+    // A long feed makes retention observable away from either scroll boundary.
+    await page.route(`**/api/games/${f.id}/feed*`, async route => {
+      const response = await route.fetch();
+      const body = await response.json();
+      body.feed.events = Array.from({ length: 30 }, () => body.feed.events).flat();
+      await route.fulfill({ json: body });
+    });
+    await page.reload();
     await page.setViewportSize({ width: 375, height: 812 });
     // Close desktop preference then open mobile Actions through the shared toggle.
-    const toggle = page.getByRole("button", { name: /actions panel/i });
+    const toggle = page.getByRole("button", { name: /^(Expand|Collapse) actions panel$/ });
     await toggle.click();
     const actions = page.getByRole("dialog", { name: "Actions", exact: true });
     await expect(actions).toBeVisible();
-    await actions.locator('[class*="scroll"]').evaluate(node => { node.scrollTop = 0; node.dispatchEvent(new Event("scroll", { bubbles: true })); });
-    await actions.getByRole("button", { name: "Review", exact: true }).click();
+    await toggle.evaluate(button => {
+      button.setAttribute("data-restored", "0");
+      button.addEventListener("focus", () => button.setAttribute("data-restored", String(Number(button.getAttribute("data-restored")) + 1)));
+    });
+    const scroll = actions.locator('[class*="scroll"]');
+    await scroll.evaluate(node => { node.scrollTop = 120; node.dispatchEvent(new Event("scroll", { bubbles: true })); });
+    const reading = await scroll.evaluate(node => node.scrollTop);
+    expect(reading).toBeGreaterThan(0);
+    // Invoke the scrolled-away review control without changing the reading position.
+    await actions.getByRole("button", { name: "Review", exact: true }).evaluate(button => { if (button instanceof HTMLButtonElement) button.click(); });
     await expect(page.locator("dialog[open]")).toHaveCount(1);
     await expect(dialog(page).locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame","0");
     await page.screenshot({ path: test.info().outputPath("replay-mobile.png") });
     await dialog(page).getByRole("button", { name: "Back to Actions" }).click();
     await expect(actions).toBeVisible();
     await expect(actions.getByRole("button", { name: "Close actions panel" })).toBeFocused();
-    expect(await actions.locator('[class*="scroll"]').evaluate(node => node.scrollTop)).toBe(0);
+    await expect.poll(() => scroll.evaluate(node => node.scrollTop)).toBe(reading);
+    await expect(toggle).toHaveAttribute("data-restored", "0");
     await page.screenshot({ path: test.info().outputPath("replay-mobile-actions.png") });
+    await page.keyboard.press("Escape");
+    await expect(toggle).toBeFocused();
+    await expect(toggle).toHaveAttribute("data-restored", "1");
+    await toggle.click();
+    await actions.getByRole("button", { name: "Review", exact: true }).evaluate(button => { if (button instanceof HTMLButtonElement) button.click(); });
+    await expect(dialog(page)).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(actions).toHaveCount(0);
+    await expect(toggle).toBeFocused();
+    // Replay's original external opener may disappear during live updates.
+    await toggle.click();
+    await actions.getByRole("button", { name: "Review", exact: true }).evaluate(button => { if (button instanceof HTMLButtonElement) button.click(); });
+    await expect(dialog(page)).toBeVisible();
+    await toggle.evaluate(button => { button.style.display = "none"; });
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("button", { name: "Help", exact: true })).toBeFocused();
+    await expect(page.locator("dialog[open]")).toHaveCount(0);
   } finally { await f.guestContext.close(); }
 });
 
@@ -171,6 +206,7 @@ test("replay loading and retry stay isolated while a live timed turn arrives; la
     await page.route(path, async route => { const response = await route.fetch(); await late; await route.fulfill({ response }).catch(() => {}); });
     await page.getByRole("complementary", { name: "Actions" }).getByRole("button", { name: "Review", exact: true }).click();
     await expect(dialog(page)).toContainText("Loading hand");
+    await expect(dialog(page).getByRole("button", { name: "Back to Actions" })).toHaveCount(0);
     await dialog(page).getByRole("button", { name: "Close review" }).click();
     releaseLate();
     await expect(dialog(page)).toHaveCount(0);

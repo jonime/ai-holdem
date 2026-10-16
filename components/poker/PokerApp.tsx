@@ -1,4 +1,5 @@
 "use client";
+import { useGameOverlay } from "./useGameOverlay";
 import { connectionFeedback } from "./connection-notice";
 import { useCreation } from "@/components/creation/useCreation";
 import { CreationFeedback } from "@/components/creation/CreationFeedback";
@@ -62,45 +63,28 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const settings = useSettings();
   const shortcuts = settings.ready && settings.preferences.gameplayShortcuts;
   const [languageNavigating, setLanguageNavigating] = useState(false);
-  const replayPending = useRef(false);
-  const [requestReplaying, setReplaying] = useState(false);
-  const replaying = requestReplaying || creation.working;
+  const quickPlayCreationPending = useRef(false);
+  const [requestCreatingQuickPlay, setCreatingQuickPlay] = useState(false);
+  const creatingQuickPlay = requestCreatingQuickPlay || creation.working;
   const preferredName = usePlayerName();
   const [playerName, setPlayerName] = useState("");
   const [playerNameEdited, setPlayerNameEdited] = useState(false);
   const [amountDraft, setAmountDraft] = useState({ scope: "", value: "" });
-  const [overlay, setOverlay] = useState<"none" | "actions" | "join" | "help" | "settings" | "leave" | { botId: string } | { handNumber: number; fromActions: boolean } >("none");
-  const [overlayGameId, setOverlayGameId] = useState(gameId);
-  if (overlayGameId !== gameId) {
-    setOverlayGameId(gameId);
-    setOverlay("none");
-  }
-  const actionsPosition = useRef<number | null>(null);
-  const openBot = (botId: string, opener: HTMLButtonElement) => { openerRef.current = opener; setOverlay({ botId }); };
-  const reviewHand = (handNumber: number, opener: HTMLButtonElement) => {
-    if (overlay !== "actions") openerRef.current = opener;
-    setOverlay({ handNumber, fromActions: overlay === "actions" });
-  };
   const [departureAttempted, setDepartureAttempted] = useState(false);
   const [departureFailed, setDepartureFailed] = useState(false);
-  const openerRef = useRef<HTMLElement | null>(null);
   const settingsOpenerRef = useRef<HTMLButtonElement>(null);
   const helpCloseRef = useRef<HTMLButtonElement>(null);
   const helpOpenerRef = useRef<HTMLButtonElement>(null);
   const tableRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const joinPending = useRef(false);
-  const openOverlay = (next: "actions" | "join" | "help" | "settings" | "leave", opener: HTMLElement) => {
-    openerRef.current = opener;
-    setOverlay(next);
-  };
   const { collapsed: feedCollapsed, change: setFeedCollapsed, toggle: toggleFeedCollapsed } = useActionsPreference();
 
   const toggleFeed = (opener: HTMLButtonElement) => {
     if (window.matchMedia("(max-width: 900px)").matches) {
-      const next = overlay !== "actions";
-      if (next) { actionsPosition.current = null; openOverlay("actions", opener); }
-      else setOverlay("none");
+      const next = overlay.kind !== "actions";
+      if (next) { openActions(opener); }
+      else closeOverlay();
       setFeedCollapsed(!next);
       return;
     }
@@ -108,7 +92,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   };
 
   const closeFeedModal = () => {
-    setOverlay("none");
+    closeOverlay();
     setFeedCollapsed(true);
   };
 
@@ -143,9 +127,6 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     refreshDirectoryState,
   } = useGameSession(gameId);
 
-  const informationPlayer = typeof overlay === "object" && "botId" in overlay ? selectedBot(game?.poker.players ?? [], overlay.botId) : null;
-  if (typeof overlay === "object" && "botId" in overlay && (!informationPlayer || unavailable || game?.status === "waiting")) setOverlay("none");
-
   const feedback = connectionFeedback(connectionNotice, recoveryBlocked);
   const connectionMessage = feedback.message === "none" ? null : t(`connection.${feedback.message}`);
 
@@ -153,22 +134,21 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const departureSeat = game && !unavailable ? headerDepartureSeat(game.poker.seats ?? game.poker.players, viewerToken) : null;
   const departureRegistered = departureAttempted && !departureSeat && !!game &&
     !(game.poker.seats ?? game.poker.players).some(p => p.controller === "human" && p.status === "claimed" && !p.leaving && p.playerToken === viewerToken);
-  const departureFeedback = overlay === "leave" && departureAttempted;
 
   const { viewerPlayer, human } = resolveViewer(
     game?.poker.players ?? [],
     viewerToken,
   );
 
-  const turnNotification = useTurnNotifications(game, viewerToken, loading || recoveryBlocked || replaying || unavailable, online, settings.preferences.turnSound);
+  const turnNotification = useTurnNotifications(game, viewerToken, loading || recoveryBlocked || creatingQuickPlay || unavailable, online, settings.preferences.turnSound);
 
   const canStartNextHand = game ? tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost, game.poker.seats).canStartNextHand : false;
   const newQuickPlay = async (botMode?: "rules") => {
-    if (loading || replayPending.current || creation.hasPending) return;
-    replayPending.current = true;
-    setReplaying(true);
+    if (loading || quickPlayCreationPending.current || creation.hasPending) return;
+    quickPlayCreationPending.current = true;
+    setCreatingQuickPlay(true);
     try { await creation.begin({ mode: "quick", botMode, settings: {} }); }
-    finally { replayPending.current = false; setReplaying(false); }
+    finally { quickPlayCreationPending.current = false; setCreatingQuickPlay(false); }
   };
 
   const displayedPlayerName =
@@ -202,7 +182,17 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const ownedSeat = (game?.poker.seats ?? game?.poker.players ?? []).find(seat =>
     seat.controller === "human" && seat.status === "claimed" && viewerToken !== null && seat.playerToken === viewerToken);
   const isSpectator = viewerPlayer === null && !ownedSeat && Boolean(game);
-  if (overlay === "join" && !isSpectator) setOverlay("none");
+  const {
+    overlay, isOverlayOpen, openerRef, actionsPosition, close: closeOverlay,
+    openActions, openJoin, openHelp, openSettings, openLeave,
+    openBotInformation: openBot, openReplay: reviewHand, backToActions,
+  } = useGameOverlay(gameId, {
+    isSpectator,
+    botInformationAvailable: !unavailable && game?.status !== "waiting",
+    botIds: (game?.poker.players ?? []).filter(player => player.controller === "bot" && player.status !== "open").map(player => player.id),
+  });
+  const informationPlayer = overlay.kind === "botInformation" ? selectedBot(game?.poker.players ?? [], overlay.botId) : null;
+  const departureFeedback = overlay.kind === "leave" && departureAttempted;
   const canRevealCards =
     game?.poker.street === "complete" &&
     game.poker.completionReason === "fold" &&
@@ -227,14 +217,14 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   useEffect(() => {
     if (!shortcuts) return;
     function handleShortcut(event: KeyboardEvent) {
-      if (overlay !== "none") return;
+      if (isOverlayOpen) return;
       const completedHand = game?.poker.street === "complete";
 
       if (
         !game ||
         (!completedHand && (turnRemainingMs(game) ?? 1) <= 0) ||
         (!isHumanTurn && !canStartNextHand && !(completedHand && canRevealCards)) ||
-        loading || replaying || replayPending.current ||
+        loading || creatingQuickPlay || quickPlayCreationPending.current ||
         event.defaultPrevented ||
         event.repeat ||
         event.metaKey ||
@@ -317,14 +307,14 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     return () => window.removeEventListener("keydown", handleShortcut);
   }, [
     shortcuts,
-    overlay,
+    isOverlayOpen,
     selectedAmount,
     amountScope,
     game,
     beginNextHand,
     canRevealCards,
     canStartNextHand,
-    replaying,
+    creatingQuickPlay,
     isHumanTurn,
     loading,
     sizedAction,
@@ -336,7 +326,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   return (
     <div className={`${styles.cardPalette} ${!game && !unavailable ? loadingStyles.loadingPage : ""}`} data-card-colours={settings.preferences.cardColours}>
     <CreationFeedback creation={creation} labels={creationLabels} />
-    <GameHeader helpRef={helpOpenerRef} onHelp={opener => openOverlay("help", opener)} settingsRef={settingsOpenerRef} onSettings={opener => openOverlay("settings", opener)} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || replaying} onLeave={opener => { setDepartureAttempted(false); setDepartureFailed(false); openOverlay("leave", opener); }} />
+    <GameHeader helpRef={helpOpenerRef} onHelp={opener => openHelp(opener)} settingsRef={settingsOpenerRef} onSettings={opener => openSettings(opener)} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || creatingQuickPlay} onLeave={opener => { setDepartureAttempted(false); setDepartureFailed(false); openLeave(opener); }} />
     <main className={styles.pokerApp}>
       <div className={connectionMessage || (!departureFeedback && (error || feedback.refresh)) || botNotice ? styles.errorBanner : undefined}>
         <div data-testid="connection-status" role="status" aria-live="polite" aria-atomic="true">
@@ -347,12 +337,12 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
           {!departureFeedback ? error : null}
           {botNotice ? <span>{botNotice}</span> : null}
           {feedback.refresh && !departureFeedback ? <Button className={styles.recoveryButton} size="small" disabled={!online || refreshing} onClick={refreshGame}>{t("errors.refreshTable")}</Button> : null}
-          {usageLimited ? <> <span>{t("errors.retryAvailable", { seconds: Math.ceil(usageRetryAfterMs / 1000) })}</span> <Button size="small" disabled={loading || replaying || creation.hasPending} onClick={() => void newQuickPlay("rules")}>{t("errors.rulesOnlyGame")}</Button></> : null}
+          {usageLimited ? <> <span>{t("errors.retryAvailable", { seconds: Math.ceil(usageRetryAfterMs / 1000) })}</span> <Button size="small" disabled={loading || creatingQuickPlay || creation.hasPending} onClick={() => void newQuickPlay("rules")}>{t("errors.rulesOnlyGame")}</Button></> : null}
           {botNotice && (botRetryAvailable || usageLimited) && !recoveryBlocked && game && canAdvanceBots(game, viewerToken) && hasAutomaticTurn(game) ? (
             <Button
               size="small"
-              disabled={loading || replaying || usageRetryAfterMs > 0}
-              onClick={() => { if (!replayPending.current) void retryBotTurn(); }}
+              disabled={loading || creatingQuickPlay || usageRetryAfterMs > 0}
+              onClick={() => { if (!quickPlayCreationPending.current) void retryBotTurn(); }}
             >
               {t(game?.poker.players.find(player => player.id === game.poker.currentActorId)?.controller === "human"
                 ? game.poker.players.find(player => player.id === game.poker.currentActorId)?.leaving ? "gameHeader.retryDeparture" : "timer.retry" : "errors.retryBot")}
@@ -412,28 +402,28 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
               viewerToken={viewerToken}
               isSpectator={isSpectator}
               canStartNextHand={canStartNextHand}
-              replaying={replaying}
+              creatingQuickPlay={creatingQuickPlay}
               creationBlocked={creation.hasPending}
-              replayError={false}
+              quickPlayCreationError={false}
               onNewQuickPlay={() => void newQuickPlay()}
               isHumanTurn={isHumanTurn}
               sizedAction={sizedAction}
               amount={amount}
-              loading={loading || replaying}
+              loading={loading || creatingQuickPlay}
               setAmount={setAmount}
               onClaimFirstOpenSeat={(opener) => {
-                openOverlay("join", opener);
+                openJoin(opener);
               }}
               onStandUp={() => {
-                if (ownedSeat && !replayPending.current) void releaseSeat(ownedSeat.seat);
+                if (ownedSeat && !quickPlayCreationPending.current) void releaseSeat(ownedSeat.seat);
               }}
               onSubmitAction={(action, amountOverride = selectedAmount) => {
-                if (replayPending.current) return;
+                if (quickPlayCreationPending.current) return;
                 if ((action.type === "bet" || action.type === "raise") && amountOverride === null) return;
                 void submitAction(action, amountOverride);
               }}
-              onBeginNextHand={() => { if (!replayPending.current) void beginNextHand(); }}
-              onRevealCards={() => { if (!replayPending.current) void revealCards(); }}
+              onBeginNextHand={() => { if (!quickPlayCreationPending.current) void beginNextHand(); }}
+              onRevealCards={() => { if (!quickPlayCreationPending.current) void revealCards(); }}
               feedCollapsed={feedCollapsed}
               onToggleFeed={toggleFeed}
               latestActions={latestActions}
@@ -446,7 +436,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
               </div>
             )}
           </div>
-          {overlay === "actions" ? (
+          {overlay.kind === "actions" ? (
             <ActionFeedModal
               onReviewHand={reviewHand}
               positionRef={actionsPosition}
@@ -458,8 +448,8 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
               fallbackFocus={tableRef}
             />
           ) : null}
-          {overlay === "join" && isSpectator ? (
-            <Modal open title={t("table.joinTitle")} onDismiss={() => setOverlay("none")}
+          {overlay.kind === "join" && isSpectator ? (
+            <Modal open title={t("table.joinTitle")} onDismiss={closeOverlay}
               initialFocus={nameRef} restoreFocus={openerRef} fallbackFocus={tableRef}
               className={styles.joinDialog}>
               <form
@@ -470,7 +460,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
                     (player) => player.status === "open",
                   );
                   if (!openSeat) {
-                    setOverlay("none");
+                    closeOverlay();
                     return;
                   }
                   joinPending.current = true;
@@ -478,7 +468,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
                     (joined) => {
                       if (joined) {
                         setPlayerNameEdited(false);
-                        setOverlay("none");
+                        closeOverlay();
                       }
                     },
                   ).finally(() => { joinPending.current = false; });
@@ -503,7 +493,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
                 <div className={styles.joinActions}>
                   <Button
                     disabled={loading}
-                    onClick={() => setOverlay("none")}
+                    onClick={closeOverlay}
                   >
                     {t("table.joinCancel")}
                   </Button>
@@ -517,22 +507,22 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
         </div>
       )}
     </main>
-    {typeof overlay === "object" && "handNumber" in overlay ? <HandReplayModal key={`${gameId}:${overlay.handNumber}`}
+    {overlay.kind === "handReplay" ? <HandReplayModal key={`${gameId}:${overlay.handNumber}`}
       gameId={game?.id ?? gameId ?? ""} handNumber={overlay.handNumber} game={game} yourTurn={isHumanTurn}
-      onClose={() => setOverlay("none")} onBack={overlay.fromActions ? () => setOverlay("actions") : undefined}
+      onClose={closeOverlay} onBack={backToActions}
       restoreFocus={openerRef} fallbackFocus={helpOpenerRef} /> : null}
-    {typeof overlay === "object" && informationPlayer && !unavailable && game?.status !== "waiting" ? (
-      <BotInformationModal player={informationPlayer} onClose={() => setOverlay("none")}
+    {overlay.kind === "botInformation" && informationPlayer && !unavailable && game?.status !== "waiting" ? (
+      <BotInformationModal player={informationPlayer} onClose={closeOverlay}
         restoreFocus={openerRef} fallbackFocus={helpOpenerRef} />
     ) : null}
-    {overlay === "leave" ? <ConfirmationDialog
+    {overlay.kind === "leave" ? <ConfirmationDialog
       title={t("gameHeader.leaveTable")}
       explanation={!departureSeat ? t(departureRegistered ? "gameHeader.departureRegistered" : "gameHeader.departureUnavailable") :
         `${t(game?.status === "waiting" ? "gameHeader.confirmWaiting" : game?.status === "complete" ? "gameHeader.confirmComplete" : "gameHeader.confirmDeparture")}${game?.status === "playing" ? ` ${t("gameHeader.allInDeparture")}` : ""}`}
       cancelLabel={t("gameHeader.cancel")} confirmLabel={t("gameHeader.leaveTable")} pendingLabel={t("gameHeader.leaving")}
       feedback={departureAttempted && departureSeat ? error ?? (departureFailed ? t("gameHeader.departureFailed") : null) : null}
       blocked={!departureSeat || loading || recoveryBlocked || unavailable}
-      onClose={() => setOverlay("none")} restoreFocus={openerRef} fallbackFocus={helpOpenerRef}
+      onClose={closeOverlay} restoreFocus={openerRef} fallbackFocus={helpOpenerRef}
       onConfirm={async () => {
         // Read the current render's authoritative assignment, never the opening seat.
         if (!departureSeat || loading || recoveryBlocked || unavailable) return;
@@ -543,20 +533,20 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
       {!departureSeat && !navigationLoading ? <Link href={addLocalePrefix("/play", locale)}>{t("gameHeader.lobby")}</Link> : null}
       {departureAttempted && feedback.refresh ? <Button disabled={!online || refreshing} onClick={refreshGame}>{t("errors.refreshTable")}</Button> : null}
     </ConfirmationDialog> : null}
-    {overlay === "settings" ? (
+    {overlay.kind === "settings" ? (
       <SettingsModal preferences={settings.preferences} onUpdate={settings.update}
         onSound={turnNotification.preview} notice={turnNotification.notice}
-        languageBlocked={loading || recoveryBlocked || replaying || languageNavigating || unavailable || !game}
+        languageBlocked={loading || recoveryBlocked || creatingQuickPlay || languageNavigating || unavailable || !game}
         onNavigate={() => setLanguageNavigating(true)} gameId={game?.id ?? gameId ?? ""}
-        onClose={() => setOverlay("none")} restoreFocus={openerRef} fallbackFocus={settingsOpenerRef} />
+        onClose={closeOverlay} restoreFocus={openerRef} fallbackFocus={settingsOpenerRef} />
     ) : null}
-    {overlay === "help" ? (
-      <Modal open title={helpTitle} onDismiss={() => setOverlay("none")}
+    {overlay.kind === "help" ? (
+      <Modal open title={helpTitle} onDismiss={closeOverlay}
         initialFocus={helpCloseRef} restoreFocus={openerRef} fallbackFocus={helpOpenerRef}
         className={styles.helpDialog}>
         <div className={styles.helpHeader}>
           <h2>{helpTitle}</h2>
-          <Button ref={helpCloseRef} size="small" onClick={() => setOverlay("none")}>
+          <Button ref={helpCloseRef} size="small" onClick={closeOverlay}>
             {t("gameHeader.closeHelp")}
           </Button>
         </div>

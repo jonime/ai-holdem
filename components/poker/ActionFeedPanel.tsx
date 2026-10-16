@@ -62,12 +62,19 @@ function FeedBody({ feed, loading, viewerPlayerId, onReviewHand, positionRef }: 
   useLayoutEffect(() => {
     const node = scrollRef.current;
     if (!node) return;
+    // A returning Actions dialog is still hidden during child layout effects.
+    // Restore once it has measurable geometry, after Modal calls showModal().
+    let returnPosition = positionRef?.current ?? null;
     const observer = new ResizeObserver(() => {
-      if (following.current) node.scrollTop = node.scrollHeight;
+      if (returnPosition !== null) {
+        following.current = false;
+        node.scrollTop = returnPosition;
+        returnPosition = null;
+      } else if (following.current) node.scrollTop = node.scrollHeight;
     });
     observer.observe(node);
     return () => observer.disconnect();
-  }, [hasEvents]);
+  }, [hasEvents, positionRef]);
 
   if (loading && !events?.length) {
     return <p className={styles.status}>{t("feed.loading")}</p>;
