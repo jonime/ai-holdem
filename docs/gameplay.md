@@ -187,8 +187,8 @@ events. The panel follows updates within 24 pixels of the bottom; scrolling up
 pauses following, and Latest action resumes it. Reopening starts at the latest
 event.
 
-**Review hand** opens a read-only review from the current completed result or a
-completed hand in Actions, within the same 50-hand window. It starts after blinds;
+**Review hand** opens a read-only review from a completed hand in Actions, within
+the same 50-hand window. It starts after blinds;
 Previous/Next and left/right arrows move manually while review is open, including
 when a navigation button becomes disabled or no button is focused. Street buttons select
 the first frame of each street, including automatic all-in runouts. Result shows

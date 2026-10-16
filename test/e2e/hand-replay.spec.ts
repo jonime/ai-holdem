@@ -22,6 +22,7 @@ async function completed(browser: Browser, page: Page) {
   expect((await actorPage.request.post(`/api/games/${id}/action`, { data: { expectedVersion: start.version, action: { type: "fold" } } })).ok()).toBe(true);
   await page.goto(`/game/${id}`);
   await expect(page.locator("[data-hand-result]")).toBeVisible();
+  await expect(page.locator("[data-hand-result]").getByRole("button", { name: "Review hand" })).toHaveCount(0);
   return { id, guestContext, guest, read, ownerId };
 }
 const dialog = (page: Page) => page.getByRole("dialog", { name: "Review hand", exact: true });
@@ -31,7 +32,7 @@ async function refresh(page: Page) {
   await response;
 }
 
-test("reviews persisted hands from results and Actions, with private cards, manual navigation and mobile history return", { tag: "@ui-regression" }, async ({ page, browser }) => {
+test("reviews persisted hands from Actions, with private cards, manual navigation and mobile history return", { tag: "@ui-regression" }, async ({ page, browser }) => {
   const f = await completed(browser,page);
   try {
     const response = await page.request.get(`/api/games/${f.id}/hands/1/replay`);
@@ -39,7 +40,7 @@ test("reviews persisted hands from results and Actions, with private cards, manu
     const { replay } = replayResponseSchema.parse(await response.json());
     expect(JSON.stringify(replay)).not.toMatch(/playerToken|engineState|deck|stateBefore|initialState/);
     expect(replay.frames[0].players.filter(p => p.cards !== null)).toHaveLength(1);
-    await page.locator('[class*="resultOverlay"]').getByRole("button", { name: "Review hand" }).click();
+    await page.getByRole("complementary", { name: "Actions" }).getByRole("button", { name: "Review", exact: true }).last().click();
     await expect(dialog(page)).toBeVisible();
     await expect(dialog(page).getByRole("button", { name: "Back to Actions" })).toHaveCount(0);
     await expect(dialog(page).getByRole("button", { name: "Close review" })).toBeFocused();
@@ -113,7 +114,7 @@ test("reviews persisted hands from results and Actions, with private cards, manu
     await refresh(page);
     await expect(dialog(page).locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame",String(replay.frames.length-1));
     await page.keyboard.press("Escape");
-    await expect(page.locator('[class*="resultOverlay"]').getByRole("button", { name: "Review hand" })).toBeFocused();
+    await expect(page.getByRole("complementary", { name: "Actions" }).getByRole("button", { name: "Review", exact: true })).toBeFocused();
     // A long feed makes retention observable away from either scroll boundary.
     await page.route(`**/api/games/${f.id}/feed*`, async route => {
       const response = await route.fetch();
@@ -175,7 +176,7 @@ test("replay loading and retry stay isolated while a live timed turn arrives; la
     const held = new Promise<void>(resolve => { release = resolve; });
     let fail = true;
     await page.route(path,async route => { await held; await route.fulfill({ status: 500, json: { error: "Unavailable" } }).catch(() => {}); });
-    await page.locator('[class*="resultOverlay"]').getByRole("button", { name: "Review hand" }).click();
+    await page.getByRole("complementary", { name: "Actions" }).getByRole("button", { name: "Review", exact: true }).last().click();
     await expect(dialog(page)).toContainText("Loading hand");
     release();
     await expect(dialog(page)).toContainText("Unable to load hand.");
@@ -219,13 +220,13 @@ test("replay loading and retry stay isolated while a live timed turn arrives; la
     expect(beforeFold.turnTimer?.deadline).toBe(live.turnTimer?.deadline);
     expect((await page.request.post(`/api/games/${f.id}/action`, { data: { expectedVersion: beforeFold.version, action: { type: "fold" } } })).ok()).toBe(true);
     await refresh(page);
-    await page.locator('[class*="resultOverlay"]').getByRole("button", { name: "Review hand" }).click();
+    await page.getByRole("complementary", { name: "Actions" }).getByRole("button", { name: "Review", exact: true }).last().click();
     await expect(dialog(page)).toContainText("Hand #2");
     await expect(dialog(page).locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame","0");
     await dialog(page).getByRole("button", { name: "Close review" }).click();
     const secondPath = `**/api/games/${f.id}/hands/2/replay`;
     await page.route(secondPath, route => route.fulfill({ status: 422, json: { code: "REPLAY_UNAVAILABLE", error: "Unavailable" } }));
-    await page.locator('[class*="resultOverlay"]').getByRole("button", { name: "Review hand" }).click();
+    await page.getByRole("complementary", { name: "Actions" }).getByRole("button", { name: "Review", exact: true }).last().click();
     await expect(dialog(page)).toContainText("This hand cannot be reviewed.");
     await expect(dialog(page).getByRole("button", { name: "Retry", exact: true })).toHaveCount(0);
     await dialog(page).getByRole("button", { name: "Close review" }).click();
@@ -233,7 +234,7 @@ test("replay loading and retry stay isolated while a live timed turn arrives; la
     let releaseNavigation!: () => void;
     const navigating = new Promise<void>(resolve => { releaseNavigation = resolve; });
     await page.route(secondPath, async route => { const response = await route.fetch(); await navigating; await route.fulfill({ response }).catch(() => {}); });
-    await page.locator('[class*="resultOverlay"]').getByRole("button", { name: "Review hand" }).click();
+    await page.getByRole("complementary", { name: "Actions" }).getByRole("button", { name: "Review", exact: true }).last().click();
     await expect(dialog(page)).toContainText("Loading hand");
     await page.goto("/play");
     releaseNavigation();

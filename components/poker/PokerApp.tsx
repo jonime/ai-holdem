@@ -390,7 +390,6 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
             className={`${styles.tableRow} ${feedCollapsed ? styles.feedCollapsed : ""}`}
           >
             <PokerTable
-              onReviewHand={opener => reviewHand(game.poker.handNumber, opener)}
               onAboutBot={openBot}
               showCurrentHand={settings.preferences.showCurrentHand}
               shortcuts={shortcuts}

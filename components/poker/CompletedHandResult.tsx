@@ -1,4 +1,3 @@
-import { Button } from "@/components/Button";
 import { PlayingCard } from "./PlayingCard";
 import type { PublicPokerGame } from "@/lib/poker/types";
 import { useI18n } from "@/components/poker/I18nProvider";
@@ -7,10 +6,8 @@ import styles from "@/components/poker/PokerTable.module.css";
 
 export function CompletedHandResult({
   poker,
-  onReviewHand,
 }: {
   readonly poker: PublicPokerGame;
-  readonly onReviewHand?: (opener: HTMLButtonElement) => void;
 }) {
   const { locale, t, dictionary } = useI18n();
   if (poker.street !== "complete") return null;
@@ -60,7 +57,6 @@ export function CompletedHandResult({
           );
         })}
       </ul>
-      {onReviewHand ? <Button size="small" onClick={event => onReviewHand(event.currentTarget)}>{t("replay.title")}</Button> : null}
       {poker.completionReason === "fold" ? (
         <p>{t("result.uncontested")}</p>
       ) : null}

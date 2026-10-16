@@ -45,9 +45,7 @@ export function PokerTable({
   onToggleFeed,
   latestActions,
   onAboutBot,
-  onReviewHand,
 }: {
-  readonly onReviewHand?: (opener: HTMLButtonElement) => void;
   readonly onAboutBot?: (id: string, opener: HTMLButtonElement) => void;
   readonly shortcuts?: boolean;
   readonly showCurrentHand?: boolean;
@@ -468,7 +466,7 @@ export function PokerTable({
             </div>
           </div>
           <div className={styles.resultOverlay} role="status" aria-live="polite" aria-atomic="true">
-            <CompletedHandResult poker={game.poker} onReviewHand={onReviewHand} />
+            <CompletedHandResult poker={game.poker} />
           </div>
         </div>
       </section>
