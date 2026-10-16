@@ -97,3 +97,12 @@ command has its own 108-call cap and persistent one-run ledger.
   The [promotion review](preflop-candidate/promotion-review-2026-10-16.md)
   records the subsequent narrow medium-KK implementation. QQ remains deferred;
   frozen reanalysis uses the verified baseline bundle described in the guide.
+
+- [Independent bet-size ablations](bet-sizing/README.md): isolated quarter-pot and
+  1.5-pot postflop additions for Jev/LLM, real Jev/Eevo compatibility offline,
+  and a separately authorized frozen 960-request usage pilot. No production
+  menu change or strength claim; paired-match evidence is required for promotion.
+
+The [completed bet-size pilot](bet-sizing/live-report-2026-10-16.md) consumed its
+960-request authorization. LLM quarter-pot alone met the frozen usage screen;
+playing strength remains unmeasured and production menus are unchanged.

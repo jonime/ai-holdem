@@ -6,7 +6,8 @@ import {
 } from "@/lib/env/server";
 import type { PokerAction } from "@/lib/poker/types";
 import type { BotPlaystyleId } from "@/lib/poker/types";
-import type { SizingChoice } from "./questions-v2";
+// Type-only compatibility with BotContext; runtime sizing remains frozen below.
+import type { SizingChoice } from "@/lib/typesafe/questions";
 import { createSizingOptions } from "./questions-v2";
 import { decisionCandidates } from "@/lib/poker/decision-candidates";
 

@@ -1,11 +1,11 @@
 import "server-only";
 import type { BotContext } from "@/lib/bots/types";
-import { createSizingOptions } from "@/lib/typesafe/questions";
+import { createSizingOptions, type BettingMenu } from "@/lib/typesafe/questions";
 import { decisionCandidates } from "./decision-candidates";
 import { analyzePokerDecision } from "./decision-facts";
 
 /** Shared Jev/LLM payment arithmetic, facts, and exact candidates. */
-export function prepareProviderContext(context: BotContext): BotContext {
+export function prepareProviderContext(context: BotContext, menu: BettingMenu = "current"): BotContext {
   const call = context.legalActions.find(a => a.type === "call");
   const callCost = call?.type === "call" ? call.amount : 0;
   const pot = context.analysis.livePot ?? context.hand.pot;
@@ -18,5 +18,5 @@ export function prepareProviderContext(context: BotContext): BotContext {
       stackToPotRatio: pot > 0 ? context.analysis.effectiveStack / pot : 0 },
     legalActions: decisionCandidates(context),
   };
-  return { ...corrected, facts: analyzePokerDecision(corrected), sizingOptions: createSizingOptions(corrected) };
+  return { ...corrected, facts: analyzePokerDecision(corrected), sizingOptions: createSizingOptions(corrected, menu) };
 }

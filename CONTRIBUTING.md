@@ -1391,3 +1391,28 @@ baseline. For frozen candidate reanalysis, use the
 in a fresh directory. Live source changes must fail the old freeze checks.
 Run `npm run check` for promotion regression tests; do not rerun confirmation or
 modify the saved selection. QQ remains deferred.
+
+## Independent bet-size experiment
+
+`benchmarks/bet-sizing/` compares current, quarter-pot and 1.5-pot menus separately.
+Production defaults remain current; Equity Rules is unchanged. Internal constructor
+injection must agree across context, confidence wrappers, SystemOne moves/validation
+and LLM schema/parsing; never expose selection through API, DTO or environment.
+Run `benchmark:bet-sizing` offline; `benchmark:bet-sizing:prepare` freezes inputs
+without inference. `benchmark:bet-sizing:live` requires fresh explicit authorization
+for exactly 960 Jev/LLM requests beneath a shared 1,000 ceiling, with exclusive durable
+reservation, one in flight, no retries/resume and entire-run first-failure stopping.
+Eevo has offline compatibility only and needs no live key. Preserve every earlier
+experiment's evidence and exhausted allocation. Use `benchmark:bet-sizing:analyze`
+for partial report-only analysis. The frozen usage screen does not measure strength;
+promotion requires separately approved paired-match evidence. See
+[the experiment guide](benchmarks/bet-sizing/README.md).
+
+The 2026-10-16 bet-size pilot completed all 960 authorized Jev/LLM requests; its
+allocation is exhausted. Preserve the sanitized ledger/analysis archives, amended
+freeze and original preflight-failure freeze. Only LLM quarter-pot passes the
+predeclared usage screen (13/120 eligible selections; three fixtures at 3/10).
+Neither Jev addition nor LLM 1.5-pot qualifies. This is usage evidence only; all
+production menus remain current. Any next paid match study needs a separate plan
+and explicit authorization. See the
+[completed report](benchmarks/bet-sizing/live-report-2026-10-16.md).

@@ -1,3 +1,4 @@
+import { publicAIDecisionSchema } from "@/lib/http/schemas";
 import { projectSessionStats, type BotSessionContext } from "./session-stats";
 import { randomUUID } from "node:crypto";
 import { BotStepInProgressError, type BotStepClaimRepository } from "./bot-step-claims";
@@ -128,6 +129,8 @@ async function stepResolvedBotAction(
       rawResponse: null,
     };
   }
+  // Experimental identifiers are internal; fail before committing if injected here.
+  const publicSizing = publicAIDecisionSchema.shape.sizing.parse(decision.diagnostics.sizing);
   const stateAfter = pokerEngineAdapter.applyAction(
     stateBefore,
     botPlayer.id,
@@ -198,7 +201,7 @@ async function stepResolvedBotAction(
       botProfileId: decision.diagnostics.botProfileId,
       probabilities: decision.diagnostics.probabilities,
       confidence: decision.diagnostics.confidence,
-      sizing: decision.diagnostics.sizing,
+      sizing: publicSizing,
       matchedRule: decision.diagnostics.matchedRule,
     },
   };

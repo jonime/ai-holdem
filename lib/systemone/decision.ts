@@ -4,6 +4,7 @@ import {
   createMoveOptions,
   createPokerDecisionRequest,
   typesafePokerPolicyVersion,
+  type BettingMenu,
   type MoveOption,
   type SizingChoice,
 } from "./questions";
@@ -19,6 +20,7 @@ export interface SystemOneDecisionClient {
 export interface DecidePokerActionOptions {
   readonly random?: () => number;
   readonly model?: string;
+  readonly menu?: BettingMenu;
 }
 
 interface ChoiceAnswer {
@@ -144,12 +146,12 @@ export async function decidePokerAction(
   state: PokerAIState,
   options: DecidePokerActionOptions = {},
 ): Promise<AIDecision> {
-  const moveOptions = createMoveOptions(state);
+  const moveOptions = createMoveOptions(state, options.menu);
   const choices = moveOptions.map((option) => option.choice);
   if (choices.length === 0) {
     throw new SystemOneResponseError("No legal SystemOne move candidates");
   }
-  const response = await client.evaluate(createPokerDecisionRequest(state, options.model));
+  const response = await client.evaluate(createPokerDecisionRequest(state, options.model, options.menu));
   const answer = choiceAnswer(response, "move", choices);
   const selectedChoice =
     state.difficulty === "easy"

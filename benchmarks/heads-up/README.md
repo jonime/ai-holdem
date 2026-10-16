@@ -171,3 +171,11 @@ additive completed-hand replay adapter methods. Existing decision, action and
 projection methods and bot strategy are unchanged. Dated paid manifests and
 evidence remain untouched; this offline hash refresh authorizes no live calls
 and does not make historical paid runners compatible with changed sources.
+
+The internal betting-menu injection retains the default current-menu requests,
+verified against pre-refactor request hashes in `../bet-sizing/default-requests.json`.
+Synthetic/current offline chart regressions use the separate
+`../baselines/systemone-v4-menu-injection-freeze.json`; the preceding regression
+manifest and all dated paid manifests/evidence remain unchanged. This does not
+rebind historical evidence or authorize inference. Historical source verification
+still requires the original source bundle.

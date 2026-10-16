@@ -1,0 +1,14 @@
+{
+  "reason": "Isolate credential-free HEAD preflight from unrelated experiment JSON imports; Node 24 startup failed before ledger creation or inference.",
+  "priorPlanHash": "482fbc1becf1b0a773a1fb1fc657b95437939b83ff878e5ef1e7c01f54b5d0f4",
+  "planHash": "f45f0b5200dd52725baf05877c6567b420197c51b693113295bc955d2acf4da8",
+  "changedSources": [
+    "benchmarks/bet-sizing/network-preflight.test.ts",
+    "benchmarks/bet-sizing/network-preflight.ts",
+    "benchmarks/bet-sizing/run.mjs"
+  ],
+  "requestsSent": 0,
+  "ledgerExisted": false,
+  "preservedDecisionPlanHash": "f061bede8bce91a6914812ea3bdbe4f21bc40c2fdd75a7f8e170fd553cbc4366",
+  "policyFixturesMenusModelsOrderBudgetUnchanged": true
+}

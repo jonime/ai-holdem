@@ -23,3 +23,8 @@ benchmarks/bot-audit/live-ledger.json
 # Local improvement pilot ledger and derived summaries
 benchmarks/bot-improvements/live-ledger.json
 benchmarks/bot-improvements/live-summary.json
+
+# Local bet-size pilot ledger and derived summary
+benchmarks/bet-sizing/live-ledger.json
+benchmarks/bet-sizing/live-summary.json
+benchmarks/bet-sizing/*.tmp

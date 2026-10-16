@@ -534,6 +534,18 @@ The paid pilot showed behavioral sensitivity but concerning extreme sizes; the
 production wording revision and Eevo extension are offline-tested, not
 paid-validated strength improvements. See the [promotion record](../benchmarks/opponent-advice/production.md).
 
+Internal benchmark injection threads a server-owned `BettingMenu` (`current`,
+`quarter-pot`, `1.5-pot`) through context preparation, both confidence wrappers,
+SystemOne request/move construction and validation, and LLM schema/parsing.
+Constructors default to `current`; the production registry never selects an
+experimental menu. No client/API/environment/public DTO selection exists. New
+identifiers are internal only; public sizing validation rejects them before a
+production action commits. Equity Rules uses its unchanged legacy sizing path.
+The independent [bet-sizing experiment](../benchmarks/bet-sizing/README.md) keeps
+paid authorization, source freezes, fixtures, allocation and analysis outside
+production. Scripted compatibility does not establish playing strength or authorize
+promotion; a separate paired-match study is required.
+
 Provider context, raw responses and decision diagnostics are not persisted or
 exposed through public DTOs, browser APIs or Realtime. Production model settings
 remain unchanged. See [context and evaluation methodology](../benchmarks/poker-context.md)

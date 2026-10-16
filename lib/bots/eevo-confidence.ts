@@ -9,7 +9,7 @@ export const eevoConfidencePolicyVersion = "eevo-poker-v4.1-confidence";
 /** Eevo shares Jev's confidence and sizing advice while retaining its own transport/errors. */
 export class ConfidenceAwareEevoPokerBot extends EevoPokerBot {
   override async decide(context: BotContext) {
-    const supplied = withConfidenceOpponentAdvice(prepareProviderContext(context));
+    const supplied = withConfidenceOpponentAdvice(prepareProviderContext(context, this.menu));
     const decision = await super.decide(supplied);
     return { ...decision, diagnostics: { ...decision.diagnostics, promptVersion: eevoConfidencePolicyVersion } };
   }

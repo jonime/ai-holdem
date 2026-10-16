@@ -1,18 +1,18 @@
 import { selectPokerAdvice } from "@/lib/poker/strategy-advice";
 import { prepareProviderContext } from "@/lib/poker/provider-context";
 import { decidePokerAction, type SystemOneDecisionClient } from "@/lib/systemone/decision";
-import { typesafePokerPolicyVersion } from "@/lib/systemone/questions";
+import { typesafePokerPolicyVersion, type BettingMenu } from "@/lib/systemone/questions";
 
 import { emptyDiagnostics, type BotContext, type BotDecision, type PokerBot } from "./types";
 
 export class SystemOnePokerBot implements PokerBot {
-  constructor(private readonly client: SystemOneDecisionClient, private readonly guidance = true, private readonly model = "jev-latest") {}
+  constructor(private readonly client: SystemOneDecisionClient, private readonly guidance = true, private readonly model = "jev-latest", protected readonly menu: BettingMenu = "current") {}
 
   async decide(context: BotContext): Promise<BotDecision> {
     const started = performance.now();
-    const prepared = prepareProviderContext(context);
+    const prepared = prepareProviderContext(context, this.menu);
     const suppliedContext = { ...prepared, ...(this.guidance ? { strategyAdvice: selectPokerAdvice(prepared) } : {}) };
-    const decision = await decidePokerAction(this.client, suppliedContext, { model: this.model });
+    const decision = await decidePokerAction(this.client, suppliedContext, { model: this.model, menu: this.menu });
     const audit = decision.rawResponse;
     const provider = typeof audit === "object" && audit !== null && "providerResponse" in audit ? audit.providerResponse : null;
     const usage = typeof provider === "object" && provider !== null && "usage" in provider ? provider.usage : null;

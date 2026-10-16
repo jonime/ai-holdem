@@ -10,12 +10,17 @@ export type SizingChoice =
   | "two_big_blinds"
   | "two_and_half_big_blinds"
   | "three_big_blinds"
+  | "quarter_pot"
+  | "one_and_half_pot"
   | "one_third_pot"
   | "one_half_pot"
   | "two_thirds_pot"
   | "full_pot"
   | "all_in"
   | "not_applicable";
+
+/** Internal injection only. Never derived from client input or environment. */
+export type BettingMenu = "current" | "quarter-pot" | "1.5-pot";
 
 export interface SizingOption {
   readonly choice: SizingChoice;
@@ -124,6 +129,7 @@ export const createSizingOptions = createTypesafeSizingOptions;
 
 export function createTypesafeSizingOptions(
   state: PokerAIState,
+  menu: BettingMenu = "current",
 ): readonly SizingOption[] {
   const action = aggressiveAction(state);
   if (!action || (action.type !== "bet" && action.type !== "raise")) {
@@ -137,8 +143,7 @@ export function createTypesafeSizingOptions(
   }
 
   const byAmount = new Map<number, SizingOption>();
-  const add = (choice: SizingChoice, desired: number, label: string) => {
-    const amount = clamp(desired, action.minAmount, action.maxAmount);
+  const put = (choice: SizingChoice, amount: number, label: string) => {
     if (byAmount.has(amount)) return;
     const additional = amount - state.hero.investedThisStreet;
     const resultingPot =
@@ -149,6 +154,9 @@ export function createTypesafeSizingOptions(
       description: `${action.type === "raise" ? "Raise" : "Bet"} to exactly ${amount} chips (${label}); pay ${additional} additional chips and put ${resultingPot} chips in the middle after the move.`,
     });
   };
+
+  const add = (choice: SizingChoice, desired: number, label: string) =>
+    put(choice, clamp(desired, action.minAmount, action.maxAmount), label);
 
   // Reserve the maximum amount first so a clamped fractional size cannot hide
   // the explicit all-in candidate.
@@ -182,9 +190,27 @@ export function createTypesafeSizingOptions(
     }
   }
 
+  if (menu !== "current") {
+    const addition = inspectMenuAddition(state, menu, [...byAmount.values()]);
+    if (addition.reason === "available") put(addition.choice, addition.amount, menu === "quarter-pot" ? "one quarter pot" : "one and a half pot");
+  }
+
   return [...byAmount.values()].sort(
     (left, right) => (left.amount ?? 0) - (right.amount ?? 0),
   );
+}
+
+/** Called after exact safeguards; never clamps or relabels an existing candidate. */
+export function inspectMenuAddition(state: PokerAIState, menu: BettingMenu, baseline = createTypesafeSizingOptions(state)) {
+  const choice = menu === "quarter-pot" ? "quarter_pot" as const : "one_and_half_pot" as const;
+  const bet = decisionCandidates(state).find(a => a.type === "bet");
+  const amount = state.hero.investedThisStreet + Math.round((state.analysis.livePot ?? state.hand.pot) * (menu === "quarter-pot" ? 0.25 : 1.5));
+  const reason = menu === "current" ? "baseline" : state.hand.street === "preflop" ? "preflop"
+    : !["flop", "turn", "river"].includes(state.hand.street) ? "street_unavailable"
+    : !bet || bet.type !== "bet" ? "bet_unavailable_or_safeguarded"
+    : amount < bet.minAmount ? "below_minimum" : amount >= bet.maxAmount ? "maximum_or_above"
+    : baseline.some(s => s.amount === amount) ? "duplicate" : "available";
+  return { choice, amount, reason };
 }
 
 function passiveDescription(
@@ -200,7 +226,7 @@ function passiveDescription(
   return `Call exactly ${action.amount ?? 0} additional chips; the contestable pot after calling is ${state.analysis.contestablePotAfterCall} chips (pot odds ${state.analysis.potOddsToCall}).`;
 }
 
-export function createMoveOptions(state: PokerAIState): readonly MoveOption[] {
+export function createMoveOptions(state: PokerAIState, menu: BettingMenu = "current"): readonly MoveOption[] {
   const canCheck = state.legalActions.some((action) => action.type === "check");
   const moves: MoveOption[] = [];
   for (const legalAction of decisionCandidates(state)) {
@@ -236,7 +262,7 @@ export function createMoveOptions(state: PokerAIState): readonly MoveOption[] {
       });
       continue;
     }
-    for (const sizing of createTypesafeSizingOptions(state)) {
+    for (const sizing of createTypesafeSizingOptions(state, menu)) {
       if (sizing.amount === null) continue;
       moves.push({
         choice: `${legalAction.type}_to_${sizing.amount}`,
@@ -252,8 +278,9 @@ export function createMoveOptions(state: PokerAIState): readonly MoveOption[] {
 export function createPokerDecisionRequest(
   state: PokerAIState,
   model = "jev-latest",
+  menu: BettingMenu = "current",
 ): SystemOneRequest {
-  const moves = createMoveOptions(state);
+  const moves = createMoveOptions(state, menu);
   const move: ChoiceQuestion = {
     type: "choice",
     instructions:

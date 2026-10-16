@@ -1,0 +1,103 @@
+{
+  "sourceCommit": "8e384c457b7d583849ef2f2673083c1edf1532c6",
+  "equitySamples": 5,
+  "provenance": "Captured with unmodified HEAD SystemOne questions and LLM implementation before menu injection; scripted transports; no inference.",
+  "rows": [
+    {
+      "fixture": "2-flop-0",
+      "jev": "9ab24fbb1b2a421b34dd9aab98b50f5c77c660570d17005a619e9ca15a2131ae",
+      "eevo": "f8463ff3c098fcbfa094106cc7f7ce768a638f33d9bf1b7549312680f6d3fabe",
+      "llm": "dd0a6953b3829ab759bf98c2e7b1b5e37e2a3bbb887fa6d13eccbc642379e172"
+    },
+    {
+      "fixture": "2-flop-1",
+      "jev": "f842da2c9cc26d5d7d314202d69c810948564d3f88cf0deae29c631c5871c944",
+      "eevo": "1ef5593ecb31e4aba9c6556bb8608bb480d05929d4ae36f2fc64fea5ba8294bb",
+      "llm": "f553e91f4c7f4a75a1163a6652564d6fb2fd2f6d7dfdd0fa9b41c3c63356ad35"
+    },
+    {
+      "fixture": "2-turn-0",
+      "jev": "b643e586eff6aff98dcc0f81dd8734f7e422466e06ee44cdc1e561ea12ff4f59",
+      "eevo": "00115c40e6b7dd8424c19e498eb320672657bf6148eacbf8e29310fbd42bb4d5",
+      "llm": "a038fe2b8d48b62f7e3f3131d14545319c27af46c6909e2e6fb3c9a85d5a2b19"
+    },
+    {
+      "fixture": "2-turn-1",
+      "jev": "51f9e784a60f5b856f148f334d33146e547ff64f27eef9a43b8e97d568c33e75",
+      "eevo": "1ff7a1c4eac487b77ebba5a9909d588815d788bca8f4521ccad2f0a16788ab71",
+      "llm": "a2bd22a0715b2e5c4cc292566c9056b9e882311b7cc0ecf27cf68b9f9c72ef3a"
+    },
+    {
+      "fixture": "2-river-0",
+      "jev": "3deeef1d3fd0ec03eaf6989fbe417e6962e55ae73d521ae87da0dc9b58429555",
+      "eevo": "60224c1c76c2413586e409ba8c8b4e7969f1b89a260cbaf36f6019af8dc0267a",
+      "llm": "12970dbed59387a309c02a7296319004b0dc900167d632640017f260749fcc91"
+    },
+    {
+      "fixture": "2-river-1",
+      "jev": "078dd236bace40c27588fa81e228397e11689e3f50312873d1f0e38a9648dc23",
+      "eevo": "77dc1cd2f20ee68ff3c711cd4d09bd539c47410ab48cffa65d548e3ad0ecab25",
+      "llm": "0568ad24157de2afb4455c5d966243c57995505ab143d8ebbd382de815338d46"
+    },
+    {
+      "fixture": "6-flop-0",
+      "jev": "e9e58d8bc06ecc00f76e87baef7d1937075bea98f39c27df4b0963c3381f34e1",
+      "eevo": "7d281142d61be77e884b6a2f6d989c8937b8bbb0551d986f5d68bc245ea4d3fa",
+      "llm": "bcece05969a10de2194254c4e60534d6b05a21eea152acbe7003b9496417e1c0"
+    },
+    {
+      "fixture": "6-flop-1",
+      "jev": "e23cf7fb222f894097b80fd7ba1fc46076bcc3ce52659ff8d4610ab923a28659",
+      "eevo": "30d3d2375ac242b5d0d27dfcb1ff9f853f25d81b4a53b10d5604077112a66a6b",
+      "llm": "d33b122b0ce866cda11b554d38c62ab2df20b3711f9376f74a1c4636611f8083"
+    },
+    {
+      "fixture": "6-turn-0",
+      "jev": "a7590527f7dea297751121e26af0d57ce55b7dda2bb118c03b99b941a6ccdb6e",
+      "eevo": "64f2065b008695aaa06ecd692868646c89143e5301aab8cdeff27e3d10b94ad1",
+      "llm": "38b1c75565e38d8aae9895f6c49ba54b3f44ad4414b68e634be76e903e52db3c"
+    },
+    {
+      "fixture": "6-turn-1",
+      "jev": "09525c4759b0fb2c53c10a45bc7ca516b8f7bef2550e0c4d3075407d4de37cfc",
+      "eevo": "f1cd4436335f81013541f9b0b3d44f3328633cc1d419aff0777f0dc5d502edcd",
+      "llm": "7c83bb9e241f85fe882177999bd79df1fe75ac069edcbacacb05b550ad277d04"
+    },
+    {
+      "fixture": "6-river-0",
+      "jev": "c177f74e5c9ccccbe4b8ae902c7d7f2453e9ed20b973d8f7c0e6c548a4e1d418",
+      "eevo": "2d1de1ed1e33982b65eb1e0dc66499cc939d7b483904c663174c3ed42c4e9372",
+      "llm": "89de972c66a707af6beb724b0c12129a2f56f3ced48e2d9e96a65e1ae049b7a0"
+    },
+    {
+      "fixture": "6-river-1",
+      "jev": "f053c27d8aba19d6bbe08eb10f009fb359284b6ef6055fc25d4cc46472a93756",
+      "eevo": "40d0e318e10797c3f822a29860c6dae0a6a482cf1fea7862c727aa10b543f456",
+      "llm": "058877a48bf876619cd15806534c891805989690b69d0f21237ac1d3bef481a6"
+    },
+    {
+      "fixture": "preflop",
+      "jev": "1d679167dd4aa04b15f786e3e5e43d594b24cb6d7c4b93e3848c736000df2702",
+      "eevo": "0eb856fe332c3f0fd033cc41e7e118e043a7bf962c229fbff1ec0b0d36ac9419",
+      "llm": "9db9a27154545b7a9639ec411b4213f877f0bad07253bc62c4e824e5b30b27b1"
+    },
+    {
+      "fixture": "raise",
+      "jev": "73ac6f1f241cae818b2ac6935d74a4394ee96692c9688e8b7d6117e2276e3ac2",
+      "eevo": "94ae696a00656be7308e67c7145c37ebe2e7ef399bb84c688861348b864391d8",
+      "llm": "0433fab842fa48b0bf1d78505d43cb9c9b1ac32d092b7b2cbbc48090436a3621"
+    },
+    {
+      "fixture": "short",
+      "jev": "def8b78b25a8815588be6221353f8c5d107d9928e96c73de391e182d23c154b7",
+      "eevo": "a6e9550449a1afe3354a028fc2dcb60db1189bb129794d39566543dc3bf949d2",
+      "llm": "832f48859d3d5a4ec5d380a9a1d4cf0b5684ccaa45f89bb6ce31550b5827930c"
+    },
+    {
+      "fixture": "safeguard",
+      "jev": "7003b7603b2c9054660d4ce8245880f208c4336341bb240e06ccf9cee7e0e333",
+      "eevo": "f3d9639147db7451c6636fee2e4517d8ed19a04668f32236dd99c705ccf3b778",
+      "llm": "dafc99a06195d0e5a0c203aab66016ebefc46399a526c7508224c08e4c4a3363"
+    }
+  ]
+}

@@ -6,7 +6,7 @@ import {
 } from "@/lib/env/server";
 import type { PokerAction } from "@/lib/poker/types";
 import type { BotPlaystyleId } from "@/lib/poker/types";
-import type { SizingChoice } from "@/lib/typesafe/questions";
+import type { BettingMenu, SizingChoice } from "@/lib/typesafe/questions";
 import { prepareProviderContext } from "@/lib/poker/provider-context";
 import { selectPokerAdvice } from "@/lib/poker/strategy-advice";
 
@@ -114,6 +114,7 @@ export class LlmPokerBot implements PokerBot {
   private readonly reasoning: LlmReasoningEffort;
   private readonly fetcher: FetchLike;
   private readonly guidance: boolean;
+  private readonly menu: BettingMenu;
 
   constructor(
     private readonly modelId: string,
@@ -124,10 +125,12 @@ export class LlmPokerBot implements PokerBot {
           readonly reasoning?: LlmReasoningEffort;
           /** Benchmark ablation only; production always uses the default. */
           readonly guidance?: boolean;
+          readonly menu?: BettingMenu;
         }
       | FetchLike = "balanced",
     fetcher: FetchLike = fetch,
   ) {
+    this.menu = typeof profileIdOrOptionsOrFetcher === "object" ? profileIdOrOptionsOrFetcher.menu ?? "current" : "current";
     this.guidance = typeof profileIdOrOptionsOrFetcher !== "object" || profileIdOrOptionsOrFetcher.guidance !== false;
     this.profileId =
       typeof profileIdOrOptionsOrFetcher === "function"
@@ -147,7 +150,7 @@ export class LlmPokerBot implements PokerBot {
 
   async decide(context: BotContext): Promise<BotDecision> {
     const started = performance.now();
-    const candidates = prepareProviderContext(context);
+    const candidates = prepareProviderContext(context, this.menu);
     const advice = this.guidance ? selectPokerAdvice(candidates) : null;
     const sizingChoices = candidates.sizingOptions.filter(option => option.amount !== null).map(option => option.choice);
     let body: unknown;
