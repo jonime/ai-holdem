@@ -112,3 +112,9 @@ command has its own 108-call cap and persistent one-run ledger.
 The [completed bet-size pilot](bet-sizing/live-report-2026-10-16.md) consumed its
 960-request authorization. LLM quarter-pot alone met the frozen usage screen;
 playing strength remains unmeasured and production menus are unchanged.
+
+- [Restricted river lookahead](river-lookahead/README.md): offline, exact,
+  engine-backed check/bet and facing-all-in root-action comparisons against
+  production Rules, with explicit post-line ranges, response posteriors and a
+  complete cross-assumption sensitivity matrix. No paid calls or production
+  changes. See the [recorded report](river-lookahead/report-v1.md).

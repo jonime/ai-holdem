@@ -75,7 +75,8 @@
     "benchmark:session-adaptation:continue:prepare": "node benchmarks/session-adaptation/run.mjs continue-prepare",
     "benchmark:session-adaptation:continue": "node benchmarks/session-adaptation/run.mjs continue-live",
     "benchmark:session-adaptation:llm:prepare": "node benchmarks/session-adaptation/run.mjs llm-prepare",
-    "benchmark:session-adaptation:llm": "node benchmarks/session-adaptation/run.mjs llm-live"
+    "benchmark:session-adaptation:llm": "node benchmarks/session-adaptation/run.mjs llm-live",
+    "benchmark:river-lookahead": "node benchmarks/river-lookahead/run.mjs"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",

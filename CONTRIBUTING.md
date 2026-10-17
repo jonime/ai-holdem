@@ -1444,3 +1444,11 @@ A subsequent [LLM-only amendment](benchmarks/session-adaptation/README.md#explic
 after an operator-reported OpenRouter quota failure permits only two untouched
 LLM blocks, skips the remaining Jev blocks and caps further/combined reservations
 at 1,200/2,757. All four incomplete blocks stay excluded; no replay is permitted.
+
+The offline [river lookahead experiment](benchmarks/river-lookahead/README.md)
+uses a credential-free, network-blocked worker rather than Vitest's environment
+loader. `npm run benchmark:river-lookahead -- smoke` verifies frozen inputs and
+runs one non-writing case; `-- full` records the 12-fixture root-action matrix.
+Completed evidence and source freezes are immutable; reproduce in a separate
+checkout as described in that guide. Run the existing range-equity benchmark
+and `npm run check` alongside it. No build, Supabase or paid provider is needed.
