@@ -18,12 +18,12 @@ export const replayFrameSchema = z.strictObject({
   action: replayActionSchema.nullable(),
   players: z.array(z.strictObject({ seat, stack: chips, bet: chips, folded: z.boolean(), allIn: z.boolean(), cards: z.array(card).length(2).nullable() })).min(2).max(6),
 });
-export const replayResponseSchema = z.strictObject({ replay: z.strictObject({
-  gameId: z.uuid(), handNumber: z.number().int().positive(),
+export const replayDataSchema = z.strictObject({
   dealerSeat: seat, smallBlindSeat: seat, bigBlindSeat: seat,
   participants: z.array(z.strictObject({ seat, name: z.string().min(1) })).min(2).max(6),
   frames: z.array(replayFrameSchema).min(2),
   pots: z.array(z.strictObject({ amount: chips, awards: z.array(z.strictObject({ seat, amount: chips })) })),
-}) });
+});
+export const replayResponseSchema = z.strictObject({ replay: replayDataSchema.extend({ gameId: z.uuid(), handNumber: z.number().int().positive() }) });
 export type HandReplay = Immutable<z.infer<typeof replayResponseSchema>>["replay"];
 export type ReplayFrame = HandReplay["frames"][number];

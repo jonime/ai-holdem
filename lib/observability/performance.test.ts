@@ -34,7 +34,7 @@ describe("performance event privacy", () => {
     expect(redactPerformanceEvent({ type: "vital", url: `https://www.aiholdem.gg${path}?name=private` })).toEqual({ type: "vital", url: `https://www.aiholdem.gg${path}`, route: path });
   });
 
-  it.each(["invalid", "https://www.aiholdem.gg/private-value", "https://www.aiholdem.gg/api/games/private-table", "https://www.aiholdem.gg/en-US/unknown/private", "file:///en-US"])("drops unsupported URL %s", (url) => {
+  it.each(["invalid", "https://www.aiholdem.gg/private-value", "https://www.aiholdem.gg/api/games/private-table", "https://www.aiholdem.gg/en-US/unknown/private", "file:///en-US", "https://www.aiholdem.gg/replay/secret", "https://www.aiholdem.gg/fi-FI/replay/secret"])("drops unsupported URL %s", (url) => {
     expect(redactPerformanceEvent({ type: "vital", url })).toBeNull();
   });
 });

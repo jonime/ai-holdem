@@ -1,3 +1,4 @@
+import { shareTokenSchema, sharedReplaySchema, shareManagementSchema, revokeShareSchema } from "./share-contracts";
 import { replayParamsSchema, replayResponseSchema } from "./replay-contracts";
 import { TransportError, withDeadline } from "./deadline";
 export { TransportError, unknownOutcome } from "./deadline";
@@ -116,7 +117,23 @@ function queryString(values: Record<string, string | number | undefined>) {
   return query.size ? `?${query}` : "";
 }
 
+function shareManagement(params: { gameId: string; handNumber: number }, method: "GET" | "POST" | "DELETE", options: Options) {
+  const { gameId, handNumber } = replayParamsSchema.parse(params);
+  return withDeadline(signal => send(`${gameUrl({ gameId })}/hands/${handNumber}/share`, shareManagementSchema,
+    { method, cache: "no-store", signal }), 15_000, options.signal);
+}
 export const api = {
+  shares: {
+    active(params: { gameId: string; handNumber: number }, options: Options = {}) { return shareManagement(params, "GET", options); },
+    create(params: { gameId: string; handNumber: number }, options: Options = {}) { return shareManagement(params, "POST", options); },
+    revoke(params: { gameId: string; handNumber: number }, options: Options = {}) {
+      const { gameId, handNumber } = replayParamsSchema.parse(params);
+      return withDeadline(signal => send(`${gameUrl({ gameId })}/hands/${handNumber}/share`, revokeShareSchema, { method: "DELETE", cache: "no-store", signal }), 15_000, options.signal);
+    },
+    read(token: string, options: Options = {}) {
+      return withDeadline(signal => send(`/api/replays/${shareTokenSchema.parse(token)}`, sharedReplaySchema, { cache: "no-store", signal }), 15_000, options.signal);
+    },
+  },
   bots: {
     catalog(options: Options = {}) {
       return send("/api/bots", botCatalogResponseSchema, { cache: "no-store", signal: options.signal });

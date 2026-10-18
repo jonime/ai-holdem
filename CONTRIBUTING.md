@@ -1452,3 +1452,28 @@ runs one non-writing case; `-- full` records the 12-fixture root-action matrix.
 Completed evidence and source freezes are immutable; reproduce in a separate
 checkout as described in that guide. Run the existing range-equity benchmark
 and `npm run check` alongside it. No build, Supabase or paid provider is needed.
+
+## Shared replay verification
+
+Run `npm run test:sql:shares` against the running migrated local stack. It uses
+fixture-owned data, no environment files, providers or reset, and covers restricted
+roles, historical ownership, changed-history rejection, concurrent creation,
+unchanged 30-day expiry, separate admission, revocation, expiration and deletion.
+Run `npm run test:e2e:ui -- hand-replay.spec.ts shared-replay.spec.ts hand-results-actions.spec.ts dialogs.spec.ts settings.spec.ts`
+for the stacked header sharing dialog, top-dialog focus/Escape isolation, nested
+scroll locks, frame/focus restoration, folded-seat dimming,
+create/notice/copy/fallback/revoke, standalone playback, locale routing,
+no-source HTML/JSON, no live activity, unavailable links and modal regressions.
+Unit visibility cases cover folded owner/bot, showdown/explicitly shown humans and
+unrevealed folded humans across every frame, duplicate names and seat reuse.
+Do not put viewing tokens or snapshots into logs/telemetry. Diagnostic artifacts
+containing fixture URLs must never contain production links. Verify platform URL
+retention and no-referrer in the deployment checklist. Shared pages use generic
+noindex/nofollow metadata and never enter the sitemap.
+
+| Endpoint | Input | Response | Named method |
+| --- | --- | --- | --- |
+| `GET /api/games/:gameId/hands/:handNumber/share` | `replayParamsSchema`, ownership cookie | `shareManagementSchema` | `shares.active` |
+| `POST /api/games/:gameId/hands/:handNumber/share` | same, same-origin | `shareManagementSchema` | `shares.create` |
+| `DELETE /api/games/:gameId/hands/:handNumber/share` | same, same-origin | `revokeShareSchema` | `shares.revoke` |
+| `GET /api/replays/:token` | `shareTokenSchema` | `sharedReplaySchema` | `shares.read` |

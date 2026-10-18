@@ -226,6 +226,28 @@ const dictionary = {
       "straight-flush": "ストレートフラッシュ"
     }
   },
+  sharing: {
+    dialogTitle: "リプレイを共有 - ハンド {hand}",
+    visibilityIntro: "最初から表示：",
+    visibleCards: "自分のカード（フォールド分を含む）と全ボットのカード。",
+    otherCards: "他の人のカードは、ショーダウンで公開または明示的に見せた場合のみ。",
+
+    open: "ハンドを共有",
+    title: "共有リプレイ",
+    create: "共有リンクを作成",
+    copy: "リンクをコピー",
+    copied: "リンクをコピーしました。",
+    url: "共有URL",
+    expires: "有効期限 {date}",
+    revoke: "リンクを無効化",
+    notice: "リンクは誰でも転送できます。30日で失効し、後からカードを見せても更新されません。",
+    revokeNotice: "リンクを無効にしますか？ダウンロード済みのコピーは削除できません。表示を更新するには新しいリンクを作成してください。",
+    confirmCreate: "リンクを作成",
+    confirmRevoke: "無効化を確認",
+    cancel: "キャンセル",
+    pending: "共有を更新中…",
+    error: "共有を確認できませんでした。再試行前に状態を更新してください。",
+  },
   replay: {
     "title": "ハンドを振り返る",
     "previous": "前へ",

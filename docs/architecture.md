@@ -145,6 +145,48 @@ outside replay, preserving its frame index and delivering a turn/countdown notic
 Mobile Actions saves its scroll position for Back to Actions; overlay replacement
 never stacks dialogs or lets old focus restoration steal the new dialog's focus.
 
+### Hand-specific shared snapshots
+
+`reconstructHandReplay` validates the complete persisted history once, independently
+of visibility. `projectHandReplay` preserves the in-game owner/final-frame behavior;
+`projectSharedReplay` admits only one immutable participating human owner and freezes
+owner, bot and publicly permitted final holdings into every frame. Neither current
+assignments nor recipient cookies affect visibility. Strict version-1 snapshot
+schemas omit source game/hand identifiers, player IDs, credentials and engine/provider
+state. The server reconstructs and validates before management; the storing RPC
+locks the game/hand, rechecks historical ownership and compares the full input read
+against a fresh `get_hand_replay` before storing. Changed history fails with a conflict.
+
+Service-role-only `replay_shares` stores 256-bit random hexadecimal tokens, source
+references with deletion cascades, creator ownership, immutable snapshots, creation,
+expiry and revocation timestamps. The database serializes management per game and
+returns an existing active share before admission, preserving its expiry. Expired
+rows are retired before inserting a new random token; old tokens never reactivate.
+Every viewing read uses `clock_timestamp()`, with identical unavailable responses
+for unknown, expired and revoked tokens. There is no cleanup scheduler.
+Share admission reuses locked `reserve_usage` with distinct `share:owner` and
+`share:ip` counters (20 and 100 per hour); game/inference counters are untouched.
+
+Management endpoints use ownership cookies and require same-origin mutations.
+All JSON responses are private/no-store. Uncertain mutations reconcile through the
+management GET without automatic replay; a failed read blocks further mutations
+until explicit status refresh. `ReplayViewer` accepts only sanitized presentation
+props. `HandReplayModal` owns focus, live-turn warnings, owner loading and return
+navigation. Sharing opens a child native dialog above the visible replay, keeps
+the viewer
+at its selected frame, suspends its arrow handler and restores focus to the header
+trigger on return. Modal scroll locks are reference counted; closing the child
+keeps the parent locked. Child cancellation/pointer events do not bubble into
+parent dismissal, and focus restoration targets only the top remaining dialog.
+Standalone localized `/replay/:token` pages have no live session hook,
+polling, Realtime, claims or bots. They fetch only the fixed snapshot, start at
+frame zero. Standalone arrows also accept neutral page focus before the first
+interaction, without stealing focus on load. Editable controls, other focused
+controls, modifier keys and open dialogs retain their keys. Metadata is generic noindex/nofollow,
+URLs are excluded from Speed Insights (the component is not mounted on shares),
+and responses set no-referrer. Shared pages have no source-table links.
+
+
 ## Debug history removal
 
 Apply `20261018000000_remove_debug_history.sql` before deploying the debug-history

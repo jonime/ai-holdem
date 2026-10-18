@@ -8,7 +8,12 @@ legitimate visitors remain possible. Verified accounts are a separate future opt
 `lib/usage/policy.ts` owns the defaults: 600 external attempts per durable table
 host per rolling hour, 30 per game per rolling minute, 6 creation attempts per
 owner per rolling 10 minutes, and 30 creation attempts per IP per rolling 10
-minutes. TypeSafe and LLM attempts count; deterministic rules turns do not.
+minutes. Shared replay snapshots have separate counters: 20 new shares per owner
+and 100 per IP per rolling hour. Existing active links are returned before
+admission, preserving their expiry and consuming no allowance. Share creation
+uses the same trusted IP/HMAC infrastructure, with `share:owner` and `share:ip`
+keys and `SHARE_CREATION_LIMIT` denials. Revocation and viewing consume no
+allowance. TypeSafe and LLM attempts count; deterministic rules turns do not.
 Quick Play, localized custom forms, custom JSON creation, replay, and rules-only
 creation share the creation counters. Denied attempts consume nothing; admitted
 attempts count even when persistence/provider calls fail or a process crashes.
@@ -20,7 +25,7 @@ Generate a secret with `openssl rand -hex 32`; never prefix it with `NEXT_PUBLIC
 log it, or commit it. Keep it stable across instances; rotating it resets hashed
 allowances. Existing games keep their durable host record. Missing owners block
 external inference. Supabase admission failures fail closed for external calls
-and creation, while existing rules turns keep working.
+and creation (including sharing), while existing rules turns keep working.
 
 Local development also requires this secret: put a generated value in the ignored
 `.env` file and restart `npm run dev`. Copying `.env.example` leaves the value

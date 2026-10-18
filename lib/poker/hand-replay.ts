@@ -15,8 +15,7 @@ const recordSchema = z.object({ gameId: z.uuid(), handNumber: z.number().int().p
 });
 
 /** The read dependency returns a single statement snapshot; no current assignments participate. */
-export async function getHandReplay(read: () => Promise<unknown>, gameId: string, handNumber: number, token: string | null): Promise<HandReplay> {
-  const raw = await read(); // Database failures remain unexpected/retryable.
+export function reconstructHandReplay(raw: unknown, gameId: string, handNumber: number) {
   if (raw === null) throw new ReplayOutcome("REPLAY_MISSING");
   try {
     const row = recordSchema.parse(raw);
@@ -36,13 +35,9 @@ export async function getHandReplay(read: () => Promise<unknown>, gameId: string
       if (!config) throw new Error();
       return { seat: p.seat, name: config.name };
     });
-    const owners = initial.config.players.filter(p => token !== null && p.controller === "human" && p.playerToken === token && start.players.some(s => s.id === p.id));
-    if (owners.length > 1) throw new Error();
-    const viewer = owners[0]?.id ?? null;
-    const ownCards = (id: string) => id === viewer ? [...engine.heroCards(initial, id)] : null;
     const frames: ReplayFrame[] = [{ kind: "start", street: start.street, board: start.communityCards, pot: start.pot,
       nextActorSeat: start.currentActorSeat, action: null, players: start.players.map(p => ({ seat: p.seat, stack: p.stack,
-        bet: p.committedStreet, folded: p.folded, allIn: p.allIn, cards: ownCards(p.id) })) }];
+        bet: p.committedStreet, folded: p.folded, allIn: p.allIn, cards: null })) }];
     let state = initial;
     for (const [index, item] of history.actions.entries()) {
       const persisted = row.actions[index];
@@ -57,11 +52,11 @@ export async function getHandReplay(read: () => Promise<unknown>, gameId: string
       const action = { sequence: item.sequence, actorSeat: actor.seat, type: item.action.type,
         amount: item.action.type === "call" ? engine.getLegalActions(item.stateBefore).find(a => a.type === "call")?.amount ?? null : "amount" in item.action ? item.action.amount ?? null : null };
       for (const frame of transition.frames) frames.push({ ...frame, action: frame.kind === "action" ? action : null,
-        players: frame.players.map(p => ({ seat: p.seat, stack: p.stack, bet: p.bet, folded: p.folded, allIn: p.allIn, cards: ownCards(p.id) })) });
+        players: frame.players.map(p => ({ seat: p.seat, stack: p.stack, bet: p.bet, folded: p.folded, allIn: p.allIn, cards: null })) });
       state = transition.after;
     }
     if (!isDeepStrictEqual(state.engineState, final.engineState)) throw new Error();
-    const publicFinal = engine.publicProjection({ ...final, config: initial.config }, viewer, row.revealedIds);
+    const publicFinal = engine.publicProjection({ ...final, config: initial.config }, null, row.revealedIds);
     const end = engine.decisionView(final);
     frames.push({ kind: "result", street: "complete", board: publicFinal.communityCards, pot: publicFinal.pot,
       nextActorSeat: null, action: null, players: start.players.map(p => {
@@ -71,10 +66,29 @@ export async function getHandReplay(read: () => Promise<unknown>, gameId: string
         return { seat: p.seat, stack: numeric.stack, bet: numeric.committedStreet,
           folded: numeric.folded, allIn: numeric.allIn, cards: visible.holeCards };
       }) });
-    return replayResponseSchema.parse({ replay: { gameId, handNumber, dealerSeat: start.buttonSeat,
+    const replay = replayResponseSchema.parse({ replay: { gameId, handNumber, dealerSeat: start.buttonSeat,
       smallBlindSeat: start.smallBlindSeat, bigBlindSeat: start.bigBlindSeat, participants, frames, pots: engine.replayPots(final) } }).replay;
+    const holdings = start.players.map(p => {
+      const config = initial.config.players.find(c => c.id === p.id && c.seat === p.seat)!;
+      const cards = [...engine.heroCards(initial, p.id)];
+      if (cards.length !== 2) throw new Error();
+      return { id: p.id, seat: p.seat, controller: config.controller, token: config.playerToken, cards };
+    });
+    return { replay, holdings };
   } catch (error) {
     if (error instanceof ReplayOutcome) throw error;
     throw new ReplayOutcome("REPLAY_UNAVAILABLE");
   }
+}
+
+/** Only this projection gives an in-game viewer their own cards before settlement. */
+export function projectHandReplay(source: ReturnType<typeof reconstructHandReplay>, token: string | null): HandReplay {
+  const owners = source.holdings.filter(p => token !== null && p.controller === "human" && p.token === token);
+  if (owners.length > 1) throw new ReplayOutcome("REPLAY_UNAVAILABLE");
+  const owner = owners[0];
+  return replayResponseSchema.parse({ replay: { ...source.replay, frames: source.replay.frames.map(frame => ({ ...frame,
+    players: frame.players.map(p => ({ ...p, cards: p.seat === owner?.seat ? owner.cards : p.cards })) })) } }).replay;
+}
+export async function getHandReplay(read: () => Promise<unknown>, gameId: string, handNumber: number, token: string | null): Promise<HandReplay> {
+  return projectHandReplay(reconstructHandReplay(await read(), gameId, handNumber), token);
 }

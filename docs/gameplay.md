@@ -212,9 +212,37 @@ Review shares the single overlay; opening from mobile Actions replaces it, and
 Back to Actions restores the reading position. Closing restores focus and the
 latest live table. The selected historical frame survives live updates. Bots,
 refreshes and human timers continue; gameplay shortcuts are suppressed. A live
-**Your turn** notice beside **Close review** includes the current countdown when
+**Your turn** notice beside **Close** includes the current countdown when
 timed. Close the review to return to the live table.
 A timed turn may expire and fold while you review.
+
+### Share a completed hand
+
+Inside Review hand, a historical human participant can choose **Share hand** beside
+**Close** in the header, then **Create share link** in the sharing dialog. Closing
+sharing returns to the same replay frame and restores focus to Share hand.
+Sharing opens above the still-visible replay; only the top dialog receives focus
+and Escape. Replay arrow navigation is suspended while sharing is open.
+Folded participants are dimmed in both replay viewers.
+The notice explains that their own cards (even folded) and every participating
+bot's cards are visible from the first frame. Other humans appear only under
+existing public showdown rules or explicit Show records; folded humans do not
+become public just because the hand reached showdown. Names remain visible.
+Anyone can forward the link. The standalone viewer starts at the first frame,
+uses the same card palette and keyboard controls, and never joins the source table.
+Its gameplay-style header has a compact title and a site-name link to the localized
+landing page. Left/right arrows work as soon as the replay loads; no click is
+needed to activate them.
+
+Links expire 30 days after creation. Copy link shows feedback and offers a
+selectable URL if clipboard access fails. Revoke link requires confirmation;
+it cannot erase downloaded copies. Each participant has at most one active link
+per hand. Repeated creation returns that link with its original expiry. Later
+Show actions do not change a frozen snapshot: revoke and create another link to
+capture updated visibility. Deleting the table invalidates all its links.
+Losing the anonymous ownership cookie prevents managing a share, but expiry and
+source deletion still invalidate it. A viewing link grants no management rights.
+
 
 ## Provider pauses and retry
 

@@ -91,7 +91,7 @@ images are pulled normally during startup; do not cache Docker image archives,
 containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
-disposable database, then runs `db:types:check` before `test:sql:game-reads`, `test:sql:replay`, `test:sql:creation`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
+disposable database, then runs `db:types:check` before `test:sql:game-reads`, `test:sql:replay`, `test:sql:shares`, `test:sql:creation`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
 `test:sql:departures`, `test:sql:turn-timers`, `test:sql:bot-claims`, `test:sql:usage`, `test:integration:bot-pipeline`, and `test:e2e:ci` in order.
 The bot-pipeline suite requires an already-running migrated local stack, injects
 only deterministic `BotRegistry` decisions, and retains real creation, context,
@@ -702,3 +702,27 @@ Neither Jev addition nor LLM 1.5-pot qualifies. This is usage evidence only; all
 production menus remain current. Any next paid match study needs a separate plan
 and explicit authorization. See the
 [completed report](benchmarks/bet-sizing/live-report-2026-10-16.md).
+
+## Hand-specific shared replays
+
+Apply `20261031000000_add_replay_shares.sql` before deploying sharing. Keep validated
+server-only reconstruction separate from in-game and fixed share projections.
+Only immutable participating human ownership creates/manages links; host/current
+seat or viewing-token possession is insufficient. Freeze owner (including folded),
+all bot and publicly shown human cards from frame zero; never reveal other folded
+humans based on showdown alone. Strict snapshots exclude source IDs and secrets.
+Store random 256-bit tokens in service-role-only shares, serialize management,
+recheck history/ownership at commit, retain original active expiry, and never
+reactivate retired tokens. Read expiry uses database time; source deletion cascades.
+Keep share admission separate via existing bounded usage infrastructure. Management
+mutations reject cross-origin requests. Unknown mutation outcomes reconcile by GET.
+Standalone viewers have no live sessions, subscriptions or mutations, use generic
+noindex/nofollow metadata and no-referrer, and never send URLs to telemetry.
+Document platform access-log retention and cookie-loss limitations. Run
+`test:sql:shares`, `test:sql:replay`, `check`, `build` and replay/share production UI
+coverage. Keep localized Help synchronized with visibility and management behavior.
+
+Sharing may open a child native dialog above replay. Preserve reference-counted
+scroll locking, top-dialog focus restoration and child event isolation; only the
+child handles Escape while it is open. Keep the replay visible at its selected
+frame and suspend its keyboard navigation until sharing closes.

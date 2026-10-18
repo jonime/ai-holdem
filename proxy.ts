@@ -33,10 +33,10 @@ function contentPage(pathname: string): "home" | "developers" | undefined {
 function isKnownApplicationPath(pathname: string): boolean {
   const segments = pathname.split("/").filter(Boolean);
   return (
-    (segments.length === 2 && segments[0] === "game" && Boolean(segments[1])) ||
+    (segments.length === 2 && ["game", "replay"].includes(segments[0]) && Boolean(segments[1])) ||
     (segments.length === 3 &&
       hasLocale(segments[0]) &&
-      segments[1] === "game" &&
+      ["game", "replay"].includes(segments[1]) &&
       Boolean(segments[2])) ||
     (segments.length === 2 &&
       hasLocale(segments[0]) &&
@@ -56,19 +56,33 @@ function withVaryAccept(response: NextResponse): NextResponse {
 export function proxy(request: Request & { readonly nextUrl: URL }) {
   const { pathname } = request.nextUrl;
   const firstSegment = pathname.split("/")[1];
+  const replayPath = /^\/(?:[^/]+\/)?replay\//.test(pathname);
   if (
     pathname.startsWith("/api") ||
     pathname.startsWith("/_next") ||
-    pathname.includes(".")
+    (pathname.includes(".") && !replayPath)
   ) {
     return NextResponse.next();
   }
 
+  if (replayPath && firstSegment !== DEFAULT_LOCALE) {
+    const response = withVaryAccept(NextResponse.next());
+    response.headers.set("Cache-Control", "private, no-store");
+    response.headers.set("Referrer-Policy", "no-referrer");
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return response;
+  }
   // Preserve old English links and POST methods while consolidating public URLs.
   if (firstSegment === DEFAULT_LOCALE) {
     const url = new URL(request.url);
     url.pathname = removeLocalePrefix(pathname);
-    return withVaryAccept(NextResponse.redirect(url, 308));
+    const response = withVaryAccept(NextResponse.redirect(url, 308));
+    if (replayPath) {
+      response.headers.set("Cache-Control", "private, no-store");
+      response.headers.set("Referrer-Policy", "no-referrer");
+      response.headers.set("X-Robots-Tag", "noindex, nofollow");
+    }
+    return response;
   }
 
   const page = contentPage(pathname);

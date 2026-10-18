@@ -1,0 +1,10 @@
+import { z } from "zod";
+import { replayDataSchema } from "./replay-contracts";
+import type { Immutable } from "./common-contracts";
+export const shareTokenSchema = z.string().regex(/^[a-f0-9]{64}$/);
+export const sharedReplaySchema = z.strictObject({ schemaVersion: z.literal(1), replay: replayDataSchema });
+export const activeShareSchema = z.strictObject({ token: shareTokenSchema, expiresAt: z.iso.datetime({ offset: true }) });
+export const shareManagementSchema = z.strictObject({ share: activeShareSchema.nullable() });
+export const revokeShareSchema = z.strictObject({ revoked: z.literal(true) });
+export type ReplayData = Immutable<z.infer<typeof replayDataSchema>>;
+export type ActiveShare = z.infer<typeof activeShareSchema>;

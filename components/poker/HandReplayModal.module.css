@@ -19,3 +19,6 @@
 .player .award { border-color: var(--sun); color: var(--sun); font-weight: 700; white-space: nowrap; }
 
 .player .betBadge { white-space: nowrap; }
+
+.player[data-replay-folded="true"] { opacity: 0.6; }
+.shareDialog { width: min(520px, calc(100vw - 24px)); }

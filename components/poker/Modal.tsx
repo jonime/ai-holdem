@@ -3,6 +3,19 @@
 import { useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
 import styles from "./Modal.module.css";
 
+// A sharing dialog can sit above replay. Keep scroll locked until the last closes.
+let scrollLocks = 0;
+let restoreScroll: (() => void) | undefined;
+function lockScroll() {
+  if (scrollLocks++ === 0) {
+    const nodes = [document.documentElement, document.body];
+    const saved = nodes.map(node => [node.style.overflow, node.style.getPropertyPriority("overflow")] as const);
+    nodes.forEach(node => { node.style.overflow = "hidden"; });
+    restoreScroll = () => nodes.forEach((node, index) => node.style.setProperty("overflow", saved[index][0], saved[index][1]));
+  }
+  return () => { if (--scrollLocks === 0) { restoreScroll?.(); restoreScroll = undefined; } };
+}
+
 interface ModalProps {
   readonly open: boolean;
   readonly title: string;
@@ -29,14 +42,7 @@ export function Modal({ open, title, onDismiss, initialFocus, restoreFocus, fall
     const opener = restoreFocus.current;
     const fallback = fallbackFocus.current;
     const location = window.location.href;
-    const root = document.documentElement;
-    const body = document.body;
-    const rootOverflow = root.style.overflow;
-    const bodyOverflow = body.style.overflow;
-    const rootPriority = root.style.getPropertyPriority("overflow");
-    const bodyPriority = body.style.getPropertyPriority("overflow");
-    root.style.overflow = "hidden";
-    body.style.overflow = "hidden";
+    const unlockScroll = lockScroll();
     if (!dialog.open) {
       // Native close() remembers pre-modal focus. Own restoration so route teardown
       // cannot synchronously focus an opener from the previous page.
@@ -52,12 +58,14 @@ export function Modal({ open, title, onDismiss, initialFocus, restoreFocus, fall
         document.activeElement.blur();
       }
       if (dialog.open) dialog.close();
-      root.style.setProperty("overflow", rootOverflow, rootPriority);
-      body.style.setProperty("overflow", bodyOverflow, bodyPriority);
+      unlockScroll();
       queueMicrotask(() => {
         // Strict Mode may have reopened the dialog; navigation may have removed the table.
-        if (lifecycle.current !== opening || window.location.href !== location || !fallback?.isConnected || document.querySelector("dialog[open]")) return;
+        if (lifecycle.current !== opening || window.location.href !== location || !fallback?.isConnected) return;
         const target = opener?.isConnected && !opener.matches(":disabled") && opener.getClientRects().length ? opener : fallback;
+        const enclosing = target.closest("dialog");
+        const top = Array.from(document.querySelectorAll<HTMLDialogElement>("dialog[open]")).at(-1);
+        if ((enclosing && !enclosing.open) || (top && !top.contains(target))) return;
         target.focus({ preventScroll: true });
       });
     };
@@ -73,16 +81,18 @@ export function Modal({ open, title, onDismiss, initialFocus, restoreFocus, fall
       ref={dialogRef}
       className={`${styles.modal} ${dialogClassName ?? ""}`}
       aria-label={title}
-      onCancel={event => { event.preventDefault(); onDismiss(); }}
+      onCancel={event => { event.preventDefault(); event.stopPropagation(); onDismiss(); }}
       onPointerDown={event => {
+        event.stopPropagation();
         outsidePointer.current = event.button === 0 && outside(event.clientX, event.clientY) ? event.pointerId : null;
       }}
       onPointerUp={event => {
+        event.stopPropagation();
         const dismiss = outsidePointer.current === event.pointerId && outside(event.clientX, event.clientY);
         outsidePointer.current = null;
         if (dismiss) onDismiss();
       }}
-      onPointerCancel={() => { outsidePointer.current = null; }}
+      onPointerCancel={event => { event.stopPropagation(); outsidePointer.current = null; }}
     >
       <div ref={contentRef} className={className}>{children}</div>
     </dialog>

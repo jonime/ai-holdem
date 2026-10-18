@@ -255,3 +255,19 @@ it("requests replay lazily with a validated path, deadline and private read poli
   mockResponse({ replay: { engineState: {} } });
   await expect(api.games.replay({ gameId, handNumber: 1 })).rejects.toThrow("Invalid response payload");
 });
+
+it("names share management methods, validates tokens and keeps reads uncached", async () => {
+  const token = "a".repeat(64);
+  const share = { token, expiresAt: "2026-11-17T12:00:00Z" };
+  const params = { gameId: "11111111-1111-4111-8111-111111111111", handNumber: 1 };
+  const fetch = mockResponse({ share });
+  expect(await api.shares.active(params)).toEqual({ share });
+  expect(fetch).toHaveBeenLastCalledWith(`/api/games/${params.gameId}/hands/1/share`, expect.objectContaining({ method: "GET", cache: "no-store", credentials: "same-origin" }));
+  vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ share })));
+  expect(await api.shares.create(params)).toEqual({ share });
+  expect(fetch).toHaveBeenLastCalledWith(`/api/games/${params.gameId}/hands/1/share`, expect.objectContaining({ method: "POST", signal: expect.any(AbortSignal) }));
+  vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ revoked: true })));
+  expect(await api.shares.revoke(params)).toEqual({ revoked: true });
+  expect(fetch).toHaveBeenLastCalledWith(`/api/games/${params.gameId}/hands/1/share`, expect.objectContaining({ method: "DELETE" }));
+  await expect(api.shares.read("guess")).rejects.toThrow();
+});

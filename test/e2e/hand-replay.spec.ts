@@ -1,30 +1,7 @@
-import { createUITable } from "./ui-fixtures";
-import { expect, test, type Browser, type Page } from "./fixtures";
-import type { Game } from "../../components/poker/types";
+import { completed } from "./replay-fixtures";
+import { expect, test, type Page } from "./fixtures";
 import { replayResponseSchema } from "../../lib/http/replay-contracts";
 
-async function completed(browser: Browser, page: Page) {
-  await page.goto("/play");
-  const id = await createUITable(page);
-  const read = async (p = page): Promise<Game> => (await (await p.request.get(`/api/games/${id}`)).json()).game;
-  const patch = await page.request.patch(`/api/games/${id}/seat-count`, { data: { expectedVersion: (await read()).version, seatCount: 2 } });
-  expect(patch.ok()).toBe(true);
-  const guestContext = await browser.newContext();
-  const guest = await guestContext.newPage();
-  await guest.goto(`/game/${id}`);
-  await guest.getByRole("textbox", { name: "Your name" }).fill("Guest");
-  await guest.getByRole("button", { name: "Sit here" }).click();
-  await expect(guest.getByText("You’re seated. Waiting for the host to start.")).toBeVisible();
-  expect((await page.request.post(`/api/games/${id}/start`, { data: { expectedVersion: (await read()).version } })).ok()).toBe(true);
-  const start = await read();
-  const ownerId = start.poker.players.find(p => p.playerToken !== null)!.id;
-  const actorPage = start.poker.currentActorId === ownerId ? page : guest;
-  expect((await actorPage.request.post(`/api/games/${id}/action`, { data: { expectedVersion: start.version, action: { type: "fold" } } })).ok()).toBe(true);
-  await page.goto(`/game/${id}`);
-  await expect(page.locator("[data-hand-result]")).toBeVisible();
-  await expect(page.locator("[data-hand-result]").getByRole("button", { name: "Review hand" })).toHaveCount(0);
-  return { id, guestContext, guest, read, ownerId };
-}
 const dialog = (page: Page) => page.getByRole("dialog", { name: "Review hand", exact: true });
 async function refresh(page: Page) {
   const response = page.waitForResponse(r => /\/api\/games\/[^/]+$/.test(new URL(r.url()).pathname));
@@ -43,7 +20,7 @@ test("reviews persisted hands from Actions, with private cards, manual navigatio
     await page.getByRole("complementary", { name: "Actions" }).getByRole("button", { name: "Review", exact: true }).last().click();
     await expect(dialog(page)).toBeVisible();
     await expect(dialog(page).getByRole("button", { name: "Back to Actions" })).toHaveCount(0);
-    await expect(dialog(page).getByRole("button", { name: "Close review" })).toBeFocused();
+    await expect(dialog(page).getByRole("button", { name: "Close", exact: true })).toBeFocused();
     await expect(dialog(page).locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame","0");
     for (const key of ["Tab", "Shift+Tab"]) {
       await page.keyboard.press(key);
@@ -199,7 +176,7 @@ test("replay loading and retry stay isolated while a live timed turn arrives; la
     await expect(dialog(page).getByRole("status").filter({ hasText: "Your turn" })).toBeVisible();
     await expect(dialog(page).locator("[data-turn-countdown]")).toBeVisible();
     await expect(dialog(page).locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame",selected!);
-    await dialog(page).getByRole("button", { name: "Close review" }).click();
+    await dialog(page).getByRole("button", { name: "Close", exact: true }).click();
     await expect(page.getByRole("button", { name: "Fold", exact: true })).toBeEnabled();
     await page.unroute(path);
     let releaseLate!: () => void;
@@ -208,28 +185,31 @@ test("replay loading and retry stay isolated while a live timed turn arrives; la
     await page.getByRole("complementary", { name: "Actions" }).getByRole("button", { name: "Review", exact: true }).click();
     await expect(dialog(page)).toContainText("Loading hand");
     await expect(dialog(page).getByRole("button", { name: "Back to Actions" })).toHaveCount(0);
-    await dialog(page).getByRole("button", { name: "Close review" }).click();
+    await dialog(page).getByRole("button", { name: "Close", exact: true }).click();
     releaseLate();
     await expect(dialog(page)).toHaveCount(0);
     await page.unroute(path);
     await page.getByRole("complementary", { name: "Actions" }).getByRole("button", { name: "Review", exact: true }).click();
     await expect(dialog(page).locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame","0");
     await page.screenshot({ path: test.info().outputPath("replay-live-turn.png") });
-    await dialog(page).getByRole("button", { name: "Close review" }).click();
+    await dialog(page).getByRole("button", { name: "Close", exact: true }).click();
+    const secondFeed = page.waitForResponse(r => new URL(r.url()).pathname === `/api/games/${f.id}/feed` && r.status() === 200);
     const beforeFold = await f.read();
     expect(beforeFold.turnTimer?.deadline).toBe(live.turnTimer?.deadline);
     expect((await page.request.post(`/api/games/${f.id}/action`, { data: { expectedVersion: beforeFold.version, action: { type: "fold" } } })).ok()).toBe(true);
     await refresh(page);
-    await page.getByRole("complementary", { name: "Actions" }).getByRole("button", { name: "Review", exact: true }).last().click();
+    await secondFeed;
+    const secondHand = page.getByRole("complementary", { name: "Actions" }).locator("section").filter({ hasText: "Hand #2" });
+    await secondHand.getByRole("button", { name: "Review", exact: true }).click();
     await expect(dialog(page)).toContainText("Hand #2");
     await expect(dialog(page).locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame","0");
-    await dialog(page).getByRole("button", { name: "Close review" }).click();
+    await dialog(page).getByRole("button", { name: "Close", exact: true }).click();
     const secondPath = `**/api/games/${f.id}/hands/2/replay`;
     await page.route(secondPath, route => route.fulfill({ status: 422, json: { code: "REPLAY_UNAVAILABLE", error: "Unavailable" } }));
     await page.getByRole("complementary", { name: "Actions" }).getByRole("button", { name: "Review", exact: true }).last().click();
     await expect(dialog(page)).toContainText("This hand cannot be reviewed.");
     await expect(dialog(page).getByRole("button", { name: "Retry", exact: true })).toHaveCount(0);
-    await dialog(page).getByRole("button", { name: "Close review" }).click();
+    await dialog(page).getByRole("button", { name: "Close", exact: true }).click();
     await page.unroute(secondPath);
     let releaseNavigation!: () => void;
     const navigating = new Promise<void>(resolve => { releaseNavigation = resolve; });

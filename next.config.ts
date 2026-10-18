@@ -3,6 +3,12 @@ import createMDX from "@next/mdx";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  async headers() {
+    return ["/replay/:path*", "/:lang/replay/:path*", "/api/replays/:path*"].map(source => ({ source, headers: [
+      { key: "Referrer-Policy", value: "no-referrer" },
+      { key: "X-Robots-Tag", value: "noindex, nofollow" },
+    ] }));
+  },
   distDir: process.env.NEXT_DIST_DIR ?? ".next",
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
   images: {

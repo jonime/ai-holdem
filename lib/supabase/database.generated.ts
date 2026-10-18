@@ -223,6 +223,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"replay_shares": {
+                  Row: {
+                    "created_at": string,"creator_token": string,"expires_at": string,"game_id": string,"hand_id": string,"link_token": string,"revoked_at": string | null,"snapshot": NonNullable<Json>
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"creator_token": string,"expires_at"?: string,"game_id": string,"hand_id": string,"link_token": string,"revoked_at"?: string | null,"snapshot": NonNullable<Json>
+                  }
+                  Update: {
+                    "created_at"?: string,"creator_token"?: string,"expires_at"?: string,"game_id"?: string,"hand_id"?: string,"link_token"?: string,"revoked_at"?: string | null,"snapshot"?: NonNullable<Json>
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "replay_shares_game_id_fkey"
+      columns: ["game_id"]
+isOneToOne: false
+      referencedRelation: "games"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "replay_shares_hand_id_fkey"
+      columns: ["hand_id"]
+isOneToOne: false
+      referencedRelation: "hands"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"usage_allowances": {
                   Row: {
                     "attempts": (string)[],"key": string,"last_seen": string
@@ -544,6 +570,12 @@ isOneToOne: false
 { Args: { "p_cursor_game_id"?: string,"p_cursor_published_at"?: string,"p_limit"?: number,"p_player_token": string }; Returns: {
               "big_blind": number,"bot_count": number,"game_id": string,"human_count": number,"occupied_seats": number,"published_at": string,"small_blind": number,"starting_stack": number,"title": string,"total_seats": number,"version": number
             }[]
+                           },
+"manage_replay_share":
+{ Args: { "p_creator_token": string,"p_game_id": string,"p_hand_number": number,"p_history": Json,"p_ip_allowance": number,"p_ip_hash": string,"p_link_token": string,"p_operation": string,"p_owner_allowance": number,"p_owner_hash": string,"p_snapshot": Json,"p_window_ms": number }; Returns: Json
+                           },
+"read_replay_share":
+{ Args: { "p_link_token": string }; Returns: Json
                            },
 "release_bot_step_claim":
 { Args: { "p_claim_token": string,"p_game_id": string }; Returns: undefined

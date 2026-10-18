@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Space_Grotesk } from "next/font/google";
@@ -78,7 +79,7 @@ export default async function LocaleLayout({
             {dictionary.feedback} <span aria-hidden="true">↗</span>
           </a>
         </footer>
-        <PerformanceInsights />
+        <Suspense><PerformanceInsights /></Suspense>
       </body>
     </html>
   );

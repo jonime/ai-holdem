@@ -2,6 +2,8 @@ import "server-only";
 
 // Provisional fairness settings, not cost or per-person guarantees.
 export const usagePolicy = {
+  ownerShare: { allowance: 20, windowMs: 3_600_000 },
+  ipShare: { allowance: 100, windowMs: 3_600_000 },
   ownerAI: { allowance: 600, windowMs: 3_600_000 },
   gameAI: { allowance: 30, windowMs: 60_000 },
   ownerCreation: { allowance: 6, windowMs: 600_000 },

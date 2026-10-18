@@ -12,6 +12,28 @@ The application uses the Supabase Data API from Next.js server routes, so keep
 the Supabase Data API enabled. The browser never receives the Supabase secret
 or any provider API key.
 
+## Shared replay rollout
+
+Apply `20261031000000_add_replay_shares.sql` before application deployment; no
+backfill. Use pinned CLI 2.120.0 to regenerate/check types against the migrated
+local schema. The existing server-only `USAGE_LIMIT_HASH_SECRET` and trusted
+Vercel IP assumptions also govern separate share admission. Run `check`, `build`,
+`test:sql:replay`, `test:sql:shares` and the isolated production replay/share UI
+suites. CI includes the share SQL lifecycle suite.
+
+Treat viewing URLs as bearer credentials. Application logs must never contain
+share URLs/tokens, snapshots or ownership credentials. Shared pages disable Speed
+Insights and use `Referrer-Policy: no-referrer`; sitemap entries must never include
+shares. Before release, inspect hosting/CDN/proxy URL and access-log retention,
+log drains, error trackers and analytics: disable request-path collection for
+`/replay/*`, localized equivalents and `/api/replays/*`, or redact token segments
+before export. Platform access logs may retain request URLs outside application
+control; restrict access and retention, document the effective provider settings,
+and do not promise that revocation removes previously downloaded copies or logs.
+Verify private/no-store and no-referrer on deployed HTML and JSON, including errors.
+Deletion cascades and database-time expiry remain effective if the owner loses
+the anonymous cookie. Losing the cookie prevents further management.
+
 ## Completed-hand replay rollout
 
 Apply `20261030000000_add_hand_replay.sql` before deploying the replay route. It adds

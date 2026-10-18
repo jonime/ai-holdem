@@ -226,6 +226,28 @@ const dictionary = {
       "straight-flush": "同花顺"
     }
   },
+  sharing: {
+    dialogTitle: "分享回放 - 牌局 {hand}",
+    visibilityIntro: "从第一帧起可见：",
+    visibleCards: "你的底牌（包括弃牌）和所有机器人的底牌。",
+    otherCards: "其他玩家的底牌仅在摊牌时公开或主动亮牌后可见。",
+
+    open: "分享牌局",
+    title: "共享回放",
+    create: "创建分享链接",
+    copy: "复制链接",
+    copied: "链接已复制。",
+    url: "分享网址",
+    expires: "到期时间 {date}",
+    revoke: "撤销链接",
+    notice: "任何人都可转发链接。30天后失效，之后的亮牌不会更新它。",
+    revokeNotice: "撤销此链接？已下载的副本无法删除。创建新链接可更新可见内容。",
+    confirmCreate: "创建链接",
+    confirmRevoke: "确认撤销",
+    cancel: "取消",
+    pending: "正在更新分享…",
+    error: "无法确认分享状态。请先刷新状态再重试。",
+  },
   replay: {
     "title": "回顾牌局",
     "previous": "上一步",
@@ -238,7 +260,7 @@ const dictionary = {
     "unavailable": "无法回顾此牌局。",
     "error": "无法加载牌局。",
     "retry": "重试",
-    "close": "关闭回顾",
+    "close": "关闭",
     "back": "返回操作记录",
     "yourTurn": "轮到你了",
     "stack": "筹码",

@@ -135,3 +135,40 @@ describe("completed hand replay", () => {
     await expect(getHandReplay(async () => { throw failure; }, gameId, 1, null)).rejects.toBe(failure);
   });
 });
+
+describe("fixed shared replay visibility", () => {
+  it("shows folded sharer, folded bot, showdown and explicit Show humans from every frame, never an unrevealed folded human", async () => {
+    const { projectSharedReplay } = await import("./replay-sharing");
+    const { reconstructHandReplay } = await import("./hand-replay");
+    const base = initial(6);
+    const start: PokerGameState = { ...base, config: { ...base.config, players: base.config.players.map(p => p.seat === 4 ? { ...p, controller: "bot" } : p) } };
+    const row = history(start, state => ["p0", "p3", "p4", "p5"].includes(engine.snapshot(state).currentActorId!) ? { type: "fold" } : passive(state));
+    row.revealedIds = ["p0"];
+    const source = reconstructHandReplay(row, gameId, 1);
+    const snapshot = projectSharedReplay(source, "private-token-3");
+    for (const frame of snapshot.replay.frames) {
+      for (const p of frame.players) expect(p.cards?.length ?? null).toBe(p.seat === 5 ? null : 2);
+    }
+    expect(Object.keys(snapshot.replay).sort()).toEqual(["bigBlindSeat", "dealerSeat", "frames", "participants", "pots", "smallBlindSeat"]);
+    expect(JSON.stringify(snapshot)).not.toMatch(/gameId|handNumber|playerToken|engineState|p0|private-token|deck|provider|modelId/);
+    expect(snapshot.replay.participants.every(p => p.name === "Same name")).toBe(true);
+    const before = JSON.stringify(snapshot);
+    row.revealedIds.push("p5");
+    expect(JSON.stringify(snapshot)).toBe(before);
+    const updated = projectSharedReplay(reconstructHandReplay(row, gameId, 1), "private-token-3");
+    expect(updated.replay.frames.every(f => f.players.every(p => p.cards?.length === 2))).toBe(true);
+  });
+  it("authorizes only immutable participating human ownership, after departures and seat reuse", async () => {
+    const { projectSharedReplay } = await import("./replay-sharing");
+    const { reconstructHandReplay } = await import("./hand-replay");
+    const row = history(initial(), () => ({ type: "fold" }));
+    row.finalState = { ...row.finalState, config: { ...row.finalState.config, players: row.finalState.config.players.map(p => ({ ...p, playerToken: "replacement", leaving: true })) } };
+    const source = reconstructHandReplay(row, gameId, 1);
+    expect(() => projectSharedReplay(source, "replacement")).toThrow("SHARE_FORBIDDEN");
+    expect(() => projectSharedReplay(source, "unseated-host")).toThrow("SHARE_FORBIDDEN");
+    expect(() => projectSharedReplay(source, "spectator")).toThrow("SHARE_FORBIDDEN");
+    expect(projectSharedReplay(source, "private-token-0").replay.frames.every(f => f.players[0].cards?.length === 2)).toBe(true);
+    source.holdings[0].controller = "bot";
+    expect(() => projectSharedReplay(source, "private-token-0")).toThrow("SHARE_FORBIDDEN");
+  });
+});
