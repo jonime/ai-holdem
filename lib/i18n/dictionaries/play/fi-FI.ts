@@ -1,6 +1,20 @@
 import "server-only";
 import directory from "../join-game/fi-FI";
 const dictionary = {
+  collections: "Peliluettelot",
+  sharedHands: "Jaetut kädet",
+  emptyPersonal: "Ei vielä pöytiä. Valitse yllä Pikapeli tai Luo pöytä, tai selaa avoimia julkisia pöytiä.",
+  emptyShares: "Ei aktiivisia jaettuja käsiä. Jaa päättynyt käsi sen uusinnasta.",
+  shareOwnership: "Luettelo on sidottu tämän selaimen anonyymiin evästeeseen. Toinen selain tai evästeen poistaminen estää pääsyn luetteloon.",
+  viewShare: "Katso",
+  shareHand: "Käsi {hand} · {id}",
+  shareCreated: "Luotu {date}",
+  newTab: "Avautuu uuteen välilehteen",
+  sharedError: "Jaettuja käsiä ei voitu ladata.",
+  shareRecoveryFailed: "Päivitä luettelo ennen linkkien hallintaa.",
+  shareUncertain: "Toiminnon tulos on epävarma. Tarkista päivitetty luettelo ennen uutta päätöstä.",
+  loadMore: "Lataa lisää",
+
   "title": "Pelaa",
   "intro": "Palaa pöytiisi tai etsi avoin julkinen pöytä.",
   "quickPlay": "Pikapeli tekoälyä vastaan",
@@ -27,8 +41,6 @@ const dictionary = {
   "retry": "Yritä uudelleen",
   "publicTables": "Avoimet julkiset pöydät",
   "refreshing": "Päivitetään…",
-  "loadingPersonal": "Ladataan omia pöytiä…",
-  "loadingPublic": "Ladataan julkisia pöytiä…",
   tableWithBots: "Pöytä bottien kanssa",
   pokerTable: "Pokeripöytä",
   you: "Sinä",

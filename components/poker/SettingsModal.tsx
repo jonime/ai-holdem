@@ -7,14 +7,15 @@ import { addLocalePrefix, hasLocale } from "@/lib/i18n";
 import { LANGUAGE_NAMES, SORTED_LOCALES } from "@/lib/i18n/languages";
 import type { Settings } from "./settings";
 import styles from "./SettingsModal.module.css";
-export function SettingsModal({ preferences, onUpdate, onSound, notice, languageBlocked, onNavigate, gameId, onClose, restoreFocus, fallbackFocus }: {
+export function SettingsModal({ preferences, onUpdate, onSound, notice, languageBlocked, onNavigate, destination, showContinues = true, onClose, restoreFocus, fallbackFocus }: {
   readonly preferences: Settings;
   readonly onUpdate: (patch: Partial<Pick<Settings, "turnSound" | "gameplayShortcuts" | "cardColours" | "showCurrentHand">>) => void;
   readonly onSound: (enabled: boolean) => Promise<void>;
   readonly notice: string | null;
   readonly languageBlocked: boolean;
   readonly onNavigate: () => void;
-  readonly gameId: string;
+  readonly destination: string;
+  readonly showContinues?: boolean;
   readonly onClose: () => void;
   readonly restoreFocus: RefObject<HTMLElement | null>;
   readonly fallbackFocus: RefObject<HTMLElement | null>;
@@ -27,7 +28,7 @@ export function SettingsModal({ preferences, onUpdate, onSound, notice, language
     <div className={styles.header}><h2>{t("settings.title")}</h2>
       <Button ref={closeRef} size="small" onClick={onClose}>{t("settings.close")}</Button></div>
     <div className={styles.content}>
-      <p className={styles.note}>{t("settings.continues")}</p>
+      {showContinues ? <p className={styles.note}>{t("settings.continues")}</p> : null}
       {(["turnSound", "gameplayShortcuts", "showCurrentHand"] as const).map(key => <div className={styles.row} key={key}>
         <span id={`settings-${key}`}>{t(key === "turnSound" ? "turnNotification.sound" : key === "showCurrentHand" ? "settings.showCurrentHand" : "settings.shortcuts")}</span>
         <button type="button" role="switch" aria-labelledby={`settings-${key}`} aria-checked={preferences[key]}
@@ -52,7 +53,7 @@ export function SettingsModal({ preferences, onUpdate, onSound, notice, language
             const next = event.target.value;
             if (languageBlocked || navigating.current || !hasLocale(next) || next === locale) return;
             navigating.current = true; onNavigate();
-            window.location.assign(addLocalePrefix(`/game/${gameId}`, next) + window.location.search + window.location.hash);
+            window.location.assign(addLocalePrefix(destination, next));
           }}>
           {SORTED_LOCALES.map(value => <option key={value} value={value}>{LANGUAGE_NAMES[value]}</option>)}
         </select>

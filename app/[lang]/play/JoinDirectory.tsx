@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { addLocalePrefix, type Locale } from "@/lib/i18n";
@@ -23,6 +23,8 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
   readonly initialError: boolean;
 }) {
   const router = useRouter();
+  const lifecycle = useRef<AbortController | null>(null);
+  useEffect(() => { const controller = new AbortController(); lifecycle.current = controller; return () => controller.abort(); }, []);
   const [games, setGames] = useState(initialGames);
   const [cursor, setCursor] = useState(initialCursor);
   const name = usePlayerName();
@@ -33,48 +35,58 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
   const [joiningId, setJoiningId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
+    const signal = lifecycle.current!.signal;
     setRefreshing(true);
     try {
-      const body = await api.discovery.list();
+      const body = await api.discovery.list({}, { signal });
+      if (signal.aborted) return;
       setGames(body.games);
       setCursor(typeof body.nextCursor === "string" ? body.nextCursor : null);
       setWarning(false);
       setMessage(null);
     } catch {
+      if (signal.aborted) return;
       setWarning(true);
       setMessage(games.length ? dictionary.warning : dictionary.initialError);
     } finally {
-      setRefreshing(false);
+      if (!signal.aborted) setRefreshing(false);
     }
   }, [dictionary.initialError, dictionary.warning, games.length]);
 
 
   const loadMore = async () => {
     if (!cursor) return;
+    const signal = lifecycle.current!.signal;
     setLoadingMore(true);
     try {
-      const body = await api.discovery.list({ cursor });
+      const body = await api.discovery.list({ cursor }, { signal });
+      if (signal.aborted) return;
       setGames((current) => [...current, ...body.games.filter((entry) => !current.some((item) => item.gameId === entry.gameId))]);
       setCursor(body.nextCursor);
     } catch {
+      if (signal.aborted) return;
       setWarning(true);
       setMessage(dictionary.warning);
     } finally {
-      setLoadingMore(false);
+      if (!signal.aborted) setLoadingMore(false);
     }
   };
 
   const join = async (game: PublicGameDirectoryEntry) => {
+    const signal = lifecycle.current!.signal;
     setJoiningId(game.gameId);
     setMessage(null);
     try {
-      await api.discovery.join({ gameId: game.gameId, expectedVersion: game.version, ...(name.trim() ? { name } : {}) });
+      await api.discovery.join({ gameId: game.gameId, expectedVersion: game.version, ...(name.trim() ? { name } : {}) }, { signal });
+      if (signal.aborted) return;
       router.push(addLocalePrefix(`/game/${game.gameId}`, locale));
     } catch (error) {
+      if (signal.aborted) return;
       await refresh();
+      if (signal.aborted) return;
       setMessage(error instanceof HttpError && error.code === "GAME_CONFLICT" ? dictionary.conflict : dictionary.unavailable);
     } finally {
-      setJoiningId(null);
+      if (!signal.aborted) setJoiningId(null);
     }
   };
 

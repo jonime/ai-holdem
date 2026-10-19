@@ -3,6 +3,20 @@ import "server-only";
 import type { PlayDictionary } from "../../types";
 
 const dictionary = {
+  collections: "プレイ一覧",
+  sharedHands: "共有したハンド",
+  emptyPersonal: "テーブルはまだありません。上のクイックプレイやテーブル作成を使うか、公開テーブルをご覧ください。",
+  emptyShares: "有効な共有ハンドはありません。終了したハンドのリプレイから共有できます。",
+  shareOwnership: "この一覧は、このブラウザーの匿名 Cookie に紐づいています。別のブラウザーや Cookie の削除後はアクセスできません。",
+  viewShare: "見る",
+  shareHand: "ハンド {hand} · {id}",
+  shareCreated: "作成日時 {date}",
+  newTab: "新しいタブで開きます",
+  sharedError: "共有したハンドを読み込めませんでした。",
+  shareRecoveryFailed: "他のリンクを管理する前に一覧を更新してください。",
+  shareUncertain: "結果を確認できません。一覧を確認してからもう一度判断してください。",
+  loadMore: "さらに読み込む",
+
   "title": "プレイ",
   "intro": "自分のテーブルに戻るか、空席のある公開テーブルを探しましょう。",
   "quickPlay": "AIとクイックプレイ",
@@ -29,8 +43,6 @@ const dictionary = {
   "retry": "再試行",
   "publicTables": "空席のある公開テーブル",
   "refreshing": "更新中…",
-  "loadingPersonal": "自分のテーブルを読み込み中…",
-  "loadingPublic": "公開テーブルを読み込み中…",
   tableWithBots: "ボットと対戦するテーブル",
   pokerTable: "ポーカーテーブル",
   you: "あなた",

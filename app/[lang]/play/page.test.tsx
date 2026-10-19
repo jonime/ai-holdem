@@ -11,9 +11,9 @@ vi.mock("@/lib/supabase/server", () => ({ createSupabaseGameRepository: () => ({
 vi.mock("@/lib/poker/public-directory-cache", () => ({ getPublicDirectoryPage: directory }));
 beforeEach(() => { vi.clearAllMocks(); token.mockReturnValue({ value: "owner" }); mine.mockResolvedValue([]); directory.mockResolvedValue({ games: [], nextCursor: null }); });
 async function personal() { return renderToStaticMarkup(await PersonalContent({ lang: "en-US", dictionary: await getPlayDictionary("en-US") })); }
-it("hides a successfully empty section and does not create missing identities", async () => {
+it("shows a successfully empty section and does not create missing identities", async () => {
   token.mockReturnValue(undefined);
-  expect(await personal()).toBe(""); expect(mine).not.toHaveBeenCalled();
+  expect(await personal()).toContain("No tables yet"); expect(mine).not.toHaveBeenCalled();
 });
 it("renders a personal error and retry without blocking public tables", async () => {
   mine.mockRejectedValue(new Error("private"));
@@ -48,4 +48,20 @@ it("keeps every locale's Play keys and placeholders aligned", async () => {
     expect(Object.keys(translated)).toEqual(Object.keys(english));
     for (const key of Object.keys(english)) expect(translated[key].match(/\{\w+\}/g) ?? []).toEqual(english[key].match(/\{\w+\}/g) ?? []);
   }
+});
+
+it.each(["personal", "public", "shared"] as const)("constructs only the selected %s collection and disables tab prefetch", async tab => {
+  const { Collections, SharedContent } = await import("./page");
+  const tree = await Collections({ lang: "en-US", d: await getPlayDictionary("en-US"), directory: await getJoinGameDictionary("en-US"), searchParams: Promise.resolve(tab === "personal" ? {} : { tab }) });
+  const [nav, boundary] = tree.props.children;
+  const links = nav.props.children;
+  expect(links).toHaveLength(3);
+  expect(links.every((link: { props: { prefetch: boolean } }) => link.props.prefetch === false)).toBe(true);
+  expect(links.filter((link: { props: { "aria-current"?: string } }) => link.props["aria-current"] === "page")).toHaveLength(1);
+  expect(boundary.key).toBe(`en-US:${tab}`);
+  expect(boundary.props.fallback.props.hideLabel).toBe(true);
+  expect(boundary.props.fallback.props.label).toBe((await getJoinGameDictionary("en-US")).loadingMore);
+  const content = boundary.props.children;
+  expect(tab === "public" ? content.props.children[1].type : content.type).toBe(tab === "personal" ? PersonalContent : tab === "shared" ? SharedContent : DirectoryContent);
+  expect(mine).not.toHaveBeenCalled(); expect(directory).not.toHaveBeenCalled();
 });

@@ -452,8 +452,18 @@ explicit retry, rules replay, and localized HTML/typed JSON creation denials.
 
 ## Play discovery
 
-`/[lang]/play` streams personal summaries and public directory data through independent
-request-time Suspense boundaries. Keep cookies out of the cached landing page.
+`/[lang]/play` uses URL-backed Your tables (default), Open public tables (`?tab=public`)
+and Shared hands (`?tab=shared`) links with prefetch disabled. Missing/invalid/repeated
+values select Your tables. Render only the selected collection in a keyed Suspense
+boundary; English forwards search params. Keep creation/name controls above tabs and
+Settings as a separate header button using the shared preference store/modal, a
+navigation destination preserving the tab, and no game hooks or in-game note.
+Apply `20261101000000_add_owner_share_management.sql` before owner share management.
+Owner list RPCs filter cookie ownership and active database-time expiry, return only
+link token, hand number and timestamps, and paginate 20 by creation/token descending.
+Exact-token revocation locks game then hand then share, never a replacement link.
+Keep private/no-store contracts, same-origin mutations, abort/generation guards,
+clipboard fallback, no-referrer links and explicit recovery after unknown outcomes. Keep cookies out of the cached landing page.
 `list_my_games` is service-role-only and discovers durable hosts or claimed human
 seats in SQL, deduplicating before activity ordering and the five-item limit.
 Apply `20261026000000_add_personal_summary_composition.sql` before the matching

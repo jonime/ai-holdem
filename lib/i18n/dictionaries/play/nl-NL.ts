@@ -1,6 +1,20 @@
 import "server-only";
 import directory from "../join-game/nl-NL";
 const dictionary = {
+  collections: "Spellijsten",
+  sharedHands: "Gedeelde handen",
+  emptyPersonal: "Nog geen tafels. Gebruik hierboven Snel spelen of Tafel maken, of bekijk openbare tafels.",
+  emptyShares: "Geen actieve gedeelde handen. Deel een voltooide hand vanuit de herhaling.",
+  shareOwnership: "Deze lijst hoort bij de anonieme cookie van deze browser. Een andere browser of het wissen van de cookie geeft geen toegang.",
+  viewShare: "Bekijken",
+  shareHand: "Hand {hand} · {id}",
+  shareCreated: "Aangemaakt {date}",
+  newTab: "Opent in een nieuw tabblad",
+  sharedError: "Gedeelde handen konden niet worden geladen.",
+  shareRecoveryFailed: "Vernieuw de lijst voordat je meer links beheert.",
+  shareUncertain: "Het resultaat is onzeker. Controleer de vernieuwde lijst voordat je opnieuw beslist.",
+  loadMore: "Meer laden",
+
   "title": "Spelen",
   "intro": "Keer terug naar je tafels of zoek een open openbare tafel.",
   "quickPlay": "Snel spelen tegen AI",
@@ -27,8 +41,6 @@ const dictionary = {
   "retry": "Opnieuw proberen",
   "publicTables": "Open openbare tafels",
   "refreshing": "Vernieuwen…",
-  "loadingPersonal": "Je tafels laden…",
-  "loadingPublic": "Openbare tafels laden…",
   tableWithBots: "Tafel met bots",
   pokerTable: "Pokertafel",
   you: "Jij",

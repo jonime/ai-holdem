@@ -1,6 +1,20 @@
 import "server-only";
 import directory from "../join-game/sv-SE";
 const dictionary = {
+  collections: "Spellistor",
+  sharedHands: "Delade händer",
+  emptyPersonal: "Inga bord ännu. Använd Snabbspel eller Skapa bord ovan, eller bläddra bland offentliga bord.",
+  emptyShares: "Inga aktiva delade händer. Dela en avslutad hand från dess repris.",
+  shareOwnership: "Listan tillhör den här webbläsarens anonyma cookie. En annan webbläsare eller en raderad cookie ger inte åtkomst.",
+  viewShare: "Visa",
+  shareHand: "Hand {hand} · {id}",
+  shareCreated: "Skapad {date}",
+  newTab: "Öppnas i en ny flik",
+  sharedError: "Delade händer kunde inte laddas.",
+  shareRecoveryFailed: "Uppdatera listan innan du hanterar fler länkar.",
+  shareUncertain: "Resultatet är osäkert. Granska den uppdaterade listan innan du bestämmer igen.",
+  loadMore: "Ladda fler",
+
   "title": "Spela",
   "intro": "Återvänd till dina bord eller hitta ett öppet offentligt bord.",
   "quickPlay": "Snabbspel mot AI",
@@ -27,8 +41,6 @@ const dictionary = {
   "retry": "Försök igen",
   "publicTables": "Öppna offentliga bord",
   "refreshing": "Uppdaterar…",
-  "loadingPersonal": "Laddar dina bord…",
-  "loadingPublic": "Laddar offentliga bord…",
   tableWithBots: "Bord med botar",
   pokerTable: "Pokerbord",
   you: "Du",

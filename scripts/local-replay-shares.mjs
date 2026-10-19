@@ -13,6 +13,7 @@ const id = randomUUID();
 const hash = randomBytes(32).toString("hex"), ip = randomBytes(32).toString("hex");
 const token = () => randomBytes(32).toString("hex");
 const first = token(), second = token(), third = token();
+const pagePrefix = token().slice(0,48);
 const call = (operation, link, owner = "historical-owner", snapshot = '{"schemaVersion":1,"replay":{"marker":"fixed"}}', history = `public.get_hand_replay('${id}',1)`) =>
   `select public.manage_replay_share('${id}',1,'${owner}','${operation}','${link}','${snapshot}',${history},'${hash}','${ip}',2,10,3600000);`;
 try {
@@ -56,10 +57,53 @@ try {
   const renewed = JSON.parse(sql(call("create", token())));
   assert.notEqual(renewed.share.token,active);
   assert.equal(sql(`select coalesce(public.read_replay_share('${active}')::text,'null');`),"null");
+  // Owner browsing is independent of current assignments and recent Actions windows.
+  const list = (owner, cursor = null) => JSON.parse(sql(`set role service_role; select public.list_replay_shares('${owner}',${cursor ? `'${cursor.beforeCreatedAt}'::timestamptz,'${cursor.beforeToken}'` : 'null,null'});`));
+  const exact = (link, owner = "historical-owner") => `select public.revoke_owned_replay_share('${owner}','${link}');`;
+  for (const role of ["anon", "authenticated"]) {
+    assert.equal(sql(`select has_function_privilege('${role}','public.list_replay_shares(text,timestamptz,text)','execute');`), "f");
+    assert.throws(() => sql(`set role ${role}; ${exact(renewed.share.token)}`));
+  }
+  assert.deepEqual(list("other-owner"), {shares:[],nextCursor:null});
+  assert.deepEqual(list(""), {shares:[],nextCursor:null});
+  assert.equal(list("historical-owner").shares[0].token, renewed.share.token);
+  assert.deepEqual(Object.keys(list("historical-owner").shares[0]).sort(), ["createdAt","expiresAt","handNumber","token"]);
+  sql(exact(renewed.share.token, "other-owner"));
+  assert.equal(list("historical-owner").shares.length, 1);
+  // Expiry boundary is exclusive. A stale exact token cannot revoke its replacement,
+  // even when creation and revocation contend for the game lock.
+  sql(`update public.replay_shares set expires_at=clock_timestamp() where link_token='${renewed.share.token}';`);
+  assert.equal(list("historical-owner").shares.length, 0);
+  const replacement = token();
+  await Promise.all([parallelSQL(call("create", replacement)), parallelSQL(exact(renewed.share.token))]);
+  assert.equal(list("historical-owner").shares[0].token, replacement);
+  sql(exact(renewed.share.token));
+  assert.equal(list("historical-owner").shares[0].token, replacement);
+  sql(exact(replacement)); sql(exact(replacement));
+  assert.equal(list("historical-owner").shares.length, 0);
+  sql(`insert into public.hands(game_id,hand_number,status,initial_state,final_state,completed_at)
+    select '${id}',n,'complete','{}','{}',now() from generate_series(2,70) n;
+    insert into public.replay_shares(link_token,game_id,hand_id,creator_token,snapshot,created_at,expires_at)
+    select '${pagePrefix}'||lpad(to_hex(n),16,'0'),'${id}',h.id,'paged-owner','{"schemaVersion":1}',
+      '2026-01-01T00:00:00.123456Z',clock_timestamp()+interval '30 days'
+    from generate_series(1,45) n join public.hands h on h.game_id='${id}' and h.hand_number=n;`);
+  const firstPage=list("paged-owner");
+  assert.equal(firstPage.shares.length,20); assert.ok(firstPage.nextCursor);
+  const secondPage=list("paged-owner", firstPage.nextCursor);
+  const lastPage=list("paged-owner", secondPage.nextCursor);
+  assert.equal(secondPage.shares.length,20); assert.equal(lastPage.shares.length,5); assert.equal(lastPage.nextCursor,null);
+  const all=[...firstPage.shares,...secondPage.shares,...lastPage.shares];
+  assert.equal(new Set(all.map(row=>row.token)).size,45);
+  assert.deepEqual(all.map(row=>row.handNumber),Array.from({length:45},(_,i)=>45-i));
+  assert.equal(all.at(-1).handNumber,1); // older than the latest 50 completed hands
+  assert.deepEqual(JSON.parse(sql(`begin; update public.replay_shares set expires_at=statement_timestamp() where creator_token='paged-owner' and game_id='${id}';
+    select public.list_replay_shares('paged-owner'); rollback;`)),{shares:[],nextCursor:null});
   sql(`delete from public.games where id='${id}';`);
   assert.equal(sql(`select count(*) from public.replay_shares where game_id='${id}';`),"0");
   assert.equal(sql(`select coalesce(public.read_replay_share('${first}')::text,'null');`),"null");
-  console.log("Share SQL: roles, historical ownership, history recheck, concurrency, fixed expiry/snapshot, separate admission, revocation, expiration and cascade passed.");
+  assert.equal(list("paged-owner").shares.length,0);
+  sql(exact(replacement));
+  console.log("Share SQL: owner pagination, exact-link replacement safety, roles, historical ownership, history recheck, concurrency, fixed expiry/snapshot, separate admission, revocation, expiration and cascade passed.");
 } finally {
   sql(`delete from public.games where id='${id}'; delete from public.usage_allowances where key in ('share:owner:${hash}','share:ip:${ip}');`);
 }

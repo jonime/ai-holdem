@@ -14,12 +14,16 @@ or any provider API key.
 
 ## Shared replay rollout
 
-Apply `20261031000000_add_replay_shares.sql` before application deployment; no
+Apply `20261031000000_add_replay_shares.sql` and the additive
+`20261101000000_add_owner_share_management.sql` before application deployment; no
 backfill. Use pinned CLI 2.120.0 to regenerate/check types against the migrated
 local schema. The existing server-only `USAGE_LIMIT_HASH_SECRET` and trusted
 Vercel IP assumptions also govern separate share admission. Run `check`, `build`,
 `test:sql:replay`, `test:sql:shares` and the isolated production replay/share UI
-suites. CI includes the share SQL lifecycle suite.
+suites, including `play-tabs.spec.ts`, `play.spec.ts`, `public-lobby.spec.ts`,
+`table-removal.spec.ts` and `settings.spec.ts`. CI includes the share SQL lifecycle suite.
+The new migration adds only an owner/ordering index and service-role list/exact-revoke
+RPCs; existing share visibility, admission, expiry and deletion cascades stay unchanged.
 
 Treat viewing URLs as bearer credentials. Application logs must never contain
 share URLs/tokens, snapshots or ownership credentials. Shared pages disable Speed

@@ -19,7 +19,7 @@ test("@smoke publishes, refreshes, reports unavailable, preserves a name, and jo
 
   const guestContext = await browser.newContext();
   const guest = await guestContext.newPage();
-  await guest.goto("/play");
+  await guest.goto("/play?tab=public");
   await expect(guest.getByText(tableTitle, { exact: true })).toBeVisible();
   await guest.getByLabel("Your name (optional)").fill("Directory Guest");
   await guest.reload();

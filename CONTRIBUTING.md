@@ -977,7 +977,7 @@ Run those browser selections separately: selecting the full bot suite plus other
 creation-heavy suites in one run can exhaust the real local IP creation allowance.
 See [extraction characterization notes](docs/bot-lifecycle-characterization.md).
 
-## Personal table verification and rollout
+## Play verification and rollout
 
 Apply `20261017000000_add_my_games.sql` and
 `20261026000000_add_personal_summary_composition.sql` before deploying matching Play
@@ -992,9 +992,9 @@ or resets the database. CI runs it before production browser smoke.
 
 `npm run test:e2e:smoke -- test/e2e/play.spec.ts test/e2e/public-lobby.spec.ts`
 checks the production Play experience against local Supabase with isolated browser
-identities. All Play cases carry `@smoke`; retain normal diagnostics and teardown.
-Personal and public initial loads must remain in separate uncached Suspense
-boundaries. Personal failures must remain visible and private; do not log lists,
+identities. The existing Play cases carry `@smoke`; tab/share management cases carry
+`@ui-regression`. Retain normal diagnostics and teardown. Render only the selected
+collection in a keyed request-time Suspense boundary; inactive tab links disable prefetch. Personal failures must remain visible and private; do not log lists,
 tokens or repository errors. Preserve shared candidate caching only for the public
 directory, with request-specific host/seated exclusions. Play never polls or subscribes
 to Realtime. Personal tables load on page entry and offer Retry after failure; the
@@ -1006,6 +1006,29 @@ and update only on mount, changed summaries and visibility return. Exact UTC rem
 the time label/tooltip. Verify title/composition variants, relative boundaries, skew,
 hydration and production screenshots in the Play/component tests. Both creation forms retain localized native POST routes; initialized JavaScript uses the typed custom JSON API or Quick Play JSON-response path.
 
+
+Play loads one URL-selected collection in a keyed Suspense boundary, replacing the
+previous simultaneous personal/public sections. Test missing/invalid/repeated tab
+values, English query forwarding, localized normal links, Back/Forward, narrow-screen
+keyboard use and disabled prefetch. Empty personal and share collections are explicit.
+Settings remains a separate header button; preserve focus restoration, language/tab
+navigation, all existing in-game checks and preferences applied to future games.
+No game hooks run on Play and the landing page stays unchanged.
+
+Apply `20261101000000_add_owner_share_management.sql`, regenerate with pinned CLI
+2.120.0, then run `db:types:check`, `check`, `build`, `test:sql:shares` and
+`test:sql:replay`. Share SQL fixtures cover ownership, roles, expiry boundaries,
+microsecond/tied cursor ordering, deleted/revoked links, hands older than Actions,
+and concurrent creation with exact-link revocation. Never reset the local stack.
+Use the isolated production runner for Play/share UI and existing behavior:
+`npm run test:e2e:ui -- play-tabs.spec.ts shared-replay.spec.ts settings.spec.ts table-removal.spec.ts`,
+then `npm run test:e2e:smoke -- play.spec.ts public-lobby.spec.ts`.
+Keep errors, retry, pagination and late responses within their collection. Test
+copy success/fallback, confirmation/cancel focus, duplicate submits, acknowledged
+revocation with failed refill, and lost responses with failed/successful recovery.
+List responses and rendered Shared hands must exclude snapshots/source IDs; share
+URLs must never enter application logs, telemetry or outgoing referrers. Retain the
+hosting-log redaction/retention checklist in docs/deployment.md.
 
 ## Departure verification and rollout
 

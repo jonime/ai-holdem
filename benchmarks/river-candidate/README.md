@@ -200,6 +200,19 @@ points to artifacts. Running analysis again must reproduce exactly the archived
 analysis. These remain conditional-policy values under synthetic assumptions,
 not GTO, exploitability, whole-game strength or real-world win-rate measurements.
 
+## Historical reanalysis after main advances
+
+Commit `79d5b64` preserves the exact frozen study checkout, including the reviewed
+archives. Newer main commits may change files in the broad frozen source inventory,
+so v1 commands intentionally reject that newer checkout. Do not regenerate or edit
+the manifest to make later application changes pass. For historical reanalysis,
+use a separate checkout at `79d5b64`, install its lockfile dependencies, and copy the
+retained `benchmarks/results/river-candidate-v1/` checkpoints into that checkout.
+Then run `npm run benchmark:river-candidate -- analyze` only. The checkpoint files
+remain local and Git-ignored; the committed development archive also retains every
+paired block. Keep the original checkpoint directory for the runner's independent
+archive/checkpoint comparison. No new study or simulations are needed.
+
 ## Promotion and verification handoff
 
 After the user's manual run, review the summary/artifacts, verify manifests and

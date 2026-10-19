@@ -6,12 +6,12 @@ import app from "./PokerApp.module.css";
 import styles from "./TableLoadingShell.module.css";
 
 /** Presentation only: shared by the prerendered fallback and initial browser read. */
-export function TableLoadingIndicator({ label }: { readonly label: string }) {
+export function TableLoadingIndicator({ label, hideLabel = false }: { readonly label: string; readonly hideLabel?: boolean }) {
   return (
     <div className={styles.loader} data-testid="table-loading-shell" aria-busy="true">
       <p className={styles.status} role="status" aria-live="polite" aria-atomic="true">
         <span className={styles.spinner} aria-hidden="true" />
-        {label}
+        <span className={hideLabel ? styles.srOnly : undefined}>{label}</span>
       </p>
     </div>
   );

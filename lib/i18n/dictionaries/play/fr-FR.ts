@@ -1,6 +1,20 @@
 import "server-only";
 import directory from "../join-game/fr-FR";
 const dictionary = {
+  collections: "Listes de jeu",
+  sharedHands: "Mains partagées",
+  emptyPersonal: "Aucune table pour le moment. Utilisez Partie rapide ou Créer une table ci-dessus, ou parcourez les tables publiques.",
+  emptyShares: "Aucune main partagée active. Partagez une main terminée depuis sa rediffusion.",
+  shareOwnership: "Cette liste est liée au cookie anonyme de ce navigateur. Un autre navigateur ou la suppression du cookie empêche d’y accéder.",
+  viewShare: "Voir",
+  shareHand: "Main {hand} · {id}",
+  shareCreated: "Créé le {date}",
+  newTab: "S’ouvre dans un nouvel onglet",
+  sharedError: "Impossible de charger les mains partagées.",
+  shareRecoveryFailed: "Actualisez la liste avant de gérer d’autres liens.",
+  shareUncertain: "Le résultat est incertain. Vérifiez la liste actualisée avant de décider à nouveau.",
+  loadMore: "Charger plus",
+
   "title": "Jouer",
   "intro": "Retrouvez vos tables ou trouvez une table publique ouverte.",
   "quickPlay": "Partie rapide contre l’IA",
@@ -27,8 +41,6 @@ const dictionary = {
   "retry": "Réessayer",
   "publicTables": "Tables publiques ouvertes",
   "refreshing": "Actualisation…",
-  "loadingPersonal": "Chargement de vos tables…",
-  "loadingPublic": "Chargement des tables publiques…",
   tableWithBots: "Table avec des bots",
   pokerTable: "Table de poker",
   you: "Vous",

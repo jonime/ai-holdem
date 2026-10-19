@@ -1,4 +1,4 @@
-import { shareTokenSchema, sharedReplaySchema, shareManagementSchema, revokeShareSchema } from "./share-contracts";
+import { shareListSchema, shareListQuerySchema, type ShareListQuery, shareTokenSchema, sharedReplaySchema, shareManagementSchema, revokeShareSchema } from "./share-contracts";
 import { replayParamsSchema, replayResponseSchema } from "./replay-contracts";
 import { TransportError, withDeadline } from "./deadline";
 export { TransportError, unknownOutcome } from "./deadline";
@@ -124,6 +124,12 @@ function shareManagement(params: { gameId: string; handNumber: number }, method:
 }
 export const api = {
   shares: {
+    list(query: ShareListQuery = {}, options: Options = {}) {
+      return withDeadline(signal => send(`/api/replays/owned${queryString(shareListQuerySchema.parse(query))}`, shareListSchema, { cache: "no-store", signal }), 15_000, options.signal);
+    },
+    revokeOwned(token: string, options: Options = {}) {
+      return withDeadline(signal => send(`/api/replays/owned/${shareTokenSchema.parse(token)}`, revokeShareSchema, { method: "DELETE", cache: "no-store", signal }), 15_000, options.signal);
+    },
     active(params: { gameId: string; handNumber: number }, options: Options = {}) { return shareManagement(params, "GET", options); },
     create(params: { gameId: string; handNumber: number }, options: Options = {}) { return shareManagement(params, "POST", options); },
     revoke(params: { gameId: string; handNumber: number }, options: Options = {}) {

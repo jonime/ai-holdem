@@ -271,3 +271,16 @@ it("names share management methods, validates tokens and keeps reads uncached", 
   expect(fetch).toHaveBeenLastCalledWith(`/api/games/${params.gameId}/hands/1/share`, expect.objectContaining({ method: "DELETE" }));
   await expect(api.shares.read("guess")).rejects.toThrow();
 });
+
+it("validates owner-share cursor transport and exact-token revocation", async () => {
+  const token = "f".repeat(64);
+  const fetch = mockResponse({ shares: [], nextCursor: null });
+  const query = { beforeCreatedAt: "2026-10-01T00:00:00.123456Z", beforeToken: token };
+  await api.shares.list(query);
+  expect(fetch).toHaveBeenCalledWith(`/api/replays/owned?${new URLSearchParams(query)}`, expect.objectContaining({ cache: "no-store", credentials: "same-origin" }));
+  mockResponse({ revoked: true });
+  await api.shares.revokeOwned(token);
+  await expect(api.shares.revokeOwned("invalid")).rejects.toThrow();
+  mockResponse({ shares: [], nextCursor: null, snapshot: {} });
+  await expect(api.shares.list()).rejects.toThrow("Invalid response payload");
+});

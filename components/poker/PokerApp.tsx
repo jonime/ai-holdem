@@ -536,7 +536,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
       <SettingsModal preferences={settings.preferences} onUpdate={settings.update}
         onSound={turnNotification.preview} notice={turnNotification.notice}
         languageBlocked={loading || recoveryBlocked || creatingQuickPlay || languageNavigating || unavailable || !game}
-        onNavigate={() => setLanguageNavigating(true)} gameId={game?.id ?? gameId ?? ""}
+        onNavigate={() => setLanguageNavigating(true)} destination={`/game/${game?.id ?? gameId ?? ""}${typeof window === "undefined" ? "" : window.location.search + window.location.hash}`}
         onClose={closeOverlay} restoreFocus={openerRef} fallbackFocus={settingsOpenerRef} />
     ) : null}
     {overlay.kind === "help" ? (

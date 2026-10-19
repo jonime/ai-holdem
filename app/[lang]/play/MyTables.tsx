@@ -87,9 +87,9 @@ export function MyTables({ locale, dictionary: d, initialGames, initialError }: 
       } else setRemovalError(d.removalFailed);
     } finally { if (current()) { pending.current = false; setBusy(false); } }
   }
-  if (!games.length && !error && !busy && !selection) return null;
   return <section aria-labelledby="my-tables-heading" aria-busy={busy && !selection} className={styles.section}>
     <h2 id="my-tables-heading">{d.yourTables}</h2>
+    {!games.length && !error && <p className={styles.empty}>{d.emptyPersonal} <Link prefetch={false} href={addLocalePrefix("/play?tab=public", locale)}>{d.publicTables}</Link></p>}
 
     {busy && !selection && <p role="status">{d.refreshing}</p>}
     {error && !selection && <div><p className={styles.warning} role="alert">{d.personalError}</p>

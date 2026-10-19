@@ -47,6 +47,13 @@ describe("table loading fallbacks", () => {
     </I18nProvider>)).toBe(expected);
   });
 
+  it("can hide the visible label while retaining the accessible status and shared spinner", () => {
+    const html = renderToStaticMarkup(<TableLoadingIndicator label="Loading…" hideLabel />);
+    expect(html).toContain('role="status"');
+    expect(html).toMatch(/<span class="[^"]*srOnly[^"]*">Loading…<\/span>/);
+    expect(html).toContain('aria-hidden="true"');
+  });
+
   it("invokes only explicit retry and guards duplicate invocations", async () => {
     let finish!: () => void;
     const retry = vi.fn(() => new Promise<void>(resolve => { finish = resolve; }));
