@@ -271,7 +271,10 @@ identify how a table was created. The update time reflects game activity, with a
 localized UTC timestamp in its tooltip and accessible label. It starts as absolute UTC
 text, then becomes relative on mount, summary changes, or return to the visible tab;
 future clock skew shows “Updated just now”. No timer refreshes these labels.
-A successfully empty personal section is hidden. Each section reports its own failures
+Play has three bookmarkable link tabs: **Your tables** (`/play`), **Open public tables**
+(`/play?tab=public`) and **Shared hands** (`/play?tab=shared`), with localized prefixes.
+Only the selected collection loads. Invalid or repeated tab parameters select Your tables.
+An empty personal list directs you to the creation buttons or public tab. Each collection reports its own failures
 and offers retry; the refresh icon beside **Open public tables** refreshes public availability. There is no
 automatic refresh on Play. Public joining retains optional player names and pagination.
 Quick Play still starts a separate private six-seat game in one click.
@@ -299,6 +302,24 @@ Pressing Enter in the name field starts Quick Play. Landing-page Quick Play
 remains anonymous, even if this browser has a remembered name.
 Select a personal row to return, or a public row to join. Rows support keyboard
 activation; the refresh icon has a localized accessible label.
+
+**Settings** is a separate header button. Sound, shortcuts, current-hand labels and card
+colours use the same browser preferences as games; they also configure future games.
+Language changes preserve the selected tab. The player name and creation buttons stay
+above the tabs. The landing page is unchanged.
+
+**Shared hands** lists this browser owner's active, unexpired links, 20 at a time,
+newest first. Hand number, short link ID, creation date and expiry distinguish rows.
+Use **View** to open a standalone replay in a new tab without a referrer, **Copy link**
+(with a selectable URL when clipboard access fails), or confirm **Revoke link** for
+that exact link. Revoking an old link never revokes a replacement for the same hand.
+Shares remain listed independently of seats and the last 50 hands in Actions.
+The list belongs to this browser's anonymous cookie: another browser or clearing the
+cookie loses management access. Refresh and Load more are manual; there is no archive.
+Locally expired rows disappear without a countdown; database time enforces expiry.
+An uncertain revocation refreshes once without repeating the mutation. If recovery
+fails, use Refresh list before managing more links. An acknowledged revocation stays
+successful even if refreshing the list fails.
 
 ## Removing tables from Play
 

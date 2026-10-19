@@ -52,10 +52,10 @@ test("@smoke Hosted deletion blocks other humans, cancellation preserves history
     await page.getByRole("dialog").getByRole("button", { name: "Cancel" }).click();
     await expect(hide).toBeFocused();
     await hide.click(); await confirm(page);
-    await expect(personal(page)).toHaveCount(0);
+    await expect(personal(page).getByRole("listitem")).toHaveCount(0);
     expect((await read(guest,id)).poker.players.find(p => p.seat === 1)?.status).toBe("claimed");
     await page.goto(`/game/${id}`); await page.goto("/play");
-    await expect(personal(page)).toHaveCount(0);
+    await expect(personal(page).getByRole("listitem")).toHaveCount(0);
     // Reclaiming restores the hidden hosted table; deletion stays protected.
     await claim(page,id,0); await page.goto("/play");
     await expect(hide).toBeEnabled();
@@ -66,7 +66,7 @@ test("@smoke Hosted deletion blocks other humans, cancellation preserves history
     await expect(personal(guest).getByRole("button", {name:/^Leave and remove:/})).toBeFocused();
     await personal(guest).getByRole("button", {name:/^Leave and remove:/}).click();
     await confirm(guest);
-    await expect(personal(guest)).toHaveCount(0);
+    await expect(personal(guest).getByRole("listitem")).toHaveCount(0);
     await page.reload(); await expect(button).toBeEnabled();
     let calls = 0; page.on("request", request => { if (request.url().endsWith("/remove")) calls++; });
     await button.click(); expect(calls).toBe(0);
@@ -75,7 +75,7 @@ test("@smoke Hosted deletion blocks other humans, cancellation preserves history
     await page.keyboard.press("Escape"); await expect(button).toBeFocused();
     await expect(personal(page).getByRole("link", { name: /^Return to table:/ })).toHaveCount(1);
     await button.press("Enter"); await confirm(page);
-    await expect(personal(page)).toHaveCount(0); expect(calls).toBe(1);
+    await expect(personal(page).getByRole("listitem")).toHaveCount(0); expect(calls).toBe(1);
     expect((await page.request.get(`/api/games/${id}`)).status()).toBe(404);
     await expect(page.getByRole("heading", { name: "Play", exact: true })).toBeFocused();
   } finally { await guestContext.close(); }
@@ -167,13 +167,13 @@ test("@smoke Joined active-hand removal registers departure before hiding the ro
     const active=await read(page,id); expect(active.status).toBe("playing");
     await guest.goto("/play");
     await personal(guest).getByRole("button",{ name:/^Leave and remove:/ }).click(); await confirm(guest);
-    await expect(personal(guest)).toHaveCount(0);
+    await expect(personal(guest).getByRole("listitem")).toHaveCount(0);
     const departed=await read(page,id);
     const seat=(departed.poker.seats??departed.poker.players).find(s=>s.seat===1)!;
     expect(seat.leaving || seat.status==="open").toBe(true);
     expect(departed.version).toBeGreaterThan(active.version);
     await guest.goto(`/game/${id}`); await guest.goto("/play");
-    await expect(personal(guest)).toHaveCount(0);
+    await expect(personal(guest).getByRole("listitem")).toHaveCount(0);
   } finally { await guestContext.close(); }
 });
 
@@ -197,7 +197,7 @@ for (const completed of [false, true]) test(`@smoke Host personal removal preser
     const feed = await (await guest.request.get(`/api/games/${id}/feed`)).json();
     await page.goto("/play");
     await personal(page).getByRole("button", { name: /^Remove from my tables:/ }).click(); await confirm(page);
-    await expect(personal(page)).toHaveCount(0);
+    await expect(personal(page).getByRole("listitem")).toHaveCount(0);
     const after = await read(guest, id);
     expect(after.poker.seats!.find(s => s.seat === 1)?.status).toBe("claimed");
     if (completed) {
@@ -211,6 +211,6 @@ for (const completed of [false, true]) test(`@smoke Host personal removal preser
     await guest.goto("/play");
     await expect(personal(guest).getByRole("link", { name: new RegExp(id.slice(0, 8)) })).toBeVisible();
     await page.goto(`/game/${id}`); await page.goto("/play");
-    await expect(personal(page)).toHaveCount(0);
+    await expect(personal(page).getByRole("listitem")).toHaveCount(0);
   } finally { await guestContext.close(); }
 });

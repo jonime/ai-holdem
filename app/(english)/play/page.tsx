@@ -5,6 +5,6 @@ export function generateMetadata() {
   return localizedMetadata({ params: englishParams(), searchParams: Promise.resolve({}) });
 }
 
-export default function EnglishPlayPage() {
-  return PlayPage({ params: englishParams(), searchParams: Promise.resolve({}) });
+export default function EnglishPlayPage({ searchParams }: PageProps<"/play">) {
+  return PlayPage({ params: englishParams(), searchParams });
 }

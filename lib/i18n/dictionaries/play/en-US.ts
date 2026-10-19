@@ -1,6 +1,20 @@
 import "server-only";
 import directory from "../join-game/en-US";
 const dictionary = {
+  collections: "Play collections",
+  sharedHands: "Shared hands",
+  emptyPersonal: "No tables yet. Use Quick Play or Create table above, or browse open public tables.",
+  emptyShares: "No active shared hands. Share a completed hand from its replay.",
+  shareOwnership: "This list belongs to this browser’s anonymous cookie. Another browser or a cleared cookie cannot access it.",
+  viewShare: "View",
+  shareHand: "Hand {hand} · {id}",
+  shareCreated: "Created {date}",
+  newTab: "Opens in a new tab",
+  sharedError: "Shared hands could not be loaded.",
+  shareRecoveryFailed: "Refresh the list before managing more links.",
+  shareUncertain: "The outcome is uncertain. Review the refreshed list before deciding again.",
+  loadMore: "Load more",
+
   "title": "Play",
   "intro": "Return to your tables or find an open public table.",
   "quickPlay": "Quick Play vs AI",
@@ -27,8 +41,6 @@ const dictionary = {
   "retry": "Retry",
   "publicTables": "Open public tables",
   "refreshing": "Refreshing…",
-  "loadingPersonal": "Loading your tables…",
-  "loadingPublic": "Loading public tables…",
   tableWithBots: "Table with bots",
   pokerTable: "Poker table",
   you: "You",

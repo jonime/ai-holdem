@@ -3,6 +3,20 @@ import "server-only";
 import type { PlayDictionary } from "../../types";
 
 const dictionary = {
+  collections: "游戏列表",
+  sharedHands: "已分享的牌局",
+  emptyPersonal: "还没有牌桌。请使用上方的快速游戏或创建牌桌，或浏览公开牌桌。",
+  emptyShares: "没有有效的分享。可在已结束牌局的回放中分享。",
+  shareOwnership: "此列表与本浏览器的匿名 Cookie 关联。换用其他浏览器或清除 Cookie 后将无法访问此列表。",
+  viewShare: "查看",
+  shareHand: "第 {hand} 手 · {id}",
+  shareCreated: "创建于 {date}",
+  newTab: "在新标签页中打开",
+  sharedError: "无法加载已分享的牌局。",
+  shareRecoveryFailed: "请先刷新列表，再管理其他链接。",
+  shareUncertain: "操作结果不确定。请检查刷新后的列表，再作决定。",
+  loadMore: "加载更多",
+
   "title": "开始游戏",
   "intro": "返回你的牌桌，或寻找有空位的公开牌桌。",
   "quickPlay": "快速对战 AI",
@@ -29,8 +43,6 @@ const dictionary = {
   "retry": "重试",
   "publicTables": "有空位的公开牌桌",
   "refreshing": "正在刷新…",
-  "loadingPersonal": "正在加载你的牌桌…",
-  "loadingPublic": "正在加载公开牌桌…",
   tableWithBots: "有机器人的牌桌",
   pokerTable: "扑克牌桌",
   you: "你",

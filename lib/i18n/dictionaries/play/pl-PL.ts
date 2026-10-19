@@ -1,6 +1,20 @@
 import "server-only";
 import directory from "../join-game/pl-PL";
 const dictionary = {
+  collections: "Listy gry",
+  sharedHands: "Udostępnione rozdania",
+  emptyPersonal: "Nie ma jeszcze stołów. Użyj Szybkiej gry lub Utwórz stół powyżej albo przeglądaj stoły publiczne.",
+  emptyShares: "Brak aktywnych udostępnionych rozdań. Udostępnij ukończone rozdanie z jego powtórki.",
+  shareOwnership: "Ta lista jest powiązana z anonimowym plikiem cookie tej przeglądarki. Inna przeglądarka lub usunięcie pliku cookie uniemożliwia dostęp.",
+  viewShare: "Zobacz",
+  shareHand: "Rozdanie {hand} · {id}",
+  shareCreated: "Utworzono {date}",
+  newTab: "Otwiera się w nowej karcie",
+  sharedError: "Nie udało się załadować udostępnionych rozdań.",
+  shareRecoveryFailed: "Odśwież listę przed zarządzaniem kolejnymi linkami.",
+  shareUncertain: "Wynik jest niepewny. Sprawdź odświeżoną listę przed kolejną decyzją.",
+  loadMore: "Wczytaj więcej",
+
   "title": "Graj",
   "intro": "Wróć do swoich stołów lub znajdź otwarty publiczny stół.",
   "quickPlay": "Szybka gra z AI",
@@ -27,8 +41,6 @@ const dictionary = {
   "retry": "Spróbuj ponownie",
   "publicTables": "Otwarte publiczne stoły",
   "refreshing": "Odświeżanie…",
-  "loadingPersonal": "Wczytywanie twoich stołów…",
-  "loadingPublic": "Wczytywanie publicznych stołów…",
   tableWithBots: "Stół z botami",
   pokerTable: "Stół pokerowy",
   you: "Ty",

@@ -683,8 +683,18 @@ database migration, feedback integration or response-contract change.
 
 ## Play and personal table discovery
 
-`/[lang]/play` streams personal tables and the public directory through independent
-Suspense request-time boundaries. Cookies are read only inside those boundaries.
+`/[lang]/play` selects one URL-backed collection: personal by default, public for
+`?tab=public`, shared for `?tab=shared`; invalid/repeated values fall back to personal.
+The English wrapper forwards the search-parameter promise. Localized normal links
+in a labelled navigation region use `aria-current` and `prefetch={false}`. Only the
+selected collection renders inside a locale/tab-keyed Suspense boundary. Play reuses
+the table loading spinner without visible text, using the directory’s existing generic
+loading label for screen readers instead of collection-specific translations; cookies
+are read there. Unmount cancellation fences personal, directory and share responses.
+The header keeps creation/name controls and a separate Settings button. Settings uses
+the game dictionary loaded server-side through I18nProvider, the shared preference
+store/modal and low-level audio preview, without any game/session/timer/bot hooks.
+Its navigation destination preserves the selected tab; Play omits the in-game note.
 The cached landing page links to Play and retains its anonymous Quick Play POST form with client-only progressive enhancement.
 Localized `/join-game` permanently redirects to `/play` in the same language;
 English uses unprefixed URLs through `app/(english)` wrappers that reuse
@@ -692,6 +702,26 @@ the shared locale pages, layouts and POST handlers with `en-US` params. Old `/en
 Other locales retain their prefixes; browser language never redirects pages.
 Play is `noindex, follow`
 and excluded from the sitemap. No polling or Realtime runs on Play.
+
+Owner share management uses service-role-only `list_replay_shares` and
+`revoke_owned_replay_share`. The list filters creator cookie, revoked state and
+exclusive database-time expiry before returning 20 rows ordered by
+`created_at DESC, link_token DESC`, with one lookahead. Cursor timestamps preserve
+Postgres microseconds as strings. The partial owner/ordering index supports the scan.
+Strict HTTP contracts expose only token, hand number, creation and expiry timestamps;
+no snapshots, source game IDs or ownership tokens enter list DTOs. GET
+`/api/replays/owned` and DELETE `/api/replays/owned/[token]` are private/no-store,
+no-referrer, cookie-owned; mutations enforce same origin. Failures log only existing
+allowlisted `replay_share` diagnostics. Exact revocation locates the owner token,
+then locks game, hand and exact share in the same order as creation/deletion. Missing,
+foreign, expired or retired targets are harmless. It cannot touch a replacement link.
+Share allowances, snapshots, 30-day expiry and deletion cascades are unchanged.
+Client requests have 15-second deadlines and cancellation on unmount. A synchronous
+lock prevents duplicates. Unknown outcomes reconcile once by reading the list, never
+replaying DELETE; failed recovery blocks management until a successful explicit
+refresh. Post-acknowledgement refill errors affect only the list. A one-shot expiry
+wake-up plus interaction checks removes local stale rows without polling. Viewer
+links set noreferrer/no-referrer and tokens never enter telemetry.
 
 The service-role-only `list_my_games(text)` RPC unions durable host ownership and
 claimed human seat ownership before sorting by `games.updated_at DESC, id DESC`

@@ -571,6 +571,9 @@ isOneToOne: false
               "big_blind": number,"bot_count": number,"game_id": string,"human_count": number,"occupied_seats": number,"published_at": string,"small_blind": number,"starting_stack": number,"title": string,"total_seats": number,"version": number
             }[]
                            },
+"list_replay_shares":
+{ Args: { "p_before_created_at"?: string,"p_before_token"?: string,"p_creator_token": string }; Returns: Json
+                           },
 "manage_replay_share":
 { Args: { "p_creator_token": string,"p_game_id": string,"p_hand_number": number,"p_history": Json,"p_ip_allowance": number,"p_ip_hash": string,"p_link_token": string,"p_operation": string,"p_owner_allowance": number,"p_owner_hash": string,"p_snapshot": Json,"p_window_ms": number }; Returns: Json
                            },
@@ -618,6 +621,9 @@ isOneToOne: false
         isOneToOne: false
         isSetofReturn: true
       } },
+"revoke_owned_replay_share":
+{ Args: { "p_creator_token": string,"p_link_token": string }; Returns: Json
+                           },
 "set_game_publication_if_version":
 { Args: { "p_expected_version": number,"p_game_id": string,"p_host_token": string,"p_is_public": boolean,"p_title": string }; Returns: {
               "bots_show_uncontested_wins": boolean,

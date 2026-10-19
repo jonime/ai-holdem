@@ -7,6 +7,7 @@ import { useI18n } from "./I18nProvider";
 import { Modal } from "./Modal";
 import replayStyles from "./HandReplayModal.module.css";
 import styles from "./ReplaySharing.module.css";
+import { useShareClipboard } from "./useShareClipboard";
 import { Button } from "@/components/Button";
 
 export function ReplaySharing({ gameId, handNumber, open, onAvailabilityChange, onClose, restoreFocus }: {
@@ -19,12 +20,10 @@ export function ReplaySharing({ gameId, handNumber, open, onAvailabilityChange, 
   const [status, setStatus] = useState<"loading" | "ready" | "error" | "forbidden">("loading");
   const [pending, setPending] = useState(false);
   const [confirm, setConfirm] = useState<"revoke" | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [fallback, setFallback] = useState(false);
+  const clipboard = useShareClipboard();
+  const { copied, fallback, pending: copyPending, reset: resetClipboard } = clipboard;
   const [failure, setFailure] = useState(false);
   const lock = useRef(false);
-  const copyLock = useRef(false);
-  const [copyPending, setCopyPending] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
@@ -44,15 +43,15 @@ export function ReplaySharing({ gameId, handNumber, open, onAvailabilityChange, 
     function schedule() {
       const remaining = Date.parse(share!.expiresAt) - Date.now();
       if (remaining > 0) timer = setTimeout(schedule, Math.min(2_147_483_647, remaining));
-      else { setShare(null); setCopied(false); setFallback(false); setConfirm(null); }
+      else { setShare(null); resetClipboard(); setConfirm(null); }
     }
     timer = setTimeout(schedule, 0);
     return () => clearTimeout(timer);
-  }, [share]);
+  }, [share, resetClipboard]);
   useEffect(() => { onAvailabilityChange(status === "ready" || status === "error"); }, [status, onAvailabilityChange]);
   async function mutate(operation: "create" | "revoke") {
     if (lock.current || status !== "ready") return;
-    lock.current = true; setPending(true); setFailure(false); setCopied(false); setFallback(false);
+    lock.current = true; setPending(true); setFailure(false); resetClipboard();
     const signal = controller.current!.signal;
     try {
       if (operation === "create") {
@@ -93,12 +92,7 @@ export function ReplaySharing({ gameId, handNumber, open, onAvailabilityChange, 
       </> : <>
 
     {share && confirm !== "revoke" ? <>
-      <div className={styles.actions}><Button disabled={pending || copyPending} onClick={async () => {
-        if (copyLock.current) return;
-        copyLock.current = true; setCopyPending(true); setCopied(false);
-        try { await navigator.clipboard.writeText(url); setCopied(true); } catch { setFallback(true); }
-        finally { copyLock.current = false; setCopyPending(false); }
-      }}>{t("sharing.copy")}</Button>
+      <div className={styles.actions}><Button disabled={pending || copyPending} onClick={() => void clipboard.copy(url)}>{t("sharing.copy")}</Button>
       <Button disabled={pending} onClick={() => setConfirm("revoke")}>{t("sharing.revoke")}</Button></div>
       <p className={styles.meta}>{t("sharing.expires", { date: new Date(share.expiresAt).toLocaleString(locale) })}</p>
       {copied ? <p role="status">{t("sharing.copied")}</p> : null}
