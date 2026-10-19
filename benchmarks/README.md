@@ -118,3 +118,11 @@ playing strength remains unmeasured and production menus are unchanged.
   production Rules, with explicit post-line ranges, response posteriors and a
   complete cross-assumption sensitivity matrix. No paid calls or production
   changes. See the [recorded report](river-lookahead/report-v1.md).
+
+- [Narrow river sizing candidate](river-candidate/README.md): versioned manual
+  development/confirmation study of half-pot to two-thirds-pot unbeatable-straight
+  value bets, using actual production Rules continuations, 12 situation strata,
+  synthetic full post-line ranges and 27-comparison-adjusted bootstrap gates.
+  No paid calls. The [saved-evidence review](river-candidate/review-2026-10-19.md)
+  records defer for all difficulties after development; none qualified for
+  confirmation and production remains unchanged.

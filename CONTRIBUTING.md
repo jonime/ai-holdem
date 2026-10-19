@@ -1477,3 +1477,16 @@ noindex/nofollow metadata and never enter the sitemap.
 | `POST /api/games/:gameId/hands/:handNumber/share` | same, same-origin | `shareManagementSchema` | `shares.create` |
 | `DELETE /api/games/:gameId/hands/:handNumber/share` | same, same-origin | `revokeShareSchema` | `shares.revoke` |
 | `GET /api/replays/:token` | `shareTokenSchema` | `sharedReplaySchema` | `shares.read` |
+
+### Manual river candidate study
+
+The offline [river candidate v1](benchmarks/river-candidate/README.md) has separate
+`benchmark:river-candidate -- smoke`, `-- development`, `-- confirmation` and
+`-- analyze` stages. The user runs the two long stages manually; implementing
+assistants may run focused tests and smoke but must not launch/poll full studies.
+Retain both immutable phase archives and `benchmarks/results/river-candidate-v1/`
+checkpoints. Confirmation enforces development qualification; analysis verifies
+saved actions and payouts without rerunning decisions. Frozen-source drift or
+failures require a new version rather than replacement evidence. No provider,
+server, database or environment-file loading is needed. Production promotion is
+conditional on manual evidence review and successful post-change required checks.

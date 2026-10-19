@@ -77,7 +77,8 @@
     "benchmark:session-adaptation:llm:prepare": "node benchmarks/session-adaptation/run.mjs llm-prepare",
     "benchmark:session-adaptation:llm": "node benchmarks/session-adaptation/run.mjs llm-live",
     "benchmark:river-lookahead": "node benchmarks/river-lookahead/run.mjs",
-    "test:sql:shares": "node scripts/local-replay-shares.mjs"
+    "test:sql:shares": "node scripts/local-replay-shares.mjs",
+    "benchmark:river-candidate": "node benchmarks/river-candidate/run.mjs"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",
