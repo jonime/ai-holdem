@@ -126,3 +126,11 @@ playing strength remains unmeasured and production menus are unchanged.
   No paid calls. The [saved-evidence review](river-candidate/review-2026-10-19.md)
   records defer for all difficulties after development; none qualified for
   confirmation and production remains unchanged.
+
+- [LLM quarter-pot river screen](llm-quarter-pot/README.md): exact offline,
+  first-to-act evaluation of 40 saved decisions on two selected heads-up river
+  fixtures. Full holdings, frozen synthetic responses and 27 continuation
+  sensitivities; the user runs full manually. No new inference or production change.
+  The [saved-evidence review](llm-quarter-pot/review-2026-10-20.md) records
+  **defer**: the first fixture reverses sign across assumptions and fails the gate;
+  the second passes all 27 comparisons.

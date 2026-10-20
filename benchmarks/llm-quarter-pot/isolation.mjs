@@ -1,0 +1,12 @@
+import { syncBuiltinESMExports } from 'node:module';
+import net from 'node:net';
+import http from 'node:http';
+import https from 'node:https';
+import tls from 'node:tls';
+import dgram from 'node:dgram';
+const forbidden = () => { throw new Error('Offline network forbidden'); };
+globalThis.fetch = globalThis.WebSocket = forbidden;
+net.connect = net.createConnection = net.Socket.prototype.connect = net.Server.prototype.listen = forbidden;
+http.request = http.get = https.request = https.get = tls.connect = dgram.createSocket = forbidden;
+syncBuiltinESMExports();
+if (Object.keys(process.env).some(k => /KEY|TOKEN|SECRET|PASSWORD|CREDENTIAL|NODE_OPTIONS/i.test(k))) throw new Error('Unclean offline environment');

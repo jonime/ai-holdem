@@ -1513,3 +1513,16 @@ saved actions and payouts without rerunning decisions. Frozen-source drift or
 failures require a new version rather than replacement evidence. No provider,
 server, database or environment-file loading is needed. Production promotion is
 conditional on manual evidence review and successful post-change required checks.
+
+### Offline LLM quarter-pot river screen
+
+See [the focused benchmark guide](benchmarks/llm-quarter-pot/README.md) for saved
+ledger reconstruction, frozen full-holding response assumptions and the conservative
+27-combination gate. Run `npm run benchmark:llm-quarter-pot -- smoke` for bounded
+mechanics. The user runs `npm run benchmark:llm-quarter-pot -- full` manually;
+assistants must not launch or poll the full study. `-- analyze` verifies saved
+terminal evidence without replaying the engine. All commands isolate execution
+without environment files, credentials, network, database or application server.
+The optional dedicated Vitest config also avoids `.env.test` loading. Results stay
+under `benchmarks/results/llm-quarter-pot-v1/`; return saved artifacts for review.
+This retrospective screen authorizes no provider spending or production promotion.
