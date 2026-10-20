@@ -1,0 +1,28 @@
+{
+  "version": "jev-preflop-sizing-v1",
+  "manifestHash": "bbe775c704fb9255ce0c08c39d47e0fecbabfc0db9f86ac4b7fdb6a5725fd768",
+  "conclusion": "Defer, retaining current production behavior.",
+  "developmentBlocks": 192,
+  "blocksPerHand": 96,
+  "uniqueDeckHashes": 192,
+  "rollouts": 4608,
+  "failedBlocks": 0,
+  "maximumObservedActions": 16,
+  "sourceAndCheckpointValidation": "passed via frozen analyze command",
+  "shoveOutcomesIdenticalAcrossHeroContinuations": true,
+  "firstOpponentResponsesIdenticalAcrossHeroContinuations": true,
+  "terminalChipConservation": 400,
+  "selected": {},
+  "confirmationBlocks": 0,
+  "confirmationDisposition": "No hand qualified; no confirmation simulations allocated. Twelve planned comparisons retained.",
+  "artifacts": {
+    "freeze-v1.json": "bbe775c704fb9255ce0c08c39d47e0fecbabfc0db9f86ac4b7fdb6a5725fd768",
+    "mechanical-v1.json": "56526c9a79d0093837e6a5e6edfc5106fdf0d77e6930ad6963c8603e04838442",
+    "motivation-v1.json.gz": "ff537ff9dd43f0cfb08915713932730c869d45c0454bca04d25faf2c6c63a29d",
+    "source-v1.json.gz": "7ffe4192295becc9535a24d8cca874aa1e66ed82763241be34e8e240764fc219",
+    "development-v1.json.gz": "6f0ba5101d940e25b138c74d5ad083cfdcabfe0240fb8312fe3f5742e45fc43a",
+    "confirmation-v1.json.gz": "50efe75d47d8ca03135ded16c7c3fb81119ebab61ec9a5f1adbf5c6e72ad20ff",
+    "selection-v1.json": "04034c1b02b8fd6e3582228b417e61cdec54c06af8ce32d1fbcd0957fbfd71a4",
+    "analysis-v1.json.gz": "caf34453983c5d3b16d7b5cfb8747f7f87bc92a3af9c29bc45aed86fec790374"
+  }
+}

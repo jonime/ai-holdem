@@ -60,6 +60,7 @@
     "benchmark:bot-improvements:prepare": "node benchmarks/bot-improvements/run.mjs prepare",
     "benchmark:bot-improvements:live": "node benchmarks/bot-improvements/run.mjs live",
     "benchmark:bot-improvements:analyze": "node benchmarks/bot-improvements/run.mjs analyze",
+    "benchmark:jev-preflop-sizing": "node benchmarks/jev-preflop-sizing/run.mjs",
     "benchmark:preflop-action-value": "node benchmarks/preflop-action-value/run.mjs",
     "benchmark:preflop-action-value:analyze": "node benchmarks/preflop-action-value/run.mjs analyze",
     "benchmark:preflop-candidate": "node benchmarks/preflop-candidate/run.mjs",

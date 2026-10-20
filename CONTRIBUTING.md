@@ -1651,3 +1651,17 @@ without environment files, credentials, network, database or application server.
 The optional dedicated Vitest config also avoids `.env.test` loading. Results stay
 under `benchmarks/results/llm-quarter-pot-v1/`; return saved artifacts for review.
 This retrospective screen authorizes no provider spending or production promotion.
+
+### Jev AA/KK offline opening-size study
+
+See [the versioned guide](benchmarks/jev-preflop-sizing/README.md) for evidence,
+freezes, continuation limitations and the statistical gates. Agents may run focused
+tests, `benchmark:jev-preflop-sizing -- smoke` and the normal required checks.
+The user must run `-- development` and `-- confirmation` manually in the terminal;
+agents must not launch or poll these long studies. `-- analyze` reads saved
+checkpoints without rerunning opening arms or continuations. Preserve freezes, source bundles and local
+`benchmarks/results/jev-preflop-sizing-v1/` artifacts; never accept source drift by
+rewriting an existing freeze. Use `nice -n 15`, one heavy command at a time and
+one worker. This offline runner loads no environment files and makes no provider
+calls, database queries or application changes. Passing only shortlists a hand
+for a separately authorized Jev plan; it authorizes no spending or override.

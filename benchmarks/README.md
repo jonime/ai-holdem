@@ -1,5 +1,11 @@
 # Benchmarks and bot evaluations
 
+- [Jev AA/KK opening sizes](jev-preflop-sizing/README.md): offline HU 100-BB
+  conditional action values for shoves versus 2/2.5/3-BB opens, frozen synthetic
+  controls and manual development/confirmation. The [completed development report](jev-preflop-sizing/report-v1.md)
+  records 4,608 completed rollouts, zero failures and no qualifying AA/KK size;
+  confirmation correctly ran zero blocks. No provider calls or production changes.
+
 - [Session adaptation pilot](session-adaptation/README.md): isolated 60-hand memory
   ablations, mirrored paired blocks, offline controls and a separately authorized
   maximum 4,800-request Jev/mini design. The [amended pilot report](session-adaptation/pilot-report.md)

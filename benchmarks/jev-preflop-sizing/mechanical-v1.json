@@ -1,0 +1,381 @@
+{
+  "manifestHash": "bbe775c704fb9255ce0c08c39d47e0fecbabfc0db9f86ac4b7fdb6a5725fd768",
+  "passed": true,
+  "samples": 5000,
+  "checks": {
+    "fixtures": 48,
+    "engineValidatedResponses": 1352,
+    "classes": 169,
+    "roots": [
+      200,
+      4,
+      5,
+      6
+    ],
+    "passed": true
+  },
+  "smoke": {
+    "spec": {
+      "id": "jev-preflop-sizing-v1:smoke:AA:0:1:0",
+      "phase": "development",
+      "hand": "AA",
+      "combo": 0,
+      "handNumber": 1,
+      "replicate": 0
+    },
+    "deckHash": "cdfa51c394c300bc472e3ca7c0e16f407e80eba17c79b817fb08eb63e7e30ea1",
+    "samples": 5000,
+    "outcomes": {
+      "rules/rules": {
+        "4": {
+          "valueBB": 100.5,
+          "rootResponse": "call:2",
+          "flop": true,
+          "showdown": true,
+          "heroLaterChips": 196,
+          "opponentLaterChips": 198,
+          "actions": 10,
+          "terminalStacks": [
+            400,
+            0
+          ],
+          "traceHash": "e952c9e7f7d9392a0f6d4c34ef61711ba9dc93381609f0dc164c84d0fc2b1863"
+        },
+        "5": {
+          "valueBB": 100.5,
+          "rootResponse": "call:3",
+          "flop": true,
+          "showdown": true,
+          "heroLaterChips": 195,
+          "opponentLaterChips": 198,
+          "actions": 10,
+          "terminalStacks": [
+            400,
+            0
+          ],
+          "traceHash": "6abf4d54714155459c21cf6448078ca8b94de74ff52a65a5ea9dbdc817f5c05f"
+        },
+        "6": {
+          "valueBB": 100.5,
+          "rootResponse": "call:4",
+          "flop": true,
+          "showdown": true,
+          "heroLaterChips": 194,
+          "opponentLaterChips": 198,
+          "actions": 9,
+          "terminalStacks": [
+            400,
+            0
+          ],
+          "traceHash": "1aeb2f7b3d58b9a50583bc3c2ec9026d657d2db463bc1c6aababcf92a6931dce"
+        },
+        "200": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "da44cb319e087253379e21dd423c4c19b01f8c0e27d6a66561c3fe83d342a9c1"
+        }
+      },
+      "rules/conservative": {
+        "4": {
+          "valueBB": 8.5,
+          "rootResponse": "call:2",
+          "flop": true,
+          "showdown": true,
+          "heroLaterChips": 12,
+          "opponentLaterChips": 14,
+          "actions": 8,
+          "terminalStacks": [
+            216,
+            184
+          ],
+          "traceHash": "cd681d7b4bc4d6c63057e51c2ff6cd98ca2f3b8c66b93d6c7993c3ef8d87614d"
+        },
+        "5": {
+          "valueBB": 10.5,
+          "rootResponse": "call:3",
+          "flop": true,
+          "showdown": true,
+          "heroLaterChips": 15,
+          "opponentLaterChips": 18,
+          "actions": 8,
+          "terminalStacks": [
+            220,
+            180
+          ],
+          "traceHash": "98c3320fa033f2d898e62dfb239cb54e6d7dc6176cde971fd02da011e98e9072"
+        },
+        "6": {
+          "valueBB": 12.5,
+          "rootResponse": "call:4",
+          "flop": true,
+          "showdown": true,
+          "heroLaterChips": 18,
+          "opponentLaterChips": 22,
+          "actions": 8,
+          "terminalStacks": [
+            224,
+            176
+          ],
+          "traceHash": "c08404d35facd9dc54f2b174a94ed5afe0584c6c4c772a6d9f13a141c5726b04"
+        },
+        "200": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "da44cb319e087253379e21dd423c4c19b01f8c0e27d6a66561c3fe83d342a9c1"
+        }
+      },
+      "selective/rules": {
+        "4": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "e9b280855856cfa30f7ab3a9101c36f8654ce58a64c80d3f61d50f93bee52f9d"
+        },
+        "5": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "1cb0615a415983e97ac03696cc3eec99de01df055bd2739e7f80cb537fe13da2"
+        },
+        "6": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "11e63c407f67f450fd2f0ad614870ae3976761afb3de3485e171ec375b14e8d4"
+        },
+        "200": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "da44cb319e087253379e21dd423c4c19b01f8c0e27d6a66561c3fe83d342a9c1"
+        }
+      },
+      "selective/conservative": {
+        "4": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "e9b280855856cfa30f7ab3a9101c36f8654ce58a64c80d3f61d50f93bee52f9d"
+        },
+        "5": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "1cb0615a415983e97ac03696cc3eec99de01df055bd2739e7f80cb537fe13da2"
+        },
+        "6": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "11e63c407f67f450fd2f0ad614870ae3976761afb3de3485e171ec375b14e8d4"
+        },
+        "200": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "da44cb319e087253379e21dd423c4c19b01f8c0e27d6a66561c3fe83d342a9c1"
+        }
+      },
+      "loose/rules": {
+        "4": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "e9b280855856cfa30f7ab3a9101c36f8654ce58a64c80d3f61d50f93bee52f9d"
+        },
+        "5": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "1cb0615a415983e97ac03696cc3eec99de01df055bd2739e7f80cb537fe13da2"
+        },
+        "6": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "11e63c407f67f450fd2f0ad614870ae3976761afb3de3485e171ec375b14e8d4"
+        },
+        "200": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "da44cb319e087253379e21dd423c4c19b01f8c0e27d6a66561c3fe83d342a9c1"
+        }
+      },
+      "loose/conservative": {
+        "4": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "e9b280855856cfa30f7ab3a9101c36f8654ce58a64c80d3f61d50f93bee52f9d"
+        },
+        "5": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "1cb0615a415983e97ac03696cc3eec99de01df055bd2739e7f80cb537fe13da2"
+        },
+        "6": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "11e63c407f67f450fd2f0ad614870ae3976761afb3de3485e171ec375b14e8d4"
+        },
+        "200": {
+          "valueBB": 1.5,
+          "rootResponse": "fold:",
+          "flop": false,
+          "showdown": false,
+          "heroLaterChips": 0,
+          "opponentLaterChips": 0,
+          "actions": 2,
+          "terminalStacks": [
+            202,
+            198
+          ],
+          "traceHash": "da44cb319e087253379e21dd423c4c19b01f8c0e27d6a66561c3fe83d342a9c1"
+        }
+      }
+    },
+    "failure": null,
+    "failedArm": null
+  }
+}
