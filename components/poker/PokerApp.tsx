@@ -16,6 +16,7 @@ import { useSettings } from "./useSettings";
 import { BotInformationModal } from "./BotInformationModal";
 import { selectedBot } from "./bot-information";
 import { SettingsModal } from "./SettingsModal";
+import { useHandAnnouncements } from "./useHandAnnouncements";
 import { useTurnNotifications } from "./useTurnNotifications";
 import { TableLoadingIndicator } from "./TableLoadingShell";
 import loadingStyles from "./TableLoadingShell.module.css";
@@ -99,6 +100,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   };
 
   const {
+    authoritativeRevision,
     game,
     unavailable,
     botCatalog,
@@ -145,6 +147,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     viewerToken,
   );
 
+  useHandAnnouncements(gameId, game, viewerToken, authoritativeRevision, loading || recoveryBlocked || creatingQuickPlay || unavailable, online);
   const turnNotification = useTurnNotifications(game, viewerToken, loading || recoveryBlocked || creatingQuickPlay || unavailable, online, settings.preferences.turnSound);
 
   const canStartNextHand = game ? tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost, game.poker.seats).canStartNextHand : false;

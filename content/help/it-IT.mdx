@@ -1,3 +1,4 @@
+import dictionary from "@/lib/i18n/dictionaries/game/it-IT";
 import { InlineCardExample } from "@/components/poker/InlineCardExample";
 
 export const title = "Aiuto del gioco";
@@ -10,17 +11,17 @@ Seleziona il nome di un bot al tavolo per tipo e impostazioni. La partita contin
 
 Usa le migliori cinque carte tra le tue due carte private e le cinque comuni. Dalla più forte alla più debole:
 
-1. **Scala colore: cinque carte consecutive dello stesso seme** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
-2. **Poker: quattro carte dello stesso valore** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
-3. **Full: un tris e una coppia** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
-4. **Colore: cinque carte dello stesso seme** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
-5. **Scala: cinque valori consecutivi** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
-6. **Tris: tre carte dello stesso valore** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
-7. **Doppia coppia: due coppie diverse** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
-8. **Coppia: due carte dello stesso valore** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
-9. **Carta alta: nessuna combinazione precedente** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
+1. **Scala colore: cinque carte consecutive dello stesso seme** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **Poker: quattro carte dello stesso valore** — <InlineCardExample labels={dictionary.cards} cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **Full: un tris e una coppia** — <InlineCardExample labels={dictionary.cards} cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **Colore: cinque carte dello stesso seme** — <InlineCardExample labels={dictionary.cards} cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **Scala: cinque valori consecutivi** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **Tris: tre carte dello stesso valore** — <InlineCardExample labels={dictionary.cards} cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **Doppia coppia: due coppie diverse** — <InlineCardExample labels={dictionary.cards} cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **Coppia: due carte dello stesso valore** — <InlineCardExample labels={dictionary.cards} cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **Carta alta: nessuna combinazione precedente** — <InlineCardExample labels={dictionary.cards} cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-La scala reale è la scala colore più alta: <InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" /> (asso, re, donna, fante e dieci di picche). L’asso può anche essere basso in A–2–3–4–5. Valori maggiori e poi carte di spareggio decidono; mani identiche di cinque carte dividono il piatto. I semi non risolvono i pareggi. Simboli: <InlineCardExample cards="♠" /> picche, <InlineCardExample cards="♥" /> cuori, <InlineCardExample cards="♦" /> quadri, <InlineCardExample cards="♣" /> fiori. A = asso, K = re, Q = donna, J = fante.
+La scala reale è la scala colore più alta: <InlineCardExample labels={dictionary.cards} cards="A♠ K♠ Q♠ J♠ 10♠" /> (asso, re, donna, fante e dieci di picche). L’asso può anche essere basso in A–2–3–4–5. Valori maggiori e poi carte di spareggio decidono; mani identiche di cinque carte dividono il piatto. I semi non risolvono i pareggi. Simboli: <InlineCardExample labels={dictionary.cards} cards="♠" /> picche, <InlineCardExample labels={dictionary.cards} cards="♥" /> cuori, <InlineCardExample labels={dictionary.cards} cards="♦" /> quadri, <InlineCardExample labels={dictionary.cards} cards="♣" /> fiori. A = asso, K = re, Q = donna, J = fante.
 
 ## Nozioni di puntata
 

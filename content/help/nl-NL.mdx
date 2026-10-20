@@ -1,3 +1,4 @@
+import dictionary from "@/lib/i18n/dictionaries/game/nl-NL";
 import { InlineCardExample } from "@/components/poker/InlineCardExample";
 
 export const title = "Spelhulp";
@@ -10,17 +11,17 @@ Selecteer de botnaam aan tafel voor type en stoelinstellingen. Het spel gaat ook
 
 Gebruik de beste vijf kaarten uit je twee eigen kaarten en de vijf gemeenschappelijke kaarten. Van sterk naar zwak:
 
-1. **Straight flush: vijf opeenvolgende kaarten van dezelfde soort** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
-2. **Four of a kind: vier kaarten van dezelfde waarde** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
-3. **Full house: drie gelijke kaarten en een paar** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
-4. **Flush: vijf kaarten van dezelfde soort** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
-5. **Straight: vijf opeenvolgende waarden** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
-6. **Three of a kind: drie kaarten van dezelfde waarde** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
-7. **Twee paar: twee verschillende paren** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
-8. **Paar: twee kaarten van dezelfde waarde** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
-9. **Hoogste kaart: geen bovenstaande combinatie** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
+1. **Straight flush: vijf opeenvolgende kaarten van dezelfde soort** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **Four of a kind: vier kaarten van dezelfde waarde** — <InlineCardExample labels={dictionary.cards} cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **Full house: drie gelijke kaarten en een paar** — <InlineCardExample labels={dictionary.cards} cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **Flush: vijf kaarten van dezelfde soort** — <InlineCardExample labels={dictionary.cards} cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **Straight: vijf opeenvolgende waarden** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **Three of a kind: drie kaarten van dezelfde waarde** — <InlineCardExample labels={dictionary.cards} cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **Twee paar: twee verschillende paren** — <InlineCardExample labels={dictionary.cards} cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **Paar: twee kaarten van dezelfde waarde** — <InlineCardExample labels={dictionary.cards} cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **Hoogste kaart: geen bovenstaande combinatie** — <InlineCardExample labels={dictionary.cards} cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-Een royal flush is de hoogste straight flush: <InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" /> (aas, heer, vrouw, boer en tien van schoppen). De aas kan ook laag zijn in A–2–3–4–5. Hogere waarden en daarna bijkaarten beslissen; identieke beste handen van vijf kaarten delen de pot. Kaartsoorten beslissen geen gelijkspel. Symbolen: <InlineCardExample cards="♠" /> schoppen, <InlineCardExample cards="♥" /> harten, <InlineCardExample cards="♦" /> ruiten, <InlineCardExample cards="♣" /> klaveren. A = aas, K = heer, Q = vrouw, J = boer.
+Een royal flush is de hoogste straight flush: <InlineCardExample labels={dictionary.cards} cards="A♠ K♠ Q♠ J♠ 10♠" /> (aas, heer, vrouw, boer en tien van schoppen). De aas kan ook laag zijn in A–2–3–4–5. Hogere waarden en daarna bijkaarten beslissen; identieke beste handen van vijf kaarten delen de pot. Kaartsoorten beslissen geen gelijkspel. Symbolen: <InlineCardExample labels={dictionary.cards} cards="♠" /> schoppen, <InlineCardExample labels={dictionary.cards} cards="♥" /> harten, <InlineCardExample labels={dictionary.cards} cards="♦" /> ruiten, <InlineCardExample labels={dictionary.cards} cards="♣" /> klaveren. A = aas, K = heer, Q = vrouw, J = boer.
 
 ## Basis van inzetten
 

@@ -48,6 +48,7 @@ export function useGameSession(gameId?: string) {
   const [unavailableId, setUnavailableId] = useState<string | null>(null);
   const unavailable = unavailableId === gameId;
   const unavailableGameId = useRef<string | null>(null);
+  const [authoritativeRevision, setAuthoritativeRevision] = useState(0);
   const [game, setGame] = useState<Game | null>(null);
   const { feed, refreshFeed } = useGameFeed(gameId);
   const [loading, setLoading] = useState(false);
@@ -111,7 +112,10 @@ export function useGameSession(gameId?: string) {
         sequence,
       );
       lastAppliedResponse.current = reconciled.applied;
-      if (reconciled.applied.sequence === sequence) observeTurnClock(reconciled.game);
+      if (reconciled.applied.sequence === sequence) {
+        observeTurnClock(reconciled.game);
+        setAuthoritativeRevision(value => value + 1);
+      }
       latestGame.current = reconciled.game;
       botLifecycle.current?.reconcile(reconciled.game);
       setGame(reconciled.game);
@@ -461,6 +465,7 @@ export function useGameSession(gameId?: string) {
   }, []);
 
   return {
+    authoritativeRevision,
     online,
     botCatalog,
     diagnostics,

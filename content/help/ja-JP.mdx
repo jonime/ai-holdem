@@ -1,3 +1,4 @@
+import dictionary from "@/lib/i18n/dictionaries/game/ja-JP";
 import { InlineCardExample } from "@/components/poker/InlineCardExample";
 
 export const title = "ゲームヘルプ";
@@ -10,17 +11,17 @@ export const title = "ゲームヘルプ";
 
 自分のホールカード2枚と共通カード5枚から、最も強い5枚を選びます。強い順に：
 
-1. **ストレートフラッシュ：同じスートの連続する5枚** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
-2. **フォーカード：同じランクの4枚** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
-3. **フルハウス：スリーカードとペア** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
-4. **フラッシュ：同じスートの5枚** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
-5. **ストレート：連続するランクの5枚** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
-6. **スリーカード：同じランクの3枚** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
-7. **ツーペア：異なる2組のペア** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
-8. **ワンペア：同じランクの2枚** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
-9. **ハイカード：上記の役がない手** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
+1. **ストレートフラッシュ：同じスートの連続する5枚** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **フォーカード：同じランクの4枚** — <InlineCardExample labels={dictionary.cards} cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **フルハウス：スリーカードとペア** — <InlineCardExample labels={dictionary.cards} cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **フラッシュ：同じスートの5枚** — <InlineCardExample labels={dictionary.cards} cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **ストレート：連続するランクの5枚** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **スリーカード：同じランクの3枚** — <InlineCardExample labels={dictionary.cards} cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **ツーペア：異なる2組のペア** — <InlineCardExample labels={dictionary.cards} cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **ワンペア：同じランクの2枚** — <InlineCardExample labels={dictionary.cards} cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **ハイカード：上記の役がない手** — <InlineCardExample labels={dictionary.cards} cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-ロイヤルフラッシュは最上位のストレートフラッシュです：<InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" />（スペードのエース、キング、クイーン、ジャック、10）。AはA–2–3–4–5では低いカードにもなります。高いランク、続いて残りのカード（キッカー）で比較し、最良の5枚が同じ強さならポットを分けます。スートで勝敗は決まりません。記号：<InlineCardExample cards="♠" /> スペード、<InlineCardExample cards="♥" /> ハート、<InlineCardExample cards="♦" /> ダイヤ、<InlineCardExample cards="♣" /> クラブ。A = エース、K = キング、Q = クイーン、J = ジャック。
+ロイヤルフラッシュは最上位のストレートフラッシュです：<InlineCardExample labels={dictionary.cards} cards="A♠ K♠ Q♠ J♠ 10♠" />（スペードのエース、キング、クイーン、ジャック、10）。AはA–2–3–4–5では低いカードにもなります。高いランク、続いて残りのカード（キッカー）で比較し、最良の5枚が同じ強さならポットを分けます。スートで勝敗は決まりません。記号：<InlineCardExample labels={dictionary.cards} cards="♠" /> スペード、<InlineCardExample labels={dictionary.cards} cards="♥" /> ハート、<InlineCardExample labels={dictionary.cards} cards="♦" /> ダイヤ、<InlineCardExample labels={dictionary.cards} cards="♣" /> クラブ。A = エース、K = キング、Q = クイーン、J = ジャック。
 
 ## ベットの基本
 

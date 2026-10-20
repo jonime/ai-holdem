@@ -1,3 +1,4 @@
+import { scanAccessibility } from "./accessibility";
 import { completed } from "./replay-fixtures";
 import { expect, test, type Page } from "./fixtures";
 import { replayResponseSchema } from "../../lib/http/replay-contracts";
@@ -12,6 +13,7 @@ async function refresh(page: Page) {
 test("reviews persisted hands from Actions, with private cards, manual navigation and mobile history return", { tag: "@ui-regression" }, async ({ page, browser }) => {
   const f = await completed(browser,page);
   try {
+    await scanAccessibility(page, "completed-results");
     const response = await page.request.get(`/api/games/${f.id}/hands/1/replay`);
     expect(response.headers()["cache-control"]).toBe("private, no-store");
     const { replay } = replayResponseSchema.parse(await response.json());
@@ -26,6 +28,12 @@ test("reviews persisted hands from Actions, with private cards, manual navigatio
       await page.keyboard.press(key);
       expect(await dialog(page).evaluate(node => node.contains(document.activeElement) || document.activeElement === document.body)).toBe(true);
     }
+    await scanAccessibility(page, "replay-dialog");
+    await page.setViewportSize({ width: 375, height: 812 });
+    await scanAccessibility(page, "replay-dialog-mobile");
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await expect(dialog(page).locator("[data-hand-announcement]")).toHaveCount(1);
+    await expect(dialog(page).getByRole("img", { name: "Hidden card", exact: true })).toHaveCount(2);
     await expect(dialog(page).getByRole("button", { name: "Previous", exact: true })).toBeDisabled();
     await expect(dialog(page).getByRole("button", { name: "Flop", exact: true })).toBeDisabled();
     const geometry = () => dialog(page).locator('[class*="table"]').evaluate(node => ({
@@ -46,6 +54,7 @@ test("reviews persisted hands from Actions, with private cards, manual navigatio
     await page.keyboard.press("ArrowRight");
     expect(await geometry()).toEqual(initialGeometry);
     await expect(dialog(page)).toContainText("1/1:");
+    await expect(dialog(page).locator("[data-replay-announcement]")).toContainText("folds");
     await expect(dialog(page)).not.toContainText("Last actor:");
     await expect(dialog(page)).not.toContainText("Next to act:");
     await dialog(page).getByRole("button", { name: "Result", exact: true }).click();
@@ -102,7 +111,7 @@ test("reviews persisted hands from Actions, with private cards, manual navigatio
     await page.reload();
     await page.setViewportSize({ width: 375, height: 812 });
     // Close desktop preference then open mobile Actions through the shared toggle.
-    const toggle = page.getByRole("button", { name: /^(Expand|Collapse) actions panel$/ });
+    const toggle = page.getByRole("button", { name: /(Expand|Collapse) actions panel$/ });
     await toggle.click();
     const actions = page.getByRole("dialog", { name: "Actions", exact: true });
     await expect(actions).toBeVisible();
@@ -173,8 +182,10 @@ test("replay loading and retry stay isolated while a live timed turn arrives; la
     }
     live = await f.read(); expect(live.poker.currentActorId).toBe(f.ownerId);
     await refresh(page);
-    await expect(dialog(page).getByRole("status").filter({ hasText: "Your turn" })).toBeVisible();
+    await expect(dialog(page).locator("[data-replay-turn-warning]")).toBeVisible();
+    await expect(dialog(page).locator("[data-hand-announcement]")).toContainText("Your turn.");
     await expect(dialog(page).locator("[data-turn-countdown]")).toBeVisible();
+    await expect(dialog(page).getByRole("timer")).toHaveAttribute("aria-live", "off");
     await expect(dialog(page).locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame",selected!);
     await dialog(page).getByRole("button", { name: "Close", exact: true }).click();
     await expect(page.getByRole("button", { name: "Fold", exact: true })).toBeEnabled();

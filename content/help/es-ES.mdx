@@ -1,3 +1,4 @@
+import dictionary from "@/lib/i18n/dictionaries/game/es-ES";
 import { InlineCardExample } from "@/components/poker/InlineCardExample";
 
 export const title = "Ayuda del juego";
@@ -10,17 +11,17 @@ Selecciona el nombre de un bot en la mesa para ver su tipo y ajustes. La partida
 
 Forma la mejor mano de cinco cartas con tus dos cartas privadas y las cinco comunitarias. De mayor a menor:
 
-1. **Escalera de color: cinco cartas consecutivas del mismo palo** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
-2. **Póquer: cuatro cartas del mismo valor** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
-3. **Full: trío y pareja** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
-4. **Color: cinco cartas del mismo palo** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
-5. **Escalera: cinco valores consecutivos** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
-6. **Trío: tres cartas del mismo valor** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
-7. **Doble pareja: dos parejas distintas** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
-8. **Pareja: dos cartas del mismo valor** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
-9. **Carta alta: ninguna combinación anterior** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
+1. **Escalera de color: cinco cartas consecutivas del mismo palo** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **Póquer: cuatro cartas del mismo valor** — <InlineCardExample labels={dictionary.cards} cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **Full: trío y pareja** — <InlineCardExample labels={dictionary.cards} cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **Color: cinco cartas del mismo palo** — <InlineCardExample labels={dictionary.cards} cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **Escalera: cinco valores consecutivos** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **Trío: tres cartas del mismo valor** — <InlineCardExample labels={dictionary.cards} cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **Doble pareja: dos parejas distintas** — <InlineCardExample labels={dictionary.cards} cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **Pareja: dos cartas del mismo valor** — <InlineCardExample labels={dictionary.cards} cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **Carta alta: ninguna combinación anterior** — <InlineCardExample labels={dictionary.cards} cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-La escalera real es la escalera de color más alta: <InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" /> (as, rey, reina, jota y diez de picas). El as también puede ser bajo en A–2–3–4–5. Los valores mayores y después las cartas de desempate deciden; manos idénticas de cinco cartas reparten el bote. Los palos no desempatan. Símbolos: <InlineCardExample cards="♠" /> picas, <InlineCardExample cards="♥" /> corazones, <InlineCardExample cards="♦" /> diamantes, <InlineCardExample cards="♣" /> tréboles. A = as, K = rey, Q = reina, J = jota.
+La escalera real es la escalera de color más alta: <InlineCardExample labels={dictionary.cards} cards="A♠ K♠ Q♠ J♠ 10♠" /> (as, rey, reina, jota y diez de picas). El as también puede ser bajo en A–2–3–4–5. Los valores mayores y después las cartas de desempate deciden; manos idénticas de cinco cartas reparten el bote. Los palos no desempatan. Símbolos: <InlineCardExample labels={dictionary.cards} cards="♠" /> picas, <InlineCardExample labels={dictionary.cards} cards="♥" /> corazones, <InlineCardExample labels={dictionary.cards} cards="♦" /> diamantes, <InlineCardExample labels={dictionary.cards} cards="♣" /> tréboles. A = as, K = rey, Q = reina, J = jota.
 
 ## Conceptos básicos de apuestas
 

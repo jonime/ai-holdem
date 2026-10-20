@@ -30,20 +30,21 @@ describe("localized Help documents", () => {
   it.each(SUPPORTED_LOCALES)("compiles a complete %s document with correctly ranked five-card examples", async locale => {
     const source = await readFile(new URL(`../../content/help/${locale}.mdx`, import.meta.url), "utf8");
     const componentImport = 'import { InlineCardExample } from "@/components/poker/InlineCardExample";';
-    expect(source.split("\n").filter(line => line.startsWith("import "))).toEqual([componentImport]);
-    const document = await evaluate(source.replace(componentImport, ""), runtime);
+    const dictionaryImport = `import dictionary from "@/lib/i18n/dictionaries/game/${locale}";`;
+    expect(source.split("\n").filter(line => line.startsWith("import "))).toEqual([dictionaryImport, componentImport]);
+    const dictionary = await getGameDictionary(locale);
+    const document = await evaluate(source.replace(componentImport, "").replace(dictionaryImport, "").replaceAll("dictionary.cards", JSON.stringify(dictionary.cards)), runtime);
     expect(typeof document.title).toBe("string");
     expect(document.title).not.toBe("");
     if (locale !== "en-US") expect(document.title).not.toBe("Game help");
     const html = renderToStaticMarkup(createElement(document.default, { components: { InlineCardExample } }));
-    const dictionary = await getGameDictionary(locale);
     expect([...html.matchAll(/<h2>(.*?)<\/h2>/g)].map(match => match[1])).toEqual([...sections[locale], dictionary.sharing.title]);
     expect(html).toContain("<ol>");
     expect(html).not.toContain("<table");
     expect(html.match(/data-card-example/g)).toHaveLength(14);
     for (const suit of ["s", "h", "d", "c"]) expect(html).toContain(`data-suit="${suit}"`);
     expect(source).not.toContain("use client");
-    const examples = [...source.matchAll(/^\d+\. .*?<InlineCardExample cards="([^"]+)"/gm)];
+    const examples = [...source.matchAll(/^\d+\. .*?<InlineCardExample labels={dictionary.cards} cards="([^"]+)"/gm)];
     expect(examples).toHaveLength(categories.length);
     examples.forEach((match, index) => {
       const cards = match[1].split(" ");

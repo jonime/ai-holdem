@@ -1,3 +1,4 @@
+import dictionary from "@/lib/i18n/dictionaries/game/fi-FI";
 import { InlineCardExample } from "@/components/poker/InlineCardExample";
 
 export const title = "Pelin ohje";
@@ -10,17 +11,17 @@ Valitse botin nimi pöydässä nähdäksesi sen tyypin ja paikan asetukset. Peli
 
 Muodosta paras viiden kortin käsi kahdesta taskukortistasi ja viidestä yhteisestä kortista. Vahvimmasta heikoimpaan:
 
-1. **Värisuora: viisi peräkkäistä korttia samaa maata** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
-2. **Neloset: neljä samanarvoista korttia** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
-3. **Täyskäsi: kolmoset ja pari** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
-4. **Väri: viisi korttia samaa maata** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
-5. **Suora: viisi peräkkäistä arvoa** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
-6. **Kolmoset: kolme samanarvoista korttia** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
-7. **Kaksi paria: kaksi eri paria** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
-8. **Pari: kaksi samanarvoista korttia** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
-9. **Korkein kortti: ei yllä mainittuja yhdistelmiä** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
+1. **Värisuora: viisi peräkkäistä korttia samaa maata** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **Neloset: neljä samanarvoista korttia** — <InlineCardExample labels={dictionary.cards} cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **Täyskäsi: kolmoset ja pari** — <InlineCardExample labels={dictionary.cards} cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **Väri: viisi korttia samaa maata** — <InlineCardExample labels={dictionary.cards} cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **Suora: viisi peräkkäistä arvoa** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **Kolmoset: kolme samanarvoista korttia** — <InlineCardExample labels={dictionary.cards} cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **Kaksi paria: kaksi eri paria** — <InlineCardExample labels={dictionary.cards} cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **Pari: kaksi samanarvoista korttia** — <InlineCardExample labels={dictionary.cards} cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **Korkein kortti: ei yllä mainittuja yhdistelmiä** — <InlineCardExample labels={dictionary.cards} cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-Kuningasvärisuora on korkein värisuora: <InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" /> (pataässä, -kuningas, -rouva, -jätkä ja -kymppi). Ässä voi olla myös pieni suorassa A–2–3–4–5. Suuremmat arvot ja sitten sivukortit ratkaisevat tasatilanteen; samat parhaat viisi korttia jakavat potin. Maat eivät ratkaise tasapeliä. Merkit: <InlineCardExample cards="♠" /> pata, <InlineCardExample cards="♥" /> hertta, <InlineCardExample cards="♦" /> ruutu, <InlineCardExample cards="♣" /> risti. A = ässä, K = kuningas, Q = rouva, J = jätkä.
+Kuningasvärisuora on korkein värisuora: <InlineCardExample labels={dictionary.cards} cards="A♠ K♠ Q♠ J♠ 10♠" /> (pataässä, -kuningas, -rouva, -jätkä ja -kymppi). Ässä voi olla myös pieni suorassa A–2–3–4–5. Suuremmat arvot ja sitten sivukortit ratkaisevat tasatilanteen; samat parhaat viisi korttia jakavat potin. Maat eivät ratkaise tasapeliä. Merkit: <InlineCardExample labels={dictionary.cards} cards="♠" /> pata, <InlineCardExample labels={dictionary.cards} cards="♥" /> hertta, <InlineCardExample labels={dictionary.cards} cards="♦" /> ruutu, <InlineCardExample labels={dictionary.cards} cards="♣" /> risti. A = ässä, K = kuningas, Q = rouva, J = jätkä.
 
 ## Panostamisen perusteet
 

@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  accessibility: {"replayStep": "操作 {current} / {total}", "turn": "轮到你了。底池 {pot}。{availability}。可用操作：{actions}。", "checkAvailable": "可以过牌"},
   botInformation: {
     "open": "关于{name}",
     "title": "关于此机器人",

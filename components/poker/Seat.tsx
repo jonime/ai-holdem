@@ -76,7 +76,7 @@ export function Seat({
   }
 
   return (
-    <section
+    <section role="group" aria-label={player.name}
       className={`${styles.seat} ${isAi ? "" : styles.humanSeat} ${player.folded ? styles.foldedSeat : ""} ${isBusted ? styles.bustedSeat : ""} ${active ? styles.activeSeat : ""} ${winner ? styles.winnerSeat : ""}`}
     >
       <span className={styles.seatNumber}>{player.seat + 1}</span>
@@ -94,7 +94,8 @@ export function Seat({
         </span>
       ) : null}
       {countdown}
-      <strong>{formatChips(player.stack, locale)}</strong>
+      <strong><span className="sr-only">{t("replay.stack")}: </span>{formatChips(player.stack, locale)}</strong>
+      <span className="sr-only">{t("replay.bet")}: {formatChips(player.committedStreet, locale)}</span>
       {hasWagerBadge ? (
         <span className={styles.actionBadge}>
           {latestAction.action.toUpperCase()}{" "}

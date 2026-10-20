@@ -1238,6 +1238,89 @@ notifications are best effort: browsers may suspend tabs or block audio. Separat
 open game tabs can each sound. No permissions, push service, or background worker
 is used, and polling behavior is unchanged.
 
+## Accessibility verification for playing and reviewing a hand
+
+The production `@ui-regression` suite uses `@axe-core/playwright` through
+`test/e2e/accessibility.ts`, following [Playwright accessibility guidance](https://playwright.dev/docs/accessibility-testing).
+It scans Play entry, an actionable human turn, completed results, a replay dialog
+(including a 375 × 812 viewport), and standalone shared replay. WCAG 2 A/AA and
+2.1 A/AA tagged rules must have no violations; do not add exclusions or silently
+baseline failures. Scan JSON is attached to the existing Playwright report.
+These deterministic fixtures use the existing isolated runner, local Supabase,
+one Chromium worker, and disabled external providers. The browser matrix is unchanged.
+
+Run `nice -n 15 env VITEST_MAX_WORKERS=1 npm run check`, then
+`nice -n 15 env CIRCLE_NODE_TOTAL=1 RAYON_NUM_THREADS=1 npm run build` and
+`nice -n 15 env CIRCLE_NODE_TOTAL=1 RAYON_NUM_THREADS=1 npm run test:e2e:ui -- betting-controls.spec.ts hand-results-actions.spec.ts hand-replay.spec.ts shared-replay.spec.ts dialogs.spec.ts turn-notifications.spec.ts settings.spec.ts`.
+Use the existing local prerequisites and selection rules above. Preserve failure
+traces, screenshots, report attachments and sanitized logs. DOM live-region and
+focus assertions establish DOM behavior, not what a screen reader speaks.
+Automated checks supplement manual testing and do not establish full-site WCAG compliance.
+
+Manual checklist (record date, revision, OS/browser/assistive-technology versions,
+actual spoken text, duplicate or missing speech, focus behavior, and remaining issues):
+
+- Enter Play, create/join a game and take a turn using only the keyboard. Read
+  player groups, stacks, bets, dealer/blind roles, statuses and card image names.
+  Confirm hidden holdings announce only the localized “Hidden card”.
+- Verify initial and repeated same-street human turns announce once with pot,
+  check/call amount and legal action types. Adjust the slider/input: verify names,
+  bounds, values and exact action-button amounts without extra announcements.
+- Keep focus on a control across refreshes; verify no automatic focus jump.
+  Check Tab/Shift+Tab and visible focus, including disabled navigation boundaries.
+- Open Help, Settings, Actions, replay and nested sharing dialogs during a live
+  turn. Confirm the announcement is available inside the active dialog, modal
+  changes do not replay it, shortcuts stay isolated and focus restores on close.
+  Review remains open until dismissed; retain the live Your turn warning and
+  use Close to return to the table.
+- Hide/return to the tab, go offline/online, and exercise request recovery and
+  expiry. No obsolete turn should be announced before a fresh authoritative read.
+- Finish a hand: hear a short awards/personal-net summary once, then read detailed
+  results normally. Navigate replay with buttons and arrows: hear action number,
+  actor/action, street changes and newly visible board cards without full stacks.
+  Confirm feed polling, reveals and countdown seconds do not repeat summaries.
+- Navigate away while a request is pending; no old announcement or focus movement.
+
+Automated record for this pass: `npm run check` passed 160 files / 2,252 tests;
+`npm run build` passed. The affected production UI run passed 26 tests, including
+all selected axe scans with zero violations. The final timer/replay/dialog/turn
+notification run passed 12 tests. The full UI report and scan attachments are
+retained in `integration-logs/accessibility-ui-full-report/`; the final focused
+report is in `playwright-report/`. Initial failure traces/screenshots are retained
+under `integration-logs/accessibility-first-run/` and `accessibility-second-run/`.
+
+Verification record, 2026-10-20: working-tree changes atop `c4b0730`, macOS
+26.6.2 (25G83), Safari 27.0, bundled VoiceOver 10. The local production build
+used local Supabase with external inference disabled.
+
+Safari native UI/accessibility-tree check: **performed**. Tab reached Quick Play
+and the real betting controls; Space submitted Fold. Help blocked the action
+shortcut and Escape restored Help focus. Review opened while a live human turn
+remained pending, retained its Your turn warning, accepted arrow navigation,
+blocked live action shortcuts, and restored the Review opener on Escape. Visible
+cards exposed image names, hidden cards only “Hidden card”, and seats exposed
+player groups, stack/bet text and dealer/blind names. These observations are
+native accessibility-tree and keyboard behavior, not proof of speech.
+
+Observed accessibility-tree messages included “Your turn. Pot 150. Call 100.
+Available actions: Fold, Call, Raise.”, “Complete. Equity Rules #2 wins 400.
+You broke even this hand”, and “Action 1 of 14. Equity Rules #3 folds”.
+
+VoiceOver/Safari spoken-output verification: **not completed**. Native Safari
+initially timed out, then connected on retry. VoiceOver Utility and its caption
+setting were reachable, but actual VoiceOver speech/caption output could not be
+reliably observed through the control surface. No spoken announcements are claimed.
+VoiceOver was turned off after the attempt; its caption preference was left at the
+value first observed in the utility. Complete the screen-reader checklist above
+with audible or reliably captured output before calling manual verification complete.
+Remaining manual questions include announcement delivery/order, duplicate speech,
+return-from-hidden freshness and native screen-reader slider behavior. The temporary
+Safari verification server and tab were closed; the local stack was preserved.
+NVDA/Firefox on Windows: **not performed**, follow-up checklist above.
+Physical-iPhone Safari with VoiceOver: **not performed**, follow-up checklist above
+plus the existing physical-device checklist. Playwright WebKit emulation does not
+replace either manual screen-reader check.
+
 ## In-game Settings
 
 The header offers Help, Settings, and Leave table/Lobby. Settings uses the shared

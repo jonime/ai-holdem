@@ -1,6 +1,7 @@
 import "server-only";
 
 const dictionary = {
+  accessibility: {"replayStep": "Action {current} of {total}", "turn": "Your turn. Pot {pot}. {availability}. Available actions: {actions}.", "checkAvailable": "Check available"},
   botInformation: {
     "open": "About {name}",
     "title": "About this bot",

@@ -1,3 +1,4 @@
+import dictionary from "@/lib/i18n/dictionaries/game/sv-SE";
 import { InlineCardExample } from "@/components/poker/InlineCardExample";
 
 export const title = "Spelhjälp";
@@ -10,17 +11,17 @@ Välj botens namn vid bordet för typ och platsinställningar. Spelet fortsätte
 
 Använd de bästa fem korten av dina två hålkort och de fem gemensamma korten. Starkast till svagast:
 
-1. **Färgstege: fem kort i följd av samma färg** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
-2. **Fyrtal: fyra kort av samma valör** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
-3. **Kåk: triss och par** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
-4. **Färg: fem kort av samma färg** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
-5. **Stege: fem valörer i följd** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
-6. **Triss: tre kort av samma valör** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
-7. **Tvåpar: två olika par** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
-8. **Par: två kort av samma valör** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
-9. **Högt kort: ingen kombination ovan** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
+1. **Färgstege: fem kort i följd av samma färg** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **Fyrtal: fyra kort av samma valör** — <InlineCardExample labels={dictionary.cards} cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **Kåk: triss och par** — <InlineCardExample labels={dictionary.cards} cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **Färg: fem kort av samma färg** — <InlineCardExample labels={dictionary.cards} cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **Stege: fem valörer i följd** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **Triss: tre kort av samma valör** — <InlineCardExample labels={dictionary.cards} cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **Tvåpar: två olika par** — <InlineCardExample labels={dictionary.cards} cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **Par: två kort av samma valör** — <InlineCardExample labels={dictionary.cards} cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **Högt kort: ingen kombination ovan** — <InlineCardExample labels={dictionary.cards} cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-Royal flush är den högsta färgstegen: <InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" /> (ess, kung, dam, knekt och tia i spader). Ess kan också vara lågt i A–2–3–4–5. Högre valörer och sedan sidokort avgör; identiska bästa femkortshänder delar potten. Färger avgör inte lika händer. Symboler: <InlineCardExample cards="♠" /> spader, <InlineCardExample cards="♥" /> hjärter, <InlineCardExample cards="♦" /> ruter, <InlineCardExample cards="♣" /> klöver. A = ess, K = kung, Q = dam, J = knekt.
+Royal flush är den högsta färgstegen: <InlineCardExample labels={dictionary.cards} cards="A♠ K♠ Q♠ J♠ 10♠" /> (ess, kung, dam, knekt och tia i spader). Ess kan också vara lågt i A–2–3–4–5. Högre valörer och sedan sidokort avgör; identiska bästa femkortshänder delar potten. Färger avgör inte lika händer. Symboler: <InlineCardExample labels={dictionary.cards} cards="♠" /> spader, <InlineCardExample labels={dictionary.cards} cards="♥" /> hjärter, <InlineCardExample labels={dictionary.cards} cards="♦" /> ruter, <InlineCardExample labels={dictionary.cards} cards="♣" /> klöver. A = ess, K = kung, Q = dam, J = knekt.
 
 ## Grunder för satsningar
 

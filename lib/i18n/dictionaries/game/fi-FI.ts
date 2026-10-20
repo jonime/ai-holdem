@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  accessibility: {"replayStep": "Toiminto {current}/{total}", "turn": "Sinun vuorosi. Potti {pot}. {availability}. Toiminnot: {actions}.", "checkAvailable": "Sökö mahdollinen"},
   botInformation: {
     "open": "Tietoja botista {name}",
     "title": "Tietoja tästä botista",

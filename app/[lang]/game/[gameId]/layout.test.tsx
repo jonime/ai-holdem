@@ -61,6 +61,7 @@ import { useI18n } from "@/components/poker/I18nProvider";
 import { GameI18nBoundary, metadata } from "./layout";
 
 const gameTopLevelKeys = [
+  "accessibility",
   "actions",
   "botInformation",
   "cards",

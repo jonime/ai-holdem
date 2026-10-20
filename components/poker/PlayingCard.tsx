@@ -1,3 +1,4 @@
+import { CardImage } from "./CardImage";
 import suitStyles from "./SuitColour.module.css";
 import Image from "next/image";
 import logo from "@/public/ai-holdem-logo.png";
@@ -17,7 +18,7 @@ export function PlayingCard({
   const { dictionary, t } = useI18n();
   if (hidden) {
     return (
-      <span
+      <CardImage
         className={`${styles.playingCard} ${styles.cardBack}`}
         data-playing-card
         aria-label={t("cards.hidden")}
@@ -30,7 +31,7 @@ export function PlayingCard({
           height={34}
           sizes="(max-width: 560px) 20px, 34px"
         />
-      </span>
+      </CardImage>
     );
   }
   if (!card) {
@@ -52,7 +53,7 @@ export function PlayingCard({
     s: "♠",
   };
   return (
-    <span
+    <CardImage
       className={`${styles.playingCard} ${suitStyles.suit} ${holeCard === true ? styles.holeCard : ""}`}
       data-playing-card
       data-suit={suit}
@@ -66,6 +67,6 @@ export function PlayingCard({
         <span className={styles.cardRank}>{rank}</span>
         <span className={styles.cardSuit}>{suitSymbol[suit]}</span>
       </span>
-    </span>
+    </CardImage>
   );
 }

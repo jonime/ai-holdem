@@ -1,3 +1,4 @@
+import dictionary from "@/lib/i18n/dictionaries/game/zh-Hans";
 import { InlineCardExample } from "@/components/poker/InlineCardExample";
 
 export const title = "游戏帮助";
@@ -10,17 +11,17 @@ export const title = "游戏帮助";
 
 从你的两张底牌和五张公共牌中选出最强的五张牌。由强到弱：
 
-1. **同花顺：同一花色的五张连续牌** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
-2. **四条：四张点数相同的牌** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
-3. **葫芦：三条加一对** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
-4. **同花：五张同一花色的牌** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
-5. **顺子：五张连续点数的牌** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
-6. **三条：三张点数相同的牌** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
-7. **两对：两组不同的对子** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
-8. **一对：两张点数相同的牌** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
-9. **高牌：不构成上述牌型** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
+1. **同花顺：同一花色的五张连续牌** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **四条：四张点数相同的牌** — <InlineCardExample labels={dictionary.cards} cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **葫芦：三条加一对** — <InlineCardExample labels={dictionary.cards} cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **同花：五张同一花色的牌** — <InlineCardExample labels={dictionary.cards} cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **顺子：五张连续点数的牌** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **三条：三张点数相同的牌** — <InlineCardExample labels={dictionary.cards} cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **两对：两组不同的对子** — <InlineCardExample labels={dictionary.cards} cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **一对：两张点数相同的牌** — <InlineCardExample labels={dictionary.cards} cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **高牌：不构成上述牌型** — <InlineCardExample labels={dictionary.cards} cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-皇家同花顺是最大的同花顺：<InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" />（黑桃A、K、Q、J和10）。A也可以在A–2–3–4–5中作小牌。先比较较大的点数，再比较剩余的牌（踢脚牌）；最强五张牌完全等大时平分底池。花色不用于打破平局。符号：<InlineCardExample cards="♠" /> 黑桃、<InlineCardExample cards="♥" /> 红桃、<InlineCardExample cards="♦" /> 方块、<InlineCardExample cards="♣" /> 梅花。A = A（可作最高点数或最小顺子的1），K = 国王，Q = 王后，J = 侍从。
+皇家同花顺是最大的同花顺：<InlineCardExample labels={dictionary.cards} cards="A♠ K♠ Q♠ J♠ 10♠" />（黑桃A、K、Q、J和10）。A也可以在A–2–3–4–5中作小牌。先比较较大的点数，再比较剩余的牌（踢脚牌）；最强五张牌完全等大时平分底池。花色不用于打破平局。符号：<InlineCardExample labels={dictionary.cards} cards="♠" /> 黑桃、<InlineCardExample labels={dictionary.cards} cards="♥" /> 红桃、<InlineCardExample labels={dictionary.cards} cards="♦" /> 方块、<InlineCardExample labels={dictionary.cards} cards="♣" /> 梅花。A = A（可作最高点数或最小顺子的1），K = 国王，Q = 王后，J = 侍从。
 
 ## 下注基础
 

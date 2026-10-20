@@ -16,5 +16,6 @@ export function SeatRoleBadge({ seat, dealerSeat, smallBlindSeat, bigBlindSeat }
       : seat === bigBlindSeat
         ? { label: dictionary.seat.bigBlindBadge, name: dictionary.seat.bigBlind, className: styles.bigBlindBadge }
         : null;
-  return role ? <span className={`${styles.roleBadge} ${role.className}`} title={role.name}>{role.label}</span> : null;
+  const names = [seat === dealerSeat ? dictionary.seat.dealer : null, seat === smallBlindSeat ? dictionary.seat.smallBlind : null, seat === bigBlindSeat ? dictionary.seat.bigBlind : null].filter(Boolean).join(", ");
+  return role ? <span className={`${styles.roleBadge} ${role.className}`} title={role.name}><span aria-hidden="true">{role.label}</span><span className="sr-only">{names}</span></span> : null;
 }

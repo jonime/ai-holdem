@@ -31,6 +31,6 @@ export function TurnCountdown({ game, announce = false, always = false }: { game
   </>;
   if (!urgent && !always) return null;
   const seconds = Math.ceil(remaining / 1000);
-  return <span data-turn-countdown className={styles.countdown}
+  return <span data-turn-countdown className={styles.countdown} role="timer" aria-live="off"
     aria-label={t("timer.countdown", { seconds })}>{seconds}</span>;
 }

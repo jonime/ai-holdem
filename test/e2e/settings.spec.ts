@@ -181,7 +181,7 @@ test("card colours persist and cover table, winning five, Actions and Help", { t
   const underline = await winning.locator('[data-hole-card="true"]').first().evaluate(n => getComputedStyle(n).borderBottom);
   const mobile = test.info().project.name === "webkit-mobile";
   if (!mobile) await page.setViewportSize({ width: 1280, height: 900 });
-  if (mobile) await page.getByRole("button", { name: /^(Collapse|Expand) actions panel$/ }).click();
+  if (mobile) await page.getByRole("button", { name: /(Collapse|Expand) actions panel$/ }).click();
   await inspect(page.getByRole(mobile ? "dialog" : "complementary", { name: "Actions", exact: true }));
   if (mobile) await page.keyboard.press("Escape");
   await page.screenshot({ path: test.info().outputPath("four-colour-table-results.png"), fullPage: true });
@@ -192,7 +192,7 @@ test("card colours persist and cover table, winning five, Actions and Help", { t
   await page.keyboard.press("Escape");
   if (!mobile) {
     await page.setViewportSize({ width: 375, height: 812 });
-    await page.getByRole("button", { name: /^(Collapse|Expand) actions panel$/ }).click();
+    await page.getByRole("button", { name: /(Collapse|Expand) actions panel$/ }).click();
     await inspect(page.getByRole("dialog", { name: "Actions", exact: true }));
     await page.screenshot({ path: test.info().outputPath("four-colour-actions-mobile.png") });
     await page.keyboard.press("Escape");
@@ -204,7 +204,7 @@ test("card colours persist and cover table, winning five, Actions and Help", { t
   expect(await winning.locator('[data-hole-card="true"]').first().evaluate(n => getComputedStyle(n).borderBottom)).toEqual(underline);
   await page.keyboard.press("Escape");
   await inspect(page.locator("main"), false);
-  await page.getByRole("button", { name: /^(Collapse|Expand) actions panel$/ }).click();
+  await page.getByRole("button", { name: /(Collapse|Expand) actions panel$/ }).click();
   await inspect(page.getByRole("dialog", { name: "Actions", exact: true }), false);
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Help", exact: true }).click(); await inspect(page.getByRole("dialog"), false);

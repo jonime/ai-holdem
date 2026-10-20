@@ -43,7 +43,7 @@ export function HandReplayModal({ gameId, handNumber, game, yourTurn, onClose, o
     <div className={styles.content}>
       <header className={styles.controls}><h2>{t("replay.title")} · {t("feed.hand", { hand: handNumber })}</h2>
         <div className={styles.headerActions}>
-          {yourTurn && game ? <span role="status" className={styles.turn}>{t("replay.yourTurn")} <TurnCountdown game={game} always /></span> : null}
+          {yourTurn && game ? <span data-replay-turn-warning className={styles.turn}>{t("replay.yourTurn")} <TurnCountdown game={game} always /></span> : null}
           {replay && canShare ? <Button ref={shareRef} onClick={() => setSharing(true)}>{t("sharing.open")}</Button> : null}
           <Button ref={closeRef} onClick={onClose}>{t("replay.close")}</Button>
         </div></header>

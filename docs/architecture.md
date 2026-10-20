@@ -918,3 +918,38 @@ labels from the landing-server dictionaries. Its public URL is centralized in
 `rel="noopener noreferrer"` keep the game tab open and suppress the referrer
 (including game URLs). The app loads no Tally script, iframe, or cookie and appends
 no player identity, game state, or tracking parameters to the form URL.
+
+
+## Hand accessibility announcements
+
+`useHandAnnouncements` owns a single polite, atomic region for turn and completion
+messages independently of audio/title notifications. `useGameSession` increments an
+internal accepted-response revision even when reconciliation retains the same game
+object. This is client observation metadata, not a game version or API field.
+Visibility and online transitions establish a freshness barrier: only a later
+accepted authoritative response can produce a message. Hidden, offline, pending,
+recovery-blocked, unavailable and expired decisions cannot produce turn messages.
+The hook clears its timer/listeners/region on route teardown and never moves focus.
+
+`hand-announcements.ts` identifies decisions from game/hand/street/actor, the
+server decision ID when present, legal actions, pot and authoritative player
+bets/stacks/fold/all-in state. Versions, overlays, slider drafts, countdown seconds
+and feed changes do not identify a decision. A consumed identity is not repeated
+when an overlay changes or recovery succeeds. Completion uses game/hand identity
+and public authoritative awards plus viewer net change, never feed data or holdings.
+Detailed results remain ordinary readable content outside broad live regions.
+
+The hook moves an empty region into the last open native dialog (including nested
+sharing), or back to the page, without replaying its consumed message. A new turn
+never closes replay. Replay has its own concise step region: action counter,
+actor/action, changed street and newly visible board cards. Inactive replay beneath
+a sharing dialog disables that region. Countdown seconds and adjustable bet output
+are not live announcements; the existing urgent countdown warning and errors remain.
+
+`CardImage` supplies shared image semantics to `PlayingCard` and server-rendered
+Help examples. Decorative children are hidden; placeholders stay hidden. Hidden
+cards take the hidden-name branch before reading a supplied card. All accessible
+card text uses the same filtered public cards as visual rendering. Help receives
+its localized card dictionary from its server-only MDX module. Occupied seats are
+named groups with readable stack/current-bet/role text; interactive bot controls
+remain separate controls. Descriptive replay content is not a Tab stop.

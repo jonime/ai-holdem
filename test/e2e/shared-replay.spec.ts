@@ -1,3 +1,4 @@
+import { scanAccessibility } from "./accessibility";
 import { expect, test, type Page } from "./fixtures";
 import { completed } from "./replay-fixtures";
 import { sharedReplaySchema } from "../../lib/http/share-contracts";
@@ -90,6 +91,7 @@ test("shares fixed snapshots, copies with fallback, plays without live activity 
     await expect(pageHeader.getByRole("link", { name: "AI Hold'em", exact: true })).toHaveAttribute("href", "/");
     await expect(visitor.getByRole("main").getByRole("link", { name: "Home", exact: true })).toHaveCount(0);
     await expect(visitor.locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame", "0");
+    await scanAccessibility(visitor, "shared-replay");
     // No click or programmatic focus: page-level arrows work immediately after load.
     expect(await visitor.evaluate(() => document.activeElement === document.body)).toBe(true);
     await visitor.keyboard.press("ArrowRight");

@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  accessibility: {"replayStep": "Ação {current} de {total}", "turn": "Sua vez. Pote {pot}. {availability}. Ações disponíveis: {actions}.", "checkAvailable": "Pode dar check"},
   botInformation: {
     "open": "Sobre {name}",
     "title": "Sobre este bot",

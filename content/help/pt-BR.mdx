@@ -1,3 +1,4 @@
+import dictionary from "@/lib/i18n/dictionaries/game/pt-BR";
 import { InlineCardExample } from "@/components/poker/InlineCardExample";
 
 export const title = "Ajuda do jogo";
@@ -10,17 +11,17 @@ Selecione o nome de um bot na mesa para ver tipo e configurações. O jogo conti
 
 Use as melhores cinco cartas entre suas duas cartas fechadas e as cinco comunitárias. Da mais forte à mais fraca:
 
-1. **Straight flush: cinco cartas consecutivas do mesmo naipe** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
-2. **Quadra: quatro cartas do mesmo valor** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
-3. **Full house: uma trinca e um par** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
-4. **Flush: cinco cartas do mesmo naipe** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
-5. **Sequência: cinco valores consecutivos** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
-6. **Trinca: três cartas do mesmo valor** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
-7. **Dois pares: dois pares diferentes** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
-8. **Par: duas cartas do mesmo valor** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
-9. **Carta alta: nenhuma combinação acima** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
+1. **Straight flush: cinco cartas consecutivas do mesmo naipe** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **Quadra: quatro cartas do mesmo valor** — <InlineCardExample labels={dictionary.cards} cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **Full house: uma trinca e um par** — <InlineCardExample labels={dictionary.cards} cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **Flush: cinco cartas do mesmo naipe** — <InlineCardExample labels={dictionary.cards} cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **Sequência: cinco valores consecutivos** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **Trinca: três cartas do mesmo valor** — <InlineCardExample labels={dictionary.cards} cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **Dois pares: dois pares diferentes** — <InlineCardExample labels={dictionary.cards} cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **Par: duas cartas do mesmo valor** — <InlineCardExample labels={dictionary.cards} cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **Carta alta: nenhuma combinação acima** — <InlineCardExample labels={dictionary.cards} cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-O royal flush é o straight flush mais alto: <InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" /> (ás, rei, dama, valete e dez de espadas). O ás também pode ser baixo em A–2–3–4–5. Valores maiores e depois as cartas de desempate decidem; mãos idênticas de cinco cartas dividem o pote. Naipes não desempatam mãos. Símbolos: <InlineCardExample cards="♠" /> espadas, <InlineCardExample cards="♥" /> copas, <InlineCardExample cards="♦" /> ouros, <InlineCardExample cards="♣" /> paus. A = ás, K = rei, Q = dama, J = valete.
+O royal flush é o straight flush mais alto: <InlineCardExample labels={dictionary.cards} cards="A♠ K♠ Q♠ J♠ 10♠" /> (ás, rei, dama, valete e dez de espadas). O ás também pode ser baixo em A–2–3–4–5. Valores maiores e depois as cartas de desempate decidem; mãos idênticas de cinco cartas dividem o pote. Naipes não desempatam mãos. Símbolos: <InlineCardExample labels={dictionary.cards} cards="♠" /> espadas, <InlineCardExample labels={dictionary.cards} cards="♥" /> copas, <InlineCardExample labels={dictionary.cards} cards="♦" /> ouros, <InlineCardExample labels={dictionary.cards} cards="♣" /> paus. A = ás, K = rei, Q = dama, J = valete.
 
 ## Noções básicas de apostas
 

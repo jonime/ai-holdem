@@ -8,7 +8,7 @@ import { TransportError } from "@/lib/http/api";
 // ownership effects. Network operations and lifecycle callbacks remain explicit.
 const h = vi.hoisted(() => ({ slots: [] as unknown[], index: 0, passive: [] as (() => void | (() => void))[], effects: [] as (() => void | (() => void))[], cleanups: [] as (() => void)[], push: vi.fn(), read: vi.fn(), settings: vi.fn(), start: vi.fn(), action: vi.fn(), release: vi.fn(), claim: vi.fn(), rename: vi.fn(), suspend: vi.fn() }));
 vi.mock("react", () => ({
-  useState: (initial: unknown) => { const i = h.index++; if (!(i in h.slots)) h.slots[i] = typeof initial === "function" ? initial() : initial; return [h.slots[i], (value: unknown) => { h.slots[i] = value; }]; },
+  useState: (initial: unknown) => { const i = h.index++; if (!(i in h.slots)) h.slots[i] = typeof initial === "function" ? initial() : initial; return [h.slots[i], (value: unknown) => { h.slots[i] = typeof value === "function" ? value(h.slots[i]) : value; }]; },
   useRef: (initial: unknown) => { const i = h.index++; if (!(i in h.slots)) h.slots[i] = { current: initial }; return h.slots[i]; },
   useCallback: (fn: unknown) => fn,
   useLayoutEffect: (fn: () => void | (() => void)) => { h.effects.push(fn); },
@@ -220,4 +220,17 @@ it("stale-session failure cannot install diagnostic details", async () => {
   const failure = new TransportError("network", "PRIVATE"); captureDiagnostic(failure, "games.submitAction");
   held.reject(failure); await work;
   expect(render().diagnostics).toEqual([]);
+});
+
+
+it("counts accepted identical reads for announcement freshness without changing game identity", async () => {
+  const first = await fixture();
+  expect(first.authoritativeRevision).toBe(1);
+  await first.loadGame(gameplayGame.id);
+  const refreshed = render();
+  expect(refreshed.game).toBe(first.game);
+  expect(refreshed.authoritativeRevision).toBe(2);
+  h.read.mockResolvedValueOnce({ game: { ...gameplayGame, version: gameplayGame.version - 1 } });
+  await refreshed.loadGame(gameplayGame.id);
+  expect(render().authoritativeRevision).toBe(2);
 });

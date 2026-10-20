@@ -1,3 +1,4 @@
+import dictionary from "@/lib/i18n/dictionaries/game/pl-PL";
 import { InlineCardExample } from "@/components/poker/InlineCardExample";
 
 export const title = "Pomoc w grze";
@@ -10,17 +11,17 @@ Wybierz nazwę bota przy stole, aby zobaczyć typ i ustawienia. Gra trwa także 
 
 Wybierz najlepsze pięć kart ze swoich dwóch kart własnych i pięciu wspólnych. Od najsilniejszego do najsłabszego:
 
-1. **Poker: pięć kolejnych kart w jednym kolorze** — <InlineCardExample cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
-2. **Kareta: cztery karty tej samej wartości** — <InlineCardExample cards="A♠ A♥ A♦ A♣ K♠" />.
-3. **Full: trójka i para** — <InlineCardExample cards="K♠ K♥ K♦ 2♣ 2♥" />.
-4. **Kolor: pięć kart w jednym kolorze** — <InlineCardExample cards="A♥ J♥ 8♥ 5♥ 2♥" />.
-5. **Strit: pięć kolejnych wartości** — <InlineCardExample cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
-6. **Trójka: trzy karty tej samej wartości** — <InlineCardExample cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
-7. **Dwie pary: dwie różne pary** — <InlineCardExample cards="J♠ J♥ 4♦ 4♣ A♥" />.
-8. **Para: dwie karty tej samej wartości** — <InlineCardExample cards="10♠ 10♥ A♦ 7♣ 3♥" />.
-9. **Wysoka karta: brak powyższych układów** — <InlineCardExample cards="A♠ J♥ 8♦ 5♣ 2♥" />.
+1. **Poker: pięć kolejnych kart w jednym kolorze** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♠ 7♠ 6♠ 5♠" />.
+2. **Kareta: cztery karty tej samej wartości** — <InlineCardExample labels={dictionary.cards} cards="A♠ A♥ A♦ A♣ K♠" />.
+3. **Full: trójka i para** — <InlineCardExample labels={dictionary.cards} cards="K♠ K♥ K♦ 2♣ 2♥" />.
+4. **Kolor: pięć kart w jednym kolorze** — <InlineCardExample labels={dictionary.cards} cards="A♥ J♥ 8♥ 5♥ 2♥" />.
+5. **Strit: pięć kolejnych wartości** — <InlineCardExample labels={dictionary.cards} cards="9♠ 8♥ 7♦ 6♣ 5♠" />.
+6. **Trójka: trzy karty tej samej wartości** — <InlineCardExample labels={dictionary.cards} cards="Q♠ Q♥ Q♦ 9♣ 2♥" />.
+7. **Dwie pary: dwie różne pary** — <InlineCardExample labels={dictionary.cards} cards="J♠ J♥ 4♦ 4♣ A♥" />.
+8. **Para: dwie karty tej samej wartości** — <InlineCardExample labels={dictionary.cards} cards="10♠ 10♥ A♦ 7♣ 3♥" />.
+9. **Wysoka karta: brak powyższych układów** — <InlineCardExample labels={dictionary.cards} cards="A♠ J♥ 8♦ 5♣ 2♥" />.
 
-Poker królewski to najwyższy poker: <InlineCardExample cards="A♠ K♠ Q♠ J♠ 10♠" /> (as, król, dama, walet i dziesiątka pik). As może być też niski w A–2–3–4–5. Wyższe wartości, a potem karty dodatkowe rozstrzygają remis; identyczne najlepsze układy pięciu kart dzielą pulę. Kolory nie rozstrzygają remisu. Symbole: <InlineCardExample cards="♠" /> pik, <InlineCardExample cards="♥" /> kier, <InlineCardExample cards="♦" /> karo, <InlineCardExample cards="♣" /> trefl. A = as, K = król, Q = dama, J = walet.
+Poker królewski to najwyższy poker: <InlineCardExample labels={dictionary.cards} cards="A♠ K♠ Q♠ J♠ 10♠" /> (as, król, dama, walet i dziesiątka pik). As może być też niski w A–2–3–4–5. Wyższe wartości, a potem karty dodatkowe rozstrzygają remis; identyczne najlepsze układy pięciu kart dzielą pulę. Kolory nie rozstrzygają remisu. Symbole: <InlineCardExample labels={dictionary.cards} cards="♠" /> pik, <InlineCardExample labels={dictionary.cards} cards="♥" /> kier, <InlineCardExample labels={dictionary.cards} cards="♦" /> karo, <InlineCardExample labels={dictionary.cards} cards="♣" /> trefl. A = as, K = król, Q = dama, J = walet.
 
 ## Podstawy licytacji
 

@@ -1,3 +1,4 @@
+import { scanAccessibility } from "./accessibility";
 import { createUITable } from "./ui-fixtures";
 import { expect, test, type Page } from "./fixtures";
 
@@ -19,6 +20,7 @@ test("synchronizes targets, validates edits, resets decisions, and fits mobile",
   test.setTimeout(90_000);
   await page.goto("/");
   await page.goto("/play");
+  await scanAccessibility(page, "play-entry");
   const gameId = await createUITable(page);
   await page.goto(`/game/${gameId}`);
   await expect(page).toHaveURL(/\/game\//);
@@ -35,6 +37,25 @@ test("synchronizes targets, validates edits, resets decisions, and fits mobile",
   const slider = page.getByRole("slider");
   await expect(input).toBeEnabled();
   await expect(input).toHaveValue("200");
+  await expect(slider).toHaveAccessibleName("Bet amount");
+  await expect(slider).toHaveAttribute("min", "200");
+  await expect(slider).toHaveAttribute("max", "10000");
+  await expect(page.getByRole("group", { name: "Player 1", exact: true })).toContainText("Stack:");
+  await expect(page.getByRole("img", { name: "Hidden card", exact: true })).toHaveCount(2);
+  const announcement = page.locator("[data-hand-announcement]");
+  await expect(announcement).toContainText("Your turn. Pot 150. Call 50.");
+  await page.evaluate(() => {
+    const node = document.querySelector("[data-hand-announcement]")!;
+    node.setAttribute("data-updates", "0");
+    new MutationObserver(records => {
+      node.setAttribute("data-updates", String(Number(node.getAttribute("data-updates")) + records.length));
+    }).observe(node, { childList: true, characterData: true, subtree: true });
+  });
+  await input.focus();
+  await scanAccessibility(page, "human-turn");
+  await expect(input).toBeFocused();
+  await input.press("Tab");
+  await expect(page.getByRole("button", { name: "50% pot", exact: true })).toBeFocused();
   await page.getByRole("button", { name: "50% pot", exact: true }).click();
   await expect(input).toHaveValue("200");
   await page.getByRole("button", { name: "75% pot", exact: true }).click();
@@ -105,6 +126,7 @@ test("synchronizes targets, validates edits, resets decisions, and fits mobile",
   await page.evaluate(() => window.dispatchEvent(new Event("focus")));
   await refetch;
   await expect(input).toHaveValue("525");
+  await expect(announcement).toHaveAttribute("data-updates", "0");
   for (const invalid of ["", "250.5", "-1", "10001", "9007199254740992"]) {
     await input.fill(invalid);
     await expect(page.getByRole("button", { name: "Raise to -", exact: true })).toBeDisabled();

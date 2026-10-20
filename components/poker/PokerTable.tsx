@@ -158,7 +158,7 @@ export function PokerTable({
             className={styles.feedToggle}
             onClick={event => onToggleFeed(event.currentTarget)}
             aria-pressed={!feedCollapsed}
-            aria-label={t(feedCollapsed ? "feed.expand" : "feed.collapse")}
+            aria-label={`${t(feedCollapsed ? "feed.title" : "feed.hide")} · ${t(feedCollapsed ? "feed.expand" : "feed.collapse")}`}
           >
             {t(feedCollapsed ? "feed.title" : "feed.hide")}
           </Button>
@@ -426,6 +426,7 @@ export function PokerTable({
               />
               <output
                 id="bet-addition"
+                aria-live="off"
                 className={styles.amountAddition}
                 htmlFor="bet-target"
                 aria-label={t("table.youAdd", {
@@ -465,7 +466,7 @@ export function PokerTable({
               </Button>
             </div>
           </div>
-          <div className={styles.resultOverlay} role="status" aria-live="polite" aria-atomic="true">
+          <div className={styles.resultOverlay}>
             <CompletedHandResult poker={game.poker} />
           </div>
         </div>

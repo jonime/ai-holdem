@@ -1,11 +1,11 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReplayData } from "@/lib/http/share-contracts";
 import { SeatRoleBadge } from "./SeatRoleBadge";
 import { PlayingCard } from "./PlayingCard";
 import { useI18n } from "./I18nProvider";
 import { Button } from "@/components/Button";
-import { formatChips } from "./view-model";
+import { cardLabel, formatChips } from "./view-model";
 import styles from "./HandReplayModal.module.css";
 import seatStyles from "./Seat.module.css";
 export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }: {
@@ -13,7 +13,14 @@ export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }
 }) {
   const { t, dictionary, locale } = useI18n();
   const contentRef = useRef<HTMLDivElement>(null);
-  const [index, setIndex] = useState(0);
+  const [position, setPosition] = useState({ index: 0, previousIndex: -1 });
+  const { index, previousIndex } = position;
+  const setIndex = useCallback((next: number | ((current: number) => number)) => {
+    setPosition(current => {
+      const index = typeof next === "function" ? next(current.index) : next;
+      return index === current.index ? current : { index, previousIndex: current.index };
+    });
+  }, []);
   const frameCount = replay.frames.length ?? 0;
   // Native dialogs may lose button focus when a boundary disables that button.
   // Standalone pages also accept neutral body focus before the first interaction.
@@ -38,7 +45,7 @@ export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }
     };
     window.addEventListener("keydown", navigate);
     return () => window.removeEventListener("keydown", navigate);
-  }, [frameCount, active, keyboardScope]);
+  }, [frameCount, active, keyboardScope, setIndex]);
   const frame = replay.frames[index];
   const name = (seat: number) => replay.participants.find(p => p.seat === seat)?.name ?? "";
   const lastAction = replay.frames.slice(0, index + 1).findLast(f => f.action)?.action;
@@ -55,7 +62,7 @@ export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }
     setIndex(next);
   };
   const move = (delta: number) => select(Math.max(0, Math.min(replay.frames.length - 1, index + delta)));
-  return <div ref={contentRef} tabIndex={0} aria-label={t("replay.title")}>
+  return <div ref={contentRef} tabIndex={-1} role="group" aria-label={t("replay.title")}>
       {frame ? <>
         <nav className={`${styles.controls} ${styles.streets}`} aria-label={t("replay.title")}>
           {(["preflop", "flop", "turn", "river", "complete"] as const).map(street => {
@@ -67,7 +74,7 @@ export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }
         <div className={styles.table} data-replay-frame={index}>
           <div className={styles.board}>{Array.from({ length: 5 }, (_, i) => <PlayingCard key={i} card={frame.board[i]} />)}</div>
           <strong>{t("replay.pot")}: {formatChips(frame.pot, locale)}</strong>
-          <div className={styles.players}>{frame.players.map(player => <article data-replay-folded={player.folded} key={player.seat} className={`${styles.player} ${(awards.get(player.seat) ?? 0) > 0 ? seatStyles.winnerSeat : ""}`} data-replay-winner={(awards.get(player.seat) ?? 0) > 0} data-last-actor={frame.kind !== "result" && lastAction?.actorSeat === player.seat}>
+          <div className={styles.players}>{frame.players.map(player => <article aria-label={name(player.seat)} data-replay-folded={player.folded} key={player.seat} className={`${styles.player} ${(awards.get(player.seat) ?? 0) > 0 ? seatStyles.winnerSeat : ""}`} data-replay-winner={(awards.get(player.seat) ?? 0) > 0} data-last-actor={frame.kind !== "result" && lastAction?.actorSeat === player.seat}>
             <strong className={styles.playerName}>{name(player.seat)}</strong>
             <SeatRoleBadge seat={player.seat} dealerSeat={replay.dealerSeat} smallBlindSeat={replay.smallBlindSeat} bigBlindSeat={replay.bigBlindSeat} />
             <div className={styles.cards}>{[0, 1].map(i => <PlayingCard key={i} card={player.cards?.[i]} hidden={!player.cards} />)}</div>
@@ -77,14 +84,19 @@ export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }
             <span data-replay-stack>{t("replay.stack")}: {formatChips(player.stack, locale)}</span>
             <span className={styles.playerStatus}>{player.folded ? t("seat.folded") : player.allIn ? t("seat.allIn") : ""}</span>
             {(awards.get(player.seat) ?? 0) > 0 ? <span className={`${seatStyles.seatStatus} ${styles.award}`}
-              data-replay-award aria-label={t("result.award", { player: name(player.seat), amount: formatChips(awards.get(player.seat) ?? 0, locale) })}
+              data-replay-award role="group" aria-label={t("result.award", { player: name(player.seat), amount: formatChips(awards.get(player.seat) ?? 0, locale) })}
               title={replay.pots.flatMap((pot, i) => pot.awards.filter(award => award.seat === player.seat && award.amount > 0)
                 .map(award => `${t("replay.pot")} ${i + 1}: ${formatChips(award.amount, locale)}`)).join(" · ")}>
               +{formatChips(awards.get(player.seat) ?? 0, locale)}
             </span> : null}
           </article>)}</div>
         </div>
-        <div aria-live="polite" aria-atomic="true" className={styles.description}>
+        <div className="sr-only" aria-live={active ? "polite" : "off"} aria-atomic="true" data-replay-announcement>
+          {t("accessibility.replayStep", { current: lastAction?.sequence ?? 0, total })}. {frame.action ? dictionary.feed[frame.action.type].replace("{player}", name(frame.action.actorSeat)).replace("{amount}", frame.action.amount === null ? "" : formatChips(frame.action.amount, locale)) : t(frame.kind === "result" ? "replay.result" : frame.kind === "start" ? "replay.start" : "replay.runout")}
+          {index === 0 || replay.frames[previousIndex]?.street !== frame.street ? ` ${frame.street === "complete" ? t("replay.result") : dictionary.feed[frame.street]}.` : ""}
+          {frame.board.filter(card => !replay.frames[previousIndex]?.board.includes(card)).map(card => cardLabel(card, dictionary.cards)).join(", ")}
+        </div>
+        <div className={styles.description}>
           <p><span className={styles.counter}>{t("replay.counter", { current: lastAction?.sequence ?? 0, total })}:</span>{" "}{frame.action ? dictionary.feed[frame.action.type].replace("{player}", name(frame.action.actorSeat)).replace("{amount}", frame.action.amount === null ? "" : formatChips(frame.action.amount, locale)) :
             t(frame.kind === "result" ? "replay.result" : frame.kind === "start" ? "replay.start" : "replay.runout")}</p>
         </div>

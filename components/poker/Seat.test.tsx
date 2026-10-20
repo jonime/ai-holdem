@@ -64,3 +64,13 @@ it("renders native bot dialog buttons while human names remain text", () => {
   expect(render({ controller: "bot", name: "Same", bot: null })).toMatch(/<button type="button"[^>]*>SAME<\/button>/);
   expect(render({ controller: "human", name: "Same" })).not.toContain('aria-haspopup="dialog"');
 });
+
+
+it("groups an occupied seat by player name while exposing stack, current bet and bot control", () => {
+  const html = render({ name: "Readable bot", controller: "bot" });
+  expect(html).toContain('role="group" aria-label="Readable bot"');
+  expect(html).toContain('class="sr-only">Stack: </span>');
+  expect(html).toContain('class="sr-only">Bet: ');
+  expect(html).toContain('aria-label="About Readable bot"');
+  expect(html).not.toContain('tabindex="0"');
+});
