@@ -11,6 +11,8 @@ if (existsSync(testEnvPath)) loadEnvFile(testEnvPath);
 
 export default defineConfig({
   test: {
+    // Evaluations can contain their own worker pools; keep outer execution serial.
+    maxWorkers: 1,
     include: ["benchmarks/**/*.benchmark.ts", "benchmarks/**/*.live.ts"],
     testTimeout: 120_000,
   },

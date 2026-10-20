@@ -136,8 +136,9 @@ Open [localhost:3001](http://localhost:3001).
 npm run check
 ```
 
-This runs ESLint, strict TypeScript checking, and Vitest without live Supabase
-or TypeSafe services. Also run `npm run build` for changes affecting routing,
+This runs ESLint, strict TypeScript checking, and application tests with two
+Vitest workers, without live Supabase or TypeSafe services. Benchmark regression
+tests run separately with `npm run test:benchmarks`. Also run `npm run build` for changes affecting routing,
 rendering, environment handling, or deployment behavior.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the contributor workflow, translations,

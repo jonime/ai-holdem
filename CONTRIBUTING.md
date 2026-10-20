@@ -22,15 +22,20 @@ Any change that weakens validation, privacy boundaries, migration safety, or ver
 ## Required checks
 
 For local agent runs, keep the host responsive: use `nice -n 15` for heavy
-commands, run them sequentially, and default to one worker (including nested
-benchmark pools). Never automatically use all available CPUs. Use
-`nice -n 15 env VITEST_MAX_WORKERS=1 npm run check` for the full check, or
-`nice -n 15 npm test -- --maxWorkers=1` for Vitest directly. Playwright already
-uses one worker. Inspect other runners and builds for supported concurrency
-controls before launching them; `nice` lowers scheduling priority but does not
-limit memory or worker counts. Preserve required coverage and frozen benchmark
-methodology. Higher local concurrency requires explicit user authorization.
-These local rules do not change CI's documented setup overlap.
+commands and run them sequentially. Application unit tests and benchmark
+regression tests default to two Vitest workers, a fixed cap independent of host
+CPU count. Use `nice -n 15 npm run check`; set `VITEST_MAX_WORKERS=1` to reduce
+concurrency. Playwright, database integration, full benchmark evaluations and
+nested benchmark pools retain their existing one-worker limits. Inspect other
+runners and builds for supported concurrency controls; `nice` lowers scheduling
+priority but does not limit memory or worker counts. Preserve frozen benchmark
+methodology. More than two unit-test workers or higher concurrency elsewhere
+requires explicit user authorization. These local rules do not change CI's
+documented setup overlap.
+
+During development, run focused tests with `npm test -- path/to/module.test.ts`.
+Run the full check after the final code changes before handoff; repeat it only
+when new changes or unresolved failures justify doing so.
 
 Run:
 
@@ -38,7 +43,22 @@ Run:
 npm run check
 ```
 
-This includes ESLint, strict TypeScript checking, and the Vitest suite.
+This includes ESLint, strict TypeScript checking, and application Vitest tests,
+including production bot regressions and the bounded poker simulation suite.
+It excludes benchmark harness/evidence tests under `benchmarks/`; those run with:
+
+```sh
+npm run test:benchmarks
+npm run test:benchmarks -- benchmarks/scenarios/scenarios.test.ts
+```
+
+Run them when changing benchmarks or their shared dependencies. CI keeps the
+application check/build and SQL/browser integration jobs on every PR. A separate
+Benchmark regression tests workflow runs for benchmark code/evidence, `lib/`,
+Vitest configuration, dependencies, TypeScript configuration, Node version or its
+own workflow changes; benchmark Markdown alone does not trigger it. It also
+supports manual dispatch. Full `benchmark:*` evaluations and paid inference
+remain opt-in. ESLint and TypeScript still check benchmark sources normally.
 
 For routing, rendering, deployment-facing, or environment-sensitive changes, also run:
 
@@ -728,8 +748,8 @@ groups. Filter a profile with `-t 'my-llm.*tight'`, or select an entire bot with
 `npm run test:bots -- -t 'equity-rules-v2'`. The same fixtures
 support opt-in live TypeSafe and configured LLM bots. See [scenario instructions](benchmarks/scenarios/README.md)
 for commands, costs, extending fixtures, and known failures. This evaluation
-returns nonzero for current bot weaknesses; fixture/grader tests run in ordinary
-`npm run check` without external services.
+returns nonzero for current bot weaknesses; fixture/grader tests run in
+`npm run test:benchmarks` without external services.
 
 Vitest automatically loads the optional root `.env.test` file for unit tests and
 benchmarks before collecting tests. Existing shell/CI variables take precedence;
@@ -1249,7 +1269,7 @@ baseline failures. Scan JSON is attached to the existing Playwright report.
 These deterministic fixtures use the existing isolated runner, local Supabase,
 one Chromium worker, and disabled external providers. The browser matrix is unchanged.
 
-Run `nice -n 15 env VITEST_MAX_WORKERS=1 npm run check`, then
+Run `nice -n 15 npm run check`, then
 `nice -n 15 env CIRCLE_NODE_TOTAL=1 RAYON_NUM_THREADS=1 npm run build` and
 `nice -n 15 env CIRCLE_NODE_TOTAL=1 RAYON_NUM_THREADS=1 npm run test:e2e:ui -- betting-controls.spec.ts hand-results-actions.spec.ts hand-replay.spec.ts shared-replay.spec.ts dialogs.spec.ts turn-notifications.spec.ts settings.spec.ts`.
 Use the existing local prerequisites and selection rules above. Preserve failure
@@ -1403,7 +1423,7 @@ promotion requires a later evidence-based plan.
 ### Explicit heads-up Jev evaluation
 
 Run `npm run benchmark:jev:heads-up` for frozen offline memory mechanics and
-`npx vitest run benchmarks/heads-up/reference.test.ts` for importer, sampling,
+`npm run test:benchmarks -- benchmarks/heads-up/reference.test.ts` for importer, sampling,
 matching, scoring, privacy, full-hand pairing and budget tests. Also run
 `npm run benchmark:poker-context`, offline `npm run test:bots` and `npm run check`.
 See [the source audit and protocol](benchmarks/heads-up/README.md). No chart source

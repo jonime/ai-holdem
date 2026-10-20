@@ -1,0 +1,36 @@
+name: Benchmark regression tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "benchmarks/**"
+      - "!benchmarks/**/*.md"
+      - "lib/**"
+      - "test/server-only.ts"
+      - "vitest*.ts"
+      - "package.json"
+      - "package-lock.json"
+      - ".nvmrc"
+      - "tsconfig.json"
+      - ".github/workflows/benchmark-tests.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: benchmark-tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run test:benchmarks

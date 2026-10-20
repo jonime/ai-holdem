@@ -37,6 +37,20 @@
 - [Game-state reads](game-reads.md): SQL verification, request counts, latency,
   and reveal query plans.
 
+## Regression tests versus evaluations
+
+`npm test` and `npm run check` run application regressions and exclude test files
+under `benchmarks/`. Run `npm run test:benchmarks` for these harness, experimental
+policy and saved-evidence regressions, or append a test-file path for a focused
+run. Both unit-test suites default to two workers. The path-filtered Benchmark
+regression tests CI workflow runs for benchmark code/evidence or shared `lib/`,
+configuration and dependency changes, and can be dispatched manually.
+
+Full `benchmark:*` evaluations remain separate and opt-in, with one outer Vitest
+worker and existing bounded nested pools. Run relevant regression tests whenever
+changing a benchmark or a shared dependency. Production bot regressions remain
+in the application suite even when they import benchmark fixture helpers.
+
 ## TypeSafe policy evaluation
 
 Run the deterministic, cost-free policy benchmark with seeded deals and each

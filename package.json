@@ -18,6 +18,7 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
+    "test:benchmarks": "vitest run --config vitest.benchmark-tests.config.ts",
     "benchmark:policy": "vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/typesafe-policy.benchmark.ts",
     "benchmark:typesafe:live": "TYPESAFE_LIVE_BENCHMARK=true vitest run --disableConsoleIntercept --config vitest.benchmark.config.ts benchmarks/typesafe-live.live.ts",
     "test:sql:game-reads": "node scripts/local-game-reads.mjs test",

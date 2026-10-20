@@ -81,12 +81,12 @@ earlier state.
   host remains responsive. Child processes inherit this lower priority.
 - Run only one heavy command at a time. Do not overlap builds, tests, benchmarks,
   or heavy setup tasks locally, including across agent work.
-- Default to one worker for test runners and benchmark pools; never automatically
-  use every available CPU/thread. Use supported worker/job limits for each tool,
-  including any nested worker pools. Keep Playwright at its existing one worker.
-  For Vitest use `--maxWorkers=1`, or `VITEST_MAX_WORKERS=1` for scripts that invoke
-  it indirectly. For example, run the full check as
-  `nice -n 15 env VITEST_MAX_WORKERS=1 npm run check`.
+- Ordinary Vitest application and benchmark-regression tests default to two workers
+  in their configs. Use `nice -n 15 npm run check`; optionally lower concurrency
+  with `VITEST_MAX_WORKERS=1`. Never automatically use every available CPU/thread.
+  Keep Playwright, database integration, full benchmark evaluations and nested
+  benchmark pools at their existing one-worker limits. Use supported limits for
+  other tools; two unit-test workers do not authorize overlapping heavy commands.
 - Inspect build/benchmark scripts for their own parallelism before launching
   them. If no supported concurrency limit exists, do not assume `nice` caps CPU
   or memory: arrange a bounded execution path before starting heavy work. Do not
@@ -96,8 +96,16 @@ earlier state.
 
 ## Required Checks
 
-Run `npm run check` after code changes. It runs ESLint, the strict TypeScript
-check, and the Vitest suite. Run `npm run build` for changes affecting Next.js
+During development, run focused tests for the modules being changed. Run
+`npm run check` once after the final code changes, before handoff; it runs ESLint,
+strict TypeScript checking, and application Vitest tests. Do not repeat passing
+full checks without new changes or unresolved failures. Benchmark harness/evidence
+regressions under `benchmarks/` are separate: run `npm run test:benchmarks` when
+changing benchmarks or their shared dependencies (or append a path to focus an
+iteration). The path-filtered Benchmark regression tests workflow runs them for
+benchmark code/evidence, `lib/`, test configuration, or dependency changes;
+Markdown-only benchmark changes do not trigger it. Full benchmarks remain opt-in.
+Run `npm run build` for changes affecting Next.js
 routing, rendering, environment handling, or deployment behavior.
 
 Pull requests and pushes to `main` retain the fast check/build job with non-secret
@@ -410,7 +418,8 @@ test groups. LLM groups cover every server-owned playstyle; filter them with
 groups with Vitest `-t`; external provider groups are skipped unless
 `BOT_SCENARIO_LIVE=true`. The command exits nonzero on illegal actions, listed blunders, or provider
 failures. It is separate from CI; fixture and evaluator regression tests run in
-`npm run check`. See `benchmarks/scenarios/README.md` for opt-in live provider
+`npm run test:benchmarks` and the path-filtered benchmark workflow. See
+`benchmarks/scenarios/README.md` for opt-in live provider
 commands and known weaknesses. Preserve production context options and do not
 weaken strategic expectations to hide a failing bot.
 

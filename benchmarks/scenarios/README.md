@@ -119,7 +119,7 @@ contexts for all three provider paths.
 
 Add fixtures with explicit expected visible facts and legal bounds; update the
 committed bounds only after inspecting the adapter result. Do not grade using
-fixed opponent cards or a later runout. `npm run check` covers fixture assertions,
+fixed opponent cards or a later runout. `npm run test:benchmarks` covers fixture assertions,
 privacy and fake illegal/bad/acceptable decisions. `npm run test:bots` evaluates
 real bots separately. Live opt-ins, the shared call cap, model/profile filters
 and sanitized reporting apply to all twenty fixtures; no live calls were made

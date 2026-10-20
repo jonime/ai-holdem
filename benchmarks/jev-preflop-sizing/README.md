@@ -185,7 +185,7 @@ actual Jev returns, GTO values, a proven playing-strength improvement, or a
 whole-range/BB-per-100 estimate. Passing authorizes neither provider spending nor
 an automatic action override.
 
-Focused tests: `nice -n 15 npx vitest run benchmarks/jev-preflop-sizing/experiment.test.ts --maxWorkers=1`.
-Run the required `nice -n 15 env VITEST_MAX_WORKERS=1 npm run check` after code
+Focused tests: `nice -n 15 npm run test:benchmarks -- benchmarks/jev-preflop-sizing/experiment.test.ts`.
+Run the required `nice -n 15 npm run check` after code
 changes. No build, SQL, browser or deployment check is needed for this offline-only
 benchmark.
