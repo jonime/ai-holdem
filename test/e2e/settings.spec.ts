@@ -52,22 +52,55 @@ test("Settings focus, scrolling, shortcuts, native controls and mobile layout", 
   await page.reload(); await expect(slider).toHaveAttribute("aria-keyshortcuts", /Q E/);
   await open(page); await page.mouse.click(1,1); await expect(dialog).not.toBeVisible();
 });
-test("language keeps table, ownership, query and fragment, and English is unprefixed", { tag: ["@ui-regression", "@compatibility"] }, async ({ page }) => {
-  const f = await table(page);
-  const before = await page.context().cookies();
-  await page.goto(`/game/${f.id}?test=settings#table`); await open(page);
-  await page.getByRole("combobox", { name: "Language", exact: true }).selectOption("fi-FI");
-  await expect(page).toHaveURL(new RegExp(`/fi-FI/game/${f.id}\\?test=settings#table$`));
-  await expect(page.getByRole("button", { name: "Asetukset", exact: true })).toBeVisible();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  expect((await page.context().cookies()).find(c => c.name === "ai-holdem-player-id")?.value)
-    .toBe(before.find(c => c.name === "ai-holdem-player-id")?.value);
-  await expect(page.getByRole("button", { name: "Kippaa", exact: true })).toBeEnabled();
-  await page.getByRole("button", { name: "Asetukset", exact: true }).click();
-  await page.getByRole("combobox", { name: "Kieli", exact: true }).selectOption("en-US");
-  await expect(page).toHaveURL(new RegExp(`/game/${f.id}\\?test=settings#table$`));
-  expect(new URL(page.url()).pathname).toBe(`/game/${f.id}`);
-});
+const languageSuffixes = [
+  { name: "ordinary suffix", suffix: "?test=settings#table" },
+  { name: "script schemes", suffix: "?next=javascript:globalThis.__settingsXssProbe()#javascript:globalThis.__settingsXssProbe()" },
+  { name: "external URLs", suffix: "?next=https://evil.example/#//evil.example/" },
+  { name: "encoded controls", suffix: "?next=%0d%0a%09javascript:globalThis.__settingsXssProbe()#%0a%0d%09javascript:globalThis.__settingsXssProbe()" },
+  { name: "HTML and data URL", suffix: "?html=<svg/onload=globalThis.__settingsXssProbe()>#data:text/html,<script>globalThis.__settingsXssProbe()</script>" },
+];
+for (const { name, suffix } of languageSuffixes) {
+  test(`language keeps table, ownership and inert URL suffixes: ${name}`, { tag: ["@ui-regression", "@compatibility"] }, async ({ page }) => {
+    let executions = 0;
+    await page.exposeFunction("__settingsXssProbe", () => { executions++; });
+    const f = await table(page);
+    const owner = (await page.context().cookies()).find(c => c.name === "ai-holdem-player-id")?.value;
+    expect(owner).toBeTruthy();
+    const origin = new URL(page.url()).origin;
+    const externalNavigations: string[] = [];
+    page.on("request", request => {
+      if (request.isNavigationRequest() && request.frame() === page.mainFrame() && new URL(request.url()).origin !== origin) {
+        externalNavigations.push(request.url());
+      }
+    });
+    await page.goto(`/game/${f.id}${suffix}`);
+    // Compare the browser's serialized suffix, including normal percent encoding.
+    const initial = new URL(page.url());
+    const assertDestination = async (pathname: string) => {
+      const expected = new URL(initial.href); expected.pathname = pathname;
+      await expect(page).toHaveURL(expected.href);
+      const actual = new URL(page.url());
+      expect(actual.origin).toBe(origin);
+      expect(actual.pathname).toBe(pathname);
+      expect(actual.search).toBe(initial.search);
+      expect(actual.hash).toBe(initial.hash);
+      expect((await page.context().cookies()).find(c => c.name === "ai-holdem-player-id")?.value).toBe(owner);
+      expect(executions).toBe(0);
+      expect(externalNavigations).toEqual([]);
+    };
+    await open(page);
+    await page.getByRole("combobox", { name: "Language", exact: true }).selectOption("fi-FI");
+    await expect(page.getByRole("button", { name: "Asetukset", exact: true })).toBeVisible();
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Kippaa", exact: true })).toBeEnabled();
+    await assertDestination(`/fi-FI/game/${f.id}`);
+    await page.getByRole("button", { name: "Asetukset", exact: true }).click();
+    await page.getByRole("combobox", { name: "Kieli", exact: true }).selectOption("en-US");
+    await expect(page.getByRole("button", { name: "Settings", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Fold", exact: true })).toBeEnabled();
+    await assertDestination(`/game/${f.id}`);
+  });
+}
 test("Settings stays usable during pending actions and failed recovery, with language blocked", { tag: "@ui-regression" }, async ({ page }) => {
   const f = await table(page);
   await page.route(`**/api/games/${f.id}/action`, () => {});

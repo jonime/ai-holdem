@@ -1380,7 +1380,10 @@ stored in settings. Cross-tab sound changes never preview or unlock audio.
 Run `npm run check`, `npm run build`, and `npm run test:e2e:ci` for Settings changes.
 Tagged `test/e2e/settings.spec.ts` covers accessibility, mobile layout, preference
 synchronization, native keyboard controls, language ownership and busy/recovery
-guards. Turn-notification tests cover preview and cue behavior; timer smoke verifies
+guards. Language-switch regressions retain query/fragment payloads containing script
+schemes, external URLs, encoded controls and HTML as inert suffixes, checking both
+Finnish and unprefixed English navigation, same-origin destinations and seat
+ownership. Turn-notification tests cover preview and cue behavior; timer smoke verifies
 expiry while Settings remains open. Desktop/mobile screenshots are saved under
 each project-qualified Settings test directory under `test-results/`.
 

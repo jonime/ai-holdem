@@ -544,6 +544,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
       {departureAttempted && feedback.refresh ? <Button disabled={!online || refreshing} onClick={refreshGame}>{t("errors.refreshTable")}</Button> : null}
     </ConfirmationDialog> : null}
     {overlay.kind === "settings" ? (
+      // The fixed /game/ path and validated game UUID keep query/fragment input in URL suffixes.
       <SettingsModal preferences={settings.preferences} onUpdate={settings.update}
         onSound={turnNotification.preview} notice={turnNotification.notice}
         languageBlocked={loading || recoveryBlocked || creatingQuickPlay || languageNavigating || unavailable || !game}
