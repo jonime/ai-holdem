@@ -97,7 +97,7 @@ export async function POST(request: Request, context: StepRouteContext) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
 
-    logApplicationFailure({ operation: "step", category: classifyApplicationFailure(error), status: 500 });
-    return NextResponse.json({ error: "AI decision failed" }, { status: 500 });
+    const requestReference = logApplicationFailure({ operation: "step", category: classifyApplicationFailure(error), status: 500 });
+    return NextResponse.json({ requestReference, error: "AI decision failed" }, { status: 500 });
   }
 }

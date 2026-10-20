@@ -1,5 +1,5 @@
 export class TransportError extends Error {
-  constructor(readonly kind: "deadline" | "network" | "cancelled" | "invalidResponse", message: string) {
+  constructor(readonly kind: "deadline" | "network" | "cancelled" | "invalidResponse", message: string, readonly status?: number) {
     super(message);
     this.name = kind === "cancelled" ? "AbortError" : "TransportError";
   }

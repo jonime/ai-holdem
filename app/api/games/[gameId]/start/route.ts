@@ -51,9 +51,9 @@ export async function POST(request: Request, context: StartRouteContext) {
     ) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
-    logApplicationFailure({ operation: "start", category: classifyApplicationFailure(error), status: 500 });
+    const requestReference = logApplicationFailure({ operation: "start", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
-      { error: "Unable to start game" },
+      { requestReference, error: "Unable to start game" },
       { status: 500 },
     );
   }

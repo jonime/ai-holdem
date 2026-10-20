@@ -54,9 +54,9 @@ export async function PATCH(request: Request, context: PlayerNameRouteContext) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
 
-    logApplicationFailure({ operation: "name", category: classifyApplicationFailure(error), status: 500 });
+    const requestReference = logApplicationFailure({ operation: "name", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
-      { error: "Unable to update player name" },
+      { requestReference, error: "Unable to update player name" },
       { status: 500 },
     );
   }

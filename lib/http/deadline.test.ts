@@ -34,7 +34,7 @@ it("classifies caller cancellation separately, including a pre-aborted caller", 
 });
 it("distinguishes network failure from invalid success and HTTP rejection", async () => {
   vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("offline")));
-  await expect(api.games.reveal({ gameId: "game", expectedVersion: 1, handNumber: 1 })).rejects.toEqual(new TransportError("network", "offline"));
+  await expect(api.games.reveal({ gameId: "game", expectedVersion: 1, handNumber: 1 })).rejects.toEqual(new TransportError("network", "Network failure"));
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ game: {} })));
   await expect(api.games.start({ gameId: "game", expectedVersion: 1 })).rejects.toMatchObject({ kind: "invalidResponse" });
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ game })));

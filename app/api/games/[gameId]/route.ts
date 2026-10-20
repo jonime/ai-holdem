@@ -36,9 +36,9 @@ export async function GET(request: Request, context: GameRouteContext) {
       return response;
     }
 
-    logApplicationFailure({ operation: "read_game", category: classifyApplicationFailure(error), status: 500 });
+    const requestReference = logApplicationFailure({ operation: "read_game", category: classifyApplicationFailure(error), status: 500 });
     const response = NextResponse.json(
-      { error: "Unable to load game" },
+      { requestReference, error: "Unable to load game" },
       { status: 500 },
     );
     setPlayerTokenCookie(response, playerToken);

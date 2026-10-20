@@ -21,7 +21,7 @@ export async function GET(request: Request) {
       { headers: { "Cache-Control": "private, no-store" } },
     );
   } catch (error) {
-    logApplicationFailure({ operation: "public", category: classifyApplicationFailure(error), status: 500 });
-    return NextResponse.json({ error: "Unable to load public games" }, { status: 500 });
+    const requestReference = logApplicationFailure({ operation: "public", category: classifyApplicationFailure(error), status: 500 });
+    return NextResponse.json({ requestReference, error: "Unable to load public games" }, { status: 500 });
   }
 }

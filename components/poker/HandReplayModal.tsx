@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type RefObject } from "react";
+import { GameErrorDetails } from "@/components/CopyErrorDetails";
+import { captureDiagnostic, type DiagnosticReport } from "@/lib/http/diagnostics";
 import { api, HttpError } from "@/lib/http/api";
 import { replayOutcomeSchema, type HandReplay } from "@/lib/http/replay-contracts";
 import { ReplayViewer } from "./ReplayViewer";
@@ -21,7 +23,7 @@ export function HandReplayModal({ gameId, handNumber, game, yourTurn, onClose, o
   const shareRef = useRef<HTMLButtonElement>(null);
   const [sharing, setSharing] = useState(false);
   const [canShare, setCanShare] = useState(false);
-  const [load, setLoad] = useState<{ status: "loading" | "unavailable" | "error" } | { status: "ready"; replay: HandReplay }>({ status: "loading" });
+  const [load, setLoad] = useState<{ status: "loading" | "unavailable" | "error"; diagnostics?: DiagnosticReport } | { status: "ready"; replay: HandReplay }>({ status: "loading" });
   const [attempt, setAttempt] = useState(0);
   const generation = useRef(0);
   useEffect(() => {
@@ -31,7 +33,7 @@ export function HandReplayModal({ gameId, handNumber, game, yourTurn, onClose, o
       if (generation.current === request && !controller.signal.aborted) setLoad({ status: "ready", replay });
     }).catch(error => {
       if (generation.current !== request || controller.signal.aborted) return;
-      setLoad({ status: error instanceof HttpError && replayOutcomeSchema.safeParse(error.code).success ? "unavailable" : "error" });
+      setLoad({ diagnostics: captureDiagnostic(error), status: error instanceof HttpError && replayOutcomeSchema.safeParse(error.code).success ? "unavailable" : "error" });
     });
     return () => { controller.abort(); };
   }, [gameId, handNumber, attempt]);
@@ -47,6 +49,7 @@ export function HandReplayModal({ gameId, handNumber, game, yourTurn, onClose, o
         </div></header>
       {load.status !== "ready" ? <p role="status">{t(load.status === "loading" ? "replay.loading" : load.status === "unavailable" ? "replay.unavailable" : "replay.error")}
         {load.status === "error" ? <Button onClick={() => { setLoad({ status: "loading" }); setAttempt(a => a + 1); }}>{t("replay.retry")}</Button> : null}</p> : null}
+      {load.status === "error" ? <GameErrorDetails report={load.diagnostics ?? []} /> : null}
       {replay ? <>
         <ReplayViewer replay={replay} active={!sharing} />
         <ReplaySharing gameId={gameId} handNumber={handNumber} open={sharing} onAvailabilityChange={setCanShare} onClose={() => setSharing(false)} restoreFocus={shareRef} />

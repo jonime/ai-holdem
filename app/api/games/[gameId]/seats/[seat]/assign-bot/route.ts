@@ -79,9 +79,9 @@ export async function POST(request: Request, context: AssignBotRouteContext) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
-    logApplicationFailure({ operation: "assign_bot", category: classifyApplicationFailure(error), status: 500 });
+    const requestReference = logApplicationFailure({ operation: "assign_bot", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
-      { error: "Unable to assign bot seat" },
+      { requestReference, error: "Unable to assign bot seat" },
       { status: 500 },
     );
   }

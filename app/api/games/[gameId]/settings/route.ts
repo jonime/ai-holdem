@@ -79,9 +79,9 @@ export async function PATCH(request: Request, context: SettingsRouteContext) {
     ) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
-    logApplicationFailure({ operation: "settings", category: classifyApplicationFailure(error), status: 500 });
+    const requestReference = logApplicationFailure({ operation: "settings", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
-      { error: "Unable to update table settings" },
+      { requestReference, error: "Unable to update table settings" },
       { status: 500 },
     );
   }

@@ -66,9 +66,9 @@ export async function POST(request: Request, context: ActionRouteContext) {
       );
     }
 
-    logApplicationFailure({ operation: "action", category: classifyApplicationFailure(error), status: 500 });
+    const requestReference = logApplicationFailure({ operation: "action", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
-      { error: "Unable to submit human action" },
+      { requestReference, error: "Unable to submit human action" },
       { status: 500 },
     );
   }

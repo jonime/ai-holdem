@@ -30,7 +30,7 @@ export async function POST(request: Request, context: { params: Promise<{ gameId
       return NextResponse.json({ error: "Unable to remove table", code: error.outcome === "blocked" ? "TABLE_DELETION_BLOCKED" : error.outcome === "conflict" ? "GAME_CONFLICT" : "TABLE_REMOVAL_DENIED" }, { status, headers: privateHeaders });
     }
     if (error instanceof Error && error.name === "GameConflictError") return NextResponse.json({ error: "Game changed", code: "GAME_CONFLICT" }, { status: 409, headers: privateHeaders });
-    logApplicationFailure({ operation: "remove", category: classifyApplicationFailure(error), status: 500 });
-    return NextResponse.json({ error: "Unable to remove table" }, { status: 500, headers: privateHeaders });
+    const requestReference = logApplicationFailure({ operation: "remove", category: classifyApplicationFailure(error), status: 500 });
+    return NextResponse.json({ requestReference, error: "Unable to remove table" }, { status: 500, headers: privateHeaders });
   }
 }

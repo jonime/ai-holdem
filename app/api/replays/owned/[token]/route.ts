@@ -11,7 +11,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ toke
   try {
     return NextResponse.json(revokeShareSchema.parse(await revokeOwnedShare(getPlayerTokenFromRequest(request), path.data.token)), { headers });
   } catch (error) {
-    logApplicationFailure({ operation: "replay_share", category: classifyApplicationFailure(error), status: 500 });
-    return NextResponse.json({ error: "Unable to revoke share" }, { status: 500, headers });
+    const requestReference = logApplicationFailure({ operation: "replay_share", category: classifyApplicationFailure(error), status: 500 });
+    return NextResponse.json({ requestReference, error: "Unable to revoke share" }, { status: 500, headers });
   }
 }

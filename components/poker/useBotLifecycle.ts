@@ -2,6 +2,7 @@
 
 import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { turnRemainingMs } from "./turn-clock";
+import { captureDiagnostic, recoveryDiagnostics, type DiagnosticReport } from "@/lib/http/diagnostics";
 import { HttpError, unknownOutcome } from "@/lib/http/api";
 import { LLM_CREDIT_EXIT_RULE } from "@/lib/bots/types";
 import { advanceBotTurns, hasAutomaticTurn } from "./bot-advancement";
@@ -27,6 +28,7 @@ export type BotLifecycleDriver = {
 
 /** The hook's imperative driver is also usable with fake clocks and deferred requests. */
 export class BotLifecycle {
+  diagnostics: DiagnosticReport = [];
   private state: BotLifecycleState = initialBotLifecycle;
   private listeners = new Set<() => void>();
   private gameId: string | undefined;
@@ -54,6 +56,7 @@ export class BotLifecycle {
     const next = transitionBotLifecycle(this.state, event);
     if (next === this.state) return;
     this.state = next;
+    if (!next.notice) this.diagnostics = [];
     this.clearTimer();
     if (next.kind === "waitingForClaim") {
       this.timer = setTimeout(() => this.tick(), Math.max(0, next.deadline - Date.now()));
@@ -181,6 +184,8 @@ export class BotLifecycle {
   }
   private async fail(error: unknown, attempted: Game, token: symbol, generation: number) {
     const turn = botTurn(attempted);
+    const original = captureDiagnostic(error);
+    this.diagnostics = original;
     if (unknownOutcome(error)) {
       this.dispatch({ type: "unknownRecovery", turn, notice: this.driver.unknownMessage?.() ?? this.driver.unfinishedMessage() });
       try {
@@ -193,8 +198,9 @@ export class BotLifecycle {
             this.dispatch({ type: "pause", turn, reason: "unknownOutcome", notice: this.driver.unfinishedMessage() });
           }
         }
-      } catch {
+      } catch (recoveryError) {
         if (this.work === token && this.generation === generation) {
+          this.diagnostics = recoveryDiagnostics(original, recoveryError);
           this.driver.refreshFailed(true);
           this.dispatch({ type: "pause", turn, reason: "unknownOutcome", notice: this.driver.unfinishedMessage() });
         }
@@ -222,7 +228,7 @@ export class BotLifecycle {
       // Keep the loop guard during the refresh, including synchronous polling reconciliation.
       try { await this.driver.refresh(attempted.id, () => this.work === token && this.generation === generation); }
       catch (refreshError) {
-        if (this.active(token, generation)) this.dispatch({ type: "pause", turn, reason: "claimLost", notice: this.driver.errorMessage(refreshError) });
+        if (this.active(token, generation)) { this.diagnostics = captureDiagnostic(refreshError); this.dispatch({ type: "pause", turn, reason: "claimLost", notice: this.driver.errorMessage(refreshError) }); }
         return;
       }
       const latest = this.driver.readGame();
@@ -250,6 +256,7 @@ export class BotLifecycle {
       }
     } catch (error) {
       if (this.active(token, generation)) {
+        this.diagnostics = captureDiagnostic(error);
         this.dispatch({ type: "pause", turn: botTurn(game), reason: "retryRefresh", notice: this.driver.errorMessage(error) });
       }
     } finally {
@@ -273,7 +280,7 @@ export function useBotLifecycle(gameId: string | undefined, game: Game | null, m
   useEffect(() => {
     if (game && !mutationLoading) void lifecycle.advance(game, true);
   }, [game, mutationLoading, lifecycle, state]);
-  return { lifecycle, loading: botBusy(state), notice: state.notice,
+  return { lifecycle, diagnostics: lifecycle.diagnostics, loading: botBusy(state), notice: state.notice,
     usageLimited: state.kind === "usageLimited", usageRetryAfterMs: botRetryAfterMs(state),
     retryAvailable: botCanRetry(state, state.kind === "usageLimited" ? state.now : 0), advance: lifecycle.advance, retry: lifecycle.retry };
 }

@@ -41,8 +41,8 @@ export async function POST(request: Request, context: { readonly params: Promise
     const joined = NextResponse.json({ gameId, seat: result.seat, version: result.version } satisfies JoinResponse);
     return setPlayerTokenCookie(joined, playerToken);
   } catch (error) {
-    logApplicationFailure({ operation: "join", category: classifyApplicationFailure(error), status: 500 });
-    const failed = NextResponse.json({ error: "Unable to join game" }, { status: 500 });
+    const requestReference = logApplicationFailure({ operation: "join", category: classifyApplicationFailure(error), status: 500 });
+    const failed = NextResponse.json({ requestReference, error: "Unable to join game" }, { status: 500 });
     return setPlayerTokenCookie(failed, playerToken);
   }
 }

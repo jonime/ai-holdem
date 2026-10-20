@@ -1,0 +1,3 @@
+.details { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .4rem .5rem; font-size: .85rem; }
+.fallback { display: flex; flex-direction: column; gap: .4rem; width: 100%; }
+.fallback textarea { width: min(100%, 38rem); min-width: min(65vw, 24rem); padding: .6rem; color: #173b35; background: #f7f6ef; border: 1px solid currentColor; border-radius: .4rem; font: .8rem monospace; }

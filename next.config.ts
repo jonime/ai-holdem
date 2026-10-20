@@ -1,8 +1,10 @@
 import type { NextConfig } from "next";
+import { buildIdentifier } from "./lib/build-identifier";
 import createMDX from "@next/mdx";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  env: { APP_BUILD_IDENTIFIER: buildIdentifier(process.env.VERCEL_GIT_COMMIT_SHA) },
   async headers() {
     return ["/replay/:path*", "/:lang/replay/:path*", "/api/replays/:path*"].map(source => ({ source, headers: [
       { key: "Referrer-Policy", value: "no-referrer" },

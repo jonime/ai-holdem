@@ -48,9 +48,9 @@ export async function POST(request: Request, context: ReleaseSeatRouteContext) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
-    logApplicationFailure({ operation: "release", category: classifyApplicationFailure(error), status: 500 });
+    const requestReference = logApplicationFailure({ operation: "release", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
-      { error: "Unable to release seat" },
+      { requestReference, error: "Unable to release seat" },
       { status: 500 },
     );
   }

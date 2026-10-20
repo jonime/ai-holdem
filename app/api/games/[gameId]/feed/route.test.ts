@@ -25,7 +25,7 @@ describe("GET game feed", () => {
       getFeed.mockRejectedValue(new Error("secret database detail"));
       const response = await request("?sinceHand=1");
       expect(response.status).toBe(500);
-      expect(await response.json()).toEqual({ error: "Unable to load game feed" });
+      expect(await response.json()).toEqual({ error: "Unable to load game feed", requestReference: expect.stringMatching(/^[0-9a-f-]{36}$/) });
     } finally { log.mockRestore(); }
   });
 });

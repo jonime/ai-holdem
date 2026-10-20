@@ -136,7 +136,7 @@ describe("JSON Quick Play", () => {
       method: "POST", headers: { Accept: "application/json" },
     }), { params: Promise.resolve({ lang: "en-US" }) });
     expect(response.status).toBe(500);
-    expect(await response.json()).toEqual({ error: "Unable to create quick game" });
+    expect(await response.json()).toEqual({ error: "Unable to create quick game", requestReference: expect.stringMatching(/^[0-9a-f-]{36}$/) });
     expect(response.headers.get("set-cookie")).toBeNull();
     log.mockRestore();
   });

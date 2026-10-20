@@ -12,6 +12,14 @@ The application uses the Supabase Data API from Next.js server routes, so keep
 the Supabase Data API enabled. The browser never receives the Supabase secret
 or any provider API key.
 
+Feedback diagnostics need no migration or external service. At build time,
+`next.config.ts` accepts only a full hexadecimal `VERCEL_GIT_COMMIT_SHA` as the
+public diagnostic build identifier; missing/invalid values become `local/unknown`.
+Do not set `APP_BUILD_IDENTIFIER` yourself or expose deployment URLs. Search an
+explicitly supplied error reference in Vercel runtime logs as the exact
+`requestReference` on `application_request_failed`; a missing reference cannot be
+correlated with a server event. See [safe application diagnostics](../CONTRIBUTING.md#safe-application-diagnostics).
+
 ## Shared replay rollout
 
 Apply `20261031000000_add_replay_shares.sql` and the additive

@@ -24,8 +24,8 @@ export async function POST(
   const wantsJson = request.headers.get("accept")?.split(",").some(
     value => value.trim().split(";")[0].toLowerCase() === "application/json",
   ) ?? false;
-  const failure = (message: string, status: number) => wantsJson
-    ? NextResponse.json({ error: message }, { status })
+  const failure = (message: string, status: number, requestReference?: string) => wantsJson
+    ? NextResponse.json({ error: message, requestReference }, { status })
     : new NextResponse(message, { status });
   const { lang } = await params;
   const parsed = quickPlayParamsSchema.safeParse({ lang, botMode: new URL(request.url).searchParams.get("botMode") ?? undefined });
@@ -66,7 +66,7 @@ export async function POST(
     if (error instanceof CreationAttemptError) return NextResponse.json({ error: error.message, code: error.code }, { status: error.code === "CREATION_ATTEMPT_CONFLICT" ? 409 : 410 });
     const limited = await usageCreationResponse(error, wantsJson, parsed.data.lang);
     if (limited) return limited;
-    logApplicationFailure({ operation: "create_quick_game_html", category: classifyApplicationFailure(error), status: 500 });
-    return failure("Unable to create quick game", 500);
+    const requestReference = logApplicationFailure({ operation: "create_quick_game_html", category: classifyApplicationFailure(error), status: 500 });
+    return failure("Unable to create quick game", 500, requestReference);
   }
 }

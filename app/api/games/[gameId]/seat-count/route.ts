@@ -72,9 +72,9 @@ export async function PATCH(request: Request, context: SeatCountRouteContext) {
     ) {
       return NextResponse.json({ error: error.message }, { status: 409 });
     }
-    logApplicationFailure({ operation: "seat_count", category: classifyApplicationFailure(error), status: 500 });
+    const requestReference = logApplicationFailure({ operation: "seat_count", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
-      { error: "Unable to update seat count" },
+      { requestReference, error: "Unable to update seat count" },
       { status: 500 },
     );
   }

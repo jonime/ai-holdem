@@ -145,16 +145,17 @@ describe.each([
 });
 
 it.each([
-  { operation: "read_game", run: () => GET(new Request("http://localhost/api/games/game-1"), { params: Promise.resolve({ gameId: "game-1" }) }), service: getPublicGameMock, body: { error: "Unable to load game" } },
+  { operation: "read_game", run: () => GET(new Request("http://localhost/api/games/game-1", { headers: { "X-Request-Reference": "0bd9c338-033b-4f52-a06d-129927318d54" } }), { params: Promise.resolve({ gameId: "game-1" }) }), service: getPublicGameMock, body: { error: "Unable to load game" } },
   { operation: "next_hand", run: () => nextHand(new Request("http://localhost/api/games/game-1/next-hand", { method: "POST", body: JSON.stringify({ expectedVersion: 1 }) }), { params: Promise.resolve({ gameId: "game-1" }) }), service: startNextHandMock, body: { error: "Unable to start next hand" } },
   { operation: "step", run: () => step(new Request("http://localhost/api/games/game-1/step", { method: "POST", body: JSON.stringify({ expectedVersion: 1 }) }), { params: Promise.resolve({ gameId: "game-1" }) }), service: stepBotActionMock, body: { error: "AI decision failed" } },
-])("logs one safe $operation failure without changing the response", async ({ operation, run, service, body }) => {
+])("logs one safe $operation failure while preserving status and message", async ({ operation, run, service, body }) => {
   service.mockRejectedValue(new Error("PRIVATE_DATABASE_PAYLOAD"));
   const sink = vi.spyOn(console, "error").mockImplementation(() => {});
   try {
     const response = await run();
     expect(response.status).toBe(500);
-    expect(await response.json()).toEqual(body);
+    expect(await response.json()).toEqual({ ...body, requestReference: sink.mock.calls[0][0].requestReference });
+    expect(sink.mock.calls[0][0].requestReference).not.toBe("0bd9c338-033b-4f52-a06d-129927318d54");
     expect(sink).toHaveBeenCalledExactlyOnceWith({ event: "application_request_failed", operation, category: "unexpected", status: 500, requestReference: expect.stringMatching(/^[0-9a-f-]{36}$/) });
   } finally { sink.mockRestore(); }
 });
@@ -202,6 +203,16 @@ it("preserves the original HTTP failure if the logging sink throws", async () =>
   const sink = vi.spyOn(console, "error").mockImplementation(() => { throw Error("SINK_FAILURE"); });
   try {
     const response = await GET(new Request("http://localhost/api/games/game-1"), { params: Promise.resolve({ gameId: "game-1" }) });
+    expect(response.status).toBe(500);
+    expect(await response.json()).toEqual({ error: "Unable to load game" });
+  } finally { sink.mockRestore(); }
+});
+
+it("preserves the original failure when the log sink throws", async () => {
+  getPublicGameMock.mockRejectedValue(new Error("PRIVATE_DATABASE_PAYLOAD"));
+  const sink = vi.spyOn(console, "error").mockImplementation(() => { throw Error("PRIVATE_SINK"); });
+  try {
+    const response = await GET(new Request("http://localhost/api/games/game-1", { headers: { "X-Request-Reference": "caller-supplied" } }), { params: Promise.resolve({ gameId: "game-1" }) });
     expect(response.status).toBe(500);
     expect(await response.json()).toEqual({ error: "Unable to load game" });
   } finally { sink.mockRestore(); }
