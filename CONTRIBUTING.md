@@ -21,6 +21,17 @@ Any change that weakens validation, privacy boundaries, migration safety, or ver
 
 ## Required checks
 
+For local agent runs, keep the host responsive: use `nice -n 15` for heavy
+commands, run them sequentially, and default to one worker (including nested
+benchmark pools). Never automatically use all available CPUs. Use
+`nice -n 15 env VITEST_MAX_WORKERS=1 npm run check` for the full check, or
+`nice -n 15 npm test -- --maxWorkers=1` for Vitest directly. Playwright already
+uses one worker. Inspect other runners and builds for supported concurrency
+controls before launching them; `nice` lowers scheduling priority but does not
+limit memory or worker counts. Preserve required coverage and frozen benchmark
+methodology. Higher local concurrency requires explicit user authorization.
+These local rules do not change CI's documented setup overlap.
+
 Run:
 
 ```sh
