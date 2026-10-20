@@ -5,6 +5,7 @@ import { withDeadline } from "@/lib/http/deadline";
 import { addLocalePrefix, type Locale } from "@/lib/i18n";
 import type { GameDictionary } from "@/lib/i18n/types";
 import { attemptSchema, attemptStorageKey, CookiesRequired, identityFingerprint, type Attempt, type Intent } from "./attempt";
+import { captureDiagnostic, type DiagnosticReport } from "@/lib/http/diagnostics";
 export type CreationLabels = GameDictionary["creation"];
 export function useCreation(locale: Locale, labels: CreationLabels) {
   const pending = useRef<Attempt | null>(null);
@@ -15,6 +16,7 @@ export function useCreation(locale: Locale, labels: CreationLabels) {
   const [working, setWorking] = useState(false);
   const [hasPending, setHasPending] = useState(false);
   const [mode, setMode] = useState<Intent["mode"] | null>(null);
+  const [diagnostics, setDiagnostics] = useState<DiagnosticReport>([]);
   const [message, setMessage] = useState("");
   const [memoryOnly, setMemoryOnly] = useState(false);
   const [terminal, setTerminal] = useState(false);
@@ -54,7 +56,7 @@ export function useCreation(locale: Locale, labels: CreationLabels) {
   };
   const run = async (intent?: Intent) => {
     if (!ready || busy.current || terminal || Date.now() < retryAt || (intent && hasPending)) return;
-    busy.current = true; setWorking(true); setMessage(labels.creating);
+    busy.current = true; setDiagnostics([]); setWorking(true); setMessage(labels.creating);
     setMode(pending.current?.intent.mode ?? intent?.mode ?? null);
     const current = generation.current;
     const controller = new AbortController(); abort.current = controller;
@@ -92,11 +94,11 @@ export function useCreation(locale: Locale, labels: CreationLabels) {
         const delay = error.retryAfterMs ?? 0;
         setRetryAt(Date.now() + delay); setWait(delay); setMessage(labels.denied);
       }
-      else setMessage(labels.failed);
+      else { setMessage(labels.failed); setDiagnostics(captureDiagnostic(error, pending.current?.intent.mode === "custom" ? "creation.custom" : "creation.quickPlay")); }
     } finally {
       if (current === generation.current) { busy.current = false; setWorking(false); abort.current = null; }
     }
   };
-  return { ready, wait, working, hasPending, mode, message, memoryOnly, terminal, begin: (intent: Intent) => run(intent), retry: () => run(),
-    discard: () => { if (busy.current) return; persist(null); pending.current = null; setMode(null); setHasPending(false); setTerminal(false); setMessage(""); } };
+  return { diagnostics, ready, wait, working, hasPending, mode, message, memoryOnly, terminal, begin: (intent: Intent) => run(intent), retry: () => run(),
+    discard: () => { if (busy.current) return; persist(null); pending.current = null; setMode(null); setHasPending(false); setTerminal(false); setMessage(""); setDiagnostics([]); } };
 }

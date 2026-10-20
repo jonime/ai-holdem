@@ -46,9 +46,9 @@ export async function POST(request: Request) {
     if (error instanceof CreationAttemptError) return NextResponse.json({ error: error.message, code: error.code }, { status: error.code === "CREATION_ATTEMPT_CONFLICT" ? 409 : 410 });
     const limited = await usageCreationResponse(error, !request.headers.get("content-type")?.includes("application/x-www-form-urlencoded"), negotiateLocale(request.headers.get("accept-language")));
     if (limited) return limited;
-    logApplicationFailure({ operation: "create_game", category: classifyApplicationFailure(error), status: 500 });
+    const requestReference = logApplicationFailure({ operation: "create_game", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
-      { error: "Unable to create game" },
+      { requestReference, error: "Unable to create game" },
       { status: 500 },
     );
   }

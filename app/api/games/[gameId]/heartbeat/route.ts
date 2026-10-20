@@ -15,7 +15,7 @@ export async function POST(request: Request, context: { readonly params: Promise
       ? NextResponse.json({ renewed: true } satisfies HeartbeatResponse)
       : NextResponse.json({ error: "Listing is not renewable", code: "LISTING_NOT_RENEWABLE" }, { status: 409 });
   } catch (error) {
-    logApplicationFailure({ operation: "heartbeat", category: classifyApplicationFailure(error), status: 500 });
-    return NextResponse.json({ error: "Unable to renew listing" }, { status: 500 });
+    const requestReference = logApplicationFailure({ operation: "heartbeat", category: classifyApplicationFailure(error), status: 500 });
+    return NextResponse.json({ requestReference, error: "Unable to renew listing" }, { status: 500 });
   }
 }

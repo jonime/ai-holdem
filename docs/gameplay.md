@@ -58,6 +58,20 @@ form. It opens in a new tab without leaving your seat or submitting a game actio
 The game tab remains open; normal timers and bot advancement behavior still apply
 when it is in the background.
 
+Unexpected errors can offer **Copy error details** alongside the existing message
+and recovery controls in game recovery, bot pauses, replay/sharing, Play collections
+and enhanced creation flows. Copying saves a small diagnostic report locally for
+you to paste into the feedback form yourself. It includes the operation, UTC time,
+failure kind, HTTP status when available, build identifier and optional server
+reference. Network, timeout and invalid-response failures say **Server reference
+unavailable**. A failed action followed by failed recovery can include two labelled
+failures. The report excludes game details, names, cards, messages, links, cookies
+and tokens. Clipboard success is announced; when clipboard access fails, select
+and copy the displayed plain text. Retry and Refresh keep working without a
+reference. Expected outcomes such as full tables, expired links and usage limits
+do not offer this action. Nothing is sent automatically, and Send feedback is
+unchanged.
+
 Leave table opens an application dialog explaining the current hand’s consequences.
 Cancel receives focus; Escape and clicking outside dismiss before submission.
 Bots, timers, refreshes and notifications continue while the dialog is open.

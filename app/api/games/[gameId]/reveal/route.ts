@@ -50,9 +50,9 @@ export async function POST(request: Request, context: RevealRouteContext) {
     ) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
-    logApplicationFailure({ operation: "reveal", category: classifyApplicationFailure(error), status: 500 });
+    const requestReference = logApplicationFailure({ operation: "reveal", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
-      { error: "Unable to reveal human cards" },
+      { requestReference, error: "Unable to reveal human cards" },
       { status: 500 },
     );
   }

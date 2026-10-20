@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { addLocalePrefix, type Locale } from "@/lib/i18n";
 import type { JoinGameDictionary } from "@/lib/i18n/types";
 import type { PublicGameDirectoryEntry } from "@/lib/http/discovery-contracts";
+import { GameErrorDetails } from "@/components/CopyErrorDetails";
+import { captureDiagnostic, recoveryDiagnostics, type DiagnosticReport } from "@/lib/http/diagnostics";
 import { api, HttpError } from "@/lib/http/api";
 import { usePlayerName } from "./PlayerName";
 import { FiChevronRight, FiRefreshCw } from "react-icons/fi";
@@ -25,6 +27,7 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
   const router = useRouter();
   const lifecycle = useRef<AbortController | null>(null);
   useEffect(() => { const controller = new AbortController(); lifecycle.current = controller; return () => controller.abort(); }, []);
+  const [diagnostics, setDiagnostics] = useState<DiagnosticReport>([]);
   const [games, setGames] = useState(initialGames);
   const [cursor, setCursor] = useState(initialCursor);
   const name = usePlayerName();
@@ -43,11 +46,13 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
       setGames(body.games);
       setCursor(typeof body.nextCursor === "string" ? body.nextCursor : null);
       setWarning(false);
-      setMessage(null);
-    } catch {
+      setMessage(null); setDiagnostics([]);
+    } catch (failure) {
       if (signal.aborted) return;
+      setDiagnostics(captureDiagnostic(failure));
       setWarning(true);
       setMessage(games.length ? dictionary.warning : dictionary.initialError);
+      return failure;
     } finally {
       if (!signal.aborted) setRefreshing(false);
     }
@@ -63,8 +68,9 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
       if (signal.aborted) return;
       setGames((current) => [...current, ...body.games.filter((entry) => !current.some((item) => item.gameId === entry.gameId))]);
       setCursor(body.nextCursor);
-    } catch {
+    } catch (failure) {
       if (signal.aborted) return;
+      setDiagnostics(captureDiagnostic(failure));
       setWarning(true);
       setMessage(dictionary.warning);
     } finally {
@@ -75,15 +81,16 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
   const join = async (game: PublicGameDirectoryEntry) => {
     const signal = lifecycle.current!.signal;
     setJoiningId(game.gameId);
-    setMessage(null);
+    setMessage(null); setDiagnostics([]);
     try {
       await api.discovery.join({ gameId: game.gameId, expectedVersion: game.version, ...(name.trim() ? { name } : {}) }, { signal });
       if (signal.aborted) return;
       router.push(addLocalePrefix(`/game/${game.gameId}`, locale));
     } catch (error) {
       if (signal.aborted) return;
-      await refresh();
+      const recoveryError = await refresh();
       if (signal.aborted) return;
+      setDiagnostics(recoveryError ? recoveryDiagnostics(captureDiagnostic(error), recoveryError) : captureDiagnostic(error));
       setMessage(error instanceof HttpError && error.code === "GAME_CONFLICT" ? dictionary.conflict : dictionary.unavailable);
     } finally {
       if (!signal.aborted) setJoiningId(null);
@@ -99,6 +106,7 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
       </button>
       {(refreshing || loadingMore) && <p role="status">{dictionary.refreshing}</p>}
       {message && <p className={warning ? styles.warning : styles.notice} role="status">{message}</p>}
+      {message ? <GameErrorDetails report={diagnostics} /> : null}
       {games.length === 0 ? (
         !warning && <div className={styles.empty}><p>{dictionary.empty}</p></div>
       ) : (

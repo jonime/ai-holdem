@@ -35,12 +35,9 @@ import {
   heartbeatResponseSchema, type DirectoryQuery, type JoinRequest, type PublicationRequest,
 } from "./discovery-contracts";
 
-export class HttpError extends Error {
-  constructor(message: string, readonly status: number, readonly code?: string, readonly retryAfterMs?: number) {
-    super(message);
-    this.name = "HttpError";
-  }
-}
+import { HttpError } from "./http-error";
+export { HttpError } from "./http-error";
+import { instrumentApi } from "./diagnostics";
 
 type Options = { readonly signal?: AbortSignal };
 function gameUrl(params: GameParams) {
@@ -49,9 +46,9 @@ function gameUrl(params: GameParams) {
 async function send<S extends z.ZodType>(url: string, schema: S, init: RequestInit): Promise<z.output<S>> {
   let response: Response;
   try { response = await fetch(url, { ...init, credentials: "same-origin" }); }
-  catch (error) {
+  catch {
     if (init.signal?.aborted) { init.signal.throwIfAborted(); }
-    throw new TransportError("network", error instanceof Error ? error.message : "Network failure");
+    throw new TransportError("network", "Network failure");
   }
   let body: unknown;
   try {
@@ -61,7 +58,7 @@ async function send<S extends z.ZodType>(url: string, schema: S, init: RequestIn
       init.signal.throwIfAborted();
       throw error;
     }
-    if (response.ok) throw new TransportError(error instanceof TypeError ? "network" : "invalidResponse", error instanceof TypeError ? "Response body disconnected" : "Invalid response payload");
+    if (response.ok) throw new TransportError(error instanceof TypeError ? "network" : "invalidResponse", error instanceof TypeError ? "Response body disconnected" : "Invalid response payload", response.status);
   }
   init.signal?.throwIfAborted();
   if (!response.ok) {
@@ -72,10 +69,11 @@ async function send<S extends z.ZodType>(url: string, schema: S, init: RequestIn
       response.status,
       failure.success ? failure.data.code : undefined,
       failure.success ? failure.data.retryAfterMs : undefined,
+      failure.success ? failure.data.requestReference : undefined,
     );
   }
   const parsed = schema.safeParse(body);
-  if (!parsed.success) throw new TransportError("invalidResponse", "Invalid response payload");
+  if (!parsed.success) throw new TransportError("invalidResponse", "Invalid response payload", response.status);
   return parsed.data;
 }
 function mutation<S extends z.ZodType>(
@@ -122,7 +120,7 @@ function shareManagement(params: { gameId: string; handNumber: number }, method:
   return withDeadline(signal => send(`${gameUrl({ gameId })}/hands/${handNumber}/share`, shareManagementSchema,
     { method, cache: "no-store", signal }), 15_000, options.signal);
 }
-export const api = {
+export const api = instrumentApi({
   shares: {
     list(query: ShareListQuery = {}, options: Options = {}) {
       return withDeadline(signal => send(`/api/replays/owned${queryString(shareListQuerySchema.parse(query))}`, shareListSchema, { cache: "no-store", signal }), 15_000, options.signal);
@@ -227,4 +225,4 @@ export const api = {
       return mutation({ gameId }, "step", body, stepBotRequestSchema, stepBotResponseSchema, options);
     },
   },
-};
+});

@@ -27,9 +27,9 @@ export async function GET(request: Request, context: FeedRouteContext) {
     );
     return NextResponse.json({ feed } satisfies FeedResponse);
   } catch (error) {
-    logApplicationFailure({ operation: "feed", category: classifyApplicationFailure(error), status: 500 });
+    const requestReference = logApplicationFailure({ operation: "feed", category: classifyApplicationFailure(error), status: 500 });
     return NextResponse.json(
-      { error: "Unable to load game feed" },
+      { requestReference, error: "Unable to load game feed" },
       { status: 500 },
     );
   }

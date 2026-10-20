@@ -34,7 +34,7 @@ export async function PATCH(request: Request, context: { readonly params: Promis
   } catch (error) {
     if (error instanceof GameConflictError) return NextResponse.json({ error: "Game changed", code: "GAME_CONFLICT" }, { status: 409 });
     if (error instanceof Error && error.message === "Only the host can change publication") return NextResponse.json({ error: error.message }, { status: 403 });
-    logApplicationFailure({ operation: "publication", category: classifyApplicationFailure(error), status: 500 });
-    return NextResponse.json({ error: "Unable to update publication" }, { status: 500 });
+    const requestReference = logApplicationFailure({ operation: "publication", category: classifyApplicationFailure(error), status: 500 });
+    return NextResponse.json({ requestReference, error: "Unable to update publication" }, { status: 500 });
   }
 }

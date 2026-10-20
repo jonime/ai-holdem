@@ -10,7 +10,7 @@ export async function GET(_request: Request, context: { params: Promise<{ token:
     return NextResponse.json(sharedReplaySchema.parse(await readSharedReplay(token.data)), { headers });
   } catch (error) {
     if (error instanceof ShareOutcome) return NextResponse.json({ error: "Replay unavailable", code: "SHARE_UNAVAILABLE" }, { status: 404, headers });
-    logApplicationFailure({ operation: "replay_share", category: classifyApplicationFailure(error), status: 500 });
-    return NextResponse.json({ error: "Unable to load replay" }, { status: 500, headers });
+    const requestReference = logApplicationFailure({ operation: "replay_share", category: classifyApplicationFailure(error), status: 500 });
+    return NextResponse.json({ requestReference, error: "Unable to load replay" }, { status: 500, headers });
   }
 }

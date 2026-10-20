@@ -9,10 +9,11 @@ afterEach(() => vi.restoreAllMocks());
 
 it("emits exactly the allowed fields with a fresh server UUID", () => {
   const sink = vi.spyOn(console, "error").mockImplementation(() => {});
-  logApplicationFailure(failure);
+  const returned = logApplicationFailure(failure);
   logApplicationFailure(failure);
   expect(sink).toHaveBeenCalledTimes(2);
   const event = sink.mock.calls[0][0];
+  expect(returned).toBe(event.requestReference);
   expect(event).toEqual({ event: "application_request_failed", ...failure, requestReference: expect.any(String) });
   expect(z.uuid().safeParse(event.requestReference).success).toBe(true);
   expect(event.requestReference).not.toBe(sink.mock.calls[1][0].requestReference);
@@ -63,7 +64,7 @@ it("never reads or serializes exception data", () => {
 
 it("contains sink and validation failures", () => {
   vi.spyOn(console, "error").mockImplementation(() => { throw new Error("SINK_SECRET"); });
-  expect(() => logApplicationFailure(failure)).not.toThrow();
+  expect(logApplicationFailure(failure)).toBeUndefined();
   const hostile = new Proxy(failure, { ownKeys() { throw Error("VALIDATION_SECRET"); } });
   expect(() => logApplicationFailure(hostile)).not.toThrow();
   expect(classifyApplicationFailure(new Proxy({}, { getPrototypeOf() { throw Error("SECRET"); } }))).toBe("unexpected");

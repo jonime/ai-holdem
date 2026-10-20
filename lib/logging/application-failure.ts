@@ -31,17 +31,19 @@ export function classifyApplicationFailure(error: unknown): ApplicationFailure["
   return "unexpected";
 }
 
-export function logApplicationFailure(failure: ApplicationFailure): void {
+export function logApplicationFailure(failure: ApplicationFailure): string | undefined {
   try {
     const parsed = failureSchema.safeParse(failure);
     if (!parsed.success) return;
+    const requestReference = randomUUID();
     console.error({
       event: "application_request_failed",
       operation: parsed.data.operation,
-      requestReference: randomUUID(),
+      requestReference,
       category: parsed.data.category,
       status: parsed.data.status,
     });
+    return requestReference;
   } catch {
     // Validation, reference generation and sink failures are best-effort.
     // Never log rejected input or replace the original response.

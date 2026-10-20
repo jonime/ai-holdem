@@ -23,8 +23,8 @@ async function manage(request: Request, context: Context, operation: "read" | "c
       const status = error.code === "SHARE_FORBIDDEN" ? 403 : error.code === "SHARE_CONFLICT" ? 409 : error.code === "SHARE_CREATION_LIMIT" ? 429 : 404;
       return NextResponse.json({ error: "Share unavailable", code: error.code, ...(error instanceof ShareOutcome && error.retryAfterMs ? { retryAfterMs: error.retryAfterMs } : {}) }, { status, headers: { ...headers, ...(error instanceof ShareOutcome && error.retryAfterMs ? { "Retry-After": String(Math.ceil(error.retryAfterMs / 1000)) } : {}) } });
     }
-    logApplicationFailure({ operation: "replay_share", category: classifyApplicationFailure(error), status: 500 });
-    return NextResponse.json({ error: "Unable to manage share" }, { status: 500, headers });
+    const requestReference = logApplicationFailure({ operation: "replay_share", category: classifyApplicationFailure(error), status: 500 });
+    return NextResponse.json({ requestReference, error: "Unable to manage share" }, { status: 500, headers });
   }
 }
 export const GET = (request: Request, context: Context) => manage(request, context, "read");

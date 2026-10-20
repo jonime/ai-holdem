@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type RefObject } from "react";
+import { GameErrorDetails } from "@/components/CopyErrorDetails";
+import { captureDiagnostic, recoveryDiagnostics, type DiagnosticReport } from "@/lib/http/diagnostics";
 import { api, HttpError, unknownOutcome } from "@/lib/http/api";
 import type { ActiveShare } from "@/lib/http/share-contracts";
 import { addLocalePrefix } from "@/lib/i18n";
@@ -22,17 +24,21 @@ export function ReplaySharing({ gameId, handNumber, open, onAvailabilityChange, 
   const [confirm, setConfirm] = useState<"revoke" | null>(null);
   const clipboard = useShareClipboard();
   const { copied, fallback, pending: copyPending, reset: resetClipboard } = clipboard;
+  const [diagnostics, setDiagnostics] = useState<DiagnosticReport>([]);
   const [failure, setFailure] = useState(false);
+  const diagnosticEpoch = useRef(0);
+  const close = () => { diagnosticEpoch.current++; setDiagnostics([]); onClose(); };
   const lock = useRef(false);
   const controller = useRef<AbortController | null>(null);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
+    const epoch = diagnosticEpoch.current;
     const abort = new AbortController();
     controller.current = abort;
     api.shares.active({ gameId, handNumber }, { signal: abort.signal }).then(result => {
-      if (!abort.signal.aborted) { setShare(result.share); setStatus("ready"); }
+      if (!abort.signal.aborted) { setShare(result.share); setStatus("ready"); setDiagnostics([]); }
     }).catch(error => {
-      if (!abort.signal.aborted) setStatus(error instanceof HttpError && [403, 404].includes(error.status) ? "forbidden" : "error");
+      if (!abort.signal.aborted) { if (epoch === diagnosticEpoch.current) setDiagnostics(captureDiagnostic(error)); setStatus(error instanceof HttpError && [403, 404].includes(error.status) ? "forbidden" : "error"); }
     });
     return () => abort.abort();
   }, [gameId, handNumber, attempt]);
@@ -51,8 +57,9 @@ export function ReplaySharing({ gameId, handNumber, open, onAvailabilityChange, 
   useEffect(() => { onAvailabilityChange(status === "ready" || status === "error"); }, [status, onAvailabilityChange]);
   async function mutate(operation: "create" | "revoke") {
     if (lock.current || status !== "ready") return;
-    lock.current = true; setPending(true); setFailure(false); resetClipboard();
+    lock.current = true; setPending(true); setFailure(false); setDiagnostics([]); resetClipboard();
     const signal = controller.current!.signal;
+    const epoch = diagnosticEpoch.current;
     try {
       if (operation === "create") {
         const result = await api.shares.create({ gameId, handNumber }, { signal });
@@ -64,13 +71,13 @@ export function ReplaySharing({ gameId, handNumber, open, onAvailabilityChange, 
       if (!signal.aborted) setConfirm(null);
     } catch (error) {
       if (signal.aborted) return;
-      setFailure(true);
+      setFailure(true); if (epoch === diagnosticEpoch.current) setDiagnostics(captureDiagnostic(error));
       if (unknownOutcome(error) || error instanceof HttpError && error.status >= 500) {
         // A timed-out mutation may have committed. Read, never replay it.
         try {
           const result = await api.shares.active({ gameId, handNumber }, { signal });
-          if (!signal.aborted) { setShare(result.share); setConfirm(null); }
-        } catch { if (!signal.aborted) setStatus("error"); }
+          if (!signal.aborted) { setShare(result.share); setConfirm(null); setDiagnostics([]); }
+        } catch (recoveryError) { if (!signal.aborted) { setStatus("error"); if (epoch === diagnosticEpoch.current) setDiagnostics(recoveryDiagnostics(captureDiagnostic(error), recoveryError)); } }
       }
     } finally {
       lock.current = false;
@@ -78,17 +85,17 @@ export function ReplaySharing({ gameId, handNumber, open, onAvailabilityChange, 
     }
   }
   const url = share ? new URL(addLocalePrefix(`/replay/${share.token}`, locale), window.location.origin).href : "";
-  return <Modal open={open && status !== "forbidden"} title={t("sharing.dialogTitle", { hand: handNumber })} onDismiss={onClose}
+  return <Modal open={open && status !== "forbidden"} title={t("sharing.dialogTitle", { hand: handNumber })} onDismiss={close}
     initialFocus={closeRef} restoreFocus={restoreFocus} fallbackFocus={restoreFocus}
     className={`${replayStyles.dialog} ${replayStyles.shareDialog}`} dialogClassName={styles.layer}>
     <div className={replayStyles.content}>
       <header className={replayStyles.controls}><h2>{t("sharing.dialogTitle", { hand: handNumber })}</h2>
-        <Button ref={closeRef} onClick={onClose}>{t("replay.close")}</Button>
+        <Button ref={closeRef} onClick={close}>{t("replay.close")}</Button>
       </header>
       <section className={styles.panel}>
       {status !== "ready" ? <>
         <p role="status">{t(status === "loading" ? "replay.loading" : "sharing.error")}</p>
-        {status === "error" ? <Button onClick={() => { setStatus("loading"); setAttempt(a => a + 1); }}>{t("replay.retry")}</Button> : null}
+        {status === "error" ? <Button onClick={() => { setStatus("loading"); setDiagnostics([]); setAttempt(a => a + 1); }}>{t("replay.retry")}</Button> : null}
       </> : <>
 
     {share && confirm !== "revoke" ? <>
@@ -111,6 +118,7 @@ export function ReplaySharing({ gameId, handNumber, open, onAvailabilityChange, 
     {pending ? <p role="status">{t("sharing.pending")}</p> : null}
     {failure ? <p role="alert">{t("sharing.error")}</p> : null}
       </>}
+      {(status === "error" || failure) ? <GameErrorDetails report={open ? diagnostics : []} /> : null}
       </section>
     </div>
   </Modal>;

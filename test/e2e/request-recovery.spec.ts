@@ -179,3 +179,76 @@ test("waiting lobby shares the localized quiet connection notice", { tag: "@ui-r
   await page.context().setOffline(false);
   await expect(page.getByTestId("connection-status")).toHaveText("");
 });
+
+async function diagnosticClipboard(page: Page) {
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: {
+      writeText: async (text: string) => { (window as unknown as { diagnosticCopy: string }).diagnosticCopy = text; },
+    } });
+  });
+}
+async function copiedDiagnostics(page: Page) {
+  await page.getByRole("button", { name: "Copy error details", exact: true }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Error details copied." })).toBeVisible();
+  return page.evaluate(() => (window as unknown as { diagnosticCopy: string }).diagnosticCopy);
+}
+
+test("referenced server failure copies only safe details and clears after retry", { tag: "@ui-regression" }, async ({ page }) => {
+  const f = await table(page);
+  const requestReference = "0bd9c338-033b-4f52-a06d-129927318d54";
+  await diagnosticClipboard(page);
+  await page.route(`**/api/games/${f.id}/action`, route => route.fulfill({ status: 500, json: {
+    error: "Unable to submit human action", requestReference, payload: "PRIVATE_CARDS_COOKIE_TOKEN",
+  } }));
+  await page.getByRole("button", { name: "Check", exact: true }).click();
+  await expect(page.locator("main").getByRole("alert")).toContainText("Unable to submit human action");
+  const requests: string[] = [];
+  page.on("request", request => requests.push(request.url()));
+  const report = await copiedDiagnostics(page);
+  expect(report).toContain(`serverReference: ${requestReference}`);
+  expect(report).toContain("operation: games.submitAction");
+  expect(report).not.toMatch(/PRIVATE|https?:|Unable to submit|cookie/i);
+  expect(requests).toEqual([]);
+  await page.screenshot({ path: test.info().outputPath("diagnostics-server.png"), fullPage: true });
+  await page.route(`**/api/games/${f.id}/action`, route => route.fulfill({ json: { game: f.game() } }));
+  await page.getByRole("button", { name: "Check", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Copy error details" })).toHaveCount(0);
+});
+
+test("network failure has no server reference and offers selectable clipboard fallback", { tag: "@ui-regression" }, async ({ page }) => {
+  await page.goto("/play?tab=public");
+  await page.route("**/api/games/public*", route => route.abort("failed"));
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw Error("denied"); } } });
+  });
+  await page.getByRole("button", { name: /^Refresh$|Try again/ }).click();
+  await page.getByRole("button", { name: "Copy error details" }).click();
+  const fallback = page.getByRole("textbox", { name: "Select and copy these error details:" });
+  await expect(fallback).toBeVisible();
+  expect(await fallback.inputValue()).toContain("Server reference unavailable");
+  expect(await fallback.inputValue()).toContain("kind: network");
+  await fallback.focus();
+  expect(await fallback.evaluate((element: HTMLTextAreaElement) => element.selectionEnd - element.selectionStart)).toBe((await fallback.inputValue()).length);
+  await page.screenshot({ path: test.info().outputPath("diagnostics-network-fallback.png"), fullPage: true });
+});
+
+test("lost mutation response retains original and failed recovery without replay", { tag: "@ui-regression" }, async ({ page }) => {
+  const f = await table(page);
+  await diagnosticClipboard(page);
+  let submissions = 0;
+  await page.route(`**/api/games/${f.id}/action`, async route => {
+    submissions++; f.failRead(true); await route.abort("failed");
+  });
+  await page.getByRole("button", { name: "Check", exact: true }).click();
+  await expect(page.locator("main").getByRole("alert")).toContainText("We couldn’t confirm your action or refresh the table.");
+  const report = await copiedDiagnostics(page);
+  expect(report).toContain("Operation failure\noperation: games.submitAction");
+  expect(report).toContain("Recovery failure\noperation: games.get");
+  expect(report.match(/Server reference unavailable/g)).toHaveLength(2);
+  expect(report).not.toContain(f.id);
+  expect(submissions).toBe(1);
+  await page.screenshot({ path: test.info().outputPath("diagnostics-recovery.png"), fullPage: true });
+  f.failRead(false);
+  await page.getByRole("button", { name: "Refresh table", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Copy error details" })).toHaveCount(0);
+});

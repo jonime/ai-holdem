@@ -93,7 +93,7 @@ it("ordinary version conflicts and expired turns refresh without entering unknow
   for (const code of ["GAME_VERSION_CONFLICT", "TURN_EXPIRED"]) {
     h.action.mockRejectedValueOnce(new HttpError("stale", 409, code));
     await session.submitAction({ type: "fold" });
-    expect(render()).toMatchObject({ recoveryBlocked: false, loading: false });
+    expect(render()).toMatchObject({ recoveryBlocked: false, loading: false, diagnostics: [] });
   }
   expect(h.read).toHaveBeenCalledTimes(2);
 });
@@ -198,4 +198,26 @@ it("failed name requests preserve their errors and rename does not save", async 
   h.rename.mockRejectedValueOnce(new Error("Rename rejected"));
   expect(await render().updatePlayerName(0, "Rejected")).toBe(false);
   expect(readPlayerName()).toBe("Claim preference"); expect(render().error).toBe("Rename rejected");
+});
+
+it("retains original and recovery diagnostics, then clears after authoritative recovery", async () => {
+  const { captureDiagnostic } = await import("@/lib/http/diagnostics");
+  const session = await fixture();
+  const original = new TransportError("network", "PRIVATE original");
+  const recovery = new TransportError("network", "PRIVATE recovery");
+  captureDiagnostic(original, "games.submitAction"); captureDiagnostic(recovery, "games.get");
+  h.action.mockRejectedValueOnce(original); h.read.mockRejectedValueOnce(recovery);
+  await session.submitAction({ type: "fold" });
+  expect(render().diagnostics.map(d => d.operation)).toEqual(["games.submitAction", "games.get"]);
+  await render().loadGame(gameplayGame.id);
+  expect(render().diagnostics).toEqual([]);
+});
+it("stale-session failure cannot install diagnostic details", async () => {
+  const { captureDiagnostic } = await import("@/lib/http/diagnostics");
+  const session = await fixture(); const held = deferred<never>(); h.action.mockReturnValueOnce(held.promise);
+  const work = session.submitAction({ type: "fold" });
+  h.cleanups.forEach(fn => fn());
+  const failure = new TransportError("network", "PRIVATE"); captureDiagnostic(failure, "games.submitAction");
+  held.reject(failure); await work;
+  expect(render().diagnostics).toEqual([]);
 });

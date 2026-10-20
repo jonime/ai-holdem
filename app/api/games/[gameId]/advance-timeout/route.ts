@@ -28,7 +28,7 @@ export async function POST(request: Request, context: { params: Promise<{ gameId
     if (error instanceof BotStepForbiddenError) return NextResponse.json({ error: error.message, code: "TURN_FORBIDDEN" }, { status: 403 });
     if (error instanceof GameNotFoundError) return NextResponse.json({ error: "Game not found" }, { status: 404 });
     if (error instanceof GameConflictError) return NextResponse.json({ error: "Game version conflict", code: GAME_VERSION_CONFLICT }, { status: 409 });
-    logApplicationFailure({ operation: "advance_timeout", category: classifyApplicationFailure(error), status: 500 });
-    return NextResponse.json({ error: "Unable to advance timeout", code: "TURN_ADVANCE_FAILED" }, { status: 500 });
+    const requestReference = logApplicationFailure({ operation: "advance_timeout", category: classifyApplicationFailure(error), status: 500 });
+    return NextResponse.json({ requestReference, error: "Unable to advance timeout", code: "TURN_ADVANCE_FAILED" }, { status: 500 });
   }
 }

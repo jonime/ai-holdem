@@ -365,3 +365,33 @@ it("keeps controls busy while unknown-outcome reconciliation is pending", async 
   held.resolve(); await work;
   expect(f.lifecycle.getSnapshot()).toMatchObject({ kind: "paused", reason: "unknownOutcome" });
 });
+
+it("keeps bot diagnostics with a paused failure and clears on retry or reset", async () => {
+  const { captureDiagnostic } = await import("@/lib/http/diagnostics");
+  const f = fixture();
+  const error = new HttpError("PRIVATE", 502, "BOT_TIMEOUT");
+  captureDiagnostic(error, "games.stepBot");
+  f.driver.step.mockRejectedValueOnce(error);
+  await f.lifecycle.advance(f.game());
+  const report = f.lifecycle.diagnostics;
+  expect(report[0].operation).toBe("games.stepBot");
+  f.reconcile({ ...f.game(), version: 2 });
+  expect(f.lifecycle.diagnostics).toEqual(report);
+  await f.lifecycle.retry();
+  expect(f.lifecycle.diagnostics).toEqual([]);
+  f.lifecycle.reset();
+  expect(f.lifecycle.diagnostics).toEqual([]);
+});
+it("keeps original and failed bot reconciliation diagnostics", async () => {
+  const { captureDiagnostic } = await import("@/lib/http/diagnostics");
+  const { TransportError } = await import("@/lib/http/api");
+  const f = fixture();
+  const original = new TransportError("network", "PRIVATE");
+  const recovery = new HttpError("PRIVATE", 500);
+  captureDiagnostic(original, "games.stepBot"); captureDiagnostic(recovery, "games.get");
+  f.driver.step.mockRejectedValueOnce(original); f.driver.refresh.mockRejectedValueOnce(recovery);
+  await f.lifecycle.advance(f.game());
+  expect(f.lifecycle.diagnostics.map(d => d.operation)).toEqual(["games.stepBot", "games.get"]);
+  f.lifecycle.reset("different-session");
+  expect(f.lifecycle.diagnostics).toEqual([]);
+});

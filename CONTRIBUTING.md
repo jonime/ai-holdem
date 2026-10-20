@@ -657,11 +657,42 @@ service. Browser Realtime diagnostics must remain fixed text without table IDs.
 
 In server runtime logs, search `application_request_failed`, narrow by operation
 or status, and search the exact `requestReference` UUID for a particular event.
-References stay internal and do not link provider/publication events. Keep privacy
+Unexpected JSON responses can return that reference; it does not link
+provider/publication events. Keep privacy
 tests for hostile exception properties and serializers, rejected logger fields,
 sink failures, unchanged route responses and browser Realtime failures. Run
 `npx vitest run lib/logging lib/realtime app/api/games 'app/[lang]/new-game' 'app/[lang]/quick-game'`
 with `npm run check` and `npm run build`; no paid inference is needed.
+
+### Privacy-safe feedback diagnostics
+
+The shared failure logger returns its generated UUID only after a successful log
+write. Existing unexpected JSON route branches return it as optional
+`requestReference`; do not accept a caller reference, add logs for silent reads,
+or duplicate provider diagnostics. Expected error contracts and HTML/framework
+errors remain unchanged. In deployment runtime logs, search the exact copied UUID
+under `requestReference` on `application_request_failed`; verify operation/status.
+A missing reference does not imply a log exists, and timestamps are client clocks.
+
+`lib/http/diagnostics.ts` assigns allowlisted names to named transport methods.
+Copied machine keys remain stable: `operation`, `timestamp`, `kind`, `status`,
+`serverReference`, `build`. Only a full validated deployment commit SHA is included
+at build time, otherwise `local/unknown`. Do not add messages, request/response
+content, URLs, identifiers, fingerprints or arbitrary environment values.
+Keep reports with the visible failure and existing async ownership guards; retain
+at most an original failure and a labelled recovery failure. Clear on resolution,
+dismissal or replacement without changing deadlines or retry/replay behavior.
+Localize copy/success/fallback labels in every game dictionary. Send feedback
+remains a normal link without diagnostic prefill or transmission.
+
+Run `npm run check`, `npm run build`, and
+`npm run test:e2e:ui -- test/e2e/request-recovery.spec.ts` against the already migrated
+local stack. Focused coverage verifies log/response equality and sink failure,
+malformed metadata, cancellation, deadlines, hostile data, report lifecycle,
+clipboard fallback, two-record recovery and no requests caused by copying.
+Review the diagnostic screenshots in that test's output. No migration or external
+dependency is needed.
+
 
 ## Pull requests
 

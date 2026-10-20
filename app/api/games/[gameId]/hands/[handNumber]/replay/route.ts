@@ -19,7 +19,7 @@ export async function GET(request: Request, context: { params: Promise<{ gameId:
   } catch (error) {
     if (error instanceof ReplayOutcome) return NextResponse.json(replayErrorResponseSchema.parse({ code: error.code, error: "Replay unavailable" }),
       { status: error.code === "REPLAY_MISSING" ? 404 : error.code === "REPLAY_UNFINISHED" ? 409 : 422, headers });
-    logApplicationFailure({ operation: "replay", category: classifyApplicationFailure(error), status: 500 });
-    return NextResponse.json({ error: "Unable to load replay" }, { status: 500, headers });
+    const requestReference = logApplicationFailure({ operation: "replay", category: classifyApplicationFailure(error), status: 500 });
+    return NextResponse.json({ requestReference, error: "Unable to load replay" }, { status: 500, headers });
   }
 }

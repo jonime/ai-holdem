@@ -655,7 +655,9 @@ Server game, seat, discovery and creation route failure branches use
 `lib/logging/application-failure.ts`. `logApplicationFailure` emits a single object
 with exactly `event: "application_request_failed"`, an allowlisted `operation`,
 a server-generated UUID `requestReference`, fixed `category`, and numeric HTTP
-`status` (400–599). The reference is generated at logging time and stays internal.
+`status` (400–599). The reference is generated at logging time and returned by the logger. Unexpected
+application-owned JSON failure responses include that same optional UUID; HTML
+forms/redirects and framework rendering errors do not expose it.
 `classifyApplicationFailure` selects `invalid_data` for Zod errors, `poker_rule`
 for engine rule errors, `usage_unavailable` for usage admission outages, and
 `unexpected` otherwise, without reading exception properties. Recognized classes
@@ -675,8 +677,30 @@ failures log fixed text without exception data or table identifiers.
 
 Search server runtime logs for `application_request_failed`, filter by operation
 or status, then use the exact `requestReference` UUID to locate that event. The
-reference is absent from HTTP responses and is not propagated into service,
+reference is returned only on the corresponding unexpected JSON failure and is not propagated into service,
 provider or publication logs; it cannot correlate an entire request lifecycle.
+Browser diagnostics in `lib/http/diagnostics.ts` contain only a fixed named
+transport operation, a client-observed UTC timestamp captured once, failure kind
+(`http`, `network`, `deadline`, `invalidResponse`), optional HTTP status and
+validated server UUID, and the build identifier. `next.config.ts` exposes only a
+validated full `VERCEL_GIT_COMMIT_SHA`, otherwise `local/unknown`; it exposes no
+arbitrary environment value or deployment URL. Malformed reference metadata is
+discarded independently of error classification. Older envelopes still work.
+
+Diagnostics stay with their particular visible failure, behind the existing
+session/request guards. Reports retain at most the original operation and a
+labelled failed reconciliation, clearing after resolution, dismissal or
+replacement. Expected outcomes and cancellation have no diagnostic action.
+Silent reads and specialized provider logging remain unchanged; a provider
+failure may have no application reference. Network, timeout and invalid-response
+reports explicitly say `Server reference unavailable` and never claim log
+correlation. The shared copy control formats only validated diagnostic fields,
+never messages, stacks, request bodies, cards, names, cookies, tokens, game/share
+URLs or identifiers, or browser fingerprints. Clipboard failure reveals selectable
+plain text; success is announced with `role="status"`. Copying is explicit and
+local, with no telemetry or automatic submission/prefill of the feedback form.
+Deadlines, recovery and mutation replay policy are unchanged.
+
 This covers application-authored diagnostics only. Automatic framework and
 hosting logs are outside this boundary. There is no external monitoring service,
 database migration, feedback integration or response-contract change.

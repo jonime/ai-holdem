@@ -198,7 +198,10 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
   CI includes departure SQL coverage. Verify notifications on authorized Vercel.
 - Server-route failure logs use `lib/logging/application-failure.ts` with only
   allowlisted operation/category, numeric response status and an internal generated
-  UUID reference. Never log exceptions or arbitrary metadata. Preserve expected
+  UUID reference. The logger returns its UUID for unexpected JSON error envelopes;
+  visible client failures can copy only allowlisted operation/time/kind/status/reference/build
+  details locally. Expected outcomes and HTML/framework errors have no diagnostic action.
+  Never log exceptions or arbitrary metadata. Preserve expected
   error returns, silent personal-list reads and specialized provider diagnostics
   without duplicate events. Direct route `console.error`/`console.warn` is linted;
   browser Realtime diagnostics use fixed text without table IDs. See the logging

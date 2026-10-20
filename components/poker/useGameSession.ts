@@ -18,6 +18,7 @@ import { botErrorMessage } from "./bot-error";
 import { useBotLifecycle, type BotLifecycle } from "./useBotLifecycle";
 import { tableFlow } from "@/components/poker/view-model";
 import { getClientPlayerToken } from "@/lib/identity/player-token-client";
+import { captureDiagnostic, recoveryDiagnostics, type DiagnosticReport } from "@/lib/http/diagnostics";
 import { HttpError, unknownOutcome, api } from "@/lib/http/api";
 import type { HumanAction } from "@/lib/http/gameplay-contracts";
 import { useGameChannel } from "@/lib/realtime/useGameChannel";
@@ -51,6 +52,8 @@ export function useGameSession(gameId?: string) {
   const { feed, refreshFeed } = useGameFeed(gameId);
   const [loading, setLoading] = useState(false);
   const [recoveryNotice, setRecoveryNotice] = useState<string | null>(null);
+  const [readDiagnostics, setReadDiagnostics] = useState<DiagnosticReport>([]);
+  const [diagnostics, setDiagnostics] = useState<DiagnosticReport>([]);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
@@ -85,7 +88,7 @@ export function useGameSession(gameId?: string) {
     mutationPending.current = false;
     recoveryBlock.current = false;
     queueMicrotask(() => {
-      if (sessionGeneration.current === generation) { setRecoveryBlocked(false); setLoading(false); setError(null); setRecoveryNotice(null); setRefreshFailed(false); setReconnecting(false); setRefreshing(false); }
+      if (sessionGeneration.current === generation) { setRecoveryBlocked(false); setLoading(false); setError(null); setDiagnostics([]); setRecoveryNotice(null); setRefreshFailed(false); setReadDiagnostics([]); setReconnecting(false); setRefreshing(false); }
     });
     activeGameId.current = gameId;
     return () => {
@@ -134,21 +137,22 @@ export function useGameSession(gameId?: string) {
         if (valid()) {
           const applied = applyGame(body.game, sequence, targetGameId);
           if (!applied) return body.game;
-          setRefreshFailed(false);
+          setRefreshFailed(false); setReadDiagnostics([]);
           setReconnecting(false);
           if (recoveryBlock.current && !mutationPending.current) {
-            recoveryBlock.current = false; setRecoveryBlocked(false); setError(null); setRecoveryNotice(t("errors.actionReconciled"));
+            recoveryBlock.current = false; setRecoveryBlocked(false); setError(null); setDiagnostics([]); setRecoveryNotice(t("errors.actionReconciled"));
           }
         }
         return body.game;
       } catch (failure) {
-        if (valid() && activeGameId.current === targetGameId && sequence >= (lastAppliedResponse.current?.sequence ?? 0)) setRefreshFailed(true);
+        if (valid() && activeGameId.current === targetGameId && sequence >= (lastAppliedResponse.current?.sequence ?? 0)) { setRefreshFailed(true); setReadDiagnostics(captureDiagnostic(failure)); }
         if (failure instanceof HttpError && failure.status === 404 && valid() && activeGameId.current === targetGameId) {
           unavailableGameId.current = targetGameId;
           latestGame.current = null;
           botLifecycle.current?.reset();
           setGame(null);
           setUnavailableId(targetGameId);
+          setDiagnostics([]);
           setError(t("errors.tableUnavailable"));
         }
         throw failure;
@@ -183,7 +187,7 @@ export function useGameSession(gameId?: string) {
     // Game reads own connection feedback; lifecycle callbacks cannot clear it
     // after an ignored response. Provider pause policy remains independent.
     refreshFailed: () => {},
-    clearError: () => setError(null),
+    clearError: () => { setError(null); setDiagnostics([]); },
     errorMessage: requestError => botErrorMessage(requestError, t),
     unfinishedMessage: () => t("errors.botTurnUnfinished"),
     unknownMessage: () => t("errors.actionUnconfirmed"),
@@ -247,7 +251,7 @@ export function useGameSession(gameId?: string) {
       setReconnecting(true);
       // Replace the previous outage’s failed-read message with reconnecting;
       // connectivity is still unconfirmed until an accepted read succeeds.
-      setRefreshFailed(false);
+      setRefreshFailed(false); setReadDiagnostics([]);
       refreshCoordinator.current?.schedule(0);
     };
     const handleOffline = () => setOnline(false);
@@ -286,8 +290,9 @@ export function useGameSession(gameId?: string) {
 
     let cancelled = false;
 
-    void Promise.resolve().then(() => loadGame(gameId, () => !cancelled)).catch(() => {
+    void Promise.resolve().then(() => loadGame(gameId, () => !cancelled)).catch((failure) => {
       if (!cancelled) {
+        setDiagnostics(captureDiagnostic(failure));
         setError(t(unavailableGameId.current === gameId ? "errors.tableUnavailable" : "errors.loadGame"));
       }
     });
@@ -300,13 +305,15 @@ export function useGameSession(gameId?: string) {
   const gameId_ = game?.id;
 
   const createGame = useCallback(async () => {
+    const generation = sessionGeneration.current;
     setLoading(true);
-    setError(null);
+    setError(null); setDiagnostics([]);
     botLifecycle.current?.clearNotice();
     try {
       const body = await api.creation.custom();
       router.push(addLocalePrefix(`/game/${body.gameId}`, locale));
     } catch (requestError) {
+      if (generation === sessionGeneration.current) setDiagnostics(captureDiagnostic(requestError));
       setError(
         requestError instanceof Error
           ? requestError.message
@@ -326,13 +333,14 @@ export function useGameSession(gameId?: string) {
     mutationPending.current = true;
     botLifecycle.current?.suspend(true);
     setLoading(true);
-    setError(null);
+    setError(null); setDiagnostics([]);
     botLifecycle.current?.clearNotice();
     try {
       await work(requestController.current.signal, current);
       return current();
     } catch (failure) {
       if (!current()) return false;
+      setDiagnostics(captureDiagnostic(failure));
       if (unknownOutcome(failure)) {
         recoveryBlock.current = true;
         setRecoveryBlocked(true);
@@ -342,10 +350,10 @@ export function useGameSession(gameId?: string) {
           if (current()) {
             recoveryBlock.current = false;
             setRecoveryBlocked(false);
-            setError(null); setRecoveryNotice(t("errors.actionReconciled"));
+            setError(null); setDiagnostics([]); setRecoveryNotice(t("errors.actionReconciled"));
           }
-        } catch {
-          if (current()) setError(t("errors.actionRecoveryFailed"));
+        } catch (recoveryError) {
+          if (current()) { setError(t("errors.actionRecoveryFailed")); setDiagnostics(recoveryDiagnostics(captureDiagnostic(failure), recoveryError)); }
         }
       } else if (failure instanceof HttpError && (failure.status === 409 || failure.code === "TURN_EXPIRED")) {
         try { await loadGame(game.id, current); }
@@ -455,6 +463,9 @@ export function useGameSession(gameId?: string) {
   return {
     online,
     botCatalog,
+    diagnostics,
+    botDiagnostics: bots.diagnostics,
+    readDiagnostics,
     unavailable,
     game,
     feed,

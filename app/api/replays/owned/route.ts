@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   try {
     return NextResponse.json(shareListSchema.parse(await listOwnedShares(getPlayerTokenFromRequest(request), query.data)), { headers });
   } catch (error) {
-    logApplicationFailure({ operation: "replay_share", category: classifyApplicationFailure(error), status: 500 });
-    return NextResponse.json({ error: "Unable to list shares" }, { status: 500, headers });
+    const requestReference = logApplicationFailure({ operation: "replay_share", category: classifyApplicationFailure(error), status: 500 });
+    return NextResponse.json({ requestReference, error: "Unable to list shares" }, { status: 500, headers });
   }
 }

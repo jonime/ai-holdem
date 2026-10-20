@@ -169,3 +169,29 @@ test("reconciles a lost creation response without replay and retries standalone 
     await expect(page.getByText("This hand cannot be reviewed.", { exact: true })).toBeVisible();
   } finally { await f.guestContext.close(); }
 });
+
+test("dismissed sharing diagnostics cannot return from a late failed recovery", { tag: "@ui-regression" }, async ({ page, browser }) => {
+  const f = await completed(browser, page);
+  let release!: () => void;
+  const held = new Promise<void>(resolve => { release = resolve; });
+  try {
+    await review(page);
+    let recoveries = 0;
+    await page.route(`**/api/games/${f.id}/hands/1/share`, async route => {
+      if (route.request().method() === "POST") { await route.abort("failed"); return; }
+      recoveries++;
+      await held;
+      await route.fulfill({ status: 500, json: { error: "Unable to manage share", requestReference: "0bd9c338-033b-4f52-a06d-129927318d54" } });
+    });
+    await page.getByRole("button", { name: "Create share link", exact: true }).click();
+    const sharing = page.getByRole("dialog", { name: "Share replay - Hand 1", exact: true });
+    await expect(sharing.getByRole("button", { name: "Copy error details" })).toBeVisible();
+    await expect.poll(() => recoveries).toBe(1);
+    await sharing.getByRole("button", { name: "Close", exact: true }).click();
+    const recovered = page.waitForResponse(response => response.url().endsWith("/hands/1/share") && response.status() === 500);
+    release(); await recovered;
+    await page.getByRole("button", { name: "Share hand", exact: true }).click();
+    await expect(sharing.getByRole("button", { name: "Retry", exact: true })).toBeVisible();
+    await expect(sharing.getByRole("button", { name: "Copy error details" })).toHaveCount(0);
+  } finally { release?.(); await f.guestContext.close(); }
+});
