@@ -1,5 +1,10 @@
 # Benchmarks and bot evaluations
 
+- [Cross-experiment bot evidence review](bot-evidence-review-2026-10-20.md):
+  offline review of saved decisions, current safeguards and completed study gates.
+  Recommends stopping this improvement round; no unresolved correction meets the
+  invariant, current-path and deterministic-reproduction requirements.
+
 - [Jev AA/KK opening sizes](jev-preflop-sizing/README.md): offline HU 100-BB
   conditional action values for shoves versus 2/2.5/3-BB opens, frozen synthetic
   controls and manual development/confirmation. The [completed development report](jev-preflop-sizing/report-v1.md)
