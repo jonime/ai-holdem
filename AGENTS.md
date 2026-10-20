@@ -74,6 +74,26 @@ earlier state.
 - If the implementation and the docs disagree, the implementation wins; the docs
 	must be corrected immediately.
 
+## Local host resource limits
+
+- Run heavy local commands (tests, verification, builds, benchmarks, dependency
+  installation, and similar CPU/disk-intensive work) with `nice -n 15` so the
+  host remains responsive. Child processes inherit this lower priority.
+- Run only one heavy command at a time. Do not overlap builds, tests, benchmarks,
+  or heavy setup tasks locally, including across agent work.
+- Default to one worker for test runners and benchmark pools; never automatically
+  use every available CPU/thread. Use supported worker/job limits for each tool,
+  including any nested worker pools. Keep Playwright at its existing one worker.
+  For Vitest use `--maxWorkers=1`, or `VITEST_MAX_WORKERS=1` for scripts that invoke
+  it indirectly. For example, run the full check as
+  `nice -n 15 env VITEST_MAX_WORKERS=1 npm run check`.
+- Inspect build/benchmark scripts for their own parallelism before launching
+  them. If no supported concurrency limit exists, do not assume `nice` caps CPU
+  or memory: arrange a bounded execution path before starting heavy work. Do not
+  change frozen benchmark methodology or reduce required coverage to save resources.
+- These are local agent execution rules; preserve CI's documented setup overlap
+  and check coverage. Higher local concurrency requires explicit user authorization.
+
 ## Required Checks
 
 Run `npm run check` after code changes. It runs ESLint, the strict TypeScript
