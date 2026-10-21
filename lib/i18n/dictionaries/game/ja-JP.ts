@@ -251,6 +251,9 @@ const dictionary = {
     error: "共有を確認できませんでした。再試行前に状態を更新してください。",
   },
   replay: {
+    "play": "再生",
+    "pause": "一時停止",
+    "replay": "最初から再生",
     "title": "ハンドを振り返る",
     "previous": "前へ",
     "next": "次へ",

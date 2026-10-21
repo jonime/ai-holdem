@@ -234,6 +234,9 @@ const dictionary = {
     error: "Unable to confirm the share. Refresh its status before trying again.",
   },
   replay: {
+    "play": "Play",
+    "pause": "Pause",
+    "replay": "Replay",
     "title": "Review hand",
     "previous": "Previous",
     "next": "Next",

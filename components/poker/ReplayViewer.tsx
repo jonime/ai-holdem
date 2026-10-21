@@ -1,6 +1,6 @@
 "use client";
 import { useAmounts, AmountText } from "./AmountDisplay";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ReplayData } from "@/lib/http/share-contracts";
 import { SeatRoleBadge } from "./SeatRoleBadge";
 import { PlayingCard } from "./PlayingCard";
@@ -15,15 +15,57 @@ export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }
   const { t, dictionary } = useI18n();
   const { format, spoken, mode } = useAmounts(replay.bigBlind ?? null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const [position, setPosition] = useState({ index: 0, previousIndex: -1 });
+  const [position, setPosition] = useState({ replay, index: 0, previousIndex: -1 });
+  const [playing, setPlaying] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const generation = useRef(0);
+  const cancelTimer = useCallback(() => {
+    generation.current++;
+    if (timer.current !== null) clearTimeout(timer.current);
+    timer.current = null;
+  }, []);
+  const pause = useCallback(() => { cancelTimer(); setPlaying(false); }, [cancelTimer]);
+  // Reset during render so a replacement hand never renders the old position.
+  if (position.replay !== replay) {
+    setPosition({ replay, index: 0, previousIndex: -1 });
+    setPlaying(false);
+  }
   const { index, previousIndex } = position;
   const setIndex = useCallback((next: number | ((current: number) => number)) => {
     setPosition(current => {
       const index = typeof next === "function" ? next(current.index) : next;
-      return index === current.index ? current : { index, previousIndex: current.index };
+      return index === current.index ? current : { ...current, index, previousIndex: current.index };
     });
   }, []);
   const frameCount = replay.frames.length ?? 0;
+  const available = useCallback(() => {
+    const root = contentRef.current;
+    const top = Array.from(document.querySelectorAll<HTMLDialogElement>("dialog[open]")).at(-1);
+    return active && !document.hidden && !!root && (!top || top.contains(root));
+  }, [active]);
+  useLayoutEffect(() => {
+    const suspend = () => { if (!available()) pause(); };
+    suspend();
+    document.addEventListener("visibilitychange", suspend);
+    const observer = new MutationObserver(suspend);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["open"] });
+    return () => { observer.disconnect(); document.removeEventListener("visibilitychange", suspend); };
+  }, [available, pause]);
+  useLayoutEffect(() => {
+    if (!playing || !available() || index >= frameCount - 1) return;
+    const current = replay.frames[index];
+    const previous = replay.frames[index - 1];
+    const delay = index === 0 || current.board.some(card => !previous?.board.includes(card)) ? 2000 : 1200;
+    const scheduled = generation.current;
+    timer.current = setTimeout(() => {
+      if (generation.current !== scheduled) return;
+      timer.current = null;
+      if (!available()) { pause(); return; }
+      setIndex(index + 1);
+      if (index + 1 === frameCount - 1) setPlaying(false);
+    }, delay);
+    return cancelTimer;
+  }, [replay, index, frameCount, playing, available, cancelTimer, pause, setIndex]);
   // Native dialogs may lose button focus when a boundary disables that button.
   // Standalone pages also accept neutral body focus before the first interaction.
   useEffect(() => {
@@ -43,11 +85,12 @@ export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }
       event.stopPropagation();
       if (!dialog) root.focus({ preventScroll: true });
       const delta = event.key === "ArrowLeft" ? -1 : 1;
+      pause();
       setIndex(current => Math.max(0, Math.min(frameCount - 1, current + delta)));
     };
     window.addEventListener("keydown", navigate);
     return () => window.removeEventListener("keydown", navigate);
-  }, [frameCount, active, keyboardScope, setIndex]);
+  }, [frameCount, active, keyboardScope, setIndex, pause]);
   const frame = replay.frames[index];
   const name = (seat: number) => replay.participants.find(p => p.seat === seat)?.name ?? "";
   const lastAction = replay.frames.slice(0, index + 1).findLast(f => f.action)?.action;
@@ -59,6 +102,7 @@ export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }
     }
   }
   const select = (next: number) => {
+    pause();
     // Keep standalone keyboard navigation within the viewer when a button disables.
     if (!contentRef.current?.closest("dialog")) contentRef.current?.focus({ preventScroll: true });
     setIndex(next);
@@ -104,7 +148,13 @@ export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }
           <p><span className={styles.counter}>{t("replay.counter", { current: lastAction?.sequence ?? 0, total })}:</span>{" "}<AmountText>{frame.action ? dictionary.feed[frame.action.type].replace("{player}", name(frame.action.actorSeat)).replace("{amount}", frame.action.amount === null ? "" : format(frame.action.amount)) :
             t(frame.kind === "result" ? "replay.result" : frame.kind === "start" ? "replay.start" : "replay.runout")}</AmountText></p>
         </div>
-        <div className={styles.controls}><Button disabled={index === 0} onClick={() => move(-1)}>{t("replay.previous")}</Button>
+        <div className={`${styles.controls} ${styles.playback}`}><Button disabled={index === 0} onClick={() => move(-1)}>{t("replay.previous")}</Button>
+          <Button onClick={() => {
+            if (playing) { pause(); return; }
+            if (!available()) return;
+            if (index === frameCount - 1) setIndex(0);
+            setPlaying(true);
+          }}>{t(playing ? "replay.pause" : index === frameCount - 1 ? "replay.replay" : "replay.play")}</Button>
           <Button disabled={index === replay.frames.length - 1} onClick={() => move(1)}>{t("replay.next")}</Button></div>
       </> : null}
   </div>;

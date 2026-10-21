@@ -251,6 +251,9 @@ const dictionary = {
     error: "无法确认分享状态。请先刷新状态再重试。",
   },
   replay: {
+    "play": "播放",
+    "pause": "暂停",
+    "replay": "重新播放",
     "title": "回顾牌局",
     "previous": "上一步",
     "next": "下一步",

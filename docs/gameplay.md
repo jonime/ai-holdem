@@ -202,7 +202,17 @@ pauses following, and Latest action resumes it. Reopening starts at the latest
 event.
 
 **Review hand** opens a read-only review from a completed hand in Actions, within
-the same 50-hand window. It starts after blinds;
+the same 50-hand window. It opens paused at the first frame after blinds.
+**Play / Pause**, between Previous and Next, advances already-loaded frames every
+1.2 seconds, allowing 2 seconds for the initial frame and any frame revealing
+community cards. Playback stops at Result; **Replay** returns to the first frame
+and starts playback. Manual navigation pauses before moving. A hidden tab, an
+inactive viewer or another dialog above it pauses playback; returning requires
+explicit Play, which starts a fresh delay for the current frame. Amount and
+card-colour preference changes preserve position, playback and pending timing.
+The same controls and timing apply to shared-hand replays. Playback never advances
+the live game or requests bot decisions.
+
 Previous/Next and left/right arrows move manually while review is open, including
 when a navigation button becomes disabled or no button is focused. Street buttons select
 the first frame of each street, including automatic all-in runouts. Result shows

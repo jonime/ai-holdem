@@ -171,11 +171,16 @@ Management endpoints use ownership cookies and require same-origin mutations.
 All JSON responses are private/no-store. Uncertain mutations reconcile through the
 management GET without automatic replay; a failed read blocks further mutations
 until explicit status refresh. `ReplayViewer` accepts only sanitized presentation
-props. `HandReplayModal` owns focus, live-turn warnings, owner loading and return
+props and owns optional playback of loaded frames using one cancellable timer.
+Playback starts paused, stops at Result, and resets paused on hand replacement.
+Manual navigation, hidden tabs, inactive viewers and overlaid dialogs cancel the
+pending callback. A generation guard rejects stale callbacks after cancellation.
+Preference rerenders do not affect the timer dependencies or move keyboard focus;
+automatic steps reuse the existing frame announcement. `HandReplayModal` owns
+focus, live-turn warnings, owner loading and return
 navigation. Sharing opens a child native dialog above the visible replay, keeps
-the viewer
-at its selected frame, suspends its arrow handler and restores focus to the header
-trigger on return. Modal scroll locks are reference counted; closing the child
+the viewer at its selected frame, pauses playback, suspends its arrow handler and
+restores focus to the header trigger on return. Modal scroll locks are reference counted; closing the child
 keeps the parent locked. Child cancellation/pointer events do not bubble into
 parent dismissal, and focus restoration targets only the top remaining dialog.
 Standalone localized `/replay/:token` pages have no live session hook,

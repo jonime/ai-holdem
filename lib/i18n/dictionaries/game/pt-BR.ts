@@ -234,6 +234,9 @@ const dictionary = {
     error: "Não foi possível confirmar o link. Atualize o estado antes de tentar novamente.",
   },
   replay: {
+    "play": "Reproduzir",
+    "pause": "Pausar",
+    "replay": "Reproduzir novamente",
     "title": "Rever mão",
     "previous": "Anterior",
     "next": "Próximo",

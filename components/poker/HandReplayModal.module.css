@@ -22,3 +22,7 @@
 
 .player[data-replay-folded="true"] { opacity: 0.6; }
 .shareDialog { width: min(520px, calc(100vw - 24px)); }
+
+/* Keep all three controls together, including longer translated Replay labels. */
+.playback { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
+.playback > button { min-width: 0; overflow-wrap: anywhere; }

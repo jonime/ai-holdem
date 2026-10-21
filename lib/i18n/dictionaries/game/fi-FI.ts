@@ -234,6 +234,9 @@ const dictionary = {
     error: "Jaon tilaa ei voitu varmistaa. Päivitä tila ennen uutta yritystä.",
   },
   replay: {
+    "play": "Toista",
+    "pause": "Tauko",
+    "replay": "Toista uudelleen",
     "title": "Tarkastele jakoa",
     "previous": "Edellinen",
     "next": "Seuraava",

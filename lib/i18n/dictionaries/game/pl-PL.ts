@@ -235,6 +235,9 @@ const dictionary = {
     error: "Nie udało się potwierdzić linku. Odśwież stan przed ponowną próbą.",
   },
   replay: {
+    "play": "Odtwórz",
+    "pause": "Wstrzymaj",
+    "replay": "Odtwórz ponownie",
     "title": "Przejrzyj rozdanie",
     "previous": "Poprzedni",
     "next": "Następny",

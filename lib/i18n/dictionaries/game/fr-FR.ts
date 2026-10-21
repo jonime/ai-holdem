@@ -234,6 +234,9 @@ const dictionary = {
     error: "Impossible de confirmer le partage. Actualisez son état avant de réessayer.",
   },
   replay: {
+    "play": "Lire",
+    "pause": "Pause",
+    "replay": "Rejouer",
     "title": "Revoir la main",
     "previous": "Précédent",
     "next": "Suivant",

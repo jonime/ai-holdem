@@ -234,6 +234,9 @@ const dictionary = {
     error: "Delningen kunde inte bekräftas. Uppdatera status före nytt försök.",
   },
   replay: {
+    "play": "Spela",
+    "pause": "Pausa",
+    "replay": "Spela igen",
     "title": "Granska hand",
     "previous": "Föregående",
     "next": "Nästa",
