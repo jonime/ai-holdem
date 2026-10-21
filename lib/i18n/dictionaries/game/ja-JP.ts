@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  amounts: {"display": "金額表示", "chipsOption": "チップ", "bigBlindsOption": "ビッグブラインド", "chips": "チップ", "bigBlinds": "ビッグブラインド", "approximately": "約{amount}", "lessThan": "{amount}未満", "betAmountChips": "ベット額（チップ）", "target": "合計額：{amount}", "fallback": "ブラインド額が不明なため、チップで表示しています"},
   accessibility: {"replayStep": "アクション {current} / {total}", "turn": "あなたの番です。ポット {pot}。{availability}。可能なアクション：{actions}。", "checkAvailable": "チェックできます"},
   botInformation: {
     "open": "{name}について",

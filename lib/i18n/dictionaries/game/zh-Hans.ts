@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  amounts: {"display": "金额显示", "chipsOption": "筹码", "bigBlindsOption": "大盲注", "chips": "筹码", "bigBlinds": "大盲注", "approximately": "约{amount}", "lessThan": "小于{amount}", "betAmountChips": "下注金额（筹码）", "target": "目标总额：{amount}", "fallback": "金额以筹码显示；盲注大小不可用"},
   accessibility: {"replayStep": "操作 {current} / {total}", "turn": "轮到你了。底池 {pot}。{availability}。可用操作：{actions}。", "checkAvailable": "可以过牌"},
   botInformation: {
     "open": "关于{name}",

@@ -9,7 +9,7 @@ import type { Settings } from "./settings";
 import styles from "./SettingsModal.module.css";
 export function SettingsModal({ preferences, onUpdate, onSound, notice, languageBlocked, onNavigate, destination, showContinues = true, onClose, restoreFocus, fallbackFocus }: {
   readonly preferences: Settings;
-  readonly onUpdate: (patch: Partial<Pick<Settings, "turnSound" | "gameplayShortcuts" | "cardColours" | "showCurrentHand">>) => void;
+  readonly onUpdate: (patch: Partial<Pick<Settings, "turnSound" | "gameplayShortcuts" | "cardColours" | "showCurrentHand" | "amountDisplay">>) => void;
   readonly onSound: (enabled: boolean) => Promise<void>;
   readonly notice: string | null;
   readonly languageBlocked: boolean;
@@ -44,6 +44,15 @@ export function SettingsModal({ preferences, onUpdate, onSound, notice, language
         }}>
           <option value="classic">{t("settings.classic")}</option>
           <option value="four-colour">{t("settings.fourColour")}</option>
+        </select>
+      </label>
+      <label className={styles.language}><span>{t("amounts.display")}</span>
+        <select value={preferences.amountDisplay} onChange={event => {
+          const value = event.target.value;
+          if (value === "chips" || value === "bigBlinds") onUpdate({ amountDisplay: value });
+        }}>
+          <option value="chips">{t("amounts.chipsOption")}</option>
+          <option value="bigBlinds">{t("amounts.bigBlindsOption")}</option>
         </select>
       </label>
       {notice ? <p role="status" className={styles.note}>{notice}</p> : null}

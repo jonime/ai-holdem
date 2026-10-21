@@ -39,6 +39,7 @@ describe("completed hand replay", () => {
   it.each([2, 3, 4, 5, 6])("replays %i participants with checks/calls and every street", async seats => {
     const row = history(initial(seats));
     const result = await replay(row, "private-token-0");
+    expect(result.bigBlind).toBe(10);
     expect(result.participants).toHaveLength(seats);
     expect(result.frames[0]).toMatchObject({ kind: "start", street: "preflop", pot: 15 });
     expect(result.frames.filter(f => f.kind === "street").map(f => f.street)).toEqual(["flop", "turn", "river"]);
@@ -65,10 +66,11 @@ describe("completed hand replay", () => {
   });
   it("uses immutable ownership despite reused seats, names and departed assignments", async () => {
     const row = history(initial(), () => ({ type: "fold" }));
-    row.finalState = { ...row.finalState, config: { ...row.finalState.config,
+    row.finalState = { ...row.finalState, config: { ...row.finalState.config, bigBlind: 20,
       players: row.finalState.config.players.map(p => ({ ...p, playerToken: "new-owner", name: "Replacement", leaving: true })) } };
     expect((await replay(row, "new-owner")).frames.every(f => f.players.every(p => p.cards === null))).toBe(true);
     const old = await replay(row, "private-token-0");
+    expect(old.bigBlind).toBe(10);
     expect(old.participants.every(p => p.name === "Same name")).toBe(true);
     expect(old.frames.at(-1)?.players[0].cards).toHaveLength(2);
   });
@@ -149,7 +151,8 @@ describe("fixed shared replay visibility", () => {
     for (const frame of snapshot.replay.frames) {
       for (const p of frame.players) expect(p.cards?.length ?? null).toBe(p.seat === 5 ? null : 2);
     }
-    expect(Object.keys(snapshot.replay).sort()).toEqual(["bigBlindSeat", "dealerSeat", "frames", "participants", "pots", "smallBlindSeat"]);
+    expect(snapshot.replay.bigBlind).toBe(10);
+    expect(Object.keys(snapshot.replay).sort()).toEqual(["bigBlind", "bigBlindSeat", "dealerSeat", "frames", "participants", "pots", "smallBlindSeat"]);
     expect(JSON.stringify(snapshot)).not.toMatch(/gameId|handNumber|playerToken|engineState|p0|private-token|deck|provider|modelId/);
     expect(snapshot.replay.participants.every(p => p.name === "Same name")).toBe(true);
     const before = JSON.stringify(snapshot);

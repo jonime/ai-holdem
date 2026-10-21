@@ -403,6 +403,26 @@ and independently scrolling content. It remains available during pending request
 and recovery. The game, timers, bots, refreshes, and turn notifications continue
 while it is open; gameplay shortcuts are suppressed by the overlay.
 
+**Amount display** offers **Chips** (default) or **Big blinds** in Settings on Play
+and at the table. This is a local presentation preference for live stacks, pots,
+actions, button amounts, awards, net results and replay. Each historical Actions
+hand and replay uses its own original big blind. Older history and frozen shares
+without blind metadata display explicitly labelled chips; replay explains that
+blind size is unavailable. Shared links use the viewer’s preference.
+
+BB values have at most two decimal places without trailing zeros. The ≈ marker
+means the value was rounded; a nonzero magnitude below 0.01 BB displays <0.01 BB,
+retaining its gain/loss direction. Screen readers hear localized “big blinds.”
+Bet entry remains exact integer chips, labelled **Bet amount (chips)** in BB mode,
+with the selected total’s BB equivalent beside it and additional payment shown
+separately. Percentage presets, slider bounds, keyboard increments, validation
+and submitted actions use identical chip amounts in both modes. Switching display
+preserves the draft and replay position and does not announce a new turn.
+Creation, blind configuration, Play summaries and allowance/error diagnostics
+remain in chips. The version-1 preference defaults missing `amountDisplay` to
+`chips` without changing other saved choices; storage synchronization and
+unavailable-storage behavior match the other settings.
+
 **Show current hand** defaults to On. From the flop through the river, your owned, participating human seat shows a subdued made-hand category beneath its hole cards, above its status. It uses only your two cards and the revealed board, including board-only hands; it describes the current hand, not its chance of winning. All-ins remain eligible; folded or departing players have no label. Every seat reserves the same category slot, including preflop and with the preference disabled. Status/action text floats on the bottom border without affecting seat layout. Bet and Raise use only the top action badge, hiding their duplicate bottom pill; turn, leaving, elimination, waiting, folded and all-in statuses retain precedence, as do winner amounts. Standard occupied and open seats keep equal, fixed dimensions on desktop and mobile; completed showdown categories use the same slot and winning amounts share the border badge. Your active human status reads **Your turn** in a gold border badge; other players retain **Thinking**, and leaving, elimination, waiting, folded and all-in statuses keep precedence. Completion hides the live label and retains the usual showdown categories, winning five and net results. The version-1 Settings entry defaults a missing `showCurrentHand` to true, preserving other preferences. Changes apply immediately, persist, and synchronize across tabs; unavailable storage preserves the current tab’s choice.
 
 **Card colours** uses a labelled native selector: **Classic** (default) or

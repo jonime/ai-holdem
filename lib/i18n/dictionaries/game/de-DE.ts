@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  amounts: {"display": "Betragsanzeige", "chipsOption": "Chips", "bigBlindsOption": "Big Blinds", "chips": "Chips", "bigBlinds": "Big Blinds", "approximately": "ungefähr {amount}", "lessThan": "weniger als {amount}", "betAmountChips": "Einsatz (Chips)", "target": "Ziel: {amount}", "fallback": "Beträge in Chips; Blindhöhe nicht verfügbar"},
   accessibility: {"replayStep": "Aktion {current} von {total}", "turn": "Du bist dran. Pot {pot}. {availability}. Verfügbare Aktionen: {actions}.", "checkAvailable": "Check möglich"},
   botInformation: {
     "open": "Über {name}",

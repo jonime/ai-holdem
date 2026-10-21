@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  amounts: {"display": "Summien näyttö", "chipsOption": "Pelimerkit", "bigBlindsOption": "Isot blindit", "chips": "pelimerkkiä", "bigBlinds": "isoa blindia", "approximately": "noin {amount}", "lessThan": "alle {amount}", "betAmountChips": "Panoksen määrä (pelimerkkeinä)", "target": "Tavoite: {amount}", "fallback": "Summat näytetään pelimerkkeinä; blindin koko ei ole saatavilla"},
   accessibility: {"replayStep": "Toiminto {current}/{total}", "turn": "Sinun vuorosi. Potti {pot}. {availability}. Toiminnot: {actions}.", "checkAvailable": "Sökö mahdollinen"},
   botInformation: {
     "open": "Tietoja botista {name}",

@@ -53,3 +53,13 @@ it("summarizes authoritative awards and personal net without detailed cards and 
   expect(state.observe(2, false, summary)).toBe("");
   expect(createHandAnnouncer().observe(1, false, message())).toContain("Your turn");
 });
+
+it("announces big blinds without repeating a decision after a display toggle", () => {
+  const machine = createHandAnnouncer();
+  const chips = message();
+  const blinds = handAnnouncement(game, "owner", false, true, null, t, "en-US", "bigBlinds");
+  expect(blinds?.text).toContain("big blinds");
+  expect(blinds?.identity).toBe(chips?.identity);
+  expect(machine.observe(1, false, chips)).not.toBe("");
+  expect(machine.observe(1, false, blinds)).toBe("");
+});

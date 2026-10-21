@@ -22,6 +22,7 @@ it("reads one snapshot, resolves the cookie, validates explicit fields and preve
   const response = await GET(request(), context);
   expect(response.status).toBe(200); expect(response.headers.get("cache-control")).toBe("private, no-store");
   const { replay } = replayResponseSchema.parse(await response.json());
+  expect(replay.bigBlind).toBe(10);
   expect(replay.frames[0].players[0].cards).toHaveLength(2);
   expect(replay.frames.every(f => f.players[1].cards === null)).toBe(true);
   expect(rpc).toHaveBeenCalledExactlyOnceWith("get_hand_replay", { p_game_id: gameId, p_hand_number: 1 });
@@ -46,4 +47,20 @@ it("rejects invalid path input with private headers before reading", async () =>
     expect(response.status).toBe(400); expect(response.headers.get("cache-control")).toBe("private, no-store");
   }
   expect(rpc).not.toHaveBeenCalled();
+});
+
+it("accepts older replay responses and frozen shares without blind metadata", async () => {
+  const { sharedReplaySchema } = await import("@/lib/http/share-contracts");
+  rpc.mockResolvedValue({ data: fixture(), error: null });
+  const { replay } = replayResponseSchema.parse(await (await GET(request(), context)).json());
+  const { bigBlind, ...legacy } = replay;
+  expect(bigBlind).toBe(10);
+  expect(replayResponseSchema.parse({ replay: legacy }).replay.bigBlind).toBeUndefined();
+  const snapshot = { dealerSeat: legacy.dealerSeat, smallBlindSeat: legacy.smallBlindSeat, bigBlindSeat: legacy.bigBlindSeat, participants: legacy.participants, frames: legacy.frames, pots: legacy.pots };
+  expect(sharedReplaySchema.parse({ schemaVersion: 1, replay: snapshot }).replay.bigBlind).toBeUndefined();
+  expect(sharedReplaySchema.parse({ schemaVersion: 1, replay: { ...snapshot, bigBlind: 10 } }).replay.bigBlind).toBe(10);
+  for (const bigBlind of [0, -1, 1.5, null, "10"]) {
+    expect(replayResponseSchema.safeParse({ replay: { ...legacy, bigBlind } }).success).toBe(false);
+    expect(sharedReplaySchema.safeParse({ schemaVersion: 1, replay: { ...snapshot, bigBlind } }).success).toBe(false);
+  }
 });

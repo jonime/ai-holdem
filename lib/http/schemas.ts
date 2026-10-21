@@ -328,6 +328,7 @@ export type RealtimeGameEvent = z.infer<typeof realtimeGameEventSchema>;
 const gameFeedEventSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("handStarted"),
+    bigBlind: z.number().int().positive().safe().optional(),
     handNumber: z.number().int().nonnegative(),
   }),
   z.object({

@@ -1,4 +1,5 @@
 "use client";
+import { AmountDisplayProvider } from "./AmountDisplay";
 import { GameErrorDetails } from "@/components/CopyErrorDetails";
 import { useGameOverlay } from "./useGameOverlay";
 import { connectionFeedback } from "./connection-notice";
@@ -147,7 +148,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     viewerToken,
   );
 
-  useHandAnnouncements(gameId, game, viewerToken, authoritativeRevision, loading || recoveryBlocked || creatingQuickPlay || unavailable, online);
+  useHandAnnouncements(gameId, game, viewerToken, authoritativeRevision, loading || recoveryBlocked || creatingQuickPlay || unavailable, online, settings.preferences.amountDisplay);
   const turnNotification = useTurnNotifications(game, viewerToken, loading || recoveryBlocked || creatingQuickPlay || unavailable, online, settings.preferences.turnSound);
 
   const canStartNextHand = game ? tableFlow(game.poker.players, game.poker.street, viewerToken, game.viewerIsHost, game.poker.seats).canStartNextHand : false;
@@ -332,6 +333,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   ]);
 
   return (
+    <AmountDisplayProvider value={{ mode: settings.preferences.amountDisplay, bigBlind: game?.poker.bigBlind }}>
     <div className={`${styles.cardPalette} ${!game && !unavailable ? loadingStyles.loadingPage : ""}`} data-card-colours={settings.preferences.cardColours}>
     <CreationFeedback creation={creation} labels={creationLabels} />
     <GameHeader helpRef={helpOpenerRef} onHelp={opener => openHelp(opener)} settingsRef={settingsOpenerRef} onSettings={opener => openSettings(opener)} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || creatingQuickPlay} onLeave={opener => { setDepartureAttempted(false); setDepartureFailed(false); openLeave(opener); }} />
@@ -565,5 +567,6 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
       </Modal>
     ) : null}
     </div>
+    </AmountDisplayProvider>
   );
 }

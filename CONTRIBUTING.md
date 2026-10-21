@@ -1271,10 +1271,15 @@ one Chromium worker, and disabled external providers. The browser matrix is unch
 
 Run `nice -n 15 npm run check`, then
 `nice -n 15 env CIRCLE_NODE_TOTAL=1 RAYON_NUM_THREADS=1 npm run build` and
-`nice -n 15 env CIRCLE_NODE_TOTAL=1 RAYON_NUM_THREADS=1 npm run test:e2e:ui -- betting-controls.spec.ts hand-results-actions.spec.ts hand-replay.spec.ts shared-replay.spec.ts dialogs.spec.ts turn-notifications.spec.ts settings.spec.ts`.
+`nice -n 15 env CIRCLE_NODE_TOTAL=1 RAYON_NUM_THREADS=1 npm run test:e2e:ui -- betting-controls.spec.ts hand-results-actions.spec.ts hand-replay.spec.ts shared-replay.spec.ts dialogs.spec.ts turn-notifications.spec.ts settings.spec.ts amount-display.spec.ts`.
 Use the existing local prerequisites and selection rules above. Preserve failure
 traces, screenshots, report attachments and sanitized logs. DOM live-region and
 focus assertions establish DOM behavior, not what a screen reader speaks.
+`amount-display.spec.ts` checks local Chips/Big blinds settings, unchanged chip drafts,
+focus, presets, keyboard increments and submissions, per-hand Actions blinds,
+completed results, both replay viewers and legacy frozen-share fallback. BB amounts
+must have localized accessible units; entry and slider labels retain chip units.
+Unit contracts accept older replay/feed/share responses without blind metadata.
 Automated checks supplement manual testing and do not establish full-site WCAG compliance.
 
 Manual checklist (record date, revision, OS/browser/assistive-technology versions,

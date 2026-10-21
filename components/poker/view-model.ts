@@ -7,15 +7,11 @@ import type {
   GameFeedEvent,
   LatestPlayerAction,
 } from "@/components/poker/types";
-import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
+import { type Locale } from "@/lib/i18n";
 import type { GameDictionary } from "@/lib/i18n/types";
 
-export function formatChips(
-  value: number,
-  locale: Locale = DEFAULT_LOCALE,
-): string {
-  return new Intl.NumberFormat(locale).format(value);
-}
+export { formatChips } from "./amounts";
+import { formatChips, formatAmount, type AmountDisplay, type AmountLabels } from "./amounts";
 
 const shortSuitSymbols: Record<string, string> = {
   c: "♣",
@@ -34,6 +30,10 @@ export function feedEventLabel(
   event: GameFeedEvent,
   locale: Locale,
   labels: GameDictionary["feed"],
+  mode: AmountDisplay = "chips",
+  bigBlind?: number,
+  amountLabels?: AmountLabels,
+  accessible = false,
 ): string {
   switch (event.type) {
     case "handStarted":
@@ -46,14 +46,14 @@ export function feedEventLabel(
     case "win":
       return (event.uncontested ? labels.winUncontested : labels.win)
         .replace("{player}", event.player)
-        .replace("{amount}", formatChips(event.amount, locale));
+        .replace("{amount}", formatAmount(event.amount, locale, mode, bigBlind, amountLabels, accessible));
     case "blind":
       return (event.blind === "small" ? labels.smallBlind : labels.bigBlind)
         .replace("{player}", event.player)
-        .replace("{amount}", formatChips(event.amount, locale));
+        .replace("{amount}", formatAmount(event.amount, locale, mode, bigBlind, amountLabels, accessible));
     case "action": {
       const amount =
-        event.amount !== null ? formatChips(event.amount, locale) : "";
+        event.amount !== null ? formatAmount(event.amount, locale, mode, bigBlind, amountLabels, accessible) : "";
       const template =
         event.action === "all_in" ? labels.allIn : labels[event.action];
       return template
@@ -348,6 +348,7 @@ export function describeSeatStatus(
   labels: GameDictionary["seat"],
   actions: GameDictionary["actions"],
   locale: Locale,
+  amountFormatter: (value: number) => string = value => formatChips(value, locale),
 ): string {
   if (player.leaving) {
     return labels.leaving;
@@ -368,7 +369,7 @@ export function describeSeatStatus(
     return player.isViewer ? labels.yourTurn : labels.thinking;
   }
   return latestAction
-    ? formatActionLabel(latestAction, locale, actions)
+    ? formatActionLabel(latestAction, locale, actions, amountFormatter)
     : labels.waiting;
 }
 
@@ -376,11 +377,12 @@ export function formatActionLabel(
   action: LatestPlayerAction,
   locale: Locale,
   labels: GameDictionary["actions"],
+  amountFormatter: (value: number) => string = value => formatChips(value, locale),
 ): string {
   const label = labels[action.action as keyof typeof labels] ?? action.action;
   return action.amount === null
     ? label
-    : `${label} ${formatChips(action.amount, locale)}`;
+    : `${label} ${amountFormatter(action.amount)}`;
 }
 
 export function getSizedAction(

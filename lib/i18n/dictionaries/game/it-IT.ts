@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  amounts: {"display": "Visualizzazione importi", "chipsOption": "Chip", "bigBlindsOption": "Grandi bui", "chips": "chip", "bigBlinds": "grandi bui", "approximately": "circa {amount}", "lessThan": "meno di {amount}", "betAmountChips": "Puntata (chip)", "target": "Obiettivo: {amount}", "fallback": "Importi in chip; valore del buio non disponibile"},
   accessibility: {"replayStep": "Azione {current} di {total}", "turn": "Tocca a te. Piatto {pot}. {availability}. Azioni disponibili: {actions}.", "checkAvailable": "Check disponibile"},
   botInformation: {
     "open": "Informazioni su {name}",

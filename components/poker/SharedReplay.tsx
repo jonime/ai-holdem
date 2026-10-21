@@ -6,6 +6,7 @@ import { api, HttpError } from "@/lib/http/api";
 import { shareTokenSchema, type ReplayData } from "@/lib/http/share-contracts";
 import { useSettings } from "./useSettings";
 import paletteStyles from "./PokerApp.module.css";
+import { AmountDisplayProvider } from "./AmountDisplay";
 import { ReplayViewer } from "./ReplayViewer";
 import { useI18n } from "./I18nProvider";
 import { Button } from "@/components/Button";
@@ -24,9 +25,9 @@ export function SharedReplay({ token }: { token: string }) {
     });
     return () => controller.abort();
   }, [token, attempt]);
-  return <div className={paletteStyles.cardPalette} data-card-colours={settings.preferences.cardColours}>
+  return <AmountDisplayProvider value={{ mode: settings.preferences.amountDisplay }}><div className={paletteStyles.cardPalette} data-card-colours={settings.preferences.cardColours}>
     {load.status === "ready" ? <ReplayViewer replay={load.replay} keyboardScope="page" /> : <p role="status">{t(load.status === "loading" ? "replay.loading" : load.status === "error" ? "replay.error" : "replay.unavailable")}</p>}
     {load.status === "error" ? <GameErrorDetails report={load.diagnostics ?? []} /> : null}
     {load.status === "error" ? <Button onClick={() => { setLoad({ status: "loading" }); setAttempt(a => a + 1); }}>{t("replay.retry")}</Button> : null}
-  </div>;
+  </div></AmountDisplayProvider>;
 }

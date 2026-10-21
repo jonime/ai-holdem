@@ -1,17 +1,19 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useAmounts, AmountText } from "./AmountDisplay";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import type { ReplayData } from "@/lib/http/share-contracts";
 import { SeatRoleBadge } from "./SeatRoleBadge";
 import { PlayingCard } from "./PlayingCard";
 import { useI18n } from "./I18nProvider";
 import { Button } from "@/components/Button";
-import { cardLabel, formatChips } from "./view-model";
+import { cardLabel } from "./view-model";
 import styles from "./HandReplayModal.module.css";
 import seatStyles from "./Seat.module.css";
 export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }: {
   replay: ReplayData; active?: boolean; keyboardScope?: "viewer" | "page";
 }) {
-  const { t, dictionary, locale } = useI18n();
+  const { t, dictionary } = useI18n();
+  const { format, spoken, mode } = useAmounts(replay.bigBlind ?? null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ index: 0, previousIndex: -1 });
   const { index, previousIndex } = position;
@@ -63,6 +65,7 @@ export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }
   };
   const move = (delta: number) => select(Math.max(0, Math.min(replay.frames.length - 1, index + delta)));
   return <div ref={contentRef} tabIndex={-1} role="group" aria-label={t("replay.title")}>
+      {mode === "bigBlinds" && replay.bigBlind === undefined ? <p>{t("amounts.fallback")}</p> : null}
       {frame ? <>
         <nav className={`${styles.controls} ${styles.streets}`} aria-label={t("replay.title")}>
           {(["preflop", "flop", "turn", "river", "complete"] as const).map(street => {
@@ -73,35 +76,43 @@ export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }
         </nav>
         <div className={styles.table} data-replay-frame={index}>
           <div className={styles.board}>{Array.from({ length: 5 }, (_, i) => <PlayingCard key={i} card={frame.board[i]} />)}</div>
-          <strong>{t("replay.pot")}: {formatChips(frame.pot, locale)}</strong>
+          <strong>{t("replay.pot")}: <AmountText>{format(frame.pot)}</AmountText></strong>
           <div className={styles.players}>{frame.players.map(player => <article aria-label={name(player.seat)} data-replay-folded={player.folded} key={player.seat} className={`${styles.player} ${(awards.get(player.seat) ?? 0) > 0 ? seatStyles.winnerSeat : ""}`} data-replay-winner={(awards.get(player.seat) ?? 0) > 0} data-last-actor={frame.kind !== "result" && lastAction?.actorSeat === player.seat}>
             <strong className={styles.playerName}>{name(player.seat)}</strong>
             <SeatRoleBadge seat={player.seat} dealerSeat={replay.dealerSeat} smallBlindSeat={replay.smallBlindSeat} bigBlindSeat={replay.bigBlindSeat} />
             <div className={styles.cards}>{[0, 1].map(i => <PlayingCard key={i} card={player.cards?.[i]} hidden={!player.cards} />)}</div>
             {frame.kind !== "result" && player.bet > 0 ? <span className={`${seatStyles.actionBadge} ${styles.betBadge}`} data-replay-bet={player.bet}>
-              {t("replay.bet")} {formatChips(player.bet, locale)}
+              {t("replay.bet")} <AmountText>{format(player.bet)}</AmountText>
             </span> : null}
-            <span data-replay-stack>{t("replay.stack")}: {formatChips(player.stack, locale)}</span>
+            <span data-replay-stack>{t("replay.stack")}: <AmountText>{format(player.stack)}</AmountText></span>
             <span className={styles.playerStatus}>{player.folded ? t("seat.folded") : player.allIn ? t("seat.allIn") : ""}</span>
             {(awards.get(player.seat) ?? 0) > 0 ? <span className={`${seatStyles.seatStatus} ${styles.award}`}
-              data-replay-award role="group" aria-label={t("result.award", { player: name(player.seat), amount: formatChips(awards.get(player.seat) ?? 0, locale) })}
+              data-replay-award role="group" aria-label={t("result.award", { player: name(player.seat), amount: spoken(awards.get(player.seat) ?? 0) })}
               title={replay.pots.flatMap((pot, i) => pot.awards.filter(award => award.seat === player.seat && award.amount > 0)
-                .map(award => `${t("replay.pot")} ${i + 1}: ${formatChips(award.amount, locale)}`)).join(" · ")}>
-              +{formatChips(awards.get(player.seat) ?? 0, locale)}
+                .map(award => `${t("replay.pot")} ${i + 1}: ${format(award.amount)}`)).join(" · ")}>
+              +<AmountText>{format(awards.get(player.seat) ?? 0)}</AmountText>
             </span> : null}
           </article>)}</div>
         </div>
-        <div className="sr-only" aria-live={active ? "polite" : "off"} aria-atomic="true" data-replay-announcement>
-          {t("accessibility.replayStep", { current: lastAction?.sequence ?? 0, total })}. {frame.action ? dictionary.feed[frame.action.type].replace("{player}", name(frame.action.actorSeat)).replace("{amount}", frame.action.amount === null ? "" : formatChips(frame.action.amount, locale)) : t(frame.kind === "result" ? "replay.result" : frame.kind === "start" ? "replay.start" : "replay.runout")}
-          {index === 0 || replay.frames[previousIndex]?.street !== frame.street ? ` ${frame.street === "complete" ? t("replay.result") : dictionary.feed[frame.street]}.` : ""}
-          {frame.board.filter(card => !replay.frames[previousIndex]?.board.includes(card)).map(card => cardLabel(card, dictionary.cards)).join(", ")}
-        </div>
+        <ReplayAnnouncement active={active} index={index} replay={replay} text={[
+          t("accessibility.replayStep", { current: lastAction?.sequence ?? 0, total }),
+          frame.action ? dictionary.feed[frame.action.type].replace("{player}", name(frame.action.actorSeat)).replace("{amount}", frame.action.amount === null ? "" : spoken(frame.action.amount)) : t(frame.kind === "result" ? "replay.result" : frame.kind === "start" ? "replay.start" : "replay.runout"),
+          index === 0 || replay.frames[previousIndex]?.street !== frame.street ? frame.street === "complete" ? t("replay.result") : dictionary.feed[frame.street] : "",
+          frame.board.filter(card => !replay.frames[previousIndex]?.board.includes(card)).map(card => cardLabel(card, dictionary.cards)).join(", "),
+        ].filter(Boolean).join(". ")} />
         <div className={styles.description}>
-          <p><span className={styles.counter}>{t("replay.counter", { current: lastAction?.sequence ?? 0, total })}:</span>{" "}{frame.action ? dictionary.feed[frame.action.type].replace("{player}", name(frame.action.actorSeat)).replace("{amount}", frame.action.amount === null ? "" : formatChips(frame.action.amount, locale)) :
-            t(frame.kind === "result" ? "replay.result" : frame.kind === "start" ? "replay.start" : "replay.runout")}</p>
+          <p><span className={styles.counter}>{t("replay.counter", { current: lastAction?.sequence ?? 0, total })}:</span>{" "}<AmountText>{frame.action ? dictionary.feed[frame.action.type].replace("{player}", name(frame.action.actorSeat)).replace("{amount}", frame.action.amount === null ? "" : format(frame.action.amount)) :
+            t(frame.kind === "result" ? "replay.result" : frame.kind === "start" ? "replay.start" : "replay.runout")}</AmountText></p>
         </div>
         <div className={styles.controls}><Button disabled={index === 0} onClick={() => move(-1)}>{t("replay.previous")}</Button>
           <Button disabled={index === replay.frames.length - 1} onClick={() => move(1)}>{t("replay.next")}</Button></div>
       </> : null}
   </div>;
 }
+
+// A unit preference update must not create a new step announcement.
+const ReplayAnnouncement = memo(function ReplayAnnouncement({ active, text }: {
+  active: boolean; index: number; replay: ReplayData; text: string;
+}) {
+  return <div className="sr-only" aria-live={active ? "polite" : "off"} aria-atomic="true" data-replay-announcement>{text}</div>;
+}, (before, after) => before.index === after.index && before.active === after.active && before.replay === after.replay);

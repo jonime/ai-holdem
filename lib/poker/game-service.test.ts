@@ -1629,7 +1629,7 @@ describe("getGameFeed", () => {
     const feed = await getGameFeed(repository, "game-1");
 
     expect(feed.events).toEqual([
-      { type: "handStarted", handNumber: 1 },
+      { type: "handStarted", handNumber: 1, bigBlind: 100 },
       { type: "street", handNumber: 1, street: "preflop", cards: [] },
       {
         type: "blind",
@@ -1710,7 +1710,7 @@ describe("getGameFeed", () => {
 
     await expect(getGameFeed(repository, "game-1")).resolves.toEqual({
       events: [
-        { type: "handStarted", handNumber: 2 },
+        { type: "handStarted", handNumber: 2, bigBlind: 50 },
         { type: "street", handNumber: 2, street: "preflop", cards: [] },
         expect.objectContaining({
           type: "blind",

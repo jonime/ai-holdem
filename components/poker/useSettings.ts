@@ -20,7 +20,7 @@ export function useSettings() {
     window.addEventListener("storage", storage);
     return () => window.removeEventListener("storage", storage);
   }, []);
-  function update(patch: Partial<Pick<Settings, "turnSound" | "gameplayShortcuts" | "cardColours" | "showCurrentHand">>) {
+  function update(patch: Partial<Pick<Settings, "turnSound" | "gameplayShortcuts" | "cardColours" | "showCurrentHand" | "amountDisplay">>) {
     const next: Settings = { ...current.current, ...patch };
     current.current = next; setPreferences(next);
     try { writeSettings(window.localStorage, next); } catch { /* Storage may be inaccessible. */ }

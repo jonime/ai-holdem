@@ -743,7 +743,12 @@ export async function getGameFeed(
   const events: PublicFeedEvent[] = [];
 
   for (const hand of feed.hands) {
-    events.push({ type: "handStarted", handNumber: hand.handNumber });
+    // Legacy hands may have no initial configuration. Never use current blinds or postings.
+    let historical: PokerGameState | null = null;
+    try { historical = restorePersistedState(hand.initialState); }
+    catch { /* Preserve legacy actions even when the initial snapshot is unavailable. */ }
+    events.push({ type: "handStarted", handNumber: hand.handNumber,
+      ...(historical ? { bigBlind: historical.config.bigBlind } : {}) });
     const emittedStreets = new Set<(typeof bettingStreets)[number]>();
     const emitStreet = (
       street: (typeof bettingStreets)[number],

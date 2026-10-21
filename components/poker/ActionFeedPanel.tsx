@@ -6,6 +6,7 @@ import { Button } from "@/components/Button";
 import { PlayingCard } from "@/components/poker/PlayingCard";
 import type { GameFeed, GameFeedEvent } from "@/components/poker/types";
 import { useI18n } from "@/components/poker/I18nProvider";
+import { AmountText, useAmounts } from "./AmountDisplay";
 import { feedEventLabel } from "@/components/poker/view-model";
 import styles from "@/components/poker/ActionFeedPanel.module.css";
 
@@ -37,6 +38,7 @@ interface FeedProps {
 
 function FeedBody({ feed, loading, viewerPlayerId, onReviewHand, positionRef }: FeedProps) {
   const { locale, t, dictionary } = useI18n();
+  const { mode } = useAmounts();
   const scrollRef = useRef<HTMLDivElement>(null);
   const events = feed?.events;
   const hasEvents = Boolean(events?.length);
@@ -132,7 +134,7 @@ function FeedBody({ feed, loading, viewerPlayerId, onReviewHand, positionRef }: 
                         </>
                       ) : (
                         <>
-                          {feedEventLabel(event, locale, dictionary.feed)}
+                          <AmountText>{feedEventLabel(event, locale, dictionary.feed, mode, hand.events.find(e => e.type === "handStarted")?.bigBlind, dictionary.amounts)}</AmountText>
                         </>
                       )}
                     </li>

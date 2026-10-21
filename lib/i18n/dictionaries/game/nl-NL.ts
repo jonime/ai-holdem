@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  amounts: {"display": "Bedragen weergeven", "chipsOption": "Chips", "bigBlindsOption": "Big blinds", "chips": "chips", "bigBlinds": "big blinds", "approximately": "ongeveer {amount}", "lessThan": "minder dan {amount}", "betAmountChips": "Inzet (chips)", "target": "Doel: {amount}", "fallback": "Bedragen in chips; blindgrootte niet beschikbaar"},
   accessibility: {"replayStep": "Actie {current} van {total}", "turn": "Jij bent aan de beurt. Pot {pot}. {availability}. Beschikbare acties: {actions}.", "checkAvailable": "Check mogelijk"},
   botInformation: {
     "open": "Over {name}",

@@ -1,6 +1,6 @@
 import type { Game } from "./types";
 import type { GameTranslator } from "@/lib/i18n/types";
-import { formatChips } from "./view-model";
+import { formatAmount, type AmountDisplay } from "./amounts";
 import { notificationEligible } from "./turn-notifications";
 import type { Locale } from "@/lib/i18n";
 
@@ -13,24 +13,27 @@ export function decisionIdentity(game: Game): string {
 }
 
 export function handAnnouncement(game: Game, token: string | null, blocked: boolean,
-  online: boolean, remaining: number | null, t: GameTranslator, locale: Locale) {
-  const chips = (amount: number) => formatChips(amount, locale);
+  online: boolean, remaining: number | null, t: GameTranslator, locale: Locale, mode: AmountDisplay = "chips") {
+  const format = (amount: number) => formatAmount(amount, locale, mode, game.poker.bigBlind, {
+    chips: t("amounts.chips"), bigBlinds: t("amounts.bigBlinds"),
+    approximately: t("amounts.approximately", { amount: "{amount}" }), lessThan: t("amounts.lessThan", { amount: "{amount}" }),
+  }, true);
   if (game.poker.street === "complete") {
     const poker = game.poker;
     const awards = poker.winnerIds.flatMap(id => {
       const player = poker.players.find(p => p.id === id);
       const amount = poker.winnerAmounts[id];
-      return player && amount !== undefined ? [t("result.award", { player: player.name, amount: chips(amount) })] : [];
+      return player && amount !== undefined ? [t("result.award", { player: player.name, amount: format(amount) })] : [];
     });
     const personal = poker.viewerHandResult;
-    if (personal) awards.push(t(personal.netChange > 0 ? "result.gained" : personal.netChange < 0 ? "result.lost" : "result.brokeEven", { amount: chips(Math.abs(personal.netChange)) }));
+    if (personal) awards.push(t(personal.netChange > 0 ? "result.gained" : personal.netChange < 0 ? "result.lost" : "result.brokeEven", { amount: format(Math.abs(personal.netChange)) }));
     return { identity: `${game.id}:${poker.handNumber}:complete`, text: `${t("table.complete")}. ${awards.join(". ")}` };
   }
   if (!notificationEligible(game, token, blocked, online, remaining)) return null;
   const call = game.poker.legalActions.find(a => a.type === "call");
-  const availability = call?.type === "call" ? t("table.call", { amount: chips(call.amount) }) : t("accessibility.checkAvailable");
+  const availability = call?.type === "call" ? t("table.call", { amount: format(call.amount) }) : t("accessibility.checkAvailable");
   const actions = game.poker.legalActions.map(a => t(`actions.${a.type}`)).join(", ");
-  return { identity: decisionIdentity(game), text: t("accessibility.turn", { pot: chips(game.poker.pot), availability, actions }) };
+  return { identity: decisionIdentity(game), text: t("accessibility.turn", { pot: format(game.poker.pot), availability, actions }) };
 }
 
 export function createHandAnnouncer() {

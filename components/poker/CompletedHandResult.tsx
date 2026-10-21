@@ -1,7 +1,7 @@
+import { useAmounts, AmountText } from "./AmountDisplay";
 import { PlayingCard } from "./PlayingCard";
 import type { PublicPokerGame } from "@/lib/poker/types";
 import { useI18n } from "@/components/poker/I18nProvider";
-import { formatChips } from "@/components/poker/view-model";
 import styles from "@/components/poker/PokerTable.module.css";
 
 export function CompletedHandResult({
@@ -9,7 +9,8 @@ export function CompletedHandResult({
 }: {
   readonly poker: PublicPokerGame;
 }) {
-  const { locale, t, dictionary } = useI18n();
+  const { t, dictionary } = useI18n();
+  const { format } = useAmounts(poker.bigBlind);
   if (poker.street !== "complete") return null;
 
   const personal = poker.viewerHandResult;
@@ -19,9 +20,9 @@ export function CompletedHandResult({
       {personal ? (
         <div className={styles.personalResult} data-personal-result
           data-outcome={personal.netChange > 0 ? "gain" : personal.netChange < 0 ? "loss" : "even"}>
-          <strong>{t(personal.netChange > 0 ? "result.gained" : personal.netChange < 0 ? "result.lost" : "result.brokeEven", {
-            amount: formatChips(Math.abs(personal.netChange), locale),
-          })}</strong>
+          <strong><AmountText>{t(personal.netChange > 0 ? "result.gained" : personal.netChange < 0 ? "result.lost" : "result.brokeEven", {
+            amount: format(Math.abs(personal.netChange)),
+          })}</AmountText></strong>
         </div>
       ) : null}
       {poker.winnerIds.length > 1 ? <h2>{t("result.potAwards")}</h2> : null}
@@ -33,10 +34,10 @@ export function CompletedHandResult({
           return (
             <li key={id}>
               <div>
-                {t("result.award", {
+                <AmountText>{t("result.award", {
                   player: player.name,
-                  amount: formatChips(amount, locale),
-                })}
+                  amount: format(amount),
+                })}</AmountText>
                 {poker.completionReason === "showdown" && player.bestHand ? (
                   <span> · {dictionary.seat.handCategories[player.bestHand]}</span>
                 ) : null}

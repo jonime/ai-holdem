@@ -22,14 +22,14 @@ beforeEach(() => {
 });
 afterEach(() => { h.cleanups.forEach(fn => fn()); vi.unstubAllGlobals(); });
 it("uses hydration defaults until saved preferences have been read", () => {
-  vi.mocked(win.localStorage.getItem).mockReturnValue(JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false }));
+  vi.mocked(win.localStorage.getItem).mockReturnValue(JSON.stringify({ version: 1, amountDisplay: "chips", turnSound: true, gameplayShortcuts: false }));
   expect(render()).toMatchObject({ ready: false, preferences: defaultSettings });
   expect(render()).toMatchObject({ ready: true, preferences: { turnSound: true, gameplayShortcuts: false } });
 });
 it("updates immediately, combines successive patches and tolerates failed persistence", () => {
   vi.mocked(win.localStorage.setItem).mockImplementation(() => { throw Error(); });
   const value = render(); value.update({ turnSound: true }); value.update({ gameplayShortcuts: false }); value.update({ cardColours: "four-colour", showCurrentHand: true });
-  expect(render().preferences).toEqual({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour", showCurrentHand: true });
+  expect(render().preferences).toEqual({ version: 1, amountDisplay: "chips", turnSound: true, gameplayShortcuts: false, cardColours: "four-colour", showCurrentHand: true });
 });
 it("synchronizes storage events, ignores legacy keys, resets on removal and cleans up", () => {
   render();
@@ -58,9 +58,9 @@ it("updates palette in memory when localStorage itself is unavailable", () => {
   expect(render().preferences.cardColours).toBe("four-colour");
 });
 it.each(["classic", "four-colour"] as const)("loads saved %s palette after hydration and preserves other preferences", cardColours => {
-  vi.mocked(win.localStorage.getItem).mockReturnValue(JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours, showCurrentHand: true }));
+  vi.mocked(win.localStorage.getItem).mockReturnValue(JSON.stringify({ version: 1, amountDisplay: "chips", turnSound: true, gameplayShortcuts: false, cardColours, showCurrentHand: true }));
   expect(render().preferences).toEqual(defaultSettings);
-  expect(render().preferences).toEqual({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours, showCurrentHand: true });
+  expect(render().preferences).toEqual({ version: 1, amountDisplay: "chips", turnSound: true, gameplayShortcuts: false, cardColours, showCurrentHand: true });
 });
 
 it("loads, synchronizes and updates current-hand display even without storage", () => {
@@ -79,4 +79,14 @@ it("guards storage object access in the storage-event handler", () => {
   Object.defineProperty(win, "localStorage", { get() { throw Error(); } });
   expect(() => win.dispatchEvent(Object.assign(new Event("storage"), { key: settingsStorageKey, newValue: null, storageArea: area }))).not.toThrow();
   expect(render().preferences.turnSound).toBe(true);
+});
+
+it("synchronizes amount display and keeps other preferences through failed writes", () => {
+  render();
+  const saved = { ...defaultSettings, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour", showCurrentHand: false, amountDisplay: "bigBlinds" } as const;
+  win.dispatchEvent(Object.assign(new Event("storage"), { key: settingsStorageKey, newValue: JSON.stringify(saved) }));
+  expect(render().preferences).toEqual(saved);
+  Object.defineProperty(win, "localStorage", { get() { throw Error(); } });
+  render().update({ amountDisplay: "chips" });
+  expect(render().preferences).toEqual({ ...saved, amountDisplay: "chips" });
 });

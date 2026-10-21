@@ -122,14 +122,15 @@ test("storage changes synchronize without previews and game refresh continues in
   const f = await table(page); await open(page);
   const other = await page.context().newPage();
   await other.goto(`/game/${f.id}`);
-  await other.evaluate(() => localStorage.setItem("ai-holdem-settings", JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour", showCurrentHand: false })));
+  await other.evaluate(() => localStorage.setItem("ai-holdem-settings", JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour", showCurrentHand: false, amountDisplay: "bigBlinds" })));
   await page.evaluate(() => {
-    window.dispatchEvent(new StorageEvent("storage", { key: "ai-holdem-settings", newValue: JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour", showCurrentHand: false }), storageArea: localStorage }));
+    window.dispatchEvent(new StorageEvent("storage", { key: "ai-holdem-settings", newValue: JSON.stringify({ version: 1, turnSound: true, gameplayShortcuts: false, cardColours: "four-colour", showCurrentHand: false, amountDisplay: "bigBlinds" }), storageArea: localStorage }));
   });
   await expect(page.getByRole("switch", { name: "Turn sound", exact: true })).toHaveAttribute("aria-checked", "true");
   await expect(page.getByRole("switch", { name: "Gameplay shortcuts", exact: true })).toHaveAttribute("aria-checked", "false");
   await expect(page.getByRole("switch", { name: "Show current hand", exact: true })).toHaveAttribute("aria-checked", "false");
   await expect(page.getByRole("combobox", { name: "Card colours", exact: true })).toHaveValue("four-colour");
+  await expect(page.getByRole("combobox", { name: "Amount display", exact: true })).toHaveValue("bigBlinds");
   expect(await page.evaluate(() => (window as unknown as { audioAttempts: number }).audioAttempts)).toBe(0);
   f.set({ ...f.get(), version: f.get().version + 1, poker: { ...f.get().poker, handNumber: 42 } });
   await page.evaluate(() => window.dispatchEvent(new Event("online")));
@@ -137,6 +138,7 @@ test("storage changes synchronize without previews and game refresh continues in
   await expect(page.getByRole("dialog")).toBeVisible();
   await other.evaluate(() => localStorage.removeItem("ai-holdem-settings"));
   await other.close();
+  await expect(page.getByRole("combobox", { name: "Amount display", exact: true })).toHaveValue("chips");
   await expect(page.getByRole("switch", { name: "Show current hand", exact: true })).toHaveAttribute("aria-checked", "true");
   await expect(page.getByRole("combobox", { name: "Card colours", exact: true })).toHaveValue("classic");
   await expect(page.getByRole("switch", { name: "Turn sound", exact: true })).toHaveAttribute("aria-checked", "false");

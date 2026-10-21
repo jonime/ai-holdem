@@ -19,6 +19,7 @@ export const replayFrameSchema = z.strictObject({
   players: z.array(z.strictObject({ seat, stack: chips, bet: chips, folded: z.boolean(), allIn: z.boolean(), cards: z.array(card).length(2).nullable() })).min(2).max(6),
 });
 export const replayDataSchema = z.strictObject({
+  bigBlind: chips.positive().optional(),
   dealerSeat: seat, smallBlindSeat: seat, bigBlindSeat: seat,
   participants: z.array(z.strictObject({ seat, name: z.string().min(1) })).min(2).max(6),
   frames: z.array(replayFrameSchema).min(2),

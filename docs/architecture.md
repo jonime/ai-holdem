@@ -845,6 +845,36 @@ the next hand while preserving result scrolling and next-hand controls.
 
 The public player `currentHandCategory` defaults to null for omitted legacy fields. The engine adapter reuses its visible-card evaluator with exactly the owned human participant’s two hole cards and the currently revealed board on flop/turn/river. It requires participation without folding or departure; all-ins qualify. Preflop, completion, spectators and other participants receive null. Shared projection applies this equally to reads and mutation responses. No persistence or migration is needed. Legacy Broadcast permits only absent/null categories; compact notifications remain unchanged. Seat renders receive explicit viewer identity on desktop and mobile. The display-only `showCurrentHand` version-1 Settings preference defaults to true, uses existing hydration/storage synchronization, and does not affect server projection. Every seat reserves an aria-hidden empty category slot even with the preference disabled. Status/action text is absolutely positioned on the bottom border; equal fixed seat dimensions keep category/status updates out of table sizing. Showdown categories use the same slot and winner amounts share the border badge. Category changes have no live region, sound or animation.
 
+## Amount presentation
+
+The version-1 browser settings codec includes `amountDisplay: "chips" | "bigBlinds"`,
+with a missing-field default of `chips`. `useSettings` retains post-hydration reads,
+full-entry persistence, cross-tab synchronization and in-memory updates on storage
+failure. Play and the table reuse SettingsModal. AmountDisplayProvider passes the
+viewer’s preference to table descendants and the shared ReplayViewer; standalone
+shares load the same local preference. It never participates in betting state,
+turn identity, engine decisions, payout calculations or request contracts.
+
+`components/poker/amounts.ts` centralizes localized presentation. BB conversion
+uses integer arithmetic to detect inexact hundredths, marks rounding with ≈,
+omits trailing zeros, and represents nonzero magnitudes below 0.01 BB with <,
+preserving signs. Accessible output expands BB and approximation into localized
+words. `formatChips` remains available for configuration, summaries and diagnostics.
+Bet drafts, slider bounds, increments, percentage presets and submissions remain
+integer chips; BB mode labels entry units and displays total-target equivalence
+separately from additional payment. Display changes preserve component identity,
+focus and replay position; announcement identity excludes this preference.
+
+Optional positive integer `bigBlind` on replay data and feed `handStarted` comes
+only from that hand’s immutable initial configuration. Legacy feed failures retain
+persisted actions without inventing a blind value. Each Actions group uses its own
+hand-start metadata, including incremental updates within the existing 50-hand
+bound. New sanitized shared snapshots explicitly allowlist `bigBlind`, retaining
+schemaVersion 1 and accepting older frozen snapshots without it. No stored shares
+are updated, no source game is fetched for fallback, and card visibility and source
+identifier exclusions stay intact. Absent historical metadata in BB mode produces
+labelled chips and a brief replay notice. No migration or endpoint is needed.
+
 ## In-game Help content
 
 Each supported locale has a complete Markdown-authored document in `content/help/`

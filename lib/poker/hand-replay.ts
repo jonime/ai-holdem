@@ -66,7 +66,7 @@ export function reconstructHandReplay(raw: unknown, gameId: string, handNumber: 
         return { seat: p.seat, stack: numeric.stack, bet: numeric.committedStreet,
           folded: numeric.folded, allIn: numeric.allIn, cards: visible.holeCards };
       }) });
-    const replay = replayResponseSchema.parse({ replay: { gameId, handNumber, dealerSeat: start.buttonSeat,
+    const replay = replayResponseSchema.parse({ replay: { gameId, handNumber, bigBlind: initial.config.bigBlind, dealerSeat: start.buttonSeat,
       smallBlindSeat: start.smallBlindSeat, bigBlindSeat: start.bigBlindSeat, participants, frames, pots: engine.replayPots(final) } }).replay;
     const holdings = start.players.map(p => {
       const config = initial.config.players.find(c => c.id === p.id && c.seat === p.seat)!;

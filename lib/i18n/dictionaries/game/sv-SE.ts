@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  amounts: {"display": "Beloppsvisning", "chipsOption": "Marker", "bigBlindsOption": "Stora mörkar", "chips": "marker", "bigBlinds": "stora mörkar", "approximately": "ungefär {amount}", "lessThan": "mindre än {amount}", "betAmountChips": "Insats (marker)", "target": "Mål: {amount}", "fallback": "Belopp visas i marker; mörkens storlek saknas"},
   accessibility: {"replayStep": "Handling {current} av {total}", "turn": "Din tur. Pott {pot}. {availability}. Tillgängliga handlingar: {actions}.", "checkAvailable": "Check är möjligt"},
   botInformation: {
     "open": "Om {name}",

@@ -19,8 +19,8 @@ export function projectSharedReplay(source: ReturnType<typeof reconstructHandRep
   const visible = new Map(source.holdings.map(p => [p.seat,
     p.id === owner.id || p.controller !== "human" || Boolean(publicCards.find(v => v.seat === p.seat)?.cards) ? p.cards : null]));
   // Construct an allowlist. Source IDs and hand number have no place in the snapshot.
-  const { dealerSeat, smallBlindSeat, bigBlindSeat, participants, pots } = source.replay;
-  const replay: ReplayData = { dealerSeat, smallBlindSeat, bigBlindSeat, participants, pots,
+  const { bigBlind, dealerSeat, smallBlindSeat, bigBlindSeat, participants, pots } = source.replay;
+  const replay: ReplayData = { ...(bigBlind === undefined ? {} : { bigBlind }), dealerSeat, smallBlindSeat, bigBlindSeat, participants, pots,
     frames: source.replay.frames.map(frame => ({ ...frame, players: frame.players.map(p => ({ ...p, cards: visible.get(p.seat) ?? null })) })) };
   return sharedReplaySchema.parse({ schemaVersion: 1, replay });
 }

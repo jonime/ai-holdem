@@ -657,3 +657,10 @@ describe("locale chip formatting", () => {
     expect(formatChips(1_234_567, locale)).toBe(grouped);
   });
 });
+
+it("uses the supplied hand blind for Actions and explicitly labels legacy chips", () => {
+  const event = { type: "action", handNumber: 1, player: "Alice", playerId: null, controller: "human", action: "raise", amount: 100, street: "preflop" } as const;
+  expect(feedEventLabel(event, "en-US", enUsGame.feed, "bigBlinds", 10, enUsGame.amounts)).toContain("10 BB");
+  expect(feedEventLabel(event, "en-US", enUsGame.feed, "bigBlinds", 20, enUsGame.amounts)).toContain("5 BB");
+  expect(feedEventLabel(event, "en-US", enUsGame.feed, "bigBlinds", undefined, enUsGame.amounts)).toContain("100 chips");
+});

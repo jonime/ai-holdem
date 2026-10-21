@@ -1,13 +1,11 @@
+import { useAmounts, AmountText } from "./AmountDisplay";
 import { SeatRoleBadge } from "./SeatRoleBadge";
 import { PlayingCard } from "@/components/poker/PlayingCard";
 import type {
   LatestPlayerAction,
   PublicPokerPlayer,
 } from "@/components/poker/types";
-import {
-  describeSeatStatus,
-  formatChips,
-} from "@/components/poker/view-model";
+import { describeSeatStatus } from "@/components/poker/view-model";
 import { useI18n } from "@/components/poker/I18nProvider";
 import styles from "@/components/poker/Seat.module.css";
 
@@ -43,6 +41,7 @@ export function Seat({
   readonly gameWinner: boolean;
 }) {
   const { dictionary, locale, t } = useI18n();
+  const { format, spoken } = useAmounts();
   const isAi = player.controller === "bot";
   const isOpen = player.status === "open";
   const showLiveCategory = isViewer && handActive && showCurrentHand;
@@ -54,11 +53,11 @@ export function Seat({
     { leaving: player.leaving, inHand: player.inHand, folded: player.folded,
       allIn: player.allIn, stack: player.stack, active,
       isViewer: isViewer && player.controller === "human" },
-    latestAction, dictionary.seat, dictionary.actions, locale,
+    latestAction, dictionary.seat, dictionary.actions, locale, format,
   );
   const isYourTurn = isViewer && player.controller === "human" && active && handActive &&
     player.inHand && !player.leaving && !player.folded && !player.allIn && !player.bestHand;
-  const award = winner && winnerAmount !== null ? `+${formatChips(winnerAmount, locale)}` : null;
+  const award = winner && winnerAmount !== null ? `+${format(winnerAmount)}` : null;
   const isBusted = player.stack === 0 && !player.inHand;
 
   if (isOpen) {
@@ -94,12 +93,12 @@ export function Seat({
         </span>
       ) : null}
       {countdown}
-      <strong><span className="sr-only">{t("replay.stack")}: </span>{formatChips(player.stack, locale)}</strong>
-      <span className="sr-only">{t("replay.bet")}: {formatChips(player.committedStreet, locale)}</span>
+      <strong><span className="sr-only">{t("replay.stack")}: </span><AmountText>{format(player.stack)}</AmountText></strong>
+      <span className="sr-only">{t("replay.bet")}: {spoken(player.committedStreet)}</span>
       {hasWagerBadge ? (
         <span className={styles.actionBadge}>
           {latestAction.action.toUpperCase()}{" "}
-          {formatChips(latestAction.amount ?? 0, locale)}
+          <AmountText>{format(latestAction.amount ?? 0)}</AmountText>
         </span>
       ) : null}
       <div className={styles.holeCards}>
@@ -125,9 +124,9 @@ export function Seat({
       </span>
       {status || award ? (
         <span className={`${styles.seatStatus} ${isYourTurn ? styles.yourTurnStatus : ""}`} data-seat-status>
-          {status}
+          {status ? <AmountText>{status}</AmountText> : null}
           {status && award ? " " : null}
-          {award ? <span className={styles.winnerAmount}>{award}</span> : null}
+          {award ? <span className={styles.winnerAmount}><AmountText>{award}</AmountText></span> : null}
         </span>
       ) : null}
     </section>

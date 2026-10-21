@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  amounts: {"display": "Mostrar cantidades", "chipsOption": "Fichas", "bigBlindsOption": "Ciegas grandes", "chips": "fichas", "bigBlinds": "ciegas grandes", "approximately": "aproximadamente {amount}", "lessThan": "menos de {amount}", "betAmountChips": "Apuesta (fichas)", "target": "Objetivo: {amount}", "fallback": "Cantidades en fichas; tamaño de ciega no disponible"},
   accessibility: {"replayStep": "Acción {current} de {total}", "turn": "Tu turno. Bote {pot}. {availability}. Acciones disponibles: {actions}.", "checkAvailable": "Puedes pasar"},
   botInformation: {
     "open": "Acerca de {name}",

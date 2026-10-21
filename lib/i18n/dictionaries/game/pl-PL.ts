@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  amounts: {"display": "Wyświetlanie kwot", "chipsOption": "Żetony", "bigBlindsOption": "Duże ciemne", "chips": "żetonów", "bigBlinds": "dużych ciemnych", "approximately": "około {amount}", "lessThan": "mniej niż {amount}", "betAmountChips": "Kwota zakładu (żetony)", "target": "Docelowo: {amount}", "fallback": "Kwoty w żetonach; wysokość ciemnej niedostępna"},
   accessibility: {"replayStep": "Akcja {current} z {total}", "turn": "Twoja kolej. Pula {pot}. {availability}. Dostępne akcje: {actions}.", "checkAvailable": "Możesz czekać"},
   botInformation: {
     "open": "O bocie {name}",

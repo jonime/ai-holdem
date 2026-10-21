@@ -3,6 +3,7 @@ import { z } from "zod";
 export const settingsStorageKey = "ai-holdem-settings";
 export const settingsSchema = z.object({
   version: z.literal(1),
+  amountDisplay: z.enum(["chips", "bigBlinds"]).default("chips"),
   turnSound: z.boolean(),
   gameplayShortcuts: z.boolean(),
   showCurrentHand: z.boolean().default(true),
@@ -21,7 +22,7 @@ export const settingsCodec = z.codec(z.string(), settingsSchema, {
   },
   encode: value => JSON.stringify(value),
 });
-export const defaultSettings: Settings = { version: 1, turnSound: false, gameplayShortcuts: true, showCurrentHand: true, cardColours: "classic" };
+export const defaultSettings: Settings = { version: 1, amountDisplay: "chips", turnSound: false, gameplayShortcuts: true, showCurrentHand: true, cardColours: "classic" };
 export function parseSettings(raw: string | null): Settings {
   if (raw === null) return defaultSettings;
   const result = settingsCodec.safeDecode(raw);

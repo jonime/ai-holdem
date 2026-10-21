@@ -1,3 +1,4 @@
+import { useAmounts, AmountText } from "./AmountDisplay";
 import { useEffect, useState } from "react";
 import { TurnCountdown } from "./TurnCountdown";
 import { turnRemainingMs } from "./turn-clock";
@@ -13,7 +14,7 @@ import type {
   LatestPlayerAction,
   PublicPokerPlayer,
 } from "@/components/poker/types";
-import { tableFlow, formatChips } from "@/components/poker/view-model";
+import { tableFlow } from "@/components/poker/view-model";
 import { useI18n } from "@/components/poker/I18nProvider";
 
 export function PokerTable({
@@ -83,7 +84,8 @@ export function PokerTable({
   readonly onToggleFeed: (opener: HTMLButtonElement) => void;
   readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
 }) {
-  const { locale, t } = useI18n();
+  const { t } = useI18n();
+  const { format, spoken, mode } = useAmounts(game.poker.bigBlind);
   const [, tickTimer] = useState(0);
   useEffect(() => {
     if (!game.turnTimer) return;
@@ -191,7 +193,7 @@ export function PokerTable({
         <div className={styles.centerTable}>
           <div className={styles.pot}>
             {t("table.pot")}{" "}
-            <strong>{formatChips(game.poker.pot, locale)}</strong>
+            <strong><AmountText>{format(game.poker.pot)}</AmountText></strong>
           </div>
           <div className={styles.communityCards}>
             {[
@@ -327,15 +329,15 @@ export function PokerTable({
                   }
                 }}
               >
-                {game.poker.street === "complete"
+                <AmountText>{game.poker.street === "complete"
                   ? busy
                     ? t("table.preparing")
                     : t("table.nextHand")
                   : checkCallAction?.type === "call"
                     ? t("table.call", {
-                        amount: formatChips(checkCallAction.amount, locale),
+                        amount: format(checkCallAction.amount),
                       })
-                    : t("table.check")}
+                    : t("table.check")}</AmountText>
               </Button>
               <Button
                 variant="amber"
@@ -355,7 +357,7 @@ export function PokerTable({
                   }
                 }}
               >
-                {isFoldEndedHand
+                <AmountText>{isFoldEndedHand
                   ? t("table.show")
                   : sizedAction
                     ? t(
@@ -363,10 +365,10 @@ export function PokerTable({
                           ? "table.raiseTo"
                           : "table.betTo",
                         {
-                          amount: selectedAmount === null ? "-" : formatChips(selectedAmount, locale),
+                          amount: selectedAmount === null ? "-" : format(selectedAmount),
                         },
                       )
-                    : t("table.bet")}
+                    : t("table.bet")}</AmountText>
               </Button>
             </div>
           </>
@@ -379,7 +381,7 @@ export function PokerTable({
             inert={game.poker.street === "complete" || isSpectator || flow.watching}
           >
             <label className={styles.amountHeading} htmlFor="bet-target">
-              {t("table.betAmount")}
+              {t(mode === "bigBlinds" ? "amounts.betAmountChips" : "table.betAmount")}
             </label>
             <div className={styles.amountInputs}>
               <div className={styles.sliderControl}>
@@ -396,7 +398,7 @@ export function PokerTable({
                 value={sizedAction ? clampTarget(selectedAmount ?? sizedAction.minAmount, sizedAction) : 0}
                 disabled={!sizedAction || !canAct || loading}
                 onChange={(event) => setAmount(event.target.value)}
-                aria-label={t("table.betAmount")}
+                aria-label={t(mode === "bigBlinds" ? "amounts.betAmountChips" : "table.betAmount")}
                 aria-keyshortcuts={shortcuts ? "Q E ArrowLeft ArrowRight Shift+Q Shift+E Shift+ArrowLeft Shift+ArrowRight" : undefined}
                 onKeyDown={(event) => {
                   if (!shortcuts || !sizedAction || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
@@ -421,9 +423,10 @@ export function PokerTable({
                 value={amount}
                 disabled={!sizedAction || !canAct || loading}
                 aria-invalid={Boolean(sizedAction && selectedAmount === null)}
-                aria-describedby="bet-addition"
+                aria-describedby={mode === "bigBlinds" && selectedAmount !== null ? "bet-addition bet-equivalent" : "bet-addition"}
                 onChange={(event) => setAmount(event.target.value)}
               />
+              {mode === "bigBlinds" && selectedAmount !== null ? <span id="bet-equivalent" className={styles.amountEquivalent}><AmountText>{t("amounts.target", { amount: format(selectedAmount) })}</AmountText></span> : null}
               <output
                 id="bet-addition"
                 aria-live="off"
@@ -432,12 +435,12 @@ export function PokerTable({
                 aria-label={t("table.youAdd", {
                   amount: selectedAmount === null
                     ? "-"
-                    : formatChips(selectedAmount - committedStreet, locale),
+                    : spoken(selectedAmount - committedStreet),
                 })}
               >
-                {selectedAmount === null
+                <AmountText>{selectedAmount === null
                   ? "-"
-                  : `+${formatChips(selectedAmount - committedStreet, locale)}`}
+                  : `+${format(selectedAmount - committedStreet)}`}</AmountText>
               </output>
             </div>
             <div className={styles.amountPresets}>
