@@ -44,6 +44,7 @@ export function PokerTable({
   onRevealCards,
   feedCollapsed,
   onToggleFeed,
+  onResults,
   latestActions,
   onAboutBot,
 }: {
@@ -80,6 +81,7 @@ export function PokerTable({
   ) => void;
   readonly onBeginNextHand: () => void;
   readonly onRevealCards: () => void;
+  readonly onResults?: (opener: HTMLButtonElement) => void;
   readonly feedCollapsed: boolean;
   readonly onToggleFeed: (opener: HTMLButtonElement) => void;
   readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
@@ -164,6 +166,7 @@ export function PokerTable({
           >
             {t(feedCollapsed ? "feed.title" : "feed.hide")}
           </Button>
+          {onResults ? <Button variant="ghost" size="small" onClick={event => onResults(event.currentTarget)}>{t("results.title")}</Button> : null}
         </div>
       </div>
       <div className={styles.felt}>

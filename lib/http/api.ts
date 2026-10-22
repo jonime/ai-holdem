@@ -1,4 +1,5 @@
 import { shareListSchema, shareListQuerySchema, type ShareListQuery, shareTokenSchema, sharedReplaySchema, shareManagementSchema, revokeShareSchema } from "./share-contracts";
+import { resultsParamsSchema, resultsResponseSchema } from "./results-contracts";
 import { replayParamsSchema, replayResponseSchema } from "./replay-contracts";
 import { TransportError, withDeadline } from "./deadline";
 export { TransportError, unknownOutcome } from "./deadline";
@@ -187,6 +188,10 @@ export const api = instrumentApi({
     },
   },
   games: {
+    results(params: GameParams, options: Options = {}) {
+      return withDeadline(signal => send(`${gameUrl(resultsParamsSchema.parse(params))}/results`, resultsResponseSchema,
+        { cache: "no-store", signal }), 15_000, options.signal);
+    },
     replay(params: { gameId: string; handNumber: number }, options: Options = {}) {
       const { gameId, handNumber } = replayParamsSchema.parse(params);
       return withDeadline(signal => send(`${gameUrl({ gameId })}/hands/${handNumber}/replay`, replayResponseSchema.refine(({ replay }) => replay.gameId === gameId && replay.handNumber === handNumber), { cache: "no-store", signal }), 15_000, options.signal);

@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  results: {"title": "Statistieken", "loading": "Je resultaten laden…", "error": "Je resultaten konden niet worden geladen. Probeer het opnieuw.", "incomplete": "Totalen en hoogtepunten omvatten alleen beschikbare resultaten. Uitgesloten handen: {count}.", "ownershipIncomplete": "De geschiedenis is onvolledig: voor sommige handen kon de eigenaar niet worden vastgesteld.", "noAvailable": "Geen resultaten van voltooide handen beschikbaar.", "empty": "Deze browserspeler heeft geen voltooide handen gespeeld.", "hands": "Gespeelde voltooide handen", "net": "Totale nettowinst / nettoverlies", "availableNet": "Nettoresultaat · beschikbare resultaten", "biggestWin": "Grootste winnende hand", "biggestLoss": "Grootste verliezende hand", "noWin": "Geen winnende handen.", "noLoss": "Geen verliezende handen.", "newHands": "Er is nog een hand voltooid. Vernieuw om deze op te nemen.", "refresh": "Resultaten vernieuwen"},
   amounts: {"display": "Bedragen weergeven", "chipsOption": "Chips", "bigBlindsOption": "Big blinds", "chips": "chips", "bigBlinds": "big blinds", "approximately": "ongeveer {amount}", "lessThan": "minder dan {amount}", "betAmountChips": "Inzet (chips)", "target": "Doel: {amount}", "fallback": "Bedragen in chips; blindgrootte niet beschikbaar"},
   accessibility: {"replayStep": "Actie {current} van {total}", "turn": "Jij bent aan de beurt. Pot {pot}. {availability}. Beschikbare acties: {actions}.", "checkAvailable": "Check mogelijk"},
   botInformation: {

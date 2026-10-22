@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  results: {"title": "Estadísticas", "loading": "Cargando tus resultados…", "error": "No se pudieron cargar tus resultados. Inténtalo de nuevo.", "incomplete": "Los totales y las manos destacadas solo incluyen resultados disponibles. Manos excluidas: {count}.", "ownershipIncomplete": "El historial está incompleto: no se pudo determinar la titularidad de algunas manos.", "noAvailable": "No hay resultados disponibles de manos completadas.", "empty": "Este jugador del navegador no ha jugado manos completadas.", "hands": "Manos completadas jugadas", "net": "Ganancia / pérdida neta total", "availableNet": "Resultado neto · resultados disponibles", "biggestWin": "Mayor mano ganadora", "biggestLoss": "Mayor mano perdedora", "noWin": "No hay manos ganadoras.", "noLoss": "No hay manos perdedoras.", "newHands": "Se ha completado otra mano. Actualiza para incluirla.", "refresh": "Actualizar resultados"},
   amounts: {"display": "Mostrar cantidades", "chipsOption": "Fichas", "bigBlindsOption": "Ciegas grandes", "chips": "fichas", "bigBlinds": "ciegas grandes", "approximately": "aproximadamente {amount}", "lessThan": "menos de {amount}", "betAmountChips": "Apuesta (fichas)", "target": "Objetivo: {amount}", "fallback": "Cantidades en fichas; tamaño de ciega no disponible"},
   accessibility: {"replayStep": "Acción {current} de {total}", "turn": "Tu turno. Bote {pot}. {availability}. Acciones disponibles: {actions}.", "checkAvailable": "Puedes pasar"},
   botInformation: {

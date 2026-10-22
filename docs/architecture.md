@@ -114,6 +114,43 @@ Run `npm run test:sql:departures` for rollback, identity, role and independent-c
 races, plus the production `departure.spec.ts` browser scenarios. Verify the two-browser
 flow on an authorized Vercel preview before release.
 
+## Personal table results
+
+`GET /api/games/[gameId]/results` is cookie-owned and `private, no-store`. The strict
+`results-contracts.ts` DTO and named `api.games.results` transport return only
+summary counts, coverage flags, chip/BB totals and highlight hand numbers/amounts.
+No identity, private state, cards or other player's results leave the server.
+Unexpected failures use allowlisted `results` logs and `games.results` diagnostics.
+
+`get_personal_results_page(uuid, integer, integer)` is service-role-only and reads
+completed initial/final states without actions in ascending keyset pages of 100.
+The first SQL statement fixes an upper boundary from completed history and the
+game's completed-hand number; subsequent pages carry it unchanged. Gaps count as
+excluded hands with unknown ownership. An intermediate read or malformed page
+fails the whole request. The server aggregates one page at a time without a
+history cache, action reconstruction, or coupling to bot statistics or Actions.
+
+`personal-results.ts` validates immutable initial human ownership and actual engine
+participation. Missing ownership is explicitly unknown. Existing adapter restore,
+snapshot, decision and owner-result views validate initial/final hand identity,
+completed settlement, participant continuity,
+pre-blind baselines against initial commitments, blind consistency and conserved
+stacks in the results service. Missing/inconsistent results are excluded from
+totals; known completed participation still counts in `handsPlayed`.
+`availableHands` counts validated results; totals are
+null when all candidate results are unavailable. Final/current seat ownership,
+names and host status never establish attribution. BB totals use compensated
+summation of each original-blind fraction; highlights use chip net with earliest
+ties. Rounding occurs only in presentation.
+
+The shared overlay keeps a results component mounted, with its modal closed, while
+its replay is open. Closing that replay (Close, Escape or backdrop) returns to
+results and preserves the snapshot and highlight focus. No extra back button is
+shown for results; Back to Actions is unchanged. A new
+completion offers explicit refresh, with no automatic reload. Requests are aborted
+and late responses fenced on unmount/navigation. Live session work and warnings
+continue independently.
+
 ## Completed-hand replay
 
 `get_hand_replay(uuid, integer)` is a stable service-role-only SQL read. One statement

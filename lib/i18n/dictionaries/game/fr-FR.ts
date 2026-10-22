@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  results: {"title": "Stats", "loading": "Chargement de vos résultats…", "error": "Impossible de charger vos résultats. Réessayez.", "incomplete": "Les totaux et faits marquants couvrent uniquement les résultats disponibles. Mains exclues : {count}.", "ownershipIncomplete": "L’historique est incomplet : l’identité du propriétaire de certaines mains n’a pas pu être établie.", "noAvailable": "Aucun résultat de main terminée disponible.", "empty": "Ce joueur de navigateur n’a joué aucune main terminée.", "hands": "Mains terminées jouées", "net": "Gain / perte nets totaux", "availableNet": "Résultat net · résultats disponibles", "biggestWin": "Plus gros gain", "biggestLoss": "Plus grosse perte", "noWin": "Aucune main gagnante.", "noLoss": "Aucune main perdante.", "newHands": "Une autre main est terminée. Actualisez pour l’inclure.", "refresh": "Actualiser les résultats"},
   amounts: {"display": "Affichage des montants", "chipsOption": "Jetons", "bigBlindsOption": "Grosses blindes", "chips": "jetons", "bigBlinds": "grosses blindes", "approximately": "environ {amount}", "lessThan": "moins de {amount}", "betAmountChips": "Mise (jetons)", "target": "Total visé : {amount}", "fallback": "Montants en jetons ; taille de la blinde indisponible"},
   accessibility: {"replayStep": "Action {current} sur {total}", "turn": "À vous de jouer. Pot {pot}. {availability}. Actions disponibles : {actions}.", "checkAvailable": "Parole possible"},
   botInformation: {

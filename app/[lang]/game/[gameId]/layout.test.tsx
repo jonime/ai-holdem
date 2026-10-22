@@ -74,6 +74,7 @@ const gameTopLevelKeys = [
   "lobby",
   "replay",
   "result",
+  "results",
   "seat",
   "settings",
   "sharing",

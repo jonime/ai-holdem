@@ -119,7 +119,7 @@ images are pulled normally during startup; do not cache Docker image archives,
 containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
-disposable database, then runs `db:types:check` before `test:sql:game-reads`, `test:sql:replay`, `test:sql:shares`, `test:sql:creation`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
+disposable database, then runs `db:types:check` before `test:sql:game-reads`, `test:sql:replay`, `test:sql:results`, `test:sql:shares`, `test:sql:creation`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
 `test:sql:departures`, `test:sql:turn-timers`, `test:sql:bot-claims`, `test:sql:usage`, `test:integration:bot-pipeline`, and `test:e2e:ci` in order.
 The bot-pipeline suite requires an already-running migrated local stack, injects
 only deterministic `BotRegistry` decisions, and retains real creation, context,
@@ -768,3 +768,19 @@ Sharing may open a child native dialog above replay. Preserve reference-counted
 scroll locking, top-dialog focus restoration and child event isolation; only the
 child handles Escape while it is open. Keep the replay visible at its selected
 frame and suspend its keyboard navigation until sharing closes.
+
+
+## Personal table results
+
+Stats uses uncached cookie ownership and immutable initial human tokens,
+never current seats, names or host status. Aggregate all completed history through
+service-role-only `get_personal_results_page` in 100-row keyset pages with a fixed
+first-page boundary, without actions or bot-session/Actions-feed reuse. Validate
+states and pre-blind/settled stacks through the adapter. Historical BB totals sum
+per-hand fractions; chip-selected highlights retain earliest ties. Missing results
+and ownership are explicit incomplete coverage, never zero-valued hands. Return
+only strict summary fields. Keep snapshots stable through replay/back navigation;
+refresh explicitly, preserve focus, live warnings and shortcut suppression. Apply
+`20261102000000_add_personal_results.sql` before code; regenerate pinned database
+types and run `test:sql:results`, results production UI, `check`, benchmark
+regressions for the shared adapter, and a bounded production build.

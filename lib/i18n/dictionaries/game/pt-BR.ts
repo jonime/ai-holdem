@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  results: {"title": "Estatísticas", "loading": "Carregando seus resultados…", "error": "Não foi possível carregar seus resultados. Tente novamente.", "incomplete": "Totais e destaques incluem apenas os resultados disponíveis. Mãos excluídas: {count}.", "ownershipIncomplete": "O histórico está incompleto: não foi possível identificar o proprietário de algumas mãos.", "noAvailable": "Nenhum resultado de mão concluída disponível.", "empty": "Este jogador do navegador não jogou mãos concluídas.", "hands": "Mãos concluídas jogadas", "net": "Ganho / perda líquida total", "availableNet": "Resultado líquido · resultados disponíveis", "biggestWin": "Maior mão vencedora", "biggestLoss": "Maior mão perdedora", "noWin": "Nenhuma mão vencedora.", "noLoss": "Nenhuma mão perdedora.", "newHands": "Outra mão foi concluída. Atualize para incluí-la.", "refresh": "Atualizar resultados"},
   amounts: {"display": "Exibição de valores", "chipsOption": "Fichas", "bigBlindsOption": "Big blinds", "chips": "fichas", "bigBlinds": "big blinds", "approximately": "aproximadamente {amount}", "lessThan": "menos de {amount}", "betAmountChips": "Aposta (fichas)", "target": "Total desejado: {amount}", "fallback": "Valores em fichas; tamanho do blind indisponível"},
   accessibility: {"replayStep": "Ação {current} de {total}", "turn": "Sua vez. Pote {pot}. {availability}. Ações disponíveis: {actions}.", "checkAvailable": "Pode dar check"},
   botInformation: {

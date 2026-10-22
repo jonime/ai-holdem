@@ -127,6 +127,32 @@ shortcuts are disabled while it is open, but bots, turn timers, refreshes and tu
 notifications continue. It remains available during pending requests and recovery.
 Missing legacy metadata stays generic; opening the dialog makes no requests.
 
+## Stats
+
+**Stats**, beside Actions, privately summarizes this browser player's entire
+table history, including hands played before standing up or changing seats. Only
+completed hands dealt to the immutable original human owner count. Hosts and
+watchers receive no other player's results. The active hand and unresolved all-ins
+are excluded. Net gain/loss means settled ending stack minus pre-blind starting
+stack, including blinds and refunds; pot awards are not profit.
+
+In Big blinds display, totals sum each hand's net divided by that hand's original
+big blind. Biggest win/loss use chip change with earliest-hand ties, independent
+of display units. Break-even hands count but are neither highlight. Missing or
+inconsistent history is unavailable, never a zero result. Incomplete summaries
+label available results, show excluded-hand counts, and separately warn when
+historical ownership is unknown.
+
+Opening loads a snapshot of completed hands. The refresh icon beside Close reloads
+results; its accessible label is **Refresh results**. New completed
+hands offer **Refresh results**; they never replace a summary while you read.
+Highlight Review opens the hand-specific replay even beyond Actions' latest 50
+hands. **Close**, Escape or the backdrop returns to Stats, retaining the
+summary and restoring the highlight button's focus. Unavailable replays leave the summary intact. Loading, retryable
+failures, empty participation and unavailable history have distinct messages.
+Bots, timers, refreshes and turn warnings continue; gameplay shortcuts are disabled
+inside the modal. Results stay within this table and anonymous browser identity.
+
 ## In-game Help
 
 The header Help button opens optional reference material for players and spectators
@@ -233,11 +259,13 @@ request, with one selected hand in memory, independent loading/retry feedback an
 no autoplay, coaching, export or game actions.
 
 Review shares the single overlay; opening from mobile Actions replaces it, and
-Back to Actions restores the reading position. Closing restores focus and the
-latest live table. The selected historical frame survives live updates. Bots,
+Back to Actions restores the reading position. Closing a replay opened from
+Stats returns to its summary and highlight button; other replay closes
+restore focus and the latest live table. The selected historical frame survives
+live updates. Bots,
 refreshes and human timers continue; gameplay shortcuts are suppressed. A live
 **Your turn** notice beside **Close** includes the current countdown when
-timed. Close the review to return to the live table.
+timed. Close the review and, if shown, Stats to return to the live table.
 A timed turn may expire and fold while you review.
 
 ### Share a completed hand

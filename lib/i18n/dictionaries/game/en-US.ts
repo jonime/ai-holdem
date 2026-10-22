@@ -1,6 +1,7 @@
 import "server-only";
 
 const dictionary = {
+  results: {"title": "Stats", "loading": "Loading your results…", "error": "Unable to load your results. Please try again.", "incomplete": "Totals and highlights cover available results only. Excluded hands: {count}.", "ownershipIncomplete": "Historical coverage is incomplete: ownership could not be established for some hands.", "noAvailable": "No available completed-hand results.", "empty": "No completed hands played by this browser player.", "hands": "Completed hands played", "net": "Total net gain / loss", "availableNet": "Net gain / loss · available results", "biggestWin": "Biggest winning hand", "biggestLoss": "Biggest losing hand", "noWin": "No winning hands.", "noLoss": "No losing hands.", "newHands": "Another hand has completed. Refresh to include it.", "refresh": "Refresh results"},
   amounts: {"display": "Amount display", "chipsOption": "Chips", "bigBlindsOption": "Big blinds", "chips": "chips", "bigBlinds": "big blinds", "approximately": "approximately {amount}", "lessThan": "less than {amount}", "betAmountChips": "Bet amount (chips)", "target": "Target: {amount}", "fallback": "Amounts shown in chips; blind size unavailable"},
   accessibility: {"replayStep": "Action {current} of {total}", "turn": "Your turn. Pot {pot}. {availability}. Available actions: {actions}.", "checkAvailable": "Check available"},
   botInformation: {

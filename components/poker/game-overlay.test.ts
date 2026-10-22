@@ -3,10 +3,11 @@ import { initialOverlayNavigation, transitionOverlay, type GameOverlay, type Ove
 
 const eligibility = { isSpectator: true, botInformationAvailable: true, botIds: ["bot"] };
 const overlays: GameOverlay[] = [
-  { kind: "none" }, { kind: "actions" }, { kind: "join" }, { kind: "help" },
+  { kind: "none" }, { kind: "actions" }, { kind: "results" }, { kind: "join" }, { kind: "help" },
   { kind: "settings" }, { kind: "leave" }, { kind: "botInformation", botId: "bot" },
   { kind: "handReplay", handNumber: 4, origin: "actions" },
   { kind: "handReplay", handNumber: 4, origin: "table" },
+  { kind: "handReplay", handNumber: 4, origin: "results" },
 ];
 const state = (overlay: GameOverlay): OverlayNavigation => ({ gameId: "game", overlay });
 
@@ -18,15 +19,15 @@ describe.each(overlays)("overlay $kind", overlay => {
   it.each(overlays.filter(o => o.kind !== "none" && o.kind !== "handReplay"))("replaces with $kind", next => {
     expect(transitionOverlay(state(overlay), { type: "open", overlay: next }).overlay).toEqual(next);
   });
-  it("records replay origin only for mobile Actions", () => {
+  it("records replay origin for Actions and results", () => {
     expect(transitionOverlay(state(overlay), { type: "replay", handNumber: 9 }).overlay).toEqual({
-      kind: "handReplay", handNumber: 9, origin: overlay.kind === "actions" ? "actions" : "table",
+      kind: "handReplay", handNumber: 9, origin: overlay.kind === "actions" || overlay.kind === "results" ? overlay.kind : "table",
     });
   });
-  it("returns to Actions only from its replay", () => {
+  it("returns only to the replay source overlay", () => {
     const current = state(overlay);
     const next = transitionOverlay(current, { type: "back", expected: current });
-    if (overlay.kind === "handReplay" && overlay.origin === "actions") expect(next.overlay).toEqual({ kind: "actions" });
+    if (overlay.kind === "handReplay" && overlay.origin !== "table") expect(next.overlay).toEqual({ kind: overlay.origin });
     else expect(next).toBe(current);
   });
   it("resets on game changes and keeps valid navigation on refresh", () => {

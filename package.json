@@ -65,6 +65,7 @@
     "benchmark:preflop-action-value": "node benchmarks/preflop-action-value/run.mjs",
     "benchmark:preflop-action-value:analyze": "node benchmarks/preflop-action-value/run.mjs analyze",
     "benchmark:preflop-candidate": "node benchmarks/preflop-candidate/run.mjs",
+    "test:sql:results": "node scripts/local-personal-results.mjs",
     "test:sql:replay": "node scripts/local-hand-replay.mjs",
     "benchmark:bet-sizing": "node benchmarks/bet-sizing/run.mjs offline",
     "benchmark:bet-sizing:prepare": "node benchmarks/bet-sizing/run.mjs prepare",

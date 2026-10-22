@@ -46,6 +46,20 @@ Verify private/no-store and no-referrer on deployed HTML and JSON, including err
 Deletion cascades and database-time expiry remain effective if the owner loses
 the anonymous cookie. Losing the cookie prevents further management.
 
+## Personal results rollout
+
+Apply additive `20261102000000_add_personal_results.sql` before application deployment.
+It adds only a service-role history RPC; no backfill, background job, public grant,
+provider setting or persistent summary cache is needed. Legacy missing states,
+ownership or pre-blind metadata remain visibly unavailable.
+
+Regenerate and verify database types with pinned Supabase CLI 2.120.0 against the
+fully migrated local schema. Run `test:sql:results`, focused results tests, `check`,
+benchmark regressions when shared dependencies change, and the production personal-results browser
+suite/build. CI includes results SQL and the tagged Chromium UI coverage. Check
+private no-store headers, browser identity separation, replay/back focus, historical
+BB totals, incomplete coverage and mobile layout. Apply no database reset.
+
 ## Completed-hand replay rollout
 
 Apply `20261030000000_add_hand_replay.sql` before deploying the replay route. It adds

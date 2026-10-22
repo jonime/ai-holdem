@@ -49,6 +49,7 @@ import {
 import { adjustTarget, decisionScope, validatedTarget } from "@/components/poker/bet-sizing";
 
 import { usePlayerName } from "@/lib/browser/player-name";
+import { PersonalResultsModal } from "./PersonalResultsModal";
 import { useActionsPreference } from "./useActionsPreference";
 
 export default function PokerApp({ gameId, helpContent, helpTitle }: {
@@ -193,8 +194,8 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const isSpectator = viewerPlayer === null && !ownedSeat && Boolean(game);
   const {
     overlay, isOverlayOpen, openerRef, actionsPosition, close: closeOverlay,
-    openActions, openJoin, openHelp, openSettings, openLeave,
-    openBotInformation: openBot, openReplay: reviewHand, backToActions,
+    openActions, openResults, openJoin, openHelp, openSettings, openLeave,
+    openBotInformation: openBot, openReplay: reviewHand, backToActions, backToResults,
   } = useGameOverlay(gameId, {
     isSpectator,
     botInformationAvailable: !unavailable && game?.status !== "waiting",
@@ -437,6 +438,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
               onRevealCards={() => { if (!quickPlayCreationPending.current) void revealCards(); }}
               feedCollapsed={feedCollapsed}
               onToggleFeed={toggleFeed}
+              onResults={openResults}
               latestActions={latestActions}
             />
             {feedCollapsed ? null : (
@@ -518,9 +520,13 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
         </div>
       )}
     </main>
+    {overlay.kind === "results" || overlay.kind === "handReplay" && overlay.origin === "results" ? <PersonalResultsModal
+      key={gameId} gameId={game?.id ?? gameId ?? ""} game={game} yourTurn={isHumanTurn}
+      active={overlay.kind === "results"} onClose={closeOverlay} onReview={reviewHand}
+      restoreFocus={openerRef} fallbackFocus={tableRef} /> : null}
     {overlay.kind === "handReplay" ? <HandReplayModal key={`${gameId}:${overlay.handNumber}`}
       gameId={game?.id ?? gameId ?? ""} handNumber={overlay.handNumber} game={game} yourTurn={isHumanTurn}
-      onClose={closeOverlay} onBack={backToActions}
+      onClose={backToResults ?? closeOverlay} onBack={backToActions}
       restoreFocus={openerRef} fallbackFocus={helpOpenerRef} /> : null}
     {overlay.kind === "botInformation" && informationPlayer && !unavailable && game?.status !== "waiting" ? (
       <BotInformationModal player={informationPlayer} onClose={closeOverlay}

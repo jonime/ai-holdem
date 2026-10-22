@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  results: {"title": "Statistik", "loading": "Laddar dina resultat…", "error": "Resultaten kunde inte laddas. Försök igen.", "incomplete": "Summor och höjdpunkter gäller endast tillgängliga resultat. Uteslutna händer: {count}.", "ownershipIncomplete": "Historiken är ofullständig: ägarskap kunde inte fastställas för vissa händer.", "noAvailable": "Inga tillgängliga resultat från avslutade händer.", "empty": "Den här webbläsarspelaren har inte spelat några avslutade händer.", "hands": "Spelade avslutade händer", "net": "Total nettovinst / nettoförlust", "availableNet": "Nettoresultat · tillgängliga resultat", "biggestWin": "Största vinsthand", "biggestLoss": "Största förlusthand", "noWin": "Inga vinsthänder.", "noLoss": "Inga förlusthänder.", "newHands": "En ny hand har avslutats. Uppdatera för att ta med den.", "refresh": "Uppdatera resultat"},
   amounts: {"display": "Beloppsvisning", "chipsOption": "Marker", "bigBlindsOption": "Stora mörkar", "chips": "marker", "bigBlinds": "stora mörkar", "approximately": "ungefär {amount}", "lessThan": "mindre än {amount}", "betAmountChips": "Insats (marker)", "target": "Mål: {amount}", "fallback": "Belopp visas i marker; mörkens storlek saknas"},
   accessibility: {"replayStep": "Handling {current} av {total}", "turn": "Din tur. Pott {pot}. {availability}. Tillgängliga handlingar: {actions}.", "checkAvailable": "Check är möjligt"},
   botInformation: {

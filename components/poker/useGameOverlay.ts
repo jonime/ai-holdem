@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { canReturnToActions, initialOverlayNavigation, transitionOverlay, type GameOverlay, type OverlayEligibility } from "./game-overlay";
+import { canReturnToResults, canReturnToActions, initialOverlayNavigation, transitionOverlay, type GameOverlay, type OverlayEligibility } from "./game-overlay";
 
 export function useGameOverlay(gameId: string | undefined, eligibility: OverlayEligibility) {
   const [stored, setNavigation] = useState(() => initialOverlayNavigation(gameId));
@@ -20,13 +20,16 @@ export function useGameOverlay(gameId: string | undefined, eligibility: OverlayE
   const backToActions = canReturnToActions(navigation.overlay)
     ? () => setNavigation(current => transitionOverlay(current, { type: "back", expected: navigation }))
     : undefined;
+  const backToResults = canReturnToResults(navigation.overlay)
+    ? () => setNavigation(current => transitionOverlay(current, { type: "back", expected: navigation }))
+    : undefined;
   const open = (overlay: Exclude<GameOverlay, { kind: "none" | "handReplay" }>, opener: HTMLElement) => {
     openerRef.current = opener;
     actionsPosition.current = null;
     setNavigation(current => transitionOverlay(current, { type: "open", overlay }));
   };
   const openReplay = (handNumber: number, opener: HTMLButtonElement) => {
-    if (navigation.overlay.kind !== "actions") {
+    if (navigation.overlay.kind !== "actions" && navigation.overlay.kind !== "results") {
       openerRef.current = opener;
       actionsPosition.current = null;
     }
@@ -34,7 +37,8 @@ export function useGameOverlay(gameId: string | undefined, eligibility: OverlayE
   };
   return {
     overlay: navigation.overlay, isOverlayOpen: navigation.overlay.kind !== "none",
-    openerRef, actionsPosition, close, backToActions, openReplay,
+    openerRef, actionsPosition, close, backToActions, backToResults, openReplay,
+    openResults: (opener: HTMLElement) => open({ kind: "results" }, opener),
     openActions: (opener: HTMLElement) => open({ kind: "actions" }, opener),
     openJoin: (opener: HTMLElement) => open({ kind: "join" }, opener),
     openHelp: (opener: HTMLElement) => open({ kind: "help" }, opener),

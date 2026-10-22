@@ -284,3 +284,19 @@ it("validates owner-share cursor transport and exact-token revocation", async ()
   mockResponse({ shares: [], nextCursor: null, snapshot: {} });
   await expect(api.shares.list()).rejects.toThrow("Invalid response payload");
 });
+
+it("requests cookie-owned results with a private deadline and validates the summary", async () => {
+  const gameId = "11111111-1111-4111-8111-111111111111";
+  const results = { throughHand: 1, handsPlayed: 1, availableHands: 1, excludedHands: 0,
+    incomplete: false, ownershipIncomplete: false, netChips: -5, netBB: -0.5,
+    biggestWin: null, biggestLoss: { handNumber: 1, netChips: -5, netBB: -0.5 } };
+  const fetch = mockResponse({ results });
+  await expect(api.games.results({ gameId })).resolves.toEqual({ results });
+  expect(fetch).toHaveBeenCalledWith(`/api/games/${gameId}/results`, expect.objectContaining({ cache: "no-store", credentials: "same-origin", signal: expect.any(AbortSignal) }));
+  await expect(api.games.results({ gameId: "invalid" })).rejects.toThrow();
+  for (const invalid of [{ ...results, playerToken: "private" }, { ...results, netChips: null }, { ...results, availableHands: 2 },
+    { ...results, biggestLoss: { handNumber: 2, netChips: -5, netBB: -0.5 } }]) {
+    mockResponse({ results: invalid });
+    await expect(api.games.results({ gameId })).rejects.toThrow("Invalid response payload");
+  }
+});

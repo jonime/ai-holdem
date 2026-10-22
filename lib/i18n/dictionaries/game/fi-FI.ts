@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  results: {"title": "Tilastot", "loading": "Ladataan tuloksiasi…", "error": "Tuloksia ei voitu ladata. Yritä uudelleen.", "incomplete": "Summat ja parhaat ja heikoimmat jaot kattavat vain saatavilla olevat tulokset. Pois jätettyjä jakoja: {count}.", "ownershipIncomplete": "Historiatiedot ovat puutteelliset: joidenkin jakojen omistajuutta ei voitu vahvistaa.", "noAvailable": "Päättyneiden jakojen tuloksia ei ole saatavilla.", "empty": "Tällä selainpelaajalla ei ole pelattuja päättyneitä jakoja.", "hands": "Pelatut päättyneet jaot", "net": "Nettovoitto / -tappio yhteensä", "availableNet": "Nettotulos · saatavilla olevat tulokset", "biggestWin": "Suurin voittojako", "biggestLoss": "Suurin tappiojako", "noWin": "Ei voitollisia jakoja.", "noLoss": "Ei tappiollisia jakoja.", "newHands": "Uusi jako on päättynyt. Sisällytä se päivittämällä.", "refresh": "Päivitä tulokset"},
   amounts: {"display": "Summien näyttö", "chipsOption": "Pelimerkit", "bigBlindsOption": "Isot blindit", "chips": "pelimerkkiä", "bigBlinds": "isoa blindia", "approximately": "noin {amount}", "lessThan": "alle {amount}", "betAmountChips": "Panoksen määrä (pelimerkkeinä)", "target": "Tavoite: {amount}", "fallback": "Summat näytetään pelimerkkeinä; blindin koko ei ole saatavilla"},
   accessibility: {"replayStep": "Toiminto {current}/{total}", "turn": "Sinun vuorosi. Potti {pot}. {availability}. Toiminnot: {actions}.", "checkAvailable": "Sökö mahdollinen"},
   botInformation: {

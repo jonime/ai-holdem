@@ -548,6 +548,9 @@ isOneToOne: false
 "get_hand_replay":
 { Args: { "p_game_id": string,"p_hand_number": number }; Returns: Json
                            },
+"get_personal_results_page":
+{ Args: { "p_after_hand"?: number,"p_game_id": string,"p_through_hand"?: number }; Returns: Json
+                           },
 "join_public_game_if_version":
 { Args: { "p_expected_version": number,"p_game_id": string,"p_name": string,"p_player_token": string }; Returns: Json
                            },

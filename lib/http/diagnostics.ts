@@ -3,7 +3,7 @@ import { z } from "zod";
 import { HttpError } from "./http-error";
 import { TransportError } from "./deadline";
 
-const operations = ["shares.list", "shares.revokeOwned", "shares.active", "shares.create", "shares.revoke", "shares.read", "bots.catalog", "discovery.remove", "discovery.mine", "discovery.join", "discovery.publication", "discovery.heartbeat", "discovery.list", "creation.custom", "creation.quickPlay", "seats.claim", "seats.release", "seats.rename", "seats.assignBot", "games.replay", "games.feed", "games.start", "games.nextHand", "games.reveal", "games.settings", "games.seatCount", "games.get", "games.submitAction", "games.advanceTimeout", "games.advanceDeparture", "games.stepBot"] as const;
+const operations = ["shares.list", "shares.revokeOwned", "shares.active", "shares.create", "shares.revoke", "shares.read", "bots.catalog", "discovery.remove", "discovery.mine", "discovery.join", "discovery.publication", "discovery.heartbeat", "discovery.list", "creation.custom", "creation.quickPlay", "seats.claim", "seats.release", "seats.rename", "seats.assignBot", "games.results", "games.replay", "games.feed", "games.start", "games.nextHand", "games.reveal", "games.settings", "games.seatCount", "games.get", "games.submitAction", "games.advanceTimeout", "games.advanceDeparture", "games.stepBot"] as const;
 export const diagnosticSchema = z.object({
   operation: z.enum(operations),
   timestamp: z.iso.datetime(),

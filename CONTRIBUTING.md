@@ -291,6 +291,7 @@ migrations, then run these commands in order:
 npm run db:types:check
 npm run test:sql:game-reads
 npm run test:sql:replay
+npm run test:sql:results
 npm run test:sql:creation
 npm run test:sql:my-games
 npm run test:sql:removal
@@ -1693,3 +1694,26 @@ rewriting an existing freeze. Use `nice -n 15`, one heavy command at a time and
 one worker. This offline runner loads no environment files and makes no provider
 calls, database queries or application changes. Passing only shortlists a hand
 for a separately authorized Jev plan; it authorizes no spending or override.
+
+### Personal table results verification
+
+Run focused `personal-results`, `results-contracts`, `personal-results-format` and
+`game-overlay` tests during development. They cover more than 50/100 hands, paging,
+immutable ownership, changed seats/tokens, duplicate names, watcher/host isolation,
+blinds, folds, refunds, split/side pots, break-even/elimination/departure, historical
+BB sums, highlight ties and missing/malformed history. Failed intermediate reads
+must fail the request rather than publish a partial total.
+
+With migrated local Supabase, run `nice -n 15 npm run test:sql:results`. Its disposable
+fixtures check service-role restrictions, 205 hands, 100-row pages, missing rows,
+game isolation and completion between pages with a fixed upper boundary. It never
+loads application environment or touches existing games. CI runs it after replay SQL.
+Run `CIRCLE_NODE_TOTAL=2 nice -n 15 npm run test:e2e:ui -- personal-results` for the
+isolated production build and one-worker Chromium checks: loading/retry/diagnostics,
+empty/partial history, manual refresh, replay close/return/focus, shortcut suppression,
+live turn/countdown warnings and mobile layout. Next's installed CPU default uses
+`CIRCLE_NODE_TOTAL - 1`, so this local override bounds build workers to one; it does
+not alter CI or benchmark coverage. Run shared benchmark regressions, final `check`
+and pinned `db:types:check` as required. Results reuse existing adapter views so
+the heads-up source-hash policy freeze remains unchanged. The isolated browser runner's successful
+build also supplies production-build verification without application `.env` files.

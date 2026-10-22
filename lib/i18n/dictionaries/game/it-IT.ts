@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  results: {"title": "Statistiche", "loading": "Caricamento dei tuoi risultati…", "error": "Impossibile caricare i risultati. Riprova.", "incomplete": "Totali e mani in evidenza includono solo i risultati disponibili. Mani escluse: {count}.", "ownershipIncomplete": "Lo storico è incompleto: non è stato possibile attribuire alcune mani al proprietario.", "noAvailable": "Nessun risultato disponibile per le mani completate.", "empty": "Questo giocatore del browser non ha giocato mani completate.", "hands": "Mani completate giocate", "net": "Guadagno / perdita netti totali", "availableNet": "Risultato netto · risultati disponibili", "biggestWin": "Maggiore mano vincente", "biggestLoss": "Maggiore mano perdente", "noWin": "Nessuna mano vincente.", "noLoss": "Nessuna mano perdente.", "newHands": "Un’altra mano è terminata. Aggiorna per includerla.", "refresh": "Aggiorna risultati"},
   amounts: {"display": "Visualizzazione importi", "chipsOption": "Chip", "bigBlindsOption": "Grandi bui", "chips": "chip", "bigBlinds": "grandi bui", "approximately": "circa {amount}", "lessThan": "meno di {amount}", "betAmountChips": "Puntata (chip)", "target": "Obiettivo: {amount}", "fallback": "Importi in chip; valore del buio non disponibile"},
   accessibility: {"replayStep": "Azione {current} di {total}", "turn": "Tocca a te. Piatto {pot}. {availability}. Azioni disponibili: {actions}.", "checkAvailable": "Check disponibile"},
   botInformation: {

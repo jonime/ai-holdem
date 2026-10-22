@@ -8,7 +8,7 @@ import { UsageUnavailableError } from "@/lib/usage/errors";
 const failureSchema = z.strictObject({
   operation: z.enum([
     "create_game_html", "create_quick_game_html", "create_game", "read_game",
-    "replay", "replay_share", "action", "advance_departure", "advance_timeout", "feed", "heartbeat",
+    "results", "replay", "replay_share", "action", "advance_departure", "advance_timeout", "feed", "heartbeat",
     "join", "next_hand", "publication", "remove", "reveal", "seat_count",
     "assign_bot", "claim", "name", "release", "settings", "start", "step", "public",
   ]),
