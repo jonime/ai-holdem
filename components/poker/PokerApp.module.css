@@ -130,6 +130,7 @@
 }
 .helpHeader {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -138,7 +139,7 @@
   border-bottom: 1px solid #173a3426;
   flex-shrink: 0;
 }
-.helpHeader h2 { margin: 0; font-size: 20px; overflow-wrap: anywhere; }
+.helpHeader h2 { margin: 0 auto 0 0; font-size: 20px; overflow-wrap: anywhere; }
 .helpHeader button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 .helpScroll {
   min-height: 0;

@@ -10,13 +10,13 @@ import { formatResultAmount } from "./personal-results-format";
 import { Modal } from "./Modal";
 import { useI18n } from "./I18nProvider";
 import { useAmounts, AmountText } from "./AmountDisplay";
-import { TurnCountdown } from "./TurnCountdown";
+import { ModalTurnWarning } from "./ModalTurnWarning";
 import type { Game } from "./types";
 import styles from "./PersonalResultsModal.module.css";
 
 type Load = { status: "loading" } | { status: "error"; diagnostics: DiagnosticReport } | { status: "ready"; results: PersonalResults };
-export function PersonalResultsModal({ gameId, game, yourTurn, active, onClose, onReview, restoreFocus, fallbackFocus }: {
-  gameId: string; game: Game | null; yourTurn: boolean; active: boolean;
+export function PersonalResultsModal({ gameId, game, active, onClose, onReview, restoreFocus, fallbackFocus }: {
+  gameId: string; game: Game | null; active: boolean;
   onClose: () => void; onReview: (hand: number, opener: HTMLButtonElement) => void;
   restoreFocus: RefObject<HTMLElement | null>; fallbackFocus: RefObject<HTMLElement | null>;
 }) {
@@ -43,7 +43,7 @@ export function PersonalResultsModal({ gameId, game, yourTurn, active, onClose, 
     initialFocus={initialFocus} restoreFocus={restoreFocus} fallbackFocus={fallbackFocus} className={styles.dialog}>
     <div className={styles.content}>
       <header className={styles.header}><h2>{t("results.title")}</h2>
-        {yourTurn && game ? <span className={styles.turn} data-results-turn-warning>{t("replay.yourTurn")} <TurnCountdown game={game} always /></span> : null}
+        <ModalTurnWarning className={styles.turn} data-results-turn-warning />
         <div className={styles.headerActions}>
           <Button variant="icon" className={styles.refresh} onClick={refresh} disabled={load.status === "loading"}
             aria-label={t("results.refresh")} title={t("results.refresh")}>

@@ -3,6 +3,17 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  shareTable: {
+    open: "Jaa",
+    title: "Jaa pöytä",
+    url: "Pöydän linkki",
+    copy: "Kopioi linkki",
+    copied: "Kopioitu",
+    manual: "Linkkiä ei voitu kopioida. Voit kopioida näkyvän osoitteen käsin.",
+    privacy: "Kaikki linkin saaneet voivat katsoa pöytää. Yksityiset korttisi pysyvät piilossa.",
+    seating: "Kutsu vieraita valitsemaan vapaa paikka pöydän odottaessa.",
+    watching: "Vieraat voivat seurata pöytää. Vapaata paikkaa ei taata.",
+  },
   results: {"title": "Tilastot", "loading": "Ladataan tuloksiasi…", "error": "Tuloksia ei voitu ladata. Yritä uudelleen.", "incomplete": "Summat ja parhaat ja heikoimmat jaot kattavat vain saatavilla olevat tulokset. Pois jätettyjä jakoja: {count}.", "ownershipIncomplete": "Historiatiedot ovat puutteelliset: joidenkin jakojen omistajuutta ei voitu vahvistaa.", "noAvailable": "Päättyneiden jakojen tuloksia ei ole saatavilla.", "empty": "Tällä selainpelaajalla ei ole pelattuja päättyneitä jakoja.", "hands": "Pelatut päättyneet jaot", "net": "Nettovoitto / -tappio yhteensä", "availableNet": "Nettotulos · saatavilla olevat tulokset", "biggestWin": "Suurin voittojako", "biggestLoss": "Suurin tappiojako", "noWin": "Ei voitollisia jakoja.", "noLoss": "Ei tappiollisia jakoja.", "newHands": "Uusi jako on päättynyt. Sisällytä se päivittämällä.", "refresh": "Päivitä tulokset"},
   amounts: {"display": "Summien näyttö", "chipsOption": "Pelimerkit", "bigBlindsOption": "Isot blindit", "chips": "pelimerkkiä", "bigBlinds": "isoa blindia", "approximately": "noin {amount}", "lessThan": "alle {amount}", "betAmountChips": "Panoksen määrä (pelimerkkeinä)", "target": "Tavoite: {amount}", "fallback": "Summat näytetään pelimerkkeinä; blindin koko ei ole saatavilla"},
   accessibility: {"replayStep": "Toiminto {current}/{total}", "turn": "Sinun vuorosi. Potti {pot}. {availability}. Toiminnot: {actions}.", "checkAvailable": "Sökö mahdollinen"},
@@ -73,13 +84,6 @@ const dictionary = {
       chooseSeat: "Liity valitsemalla avoin paikka.",
       waitingAsPlayer: "Istut pöydässä. Odotetaan, että isäntä aloittaa.",
       waitingAsSpectator: "Katselet peliä. Odotetaan, että isäntä aloittaa.",
-    },
-    invitation: {
-      copyInviteLink: "Kopioi kutsulinkki",
-      copied: "Kutsulinkki kopioitu.",
-      manualCopy: "Kopioi kutsulinkki tästä kentästä manuaalisesti.",
-      inviteLink: "Kutsulinkki",
-      explanation: "Linkin saanut voi katsella pöytää ja ottaa avoimen paikan.",
     },
     publication: { public: "Julkinen listaus", private: "Yksityinen (ei listattu)", explanation: "Julkinen pöytä katoaa, jos aula on piilossa tai yhteys katkeaa kahdeksi minuutiksi.", title: "Pöydän nimi (valinnainen)", titlePlaceholder: "Pöydän nimi", makePublic: "Tee julkiseksi", makePrivate: "Tee yksityiseksi", saving: "Tallennetaan…" },
     yourName: "Nimesi",

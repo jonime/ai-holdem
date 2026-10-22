@@ -3,6 +3,17 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  shareTable: {
+    open: "共有",
+    title: "テーブルを共有",
+    url: "テーブルのリンク",
+    copy: "リンクをコピー",
+    copied: "コピーしました",
+    manual: "リンクをコピーできませんでした。表示されたURLを手動でコピーできます。",
+    privacy: "このリンクを知っている人は誰でもテーブルを観戦できます。あなたの非公開カードは隠されたままです。",
+    seating: "テーブルが待機中なら、訪問者を招待して空席を選んでもらえます。",
+    watching: "訪問者はテーブルを観戦できます。席は保証されません。",
+  },
   results: {"title": "成績", "loading": "成績を読み込み中…", "error": "成績を読み込めませんでした。再試行してください。", "incomplete": "合計とハイライトは取得可能な成績のみです。除外ハンド数：{count}。", "ownershipIncomplete": "一部のハンドの所有者を確認できないため、履歴は不完全です。", "noAvailable": "取得可能な終了済みハンドの成績はありません。", "empty": "このブラウザのプレイヤーが参加した終了済みハンドはありません。", "hands": "参加した終了済みハンド数", "net": "合計純損益", "availableNet": "純損益 · 取得可能な成績", "biggestWin": "最大の勝ちハンド", "biggestLoss": "最大の負けハンド", "noWin": "勝ちハンドはありません。", "noLoss": "負けハンドはありません。", "newHands": "新しいハンドが終了しました。更新すると反映されます。", "refresh": "成績を更新"},
   amounts: {"display": "金額表示", "chipsOption": "チップ", "bigBlindsOption": "ビッグブラインド", "chips": "チップ", "bigBlinds": "ビッグブラインド", "approximately": "約{amount}", "lessThan": "{amount}未満", "betAmountChips": "ベット額（チップ）", "target": "合計額：{amount}", "fallback": "ブラインド額が不明なため、チップで表示しています"},
   accessibility: {"replayStep": "アクション {current} / {total}", "turn": "あなたの番です。ポット {pot}。{availability}。可能なアクション：{actions}。", "checkAvailable": "チェックできます"},
@@ -82,13 +93,6 @@ const dictionary = {
       "chooseSeat": "参加する空席を選んでください。",
       "waitingAsPlayer": "着席しました。ホストの開始を待っています。",
       "waitingAsSpectator": "観戦中です。ホストの開始を待っています。"
-    },
-    "invitation": {
-      "copyInviteLink": "招待リンクをコピー",
-      "copied": "招待リンクをコピーしました。",
-      "manualCopy": "この欄から招待リンクを手動でコピーしてください。",
-      "inviteLink": "招待リンク",
-      "explanation": "リンクを知っている人は誰でも観戦したり、空席に参加したりできます。"
     },
     "publication": {
       "public": "公開テーブル",

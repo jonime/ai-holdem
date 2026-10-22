@@ -77,6 +77,7 @@ const gameTopLevelKeys = [
   "results",
   "seat",
   "settings",
+  "shareTable",
   "sharing",
   "table",
   "tableLoading",

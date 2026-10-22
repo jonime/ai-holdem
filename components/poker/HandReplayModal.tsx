@@ -9,12 +9,11 @@ import { ReplaySharing } from "./ReplaySharing";
 import { Modal } from "./Modal";
 import { useI18n } from "./I18nProvider";
 import { Button } from "@/components/Button";
-import { TurnCountdown } from "./TurnCountdown";
-import type { Game } from "./types";
+import { ModalTurnWarning } from "./ModalTurnWarning";
 import styles from "./HandReplayModal.module.css";
 
-export function HandReplayModal({ gameId, handNumber, game, yourTurn, onClose, onBack, restoreFocus, fallbackFocus }: {
-  gameId: string; handNumber: number; game: Game | null; yourTurn: boolean;
+export function HandReplayModal({ gameId, handNumber, onClose, onBack, restoreFocus, fallbackFocus }: {
+  gameId: string; handNumber: number;
   onClose: () => void; onBack?: () => void;
   restoreFocus: RefObject<HTMLElement | null>; fallbackFocus: RefObject<HTMLElement | null>;
 }) {
@@ -43,7 +42,7 @@ export function HandReplayModal({ gameId, handNumber, game, yourTurn, onClose, o
     <div className={styles.content}>
       <header className={styles.controls}><h2>{t("replay.title")} · {t("feed.hand", { hand: handNumber })}</h2>
         <div className={styles.headerActions}>
-          {yourTurn && game ? <span data-replay-turn-warning className={styles.turn}>{t("replay.yourTurn")} <TurnCountdown game={game} always /></span> : null}
+          <ModalTurnWarning data-replay-turn-warning />
           {replay && canShare ? <Button ref={shareRef} onClick={() => setSharing(true)}>{t("sharing.open")}</Button> : null}
           <Button ref={closeRef} onClick={onClose}>{t("replay.close")}</Button>
         </div></header>

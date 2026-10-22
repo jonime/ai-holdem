@@ -1,6 +1,7 @@
 "use client";
 import { useRef, type RefObject } from "react";
 import { Modal } from "./Modal";
+import { ModalTurnWarning } from "./ModalTurnWarning";
 import { Button } from "../Button";
 import { useI18n } from "./I18nProvider";
 import { addLocalePrefix, hasLocale } from "@/lib/i18n";
@@ -26,6 +27,7 @@ export function SettingsModal({ preferences, onUpdate, onSound, notice, language
   return <Modal open title={t("settings.title")} onDismiss={onClose} initialFocus={closeRef}
     restoreFocus={restoreFocus} fallbackFocus={fallbackFocus} className={styles.dialog}>
     <div className={styles.header}><h2>{t("settings.title")}</h2>
+      <ModalTurnWarning />
       <Button ref={closeRef} size="small" onClick={onClose}>{t("settings.close")}</Button></div>
     <div className={styles.content}>
       {showContinues ? <p className={styles.note}>{t("settings.continues")}</p> : null}

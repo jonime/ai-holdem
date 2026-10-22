@@ -3,6 +3,17 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  shareTable: {
+    open: "Condividi",
+    title: "Condividi tavolo",
+    url: "Link del tavolo",
+    copy: "Copia link",
+    copied: "Copiato",
+    manual: "Impossibile copiare il link. Puoi copiare manualmente l’URL visibile.",
+    privacy: "Chiunque abbia questo link può vedere il tavolo. Le tue carte private restano nascoste.",
+    seating: "Invita i visitatori a scegliere un posto libero mentre il tavolo è in attesa.",
+    watching: "I visitatori possono guardare il tavolo. Un posto non è garantito.",
+  },
   results: {"title": "Statistiche", "loading": "Caricamento dei tuoi risultati…", "error": "Impossibile caricare i risultati. Riprova.", "incomplete": "Totali e mani in evidenza includono solo i risultati disponibili. Mani escluse: {count}.", "ownershipIncomplete": "Lo storico è incompleto: non è stato possibile attribuire alcune mani al proprietario.", "noAvailable": "Nessun risultato disponibile per le mani completate.", "empty": "Questo giocatore del browser non ha giocato mani completate.", "hands": "Mani completate giocate", "net": "Guadagno / perdita netti totali", "availableNet": "Risultato netto · risultati disponibili", "biggestWin": "Maggiore mano vincente", "biggestLoss": "Maggiore mano perdente", "noWin": "Nessuna mano vincente.", "noLoss": "Nessuna mano perdente.", "newHands": "Un’altra mano è terminata. Aggiorna per includerla.", "refresh": "Aggiorna risultati"},
   amounts: {"display": "Visualizzazione importi", "chipsOption": "Chip", "bigBlindsOption": "Grandi bui", "chips": "chip", "bigBlinds": "grandi bui", "approximately": "circa {amount}", "lessThan": "meno di {amount}", "betAmountChips": "Puntata (chip)", "target": "Obiettivo: {amount}", "fallback": "Importi in chip; valore del buio non disponibile"},
   accessibility: {"replayStep": "Azione {current} di {total}", "turn": "Tocca a te. Piatto {pot}. {availability}. Azioni disponibili: {actions}.", "checkAvailable": "Check disponibile"},
@@ -73,13 +84,6 @@ const dictionary = {
       chooseSeat: "Scegli un posto libero per unirti.",
       waitingAsPlayer: "Sei seduto. In attesa che l’host inizi.",
       waitingAsSpectator: "Stai guardando. In attesa che l’host inizi.",
-    },
-    invitation: {
-      copyInviteLink: "Copia link di invito",
-      copied: "Link di invito copiato.",
-      manualCopy: "Copia manualmente il link di invito da questo campo.",
-      inviteLink: "Link di invito",
-      explanation: "Chiunque abbia questo link può vedere il tavolo e occupare un posto libero.",
     },
     publication: { public: "Elenco pubblico", private: "Privato (non elencato)", explanation: "I tavoli pubblici scompaiono se questa lobby resta nascosta o disconnessa per due minuti.", title: "Titolo del tavolo (facoltativo)", titlePlaceholder: "Nome del tavolo", makePublic: "Rendi pubblico", makePrivate: "Rendi privato", saving: "Salvataggio…" },
     yourName: "Il tuo nome",

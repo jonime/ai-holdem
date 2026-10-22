@@ -3,6 +3,17 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  shareTable: {
+    open: "Dela",
+    title: "Dela bord",
+    url: "Bordslänk",
+    copy: "Kopiera länk",
+    copied: "Kopierat",
+    manual: "Länken kunde inte kopieras. Du kan kopiera den synliga adressen manuellt.",
+    privacy: "Alla med länken kan se bordet. Dina privata kort förblir dolda.",
+    seating: "Bjud in besökare att välja en ledig plats medan bordet väntar.",
+    watching: "Besökare kan följa bordet. En plats garanteras inte.",
+  },
   results: {"title": "Statistik", "loading": "Laddar dina resultat…", "error": "Resultaten kunde inte laddas. Försök igen.", "incomplete": "Summor och höjdpunkter gäller endast tillgängliga resultat. Uteslutna händer: {count}.", "ownershipIncomplete": "Historiken är ofullständig: ägarskap kunde inte fastställas för vissa händer.", "noAvailable": "Inga tillgängliga resultat från avslutade händer.", "empty": "Den här webbläsarspelaren har inte spelat några avslutade händer.", "hands": "Spelade avslutade händer", "net": "Total nettovinst / nettoförlust", "availableNet": "Nettoresultat · tillgängliga resultat", "biggestWin": "Största vinsthand", "biggestLoss": "Största förlusthand", "noWin": "Inga vinsthänder.", "noLoss": "Inga förlusthänder.", "newHands": "En ny hand har avslutats. Uppdatera för att ta med den.", "refresh": "Uppdatera resultat"},
   amounts: {"display": "Beloppsvisning", "chipsOption": "Marker", "bigBlindsOption": "Stora mörkar", "chips": "marker", "bigBlinds": "stora mörkar", "approximately": "ungefär {amount}", "lessThan": "mindre än {amount}", "betAmountChips": "Insats (marker)", "target": "Mål: {amount}", "fallback": "Belopp visas i marker; mörkens storlek saknas"},
   accessibility: {"replayStep": "Handling {current} av {total}", "turn": "Din tur. Pott {pot}. {availability}. Tillgängliga handlingar: {actions}.", "checkAvailable": "Check är möjligt"},
@@ -73,13 +84,6 @@ const dictionary = {
       chooseSeat: "Välj en ledig plats för att gå med.",
       waitingAsPlayer: "Du sitter vid bordet. Väntar på att värden ska starta.",
       waitingAsSpectator: "Du tittar på. Väntar på att värden ska starta.",
-    },
-    invitation: {
-      copyInviteLink: "Kopiera inbjudningslänk",
-      copied: "Inbjudningslänken har kopierats.",
-      manualCopy: "Kopiera inbjudningslänken manuellt från det här fältet.",
-      inviteLink: "Inbjudningslänk",
-      explanation: "Alla med länken kan se bordet och ta en ledig plats.",
     },
     publication: { public: "Offentlig listning", private: "Privat (olistad)", explanation: "Offentliga bord försvinner om lobbyn är dold eller frånkopplad i två minuter.", title: "Bordstitel (valfri)", titlePlaceholder: "Bordsnamn", makePublic: "Gör offentlig", makePrivate: "Gör privat", saving: "Sparar…" },
     yourName: "Ditt namn",

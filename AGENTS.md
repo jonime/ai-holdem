@@ -563,7 +563,9 @@ not change turn eligibility. Separate tabs may each notify; do not change pollin
 
 ## In-game Settings
 
-Settings shares the single overlay and Modal with Help, Join and mobile Actions.
+Settings shares the single overlay and Modal with Share table, Help, Join and mobile Actions.
+Share table uses both header and waiting-room entry points, copies only the clean
+localized table URL, and never mutates a game or changes its visibility.
 `useSettings` owns `ai-holdem-settings` version 1 with turnSound false and
 gameplayShortcuts true, showCurrentHand true and cardColours "classic" by default.
 Current-hand categories are adapter-evaluated only for the owned participating,

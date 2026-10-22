@@ -9,7 +9,6 @@
 .player[data-last-actor="true"] { border-color: #f1c66d; }
 .description p { margin: 6px 0; }
 .headerActions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-left: auto; }
-.turn { display: inline-flex; align-items: center; gap: 6px; color: #784b08; background: #fff0be; padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 14px; }
 .streets { margin-top: 16px; }
 .playerName { min-height: 24px; padding-inline: 24px; display: flex; align-items: center; justify-content: center; }
 .playerStatus { min-height: 1.3em; line-height: 1.3; }

@@ -472,6 +472,16 @@ date and pass/fail notes for each item:
 Physical-device verification is **outstanding** for this change until a recorded
 real-device run is available. An emulated iPhone pass does not complete it.
 
+Live-table sharing uses the shared `shareTable` overlay and performs no mutation.
+Run `CIRCLE_NODE_TOTAL=2 nice -n 15 npm run test:e2e:ui -- share-table dialogs`
+with the migrated local stack for both entry points, focus/dismissal, copy success,
+denied/unavailable clipboard, late results, selectable URL, localized clean links,
+waiting/full/playing/completed wording, shortcut suppression and mobile wrapping.
+The existing lobby clipboard regression can be selected with
+`npm run test:e2e:ui -- lobby --grep 'copies a clean invite'` (use the same
+local build worker cap and priority). Completed-hand sharing retains its own tests.
+
+
 ## Seat-mutation checks
 
 Claims, bot assignments, and releases belong in `lib/poker/seat-service.ts` and
@@ -1180,9 +1190,14 @@ The existing bot-advancement Quick Play fixtures also assert timer Off.
 Preview verification uses ordinary durations and the existing Realtime two-browser
 smoke, because local DB fixture injection is intentionally unavailable for previews.
 
+Game modal turn warnings share `ModalTurnWarning` and its shell-scoped provider.
+Keep eligibility in the game shell and reuse the badge/countdown in modal headers.
+The focused component tests cover eligibility and optional timers; `dialogs` browser
+regressions cover matching Share/Settings/Help/Stats headers and turn changes.
+
 The game UI coordinates a single typed overlay through `useGameOverlay` and the
 pure `game-overlay.ts` transitions: none, mobile Actions, Join table, Help,
-Settings, Leave table, Review hand, or About this bot. Keep DOM references and
+Settings, Share table, Leave table, Review hand, or About this bot. Keep DOM references and
 Actions reading position in the hook, navigation rules in the pure module, and
 rendering/requests/mutations in existing feature components. Close and Back
 callbacks capture an instance token; never bypass it in asynchronous Join completion.
@@ -1349,7 +1364,7 @@ replace either manual screen-reader check.
 
 ## In-game Settings
 
-The header offers Help, Settings, and Leave table/Lobby. Settings uses the shared
+The header offers Share, Help, Settings, and Leave table/Lobby. Settings uses the shared
 Modal with initial focus on Close, Escape/backdrop dismissal, focus restoration,
 and independently scrolling content. It remains available during pending requests
 and recovery. The game, timers, bots, refreshes, and turn notifications continue

@@ -1,0 +1,3 @@
+.labels { display: grid; }
+.labels > span { grid-area: 1 / 1; visibility: hidden; }
+.labels > .active { visibility: visible; }

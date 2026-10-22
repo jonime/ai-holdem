@@ -5,6 +5,7 @@ export type GameOverlay =
   | { readonly kind: "results" }
   | { readonly kind: "join" }
   | { readonly kind: "help" }
+  | { readonly kind: "shareTable" }
   | { readonly kind: "settings" }
   | { readonly kind: "leave" }
   | { readonly kind: "botInformation"; readonly botId: string }

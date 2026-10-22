@@ -41,6 +41,7 @@ export function useGameOverlay(gameId: string | undefined, eligibility: OverlayE
     openResults: (opener: HTMLElement) => open({ kind: "results" }, opener),
     openActions: (opener: HTMLElement) => open({ kind: "actions" }, opener),
     openJoin: (opener: HTMLElement) => open({ kind: "join" }, opener),
+    openShareTable: (opener: HTMLElement) => open({ kind: "shareTable" }, opener),
     openHelp: (opener: HTMLElement) => open({ kind: "help" }, opener),
     openSettings: (opener: HTMLElement) => open({ kind: "settings" }, opener),
     openLeave: (opener: HTMLElement) => open({ kind: "leave" }, opener),

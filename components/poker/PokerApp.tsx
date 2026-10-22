@@ -8,7 +8,9 @@ import { CreationFeedback } from "@/components/creation/CreationFeedback";
 import { ConfirmationDialog } from "./ConfirmationDialog";
 import { headerDepartureSeat } from "./header-navigation";
 import { HandReplayModal } from "./HandReplayModal";
+import { ShareTableModal } from "./ShareTableModal";
 import { Modal } from "./Modal";
+import { ModalTurnProvider, ModalTurnWarning } from "./ModalTurnWarning";
 import { turnRemainingMs } from "./turn-clock";
 import Link from "next/link";
 
@@ -194,7 +196,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const isSpectator = viewerPlayer === null && !ownedSeat && Boolean(game);
   const {
     overlay, isOverlayOpen, openerRef, actionsPosition, close: closeOverlay,
-    openActions, openResults, openJoin, openHelp, openSettings, openLeave,
+    openActions, openResults, openJoin, openHelp, openShareTable, openSettings, openLeave,
     openBotInformation: openBot, openReplay: reviewHand, backToActions, backToResults,
   } = useGameOverlay(gameId, {
     isSpectator,
@@ -335,9 +337,10 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
 
   return (
     <AmountDisplayProvider value={{ mode: settings.preferences.amountDisplay, bigBlind: game?.poker.bigBlind }}>
+    <ModalTurnProvider game={game} yourTurn={isHumanTurn && !unavailable}>
     <div className={`${styles.cardPalette} ${!game && !unavailable ? loadingStyles.loadingPage : ""}`} data-card-colours={settings.preferences.cardColours}>
     <CreationFeedback creation={creation} labels={creationLabels} />
-    <GameHeader helpRef={helpOpenerRef} onHelp={opener => openHelp(opener)} settingsRef={settingsOpenerRef} onSettings={opener => openSettings(opener)} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || creatingQuickPlay} onLeave={opener => { setDepartureAttempted(false); setDepartureFailed(false); openLeave(opener); }} />
+    <GameHeader onShareTable={openShareTable} helpRef={helpOpenerRef} onHelp={opener => openHelp(opener)} settingsRef={settingsOpenerRef} onSettings={opener => openSettings(opener)} game={game} mutationsBlocked={recoveryBlocked} loading={navigationLoading || creatingQuickPlay} onLeave={opener => { setDepartureAttempted(false); setDepartureFailed(false); openLeave(opener); }} />
     <main className={styles.pokerApp}>
       <div className={connectionMessage || (!departureFeedback && (error || feedback.refresh)) || botNotice ? styles.errorBanner : undefined}>
         <div data-testid="connection-status" role="status" aria-live="polite" aria-atomic="true">
@@ -395,6 +398,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
           }
           onReleaseSeat={(seat) => void releaseSeat(seat)}
           onStartWaitingGame={(settings) => void startWaitingGame(settings)}
+          onShareTable={openShareTable}
           onRefresh={refreshDirectoryState}
         />
       ) : (
@@ -521,11 +525,11 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
       )}
     </main>
     {overlay.kind === "results" || overlay.kind === "handReplay" && overlay.origin === "results" ? <PersonalResultsModal
-      key={gameId} gameId={game?.id ?? gameId ?? ""} game={game} yourTurn={isHumanTurn}
+      key={gameId} gameId={game?.id ?? gameId ?? ""} game={game}
       active={overlay.kind === "results"} onClose={closeOverlay} onReview={reviewHand}
       restoreFocus={openerRef} fallbackFocus={tableRef} /> : null}
     {overlay.kind === "handReplay" ? <HandReplayModal key={`${gameId}:${overlay.handNumber}`}
-      gameId={game?.id ?? gameId ?? ""} handNumber={overlay.handNumber} game={game} yourTurn={isHumanTurn}
+      gameId={game?.id ?? gameId ?? ""} handNumber={overlay.handNumber}
       onClose={backToResults ?? closeOverlay} onBack={backToActions}
       restoreFocus={openerRef} fallbackFocus={helpOpenerRef} /> : null}
     {overlay.kind === "botInformation" && informationPlayer && !unavailable && game?.status !== "waiting" ? (
@@ -551,6 +555,9 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
       {departureAttempted && error ? <GameErrorDetails report={diagnostics} /> : null}
       {departureAttempted && feedback.refresh ? <Button disabled={!online || refreshing} onClick={refreshGame}>{t("errors.refreshTable")}</Button> : null}
     </ConfirmationDialog> : null}
+    {overlay.kind === "shareTable" && game && !unavailable ? <ShareTableModal key={game.id}
+      game={game} onClose={closeOverlay}
+      restoreFocus={openerRef} fallbackFocus={helpOpenerRef} /> : null}
     {overlay.kind === "settings" ? (
       // The fixed /game/ path and validated game UUID keep query/fragment input in URL suffixes.
       <SettingsModal preferences={settings.preferences} onUpdate={settings.update}
@@ -565,6 +572,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
         className={styles.helpDialog}>
         <div className={styles.helpHeader}>
           <h2>{helpTitle}</h2>
+          <ModalTurnWarning />
           <Button ref={helpCloseRef} size="small" onClick={closeOverlay}>
             {t("gameHeader.closeHelp")}
           </Button>
@@ -573,6 +581,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
       </Modal>
     ) : null}
     </div>
+    </ModalTurnProvider>
     </AmountDisplayProvider>
   );
 }

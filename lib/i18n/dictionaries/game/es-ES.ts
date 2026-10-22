@@ -3,6 +3,17 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  shareTable: {
+    open: "Compartir",
+    title: "Compartir mesa",
+    url: "Enlace de la mesa",
+    copy: "Copiar enlace",
+    copied: "Copiado",
+    manual: "No se pudo copiar el enlace. Puedes copiar manualmente la URL visible.",
+    privacy: "Cualquiera con este enlace puede ver la mesa. Tus cartas privadas permanecen ocultas.",
+    seating: "Invita a los visitantes a elegir un asiento disponible mientras la mesa espera.",
+    watching: "Los visitantes pueden observar la mesa. No se garantiza un asiento.",
+  },
   results: {"title": "Estadísticas", "loading": "Cargando tus resultados…", "error": "No se pudieron cargar tus resultados. Inténtalo de nuevo.", "incomplete": "Los totales y las manos destacadas solo incluyen resultados disponibles. Manos excluidas: {count}.", "ownershipIncomplete": "El historial está incompleto: no se pudo determinar la titularidad de algunas manos.", "noAvailable": "No hay resultados disponibles de manos completadas.", "empty": "Este jugador del navegador no ha jugado manos completadas.", "hands": "Manos completadas jugadas", "net": "Ganancia / pérdida neta total", "availableNet": "Resultado neto · resultados disponibles", "biggestWin": "Mayor mano ganadora", "biggestLoss": "Mayor mano perdedora", "noWin": "No hay manos ganadoras.", "noLoss": "No hay manos perdedoras.", "newHands": "Se ha completado otra mano. Actualiza para incluirla.", "refresh": "Actualizar resultados"},
   amounts: {"display": "Mostrar cantidades", "chipsOption": "Fichas", "bigBlindsOption": "Ciegas grandes", "chips": "fichas", "bigBlinds": "ciegas grandes", "approximately": "aproximadamente {amount}", "lessThan": "menos de {amount}", "betAmountChips": "Apuesta (fichas)", "target": "Objetivo: {amount}", "fallback": "Cantidades en fichas; tamaño de ciega no disponible"},
   accessibility: {"replayStep": "Acción {current} de {total}", "turn": "Tu turno. Bote {pot}. {availability}. Acciones disponibles: {actions}.", "checkAvailable": "Puedes pasar"},
@@ -73,13 +84,6 @@ const dictionary = {
       chooseSeat: "Elige un asiento libre para unirte.",
       waitingAsPlayer: "Ya estás sentado. Esperando a que el anfitrión empiece.",
       waitingAsSpectator: "Estás mirando. Esperando a que el anfitrión empiece.",
-    },
-    invitation: {
-      copyInviteLink: "Copiar enlace de invitación",
-      copied: "Enlace de invitación copiado.",
-      manualCopy: "Copia manualmente el enlace de invitación de este campo.",
-      inviteLink: "Enlace de invitación",
-      explanation: "Cualquiera con este enlace puede ver la mesa y ocupar un asiento libre.",
     },
     publication: { public: "Listado público", private: "Privada (sin listar)", explanation: "La mesa pública desaparece si esta sala queda oculta o desconectada durante dos minutos.", title: "Título de la mesa (opcional)", titlePlaceholder: "Nombre de la mesa", makePublic: "Hacer pública", makePrivate: "Hacer privada", saving: "Guardando…" },
     yourName: "Tu nombre",

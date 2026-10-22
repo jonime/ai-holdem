@@ -3,7 +3,7 @@ import { initialOverlayNavigation, transitionOverlay, type GameOverlay, type Ove
 
 const eligibility = { isSpectator: true, botInformationAvailable: true, botIds: ["bot"] };
 const overlays: GameOverlay[] = [
-  { kind: "none" }, { kind: "actions" }, { kind: "results" }, { kind: "join" }, { kind: "help" },
+  { kind: "shareTable" }, { kind: "none" }, { kind: "actions" }, { kind: "results" }, { kind: "join" }, { kind: "help" },
   { kind: "settings" }, { kind: "leave" }, { kind: "botInformation", botId: "bot" },
   { kind: "handReplay", handNumber: 4, origin: "actions" },
   { kind: "handReplay", handNumber: 4, origin: "table" },

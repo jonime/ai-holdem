@@ -3,6 +3,17 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  shareTable: {
+    open: "Delen",
+    title: "Tafel delen",
+    url: "Tafellink",
+    copy: "Link kopiëren",
+    copied: "Gekopieerd",
+    manual: "De link kon niet worden gekopieerd. Je kunt de zichtbare URL handmatig kopiëren.",
+    privacy: "Iedereen met deze link kan de tafel bekijken. Je privékaarten blijven verborgen.",
+    seating: "Nodig bezoekers uit om een vrije stoel te kiezen terwijl de tafel wacht.",
+    watching: "Bezoekers kunnen de tafel bekijken. Een stoel is niet gegarandeerd.",
+  },
   results: {"title": "Statistieken", "loading": "Je resultaten laden…", "error": "Je resultaten konden niet worden geladen. Probeer het opnieuw.", "incomplete": "Totalen en hoogtepunten omvatten alleen beschikbare resultaten. Uitgesloten handen: {count}.", "ownershipIncomplete": "De geschiedenis is onvolledig: voor sommige handen kon de eigenaar niet worden vastgesteld.", "noAvailable": "Geen resultaten van voltooide handen beschikbaar.", "empty": "Deze browserspeler heeft geen voltooide handen gespeeld.", "hands": "Gespeelde voltooide handen", "net": "Totale nettowinst / nettoverlies", "availableNet": "Nettoresultaat · beschikbare resultaten", "biggestWin": "Grootste winnende hand", "biggestLoss": "Grootste verliezende hand", "noWin": "Geen winnende handen.", "noLoss": "Geen verliezende handen.", "newHands": "Er is nog een hand voltooid. Vernieuw om deze op te nemen.", "refresh": "Resultaten vernieuwen"},
   amounts: {"display": "Bedragen weergeven", "chipsOption": "Chips", "bigBlindsOption": "Big blinds", "chips": "chips", "bigBlinds": "big blinds", "approximately": "ongeveer {amount}", "lessThan": "minder dan {amount}", "betAmountChips": "Inzet (chips)", "target": "Doel: {amount}", "fallback": "Bedragen in chips; blindgrootte niet beschikbaar"},
   accessibility: {"replayStep": "Actie {current} van {total}", "turn": "Jij bent aan de beurt. Pot {pot}. {availability}. Beschikbare acties: {actions}.", "checkAvailable": "Check mogelijk"},
@@ -73,13 +84,6 @@ const dictionary = {
       chooseSeat: "Kies een vrije plaats om mee te doen.",
       waitingAsPlayer: "Je zit aan tafel. Wachten tot de host start.",
       waitingAsSpectator: "Je kijkt mee. Wachten tot de host start.",
-    },
-    invitation: {
-      copyInviteLink: "Uitnodigingslink kopiëren",
-      copied: "Uitnodigingslink gekopieerd.",
-      manualCopy: "Kopieer de uitnodigingslink handmatig uit dit veld.",
-      inviteLink: "Uitnodigingslink",
-      explanation: "Iedereen met deze link kan de tafel bekijken en een vrije plaats innemen.",
     },
     publication: { public: "Openbare vermelding", private: "Privé (niet vermeld)", explanation: "Openbare tafels verdwijnen als deze lobby twee minuten verborgen of offline is.", title: "Tafelnaam (optioneel)", titlePlaceholder: "Tafelnaam", makePublic: "Openbaar maken", makePrivate: "Privé maken", saving: "Opslaan…" },
     yourName: "Je naam",

@@ -27,11 +27,8 @@ While a game is waiting, the lobby shows one contextual next step based on the
 authoritative seat state, host permissions, and the host's current settings.
 Hosts can start with any two occupied seats, including bots, and may stand up
 before starting to watch as a spectator. Guests can take any open seat or wait
-for the host as a spectator. Every waiting lobby also offers a localized copy
-button for the clean game URL (origin plus localized path only); anyone with
-that URL can view the table and take an open seat. If browser clipboard access
-is unavailable, the lobby exposes the same URL in a selectable field for manual
-copying.
+for the host as a spectator. The waiting room’s **Share** button opens the same
+**Share table** dialog as the game header; see [Share a live table](#share-a-live-table).
 
 Tables are private by default. Hosts can publish waiting tables to the public
 directory; listings expire when the host is hidden or disconnected and return
@@ -43,6 +40,25 @@ spectators watch passively. Starting another hand requires explicit interaction.
 Betting action and the dealer button move clockwise around the desktop table,
 with your seat anchored at the bottom. The compact mobile grid lists seats in
 turn order from left to right, then top to bottom, starting with your seat.
+
+### Share a live table
+
+Select **Share** in the game header, before Help, or in the waiting room to open
+**Share table**. Copy link copies the localized table URL without credentials,
+queries or fragments. The visible read-only URL can also be selected and copied
+manually if clipboard access fails. After a successful copy, the button shows
+**Copied** for two seconds, then returns to **Copy link** without changing size.
+Anyone with the link can view the table;
+private cards remain protected by the usual ownership rules. Waiting tables with
+an open human seat invite visitors to choose a seat; full, playing and completed
+tables offer watching without guaranteeing a seat. Sharing does not publish a
+private table, reserve a seat, create a token, or mutate the game.
+
+The dialog focuses Copy link, restores focus to its opener when dismissed, and
+clears copy feedback on close or table changes. Gameplay shortcuts are suppressed
+while it is open, but bots, refreshes and timers continue. Your turn and its
+countdown appear when applicable. Completed-hand sharing is separate and unchanged.
+
 
 ## Lobby navigation and departure
 
@@ -435,7 +451,11 @@ is used, and polling behavior is unchanged.
 
 ## In-game Settings
 
-The header offers Help, Settings, and Leave table/Lobby. Settings uses the shared
+Live game dialogs, including Share, Help and Settings, show the same **Your turn**
+badge as Stats, with the current countdown when a turn timer is enabled. The badge
+disappears when your turn ends and is absent for spectators and outside a table.
+
+The header offers Share, Help, Settings, and Leave table/Lobby. Settings uses the shared
 Modal with initial focus on Close, Escape/backdrop dismissal, focus restoration,
 and independently scrolling content. It remains available during pending requests
 and recovery. The game, timers, bots, refreshes, and turn notifications continue

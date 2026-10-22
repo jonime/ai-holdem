@@ -2,6 +2,7 @@
 
 import { useRef, useState, type ReactNode, type RefObject } from "react";
 import { Modal } from "./Modal";
+import { ModalTurnWarning } from "./ModalTurnWarning";
 import { Button } from "../Button";
 import styles from "./ConfirmationDialog.module.css";
 
@@ -20,6 +21,7 @@ export function ConfirmationDialog({ title, explanation, cancelLabel, confirmLab
     restoreFocus={restoreFocus} fallbackFocus={fallbackFocus} className={styles.dialog}>
     <div className={styles.content}>
       <h2>{title}</h2>
+      <ModalTurnWarning />
       <p>{explanation}</p>
       {feedback ? <p role="alert" className={styles.feedback}>{feedback}</p> : null}
       {pending ? <p role="status">{pendingLabel}</p> : null}

@@ -3,6 +3,17 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  shareTable: {
+    open: "分享",
+    title: "分享牌桌",
+    url: "牌桌链接",
+    copy: "复制链接",
+    copied: "已复制",
+    manual: "无法复制链接。你可以手动复制显示的 URL。",
+    privacy: "任何持有此链接的人都可以观看牌桌。你的私有底牌仍然隐藏。",
+    seating: "牌桌等待期间，可邀请访客选择空位。",
+    watching: "访客可以观看牌桌。不保证有座位。",
+  },
   results: {"title": "统计", "loading": "正在加载你的成绩…", "error": "无法加载成绩，请重试。", "incomplete": "总计和亮点仅涵盖可用成绩。已排除手数：{count}。", "ownershipIncomplete": "历史记录不完整：部分牌局无法确认归属。", "noAvailable": "没有可用的已完成牌局成绩。", "empty": "此浏览器玩家尚未参与任何已完成的牌局。", "hands": "参与的已完成手数", "net": "总净盈亏", "availableNet": "净盈亏 · 可用成绩", "biggestWin": "最大盈利牌局", "biggestLoss": "最大亏损牌局", "noWin": "没有盈利牌局。", "noLoss": "没有亏损牌局。", "newHands": "又一手牌局已完成，刷新以纳入成绩。", "refresh": "刷新成绩"},
   amounts: {"display": "金额显示", "chipsOption": "筹码", "bigBlindsOption": "大盲注", "chips": "筹码", "bigBlinds": "大盲注", "approximately": "约{amount}", "lessThan": "小于{amount}", "betAmountChips": "下注金额（筹码）", "target": "目标总额：{amount}", "fallback": "金额以筹码显示；盲注大小不可用"},
   accessibility: {"replayStep": "操作 {current} / {total}", "turn": "轮到你了。底池 {pot}。{availability}。可用操作：{actions}。", "checkAvailable": "可以过牌"},
@@ -82,13 +93,6 @@ const dictionary = {
       "chooseSeat": "选择一个空位加入。",
       "waitingAsPlayer": "你已入座。正在等待房主开始。",
       "waitingAsSpectator": "你正在观看。正在等待房主开始。"
-    },
-    "invitation": {
-      "copyInviteLink": "复制邀请链接",
-      "copied": "邀请链接已复制。",
-      "manualCopy": "请从此字段手动复制邀请链接。",
-      "inviteLink": "邀请链接",
-      "explanation": "任何获得此链接的人都可以观看牌桌并加入空位。"
     },
     "publication": {
       "public": "公开展示",

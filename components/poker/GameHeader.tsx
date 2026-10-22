@@ -12,7 +12,8 @@ import { getClientPlayerToken } from "@/lib/identity/player-token-client";
 import { headerDepartureSeat } from "./header-navigation";
 import type { Game } from "./types";
 
-export function GameHeader({ helpRef, onHelp, settingsRef, onSettings, game, loading, mutationsBlocked = false, onLeave }: {
+export function GameHeader({ onShareTable, helpRef, onHelp, settingsRef, onSettings, game, loading, mutationsBlocked = false, onLeave }: {
+  readonly onShareTable: (opener: HTMLButtonElement) => void;
   readonly helpRef: RefObject<HTMLButtonElement | null>;
   readonly onHelp: (opener: HTMLButtonElement) => void;
   readonly settingsRef: RefObject<HTMLButtonElement | null>;
@@ -34,6 +35,9 @@ export function GameHeader({ helpRef, onHelp, settingsRef, onSettings, game, loa
       <div className={styles.gameHeaderInner}>
         <Link href={addLocalePrefix("/", locale)} className={styles.gameHeaderTitle}>{APP_NAME}</Link>
         <div className={styles.controls}>
+        {game ? <Button variant="ghost" size="small" aria-haspopup="dialog" onClick={event => onShareTable(event.currentTarget)}>
+          {t("shareTable.open")}
+        </Button> : null}
         <Button ref={helpRef} variant="ghost" size="small" aria-haspopup="dialog" onClick={event => onHelp(event.currentTarget)}>
           {t("gameHeader.help")}
         </Button>

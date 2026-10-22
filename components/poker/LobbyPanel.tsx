@@ -10,10 +10,8 @@ import type {
   TableSettings,
 } from "@/components/poker/types";
 import {
-  copyInviteUrl,
   filledSeatCount,
   formatChips,
-  inviteUrlFromLocation,
   selectLobbyGuidance,
 } from "@/components/poker/view-model";
 import styles from "@/components/poker/LobbyPanel.module.css";
@@ -33,7 +31,9 @@ export function LobbyPanel({
   onReleaseSeat,
   onStartWaitingGame,
   onRefresh,
+  onShareTable,
 }: {
+  readonly onShareTable: (opener: HTMLButtonElement) => void;
   readonly game: Game;
   readonly botCatalog: readonly BotDescriptor[];
   readonly loading: boolean;
@@ -74,9 +74,6 @@ export function LobbyPanel({
   const [botPlaystyles, setBotPlaystyles] = useState<
     Readonly<Record<number, BotPlaystyleId>>
   >({});
-  const [copyState, setCopyState] = useState<
-    "idle" | "copied" | "failed"
-  >("idle");
   const [settingsDraft, setSettingsDraft] = useState({
     humanTurnSeconds: game.poker.humanTurnSeconds == null ? "off" : String(game.poker.humanTurnSeconds),
     seatCount: String(game.poker.seatCount),
@@ -109,8 +106,6 @@ export function LobbyPanel({
     viewerToken,
     settingsValid,
   });
-  const inviteUrl =
-    typeof window === "undefined" ? "" : inviteUrlFromLocation(window.location);
   const updateDraft = (key: keyof typeof settingsDraft, value: string) => {
     setSettingsDraft((current) => ({ ...current, [key]: value }));
   };
@@ -129,41 +124,10 @@ export function LobbyPanel({
           {t(`lobby.guidance.${guidance}`)}
         </p>
         <div className={styles.invitation}>
-          <div>
-            <strong>{t("lobby.invitation.copyInviteLink")}</strong>
-            <p>{t("lobby.invitation.explanation")}</p>
-          </div>
-          <Button
-            size="small"
-            onClick={() => {
-              void copyInviteUrl(navigator.clipboard, inviteUrl).then(
-                (copied) => setCopyState(copied ? "copied" : "failed"),
-              );
-            }}
-          >
-            {t("lobby.invitation.copyInviteLink")}
+          <p>{t((game.poker.seats ?? game.poker.players).some(player => player.controller === "human" && player.status === "open") ? "shareTable.seating" : "shareTable.watching")}</p>
+          <Button size="small" aria-haspopup="dialog" onClick={event => onShareTable(event.currentTarget)}>
+            {t("shareTable.open")}
           </Button>
-          {copyState === "copied" ? (
-            <p className={styles.copyFeedback} role="status" aria-live="polite">
-              {t("lobby.invitation.copied")}
-            </p>
-          ) : null}
-          {copyState === "failed" ? (
-            <div
-              className={styles.manualCopy}
-              role="alert"
-              aria-live="assertive"
-            >
-              <p>{t("lobby.invitation.manualCopy")}</p>
-              <input
-                aria-label={t("lobby.invitation.inviteLink")}
-                readOnly
-                value={inviteUrl}
-                onFocus={(event) => event.currentTarget.select()}
-                onClick={(event) => event.currentTarget.select()}
-              />
-            </div>
-          ) : null}
         </div>
       </div>
       {canManage ? <PublicationControls game={game} loading={loading} onRefresh={onRefresh} /> : null}

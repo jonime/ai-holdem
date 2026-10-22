@@ -12,7 +12,7 @@ export function assertTranslationKeys(
   unrestricted: string,
 ) {
   t("table.hand", { hand: 3 });
-  t("lobby.invitation.copyInviteLink");
+  t("shareTable.copy");
   t(`table.${street}`);
   t(`lobby.${difficulty}`);
   t(`lobby.${playstyle}`);

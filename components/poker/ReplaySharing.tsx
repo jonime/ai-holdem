@@ -7,6 +7,7 @@ import type { ActiveShare } from "@/lib/http/share-contracts";
 import { addLocalePrefix } from "@/lib/i18n";
 import { useI18n } from "./I18nProvider";
 import { Modal } from "./Modal";
+import { ModalTurnWarning } from "./ModalTurnWarning";
 import replayStyles from "./HandReplayModal.module.css";
 import styles from "./ReplaySharing.module.css";
 import { useShareClipboard } from "./useShareClipboard";
@@ -90,6 +91,7 @@ export function ReplaySharing({ gameId, handNumber, open, onAvailabilityChange, 
     className={`${replayStyles.dialog} ${replayStyles.shareDialog}`} dialogClassName={styles.layer}>
     <div className={replayStyles.content}>
       <header className={replayStyles.controls}><h2>{t("sharing.dialogTitle", { hand: handNumber })}</h2>
+        <ModalTurnWarning />
         <Button ref={closeRef} onClick={close}>{t("replay.close")}</Button>
       </header>
       <section className={styles.panel}>

@@ -1,6 +1,7 @@
 import { useRef, type RefObject } from "react";
 import { Button } from "../Button";
 import { Modal } from "./Modal";
+import { ModalTurnWarning } from "./ModalTurnWarning";
 import { useI18n } from "./I18nProvider";
 import { botInformation } from "./bot-information";
 import type { PublicPokerPlayer } from "./types";
@@ -20,6 +21,7 @@ export function BotInformationModal({ player, onClose, restoreFocus, fallbackFoc
     restoreFocus={restoreFocus} fallbackFocus={fallbackFocus} className={styles.dialog}>
     <div className={styles.header}>
       <h2>{t("botInformation.title")}</h2>
+      <ModalTurnWarning />
       <Button ref={closeRef} size="small" onClick={onClose}>{t("settings.close")}</Button>
     </div>
     <div className={styles.content}>

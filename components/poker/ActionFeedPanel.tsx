@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 import { Modal } from "./Modal";
+import { ModalTurnWarning } from "./ModalTurnWarning";
 import { Button } from "@/components/Button";
 import { PlayingCard } from "@/components/poker/PlayingCard";
 import type { GameFeed, GameFeedEvent } from "@/components/poker/types";
@@ -183,6 +184,7 @@ export function ActionFeedModal({
           <div className={styles.titleGroup}>
             <h2>{t("feed.title")}</h2>
           </div>
+          <ModalTurnWarning />
           <Button
             ref={closeRef}
             variant="icon"

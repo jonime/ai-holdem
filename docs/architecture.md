@@ -971,6 +971,25 @@ catalog lookup, and does not affect timers, bot advancement or session recovery.
 Concise provider and supported configuration descriptions live in server-owned
 game dictionaries and agree with About MDX; no inference details are exposed.
 
+`shareTable` renders one `ShareTableModal` from the shell for both header and
+waiting-room entry points. It uses `inviteUrlFromLocation` and `useShareClipboard`
+without API calls or mutations. Only the localized origin/path is copied; no
+credentials, query, fragment or ownership token is included. The selectable URL
+is always visible. The reusable `FeedbackButton` reserves both label sizes and
+shows Copied for two seconds on success, with no separate success paragraph.
+Copy link receives initial focus, the actual opener receives
+restored focus, and unmount/game identity clears feedback and fences late copies.
+Waiting tables with an open human seat invite seating; other states offer watching.
+The shared overlay shortcut guard applies, while the session, bots and timers keep
+running and the dialog shows the existing owned-turn warning/countdown.
+
+`ModalTurnProvider` receives the shell’s existing owned-turn eligibility and live
+game. `ModalTurnWarning` uses it in Share table, Stats, replay, replay sharing,
+Settings, Help, bot information, mobile Actions and Leave table. Every instance
+uses the same Stats-style badge and `TurnCountdown`. Outside a live table (such
+as Play settings) or on an ineligible turn it renders nothing. It owns no session
+requests, gameplay eligibility, actions or timers beyond the existing countdown.
+
 The same overlay state owns Leave table confirmation. `ConfirmationDialog` wraps
 `Modal` with Cancel-first focus, a synchronous submission/dismissal guard and
 announced progress; callers retain API ownership. PokerApp resolves the current

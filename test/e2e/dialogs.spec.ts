@@ -364,3 +364,23 @@ test("localized Help fits desktop and narrow screens for waiting players and spe
     }
   }
 });
+
+test("live modal headers share the owned-turn badge in Share, Settings, Help and Stats", { tag: "@ui-regression" }, async ({ page }) => {
+  const f = await fixture(page);
+  for (const name of ["Share", "Settings", "Help", "Stats"]) {
+    await page.getByRole("button", { name, exact: true }).click();
+    const dialog = page.locator("dialog[open]");
+    const warning = dialog.locator("[data-modal-turn-warning]");
+    await expect(warning).toHaveText("Your turn");
+    await expect(warning).toHaveCSS("background-color", "rgb(255, 240, 190)");
+    await expect(warning).toHaveCSS("color", "rgb(120, 75, 8)");
+    expect(await dialog.evaluate(d => d.scrollWidth <= d.clientWidth)).toBe(true);
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("button", { name, exact: true })).toBeFocused();
+  }
+  const game = f.current();
+  f.set({ ...game, version: game.version + 1, poker: { ...game.poker, currentActorId: null } });
+  await refresh(page);
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(page.locator("dialog[open] [data-modal-turn-warning]")).toHaveCount(0);
+});

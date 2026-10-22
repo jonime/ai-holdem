@@ -268,11 +268,13 @@ test("copies a clean invite URL and exposes a manual fallback", async ({
 
   const cleanUrl = page.url();
   await page.goto(`${cleanUrl}?playerToken=must-not-copy#private-fragment`);
-  const copyButton = page.getByRole("button", { name: "Copy invite link" });
+  await page.locator("section").filter({ has: page.getByRole("heading", { name: "Choose your table" }) }).getByRole("button", { name: "Share", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Share table", exact: true });
+  const copyButton = dialog.getByRole("button", { name: "Copy link" });
   await copyButton.focus();
   await expect(copyButton).toBeFocused();
   await copyButton.press("Enter");
-  await expect(page.getByRole("status")).toHaveText("Invite link copied.");
+  await expect(dialog.getByRole("button", { name: "Copied", exact: true })).toBeVisible();
   const copiedUrl = await page.evaluate(() => navigator.clipboard.readText());
   expect(copiedUrl).toBe(cleanUrl);
   expect(copiedUrl).not.toContain("?");
@@ -286,15 +288,16 @@ test("copies a clean invite URL and exposes a manual fallback", async ({
       value: () => Promise.reject(new Error("clipboard denied")),
     });
   });
+  await expect(copyButton).toBeVisible({ timeout: 4000 });
   await copyButton.press("Enter");
   await expect(
     page
       .getByRole("alert")
-      .filter({ hasText: "Copy the invite link manually" }),
+      .filter({ hasText: "Could not copy the link." }),
   ).toContainText(
-    "Copy the invite link manually from this field.",
+    "Could not copy the link. You can copy the visible URL manually.",
   );
-  const manualLink = page.getByRole("textbox", { name: "Invite link" });
+  const manualLink = page.getByRole("textbox", { name: "Table link" });
   await expect(manualLink).toHaveValue(cleanUrl);
   await manualLink.click();
   await expect

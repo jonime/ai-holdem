@@ -3,6 +3,17 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  shareTable: {
+    open: "Partager",
+    title: "Partager la table",
+    url: "Lien de la table",
+    copy: "Copier le lien",
+    copied: "Copié",
+    manual: "Impossible de copier le lien. Vous pouvez copier manuellement l’URL affichée.",
+    privacy: "Toute personne ayant ce lien peut voir la table. Vos cartes privées restent cachées.",
+    seating: "Invitez les visiteurs à choisir une place libre pendant que la table attend.",
+    watching: "Les visiteurs peuvent regarder la table. Aucune place n’est garantie.",
+  },
   results: {"title": "Stats", "loading": "Chargement de vos résultats…", "error": "Impossible de charger vos résultats. Réessayez.", "incomplete": "Les totaux et faits marquants couvrent uniquement les résultats disponibles. Mains exclues : {count}.", "ownershipIncomplete": "L’historique est incomplet : l’identité du propriétaire de certaines mains n’a pas pu être établie.", "noAvailable": "Aucun résultat de main terminée disponible.", "empty": "Ce joueur de navigateur n’a joué aucune main terminée.", "hands": "Mains terminées jouées", "net": "Gain / perte nets totaux", "availableNet": "Résultat net · résultats disponibles", "biggestWin": "Plus gros gain", "biggestLoss": "Plus grosse perte", "noWin": "Aucune main gagnante.", "noLoss": "Aucune main perdante.", "newHands": "Une autre main est terminée. Actualisez pour l’inclure.", "refresh": "Actualiser les résultats"},
   amounts: {"display": "Affichage des montants", "chipsOption": "Jetons", "bigBlindsOption": "Grosses blindes", "chips": "jetons", "bigBlinds": "grosses blindes", "approximately": "environ {amount}", "lessThan": "moins de {amount}", "betAmountChips": "Mise (jetons)", "target": "Total visé : {amount}", "fallback": "Montants en jetons ; taille de la blinde indisponible"},
   accessibility: {"replayStep": "Action {current} sur {total}", "turn": "À vous de jouer. Pot {pot}. {availability}. Actions disponibles : {actions}.", "checkAvailable": "Parole possible"},
@@ -73,13 +84,6 @@ const dictionary = {
       chooseSeat: "Choisissez une place libre pour rejoindre la table.",
       waitingAsPlayer: "Vous êtes assis. En attente du lancement par l’hôte.",
       waitingAsSpectator: "Vous regardez. En attente du lancement par l’hôte.",
-    },
-    invitation: {
-      copyInviteLink: "Copier le lien d’invitation",
-      copied: "Lien d’invitation copié.",
-      manualCopy: "Copiez manuellement le lien d’invitation depuis ce champ.",
-      inviteLink: "Lien d’invitation",
-      explanation: "Toute personne ayant ce lien peut voir la table et prendre une place libre.",
     },
     publication: { public: "Table publique", private: "Privée (non répertoriée)", explanation: "La table publique disparaît si ce salon est masqué ou déconnecté pendant deux minutes.", title: "Titre de la table (facultatif)", titlePlaceholder: "Nom de la table", makePublic: "Rendre publique", makePrivate: "Rendre privée", saving: "Enregistrement…" },
     yourName: "Votre nom",
