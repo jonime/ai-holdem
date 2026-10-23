@@ -44,7 +44,7 @@ jobs:
 
   integration:
     name: Local SQL and production browser verification
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       CI: "true"
@@ -74,6 +74,10 @@ jobs:
         uses: supabase/setup-cli@v1
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Configure reliable Ubuntu package downloads
+        timeout-minutes: 1
+        run: sudo --preserve-env=CI,GITHUB_ACTIONS "$(command -v node)" scripts/e2e/ci-apt.mjs
 
       - name: Install browsers and start migrated Supabase concurrently
         timeout-minutes: 13
