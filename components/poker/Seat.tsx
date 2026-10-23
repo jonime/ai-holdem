@@ -81,10 +81,10 @@ export function Seat({
       <span className={styles.seatNumber}>{player.seat + 1}</span>
       <div className={styles.seatHeading}>
         {isAi ? <button type="button" className={`${styles.seatLabel} ${styles.botName}`}
-          aria-label={t("botInformation.open", { name: player.name })} aria-haspopup="dialog"
+          title={player.name} aria-label={t("botInformation.open", { name: player.name })} aria-haspopup="dialog"
           onClick={event => onAboutBot?.(player.id, event.currentTarget)}>
-          {player.name.toUpperCase()}
-        </button> : <span className={styles.seatLabel}>{player.name.toUpperCase()}</span>}
+          <span>{player.name}</span>
+        </button> : <span title={player.name} className={styles.seatLabel}>{player.name}</span>}
       </div>
       <SeatRoleBadge seat={player.seat} dealerSeat={dealerSeat} smallBlindSeat={smallBlindSeat} bigBlindSeat={bigBlindSeat} />
       {winner || gameWinner ? (
@@ -93,8 +93,11 @@ export function Seat({
         </span>
       ) : null}
       {countdown}
-      <strong><span className="sr-only">{t("replay.stack")}: </span><AmountText>{format(player.stack)}</AmountText></strong>
+      <strong><span className="sr-only">{t("replay.stack")}: </span><span data-seat-stack><AmountText>{format(player.stack)}</AmountText></span></strong>
       <span className="sr-only">{t("replay.bet")}: {spoken(player.committedStreet)}</span>
+      {handActive && player.committedStreet > 0 && !hasWagerBadge ? <span className={styles.committedBet}>
+        {t("replay.bet")} <AmountText>{format(player.committedStreet)}</AmountText>
+      </span> : null}
       {hasWagerBadge ? (
         <span className={styles.actionBadge}>
           {latestAction.action.toUpperCase()}{" "}

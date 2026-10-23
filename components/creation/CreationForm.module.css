@@ -17,7 +17,7 @@
 }
 
 .secondary {
-  --creation-spinner-color: #173a34;
+  --creation-spinner-color: var(--accent);
 }
 
 @keyframes spin {

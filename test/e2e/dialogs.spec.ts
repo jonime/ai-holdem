@@ -89,8 +89,11 @@ test("Actions contains focus, locks background scroll, preserves reading and ign
   await actions(page).getByRole("button", { name: "Close actions panel" }).click();
   await expect(page.getByRole("button", { name: "Expand actions panel" })).toBeFocused();
   await openActions(page);
+  // Full-height phone panels have no backdrop; retain backdrop coverage on desktop.
+  await page.setViewportSize({ width: 1280, height: 812 });
   await page.mouse.click(10, 10);
   await expect(dialog).toHaveCount(0);
+  await page.setViewportSize({ width: 375, height: 812 });
   await openActions(page);
   await page.evaluate(() => {
     const table = document.querySelector('[class*="gameLayout"]')!;
@@ -270,8 +273,10 @@ test("Help contains focus, preserves reading through updates, and blocks gamepla
   await dialog.getByRole("button", { name: "Close help" }).click();
   await expect(page.getByRole("button", { name: "Help", exact: true })).toBeFocused();
   await openHelp(page);
+  await page.setViewportSize({ width: 1280, height: 812 });
   await page.mouse.click(1, 1);
   await expect(dialog).toHaveCount(0);
+  await page.setViewportSize({ width: 375, height: 812 });
   await expect(page.getByRole("button", { name: "Help", exact: true })).toBeFocused();
 });
 
@@ -375,8 +380,8 @@ test("live modal headers share the owned-turn badge in Share, Settings, Help and
     const dialog = page.locator("dialog[open]");
     const warning = dialog.locator("[data-modal-turn-warning]");
     await expect(warning).toHaveText("Your turn");
-    await expect(warning).toHaveCSS("background-color", "rgb(255, 240, 190)");
-    await expect(warning).toHaveCSS("color", "rgb(120, 75, 8)");
+    await expect(warning).toHaveCSS("background-color", "rgb(255, 243, 214)");
+    await expect(warning).toHaveCSS("color", "rgb(120, 80, 11)");
     expect(await dialog.evaluate(d => d.scrollWidth <= d.clientWidth)).toBe(true);
     await page.keyboard.press("Escape");
     await expect(page.getByRole("button", { name, exact: true })).toBeFocused();

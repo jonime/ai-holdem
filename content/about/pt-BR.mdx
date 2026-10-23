@@ -8,7 +8,14 @@ export const metadata = {
 
 AI Hold'em é um jogo de Texas Hold'em gratuito e de código aberto que você pode jogar no navegador. Jogue contra bots de IA, convide amigos para uma mesa ou assista aos bots jogarem. As mesas comportam de dois a seis jogadores e usam fichas virtuais, sem apostas com dinheiro real nem prêmios em dinheiro.
 
-## Bots de pôquer
+<nav data-document-sections>
+<a href="#about-section-0">Bots de pôquer</a>
+<a href="#about-section-1">Regras aplicadas pelo mecanismo de pôquer</a>
+<a href="#about-section-2">Privacidade e transparência</a>
+<a href="#about-section-3">Saiba mais</a>
+</nav>
+
+<h2 id="about-section-0">Bots de pôquer</h2>
 
 ### Equity Rules
 
@@ -52,19 +59,19 @@ Ao atribuir um bot de LLM, você pode escolher um entre três estilos de jogo:
 
 O estilo orienta as decisões do modelo, mas não altera as cartas, as informações disponíveis nem as ações legais definidas pelo mecanismo.
 
-## Regras aplicadas pelo mecanismo de pôquer
+<h2 id="about-section-1">Regras aplicadas pelo mecanismo de pôquer</h2>
 
 [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) controla o baralho, os turnos, as ações legais, as apostas, os potes e os vencedores. Pessoas e bots apenas propõem jogadas. O servidor valida e aplica cada proposta pelo adaptador antes de salvá-la com verificação de versão.
 
 Configurações dos bots e futuras personalizações ficam depois desse limite e não podem contornar as regras.
 
-## Privacidade e transparência
+<h2 id="about-section-2">Privacidade e transparência</h2>
 
 Os links das mesas podem ser compartilhados: qualquer pessoa que conheça a URL de uma mesa pode assistir ao jogo.
 
 As cartas privadas ativas são reveladas apenas ao navegador que ocupa a posição. Espectadores não recebem prompts ou respostas brutas. Bots conectados a provedores enviam ao provedor o contexto visível para o bot; Equity Rules não usa inferência externa.
 
-## Saiba mais
+<h2 id="about-section-3">Saiba mais</h2>
 
 - [Iniciar um jogo](/pt-BR)
 - [Recursos para desenvolvedores](/pt-BR/developers)

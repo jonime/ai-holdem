@@ -38,7 +38,11 @@ describe("localized Help documents", () => {
     expect(document.title).not.toBe("");
     if (locale !== "en-US") expect(document.title).not.toBe("Game help");
     const html = renderToStaticMarkup(createElement(document.default, { components: { InlineCardExample } }));
-    expect([...html.matchAll(/<h2>(.*?)<\/h2>/g)].map(match => match[1])).toEqual([dictionary.shareTable.title, ...sections[locale], dictionary.sharing.title, dictionary.results.title]);
+    expect([...html.matchAll(/<h2\b[^>]*>(.*?)<\/h2>/g)].map(match => match[1])).toEqual([dictionary.shareTable.title, ...sections[locale], dictionary.sharing.title, dictionary.results.title]);
+    for (let index = 0; index < 7; index++) {
+      expect(html).toContain(`href="#help-section-${index}"`);
+      expect(html).toContain(`id="help-section-${index}"`);
+    }
     expect(html).toContain("<ol>");
     expect(html).not.toContain("<table");
     expect(html.match(/data-card-example/g)).toHaveLength(14);

@@ -1,4 +1,6 @@
 "use client";
+import type { CSSProperties } from "react";
+import { seatPositions } from "./seat-position";
 import { useAmounts, AmountText } from "./AmountDisplay";
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ReplayData } from "@/lib/http/share-contracts";
@@ -92,6 +94,7 @@ export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }
     return () => window.removeEventListener("keydown", navigate);
   }, [frameCount, active, keyboardScope, setIndex, pause]);
   const frame = replay.frames[index];
+  const positions = seatPositions((frame?.players ?? []).map(player => ({ id: String(player.seat), seat: player.seat })));
   const name = (seat: number) => replay.participants.find(p => p.seat === seat)?.name ?? "";
   const lastAction = replay.frames.slice(0, index + 1).findLast(f => f.action)?.action;
   const total = replay.frames.filter(f => f.action).length ?? 0;
@@ -118,10 +121,10 @@ export function ReplayViewer({ replay, active = true, keyboardScope = "viewer" }
               onClick={() => select(first)}>{street === "complete" ? t("replay.result") : dictionary.feed[street]}</Button>;
           })}
         </nav>
-        <div className={styles.table} data-replay-frame={index}>
+        <div className={styles.table} data-seat-count={frame.players.length} data-replay-frame={index}>
           <div className={styles.board}>{Array.from({ length: 5 }, (_, i) => <PlayingCard key={i} card={frame.board[i]} />)}</div>
           <strong>{t("replay.pot")}: <AmountText>{format(frame.pot)}</AmountText></strong>
-          <div className={styles.players}>{frame.players.map(player => <article aria-label={name(player.seat)} data-replay-folded={player.folded} key={player.seat} className={`${styles.player} ${(awards.get(player.seat) ?? 0) > 0 ? seatStyles.winnerSeat : ""}`} data-replay-winner={(awards.get(player.seat) ?? 0) > 0} data-last-actor={frame.kind !== "result" && lastAction?.actorSeat === player.seat}>
+          <div className={styles.players}>{frame.players.map(player => <article aria-label={name(player.seat)} data-replay-folded={player.folded} key={player.seat} style={{ "--seat-x": `${positions.get(String(player.seat))?.x}%`, "--seat-y": `${positions.get(String(player.seat))?.y}%`, "--mobile-x": `${positions.get(String(player.seat))?.mobileX}%`, "--mobile-y": `${positions.get(String(player.seat))?.mobileY}%` } as CSSProperties} className={`${styles.player} ${(awards.get(player.seat) ?? 0) > 0 ? seatStyles.winnerSeat : ""}`} data-replay-winner={(awards.get(player.seat) ?? 0) > 0} data-last-actor={frame.kind !== "result" && lastAction?.actorSeat === player.seat}>
             <strong className={styles.playerName}>{name(player.seat)}</strong>
             <SeatRoleBadge seat={player.seat} dealerSeat={replay.dealerSeat} smallBlindSeat={replay.smallBlindSeat} bigBlindSeat={replay.bigBlindSeat} />
             <div className={styles.cards}>{[0, 1].map(i => <PlayingCard key={i} card={player.cards?.[i]} hidden={!player.cards} />)}</div>

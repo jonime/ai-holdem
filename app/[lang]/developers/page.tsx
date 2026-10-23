@@ -1,3 +1,4 @@
+import { PublicHeader } from "@/components/PublicHeader";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -33,6 +34,7 @@ export default async function DeveloperResources({ params }: DeveloperPageProps)
 
   return (
     <main className={styles.page}>
+      {await PublicHeader({ locale: lang, pathname: "/developers" })}
       <article lang="en-US" className={styles.card}>
         <p className={styles.eyebrow}>AI Hold&apos;em</p>
         <h1>Developer resources</h1>

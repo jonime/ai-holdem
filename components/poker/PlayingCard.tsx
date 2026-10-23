@@ -1,7 +1,5 @@
 import { CardImage } from "./CardImage";
 import suitStyles from "./SuitColour.module.css";
-import Image from "next/image";
-import logo from "@/public/ai-holdem-logo.png";
 import { cardLabel } from "@/components/poker/view-model";
 import { useI18n } from "@/components/poker/I18nProvider";
 import styles from "@/components/poker/PlayingCard.module.css";
@@ -23,14 +21,7 @@ export function PlayingCard({
         data-playing-card
         aria-label={t("cards.hidden")}
       >
-        <Image
-          className={styles.cardBackLogo}
-          src={logo}
-          alt=""
-          width={34}
-          height={34}
-          sizes="(max-width: 560px) 20px, 34px"
-        />
+        <span className={styles.cardBackLogo} aria-hidden="true">♠</span>
       </CardImage>
     );
   }

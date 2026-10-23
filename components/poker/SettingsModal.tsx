@@ -1,4 +1,5 @@
 "use client";
+import { AppearanceControl } from "../AppearanceControl";
 import { useRef, type RefObject } from "react";
 import { Modal } from "./Modal";
 import { ModalTurnWarning } from "./ModalTurnWarning";
@@ -30,13 +31,14 @@ export function SettingsModal({ preferences, onUpdate, onSound, notice, language
       <ModalTurnWarning />
       <Button ref={closeRef} size="small" onClick={onClose}>{t("settings.close")}</Button></div>
     <div className={styles.content}>
+      <AppearanceControl labels={{ title: t("appearance.title"), system: t("appearance.system"), light: t("appearance.light"), dark: t("appearance.dark") }} />
       {showContinues ? <p className={styles.note}>{t("settings.continues")}</p> : null}
-      {(["turnSound", "gameplayShortcuts", "showCurrentHand"] as const).map(key => <div className={styles.row} key={key}>
-        <span id={`settings-${key}`}>{t(key === "turnSound" ? "turnNotification.sound" : key === "showCurrentHand" ? "settings.showCurrentHand" : "settings.shortcuts")}</span>
+      <h3 className={styles.groupTitle}>{t("appearance.cards")}</h3>
+      {(["showCurrentHand"] as const).map(key => <div className={styles.row} key={key}>
+        <span id={`settings-${key}`}>{t("settings.showCurrentHand")}</span>
         <button type="button" role="switch" aria-labelledby={`settings-${key}`} aria-checked={preferences[key]}
           className={styles.switch} onClick={() => {
             const next = !preferences[key]; onUpdate({ [key]: next });
-            if (key === "turnSound") void onSound(next);
           }}><span aria-hidden="true">{preferences[key] ? "✓" : "×"}</span><i aria-hidden="true" /></button>
       </div>)}
       <label className={styles.language}><span>{t("settings.cardColours")}</span>
@@ -57,7 +59,17 @@ export function SettingsModal({ preferences, onUpdate, onSound, notice, language
           <option value="bigBlinds">{t("amounts.bigBlindsOption")}</option>
         </select>
       </label>
+      <h3 className={styles.groupTitle}>{t("appearance.gameplay")}</h3>
+      {(["turnSound", "gameplayShortcuts"] as const).map(key => <div className={styles.row} key={key}>
+        <span id={`settings-${key}`}>{t(key === "turnSound" ? "turnNotification.sound" : "settings.shortcuts")}</span>
+        <button type="button" role="switch" aria-labelledby={`settings-${key}`} aria-checked={preferences[key]}
+          className={styles.switch} onClick={() => {
+            const next = !preferences[key]; onUpdate({ [key]: next });
+            if (key === "turnSound") void onSound(next);
+          }}><span aria-hidden="true">{preferences[key] ? "✓" : "×"}</span><i aria-hidden="true" /></button>
+      </div>)}
       {notice ? <p role="status" className={styles.note}>{notice}</p> : null}
+      <h3 className={styles.groupTitle}>{t("settings.language")}</h3>
       <label className={styles.language}><span>{t("settings.language")}</span>
         <select value={locale} disabled={languageBlocked} aria-describedby={languageBlocked ? "settings-language-blocked" : undefined}
           onChange={event => {

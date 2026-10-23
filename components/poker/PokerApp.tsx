@@ -88,7 +88,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const { collapsed: feedCollapsed, change: setFeedCollapsed, toggle: toggleFeedCollapsed } = useActionsPreference();
 
   const toggleFeed = (opener: HTMLButtonElement) => {
-    if (window.matchMedia("(max-width: 900px)").matches) {
+    if (window.matchMedia("(max-width: 1099px)").matches) {
       const next = overlay.kind !== "actions";
       if (next) { openActions(opener); }
       else closeOverlay();
@@ -577,7 +577,15 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
             {t("gameHeader.closeHelp")}
           </Button>
         </div>
-        <div className={styles.helpScroll} tabIndex={0}>{helpContent}</div>
+        <div className={styles.helpScroll} tabIndex={0} onClick={event => {
+          if (!(event.target instanceof Element)) return;
+          const href = event.target.closest("a")?.getAttribute("href");
+          if (!href || !/^#help-section-\d+$/.test(href)) return;
+          const heading = event.currentTarget.querySelector(href);
+          if (!heading) return;
+          event.preventDefault();
+          heading.scrollIntoView({ block: "start" });
+        }}>{helpContent}</div>
       </Modal>
     ) : null}
     </div>

@@ -61,7 +61,7 @@ it.each(["bet", "raise"])("shows %s once in the top badge, preserving authoritat
 
 it("renders native bot dialog buttons while human names remain text", () => {
   expect(render({ controller: "bot", name: "Same", bot: null })).toContain('aria-label="About Same" aria-haspopup="dialog"');
-  expect(render({ controller: "bot", name: "Same", bot: null })).toMatch(/<button type="button"[^>]*>SAME<\/button>/);
+  expect(render({ controller: "bot", name: "Same", bot: null })).toMatch(/<button type="button"[^>]*><span>Same<\/span><\/button>/);
   expect(render({ controller: "human", name: "Same" })).not.toContain('aria-haspopup="dialog"');
 });
 

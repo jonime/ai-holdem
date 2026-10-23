@@ -1,0 +1,9 @@
+.header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; max-width: 1220px; margin: 0 auto 40px; border-bottom: 1px solid var(--border); }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-space-grotesk), sans-serif; font-size: 20px; font-weight: 700; color: var(--text); text-decoration: none; white-space: nowrap; }
+.brand span { font-size: 32px; }
+.header nav { display: flex; gap: 24px; }
+.header nav a { display: inline-flex; align-items: center; min-height: 44px; color: var(--text); text-decoration: none; font-size: 14px; }
+.header nav a:hover { color: var(--accent); }
+.preferences { display: flex; align-items: center; gap: 8px; }
+@media (max-width: 640px) { .header { flex-wrap: wrap; gap: 8px 16px; margin-bottom: 24px; padding-top: 8px; } .brand { font-size: 18px; } .header nav { order: 3; width: 100%; gap: 24px; } .preferences { margin-left: auto; } }
+@media (max-width: 380px) { .preferences { gap: 4px; } .preferences > div > button { min-width: 0; max-width: 96px; padding-inline: 8px; font-size: 12px; } }

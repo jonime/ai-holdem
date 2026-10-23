@@ -1,0 +1,8 @@
+.control { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; color: var(--text-muted); font-size: 12px; }
+.field { position: relative; display: inline-grid; margin-left: auto; max-width: 100%; }
+.field::after { content: ""; position: absolute; right: 14px; top: 50%; width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+.control select { appearance: none; min-height: 44px; width: 100%; max-width: 100%; padding: 8px 36px 8px 12px; border: 1px solid var(--border); border-radius: 8px; color: var(--text); background: var(--surface); }
+.compact { display: inline-grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px; padding: 0; border: 0; border-radius: 8px; color: var(--text); background: transparent; cursor: pointer; }
+.compact:hover { background: var(--surface-muted); }
+.compact:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.icon { pointer-events: none; }

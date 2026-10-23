@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  appearance: {"cards": "Cartas e importes", "gameplay": "Juego", "title": "Apariencia", "system": "Sistema", "light": "Claro", "dark": "Oscuro"},
   shareTable: {
     open: "Compartir",
     title: "Compartir mesa",

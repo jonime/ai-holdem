@@ -25,3 +25,29 @@
 /* Keep all three controls together, including longer translated Replay labels. */
 .playback { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
 .playback > button { min-width: 0; overflow-wrap: anywhere; }
+.dialog { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--elevation); }
+.table { position: relative; height: 430px; padding: 0; margin: 16px 0; border-radius: 44% / 25%; background: radial-gradient(ellipse, #13785b, var(--felt-surface)); border: 6px solid var(--felt-edge); color: var(--on-felt); }
+.board { position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%); margin: 0; }
+.table > strong { position: absolute; left: 50%; top: 37%; transform: translateX(-50%); color: var(--sun); font-variant-numeric: tabular-nums; }
+.players { position: absolute; inset: 0; display: block; margin: 0; }
+.player { position: absolute; left: var(--seat-x); top: var(--seat-y); transform: translate(-50%, -50%); width: 112px; min-height: 128px; padding: 8px 4px; background: var(--seat-surface); color: var(--on-felt); border: 1px solid #85a697; font-variant-numeric: tabular-nums; gap: 2px; }
+.playerName { font-size: 11px; padding-inline: 14px; min-height: 24px; }
+.cards { margin: 2px 0; }
+.cards [data-playing-card] { width: 26px; height: 36px; font-size: 15px; }
+.player .award { background: var(--seat-surface); }
+@media (max-width: 640px) {
+  .dialog:not(.shareDialog) { align-self: stretch; width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; }
+  .content { padding: 12px; }
+  .table { height: 448px; border-width: 4px; }
+  .player { left: var(--mobile-x); top: var(--mobile-y); width: 82px; min-height: 104px; font-size: 10px; padding-top: 14px; }
+  .playerName { padding-inline: 0; font-size: 10px; min-height: 20px; }
+  .player .cards [data-playing-card] { width: 20px; height: 28px; font-size: 12px; }
+  .board [data-playing-card] { width: 24px; height: 34px; font-size: 14px; }
+  .table > strong { top: 43%; font-size: 12px; }
+  .board { top: 53%; }
+  .streets { gap: 4px; }
+  .streets button { flex: 1; min-width: 0; font-size: 11px; padding-inline: 4px; }
+  .shareDialog { width: 100%; align-self: end; border-radius: 16px 16px 0 0; }
+}
+.players { pointer-events: none; }
+.player { pointer-events: auto; }

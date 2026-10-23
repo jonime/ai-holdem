@@ -8,7 +8,14 @@ export const metadata = {
 
 AI Hold'em är ett gratis Texas Hold'em-spel med öppen källkod som du kan spela i webbläsaren. Spela mot AI-bottar, bjud in vänner till ett bord eller se bottar spela. Borden har plats för två till sex spelare och använder virtuella marker, utan insatser med riktiga pengar eller kontantvinster.
 
-## Pokerbottar
+<nav data-document-sections>
+<a href="#about-section-0">Pokerbottar</a>
+<a href="#about-section-1">Regler som upprätthålls av pokermotorn</a>
+<a href="#about-section-2">Integritet och transparens</a>
+<a href="#about-section-3">Läs mer</a>
+</nav>
+
+<h2 id="about-section-0">Pokerbottar</h2>
 
 ### Equity Rules
 
@@ -52,19 +59,19 @@ När en LLM-bot tilldelas kan en av tre spelstilar väljas:
 
 Spelstilen vägleder modellens beslut men ändrar inte korten, informationen som finns tillgänglig eller motorns lagliga handlingar.
 
-## Regler som upprätthålls av pokermotorn
+<h2 id="about-section-1">Regler som upprätthålls av pokermotorn</h2>
 
 [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) styr kortlek, turer, lagliga handlingar, satsningar, potter och vinnare. Människor och bottar föreslår bara drag. Servern validerar och tillämpar varje förslag genom adaptern innan versionskontrollerad lagring.
 
 Bottinställningar och framtida anpassning av spelstilar ligger efter denna gräns och kan inte kringgå reglerna.
 
-## Integritet och transparens
+<h2 id="about-section-2">Integritet och transparens</h2>
 
 Bordslänkar kan delas: alla som känner till ett bords URL kan se spelet.
 
 Aktiva privata kort visas bara för webbläsaren som äger platsen. Åskådare får inte leverantörsprompter eller råa svar. Leverantörsbottar skickar sin synliga beslutskontext till leverantören; Equity Rules använder ingen extern inferens.
 
-## Läs mer
+<h2 id="about-section-3">Läs mer</h2>
 
 - [Starta ett spel](/sv-SE)
 - [Utvecklarresurser](/sv-SE/developers)

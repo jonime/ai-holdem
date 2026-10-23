@@ -64,6 +64,7 @@ const gameTopLevelKeys = [
   "accessibility",
   "actions",
   "amounts",
+  "appearance",
   "botInformation",
   "cards",
   "connection",

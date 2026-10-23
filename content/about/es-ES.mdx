@@ -8,7 +8,14 @@ export const metadata = {
 
 AI Hold'em es un juego gratuito y de código abierto de Texas Hold'em que puedes jugar en tu navegador. Juega contra bots de IA, invita a amigos a una mesa o mira jugar a los bots. Las mesas admiten de dos a seis jugadores y utilizan fichas virtuales, sin apuestas con dinero real ni premios en efectivo.
 
-## Bots de póquer
+<nav data-document-sections>
+<a href="#about-section-0">Bots de póquer</a>
+<a href="#about-section-1">Reglas aplicadas por el motor de póquer</a>
+<a href="#about-section-2">Privacidad y transparencia</a>
+<a href="#about-section-3">Más información</a>
+</nav>
+
+<h2 id="about-section-0">Bots de póquer</h2>
 
 ### Equity Rules
 
@@ -52,19 +59,19 @@ Al asignar un bot LLM, puedes elegir uno de tres estilos:
 
 El estilo guía las decisiones del modelo, pero no cambia las cartas, la información disponible ni las acciones legales del motor.
 
-## Reglas aplicadas por el motor de póquer
+<h2 id="about-section-1">Reglas aplicadas por el motor de póquer</h2>
 
 [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) controla la baraja, los turnos, las acciones legales, las apuestas, los botes y los ganadores. Personas y bots solo proponen jugadas. El servidor valida y aplica cada propuesta mediante el adaptador antes de guardarla con control de versión.
 
 Los ajustes de bots y la futura personalización de estilos permanecen después de este límite y no pueden eludir las reglas.
 
-## Privacidad y transparencia
+<h2 id="about-section-2">Privacidad y transparencia</h2>
 
 Los enlaces de las mesas se pueden compartir: cualquiera que conozca la URL de una mesa puede observar la partida.
 
 Las cartas privadas activas solo se muestran al navegador propietario del asiento. Los espectadores no reciben prompts ni respuestas sin procesar. Los bots de proveedores envían a su proveedor el contexto visible para el bot; Equity Rules no realiza inferencia externa.
 
-## Más información
+<h2 id="about-section-3">Más información</h2>
 
 - [Iniciar una partida](/es-ES)
 - [Recursos para desarrolladores](/es-ES/developers)

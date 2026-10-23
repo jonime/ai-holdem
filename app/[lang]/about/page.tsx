@@ -1,8 +1,8 @@
+import { PublicHeader } from "@/components/PublicHeader";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { LanguageMenu } from "@/components/LanguageMenu";
 import { getAboutDocument } from "@/lib/about/server";
 import { addLocalePrefix, hasLocale } from "@/lib/i18n";
 
@@ -37,12 +37,12 @@ export default async function AboutPage({ params }: AboutPageProps) {
 
   return (
     <main className={styles.page}>
+      {await PublicHeader({ locale: lang, pathname: "/about" })}
       <article className={styles.card}>
         <nav className={styles.pageNav} aria-label="About page navigation">
           <Link className={styles.homeLink} href={addLocalePrefix("/", lang)}>
             <span aria-hidden="true">←</span> AI Hold&apos;em
           </Link>
-          <LanguageMenu locale={lang} pathname="/about" />
         </nav>
         <div className={styles.content}>
           <AboutContent />

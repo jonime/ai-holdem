@@ -8,7 +8,14 @@ export const metadata = {
 
 AI Hold'em ist ein kostenloses Open-Source-Spiel für Texas Hold'em, das du direkt im Browser spielen kannst. Spiele gegen KI-Bots, lade Freunde an einen Tisch ein oder schaue Bots beim Spielen zu. An jedem Tisch können zwei bis sechs Spieler mit virtuellen Chips spielen, ohne Echtgeld-Einsätze oder Geldpreise.
 
-## Poker-Bots
+<nav data-document-sections>
+<a href="#about-section-0">Poker-Bots</a>
+<a href="#about-section-1">Regeln durch die Poker-Engine</a>
+<a href="#about-section-2">Datenschutz und Transparenz</a>
+<a href="#about-section-3">Mehr erfahren</a>
+</nav>
+
+<h2 id="about-section-0">Poker-Bots</h2>
 
 ### Equity Rules
 
@@ -52,19 +59,19 @@ LLM-Bots können bei der Zuweisung einen von drei Spielstilen erhalten:
 
 Der Spielstil beeinflusst die Entscheidungen des Modells, ändert aber weder Karten noch verfügbare Informationen oder die vom Engine definierten legalen Aktionen.
 
-## Regeln durch die Poker-Engine
+<h2 id="about-section-1">Regeln durch die Poker-Engine</h2>
 
 [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) entscheidet verbindlich über Deck, Zugfolge, legale Aktionen, Einsätze, Pots und Gewinner. Menschen und Bots schlagen nur Züge vor. Der Server validiert und übernimmt jeden Vorschlag über den Adapter, bevor er ihn versionsgeprüft speichert.
 
 Bot-Einstellungen und künftige Spielstilanpassungen liegen hinter dieser Grenze und können die Pokerregeln nicht umgehen.
 
-## Datenschutz und Transparenz
+<h2 id="about-section-2">Datenschutz und Transparenz</h2>
 
 Tischlinks können geteilt werden: Wer die URL eines Tisches kennt, kann das Spiel ansehen.
 
 Aktive Hole Cards werden nur dem Browser des jeweiligen Platzes gezeigt. Zuschauer erhalten keine Anbieter-Prompts oder Rohantworten. Anbieterbasierte Bots senden ihren sichtbaren Entscheidungskontext an den Anbieter; Equity Rules verwendet keine externe Inferenz.
 
-## Mehr erfahren
+<h2 id="about-section-3">Mehr erfahren</h2>
 
 - [Spiel starten](/de-DE)
 - [Entwicklerressourcen](/de-DE/developers)

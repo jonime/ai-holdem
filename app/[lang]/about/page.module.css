@@ -6,9 +6,9 @@
   width: min(100%, 820px);
   margin: 0 auto;
   padding: clamp(24px, 5vw, 56px);
-  border: 1px solid #9db5aa;
-  background: #f6f5ee;
-  box-shadow: 6px 7px 0 rgba(16, 59, 51, 0.18);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--elevation);
 }
 
 .pageNav {
@@ -63,7 +63,7 @@
 
 .content p,
 .content li {
-  color: #405d57;
+  color: var(--text-muted);
   font-size: 17px;
   line-height: 1.65;
 }
@@ -98,4 +98,15 @@
   .pageNav {
     margin-bottom: 26px;
   }
+}
+.page { padding-top: 8px; }
+.card { width: min(100%, 1100px); padding: clamp(20px, 4vw, 48px); border: 0; border-radius: 12px; box-shadow: none; background: transparent; }
+.content { max-width: 760px; margin: auto; }
+.content h1 { line-height: 1.1; }
+.content h2 { padding-top: 24px; border-top: 1px solid var(--border); }
+@media (min-width: 1100px) {
+  .content { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 0 48px; max-width: 1100px; }
+  .content > * { grid-column: 2; }
+  .content > [data-document-sections] { grid-column: 1; grid-row: 1 / span 100; position: sticky; top: 24px; align-self: start; display: grid; margin: 0; padding: 0 16px 0 0; border: 0; border-right: 1px solid var(--border); }
+  .content > [data-document-sections] a { border: 0; }
 }

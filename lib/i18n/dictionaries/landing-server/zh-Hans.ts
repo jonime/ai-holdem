@@ -3,6 +3,7 @@ import "server-only";
 import type { LandingServerDictionary } from "../../types";
 
 const dictionary = {
+  hero: {"title": "下一手，精彩继续。", "promise": "免费畅玩 · 无需注册 · 虚拟筹码", "create": "创建牌桌"},
   feedback: "发送反馈",
   feedbackNewTab: "在新标签页中打开",
   "startRegion": "选择玩法",

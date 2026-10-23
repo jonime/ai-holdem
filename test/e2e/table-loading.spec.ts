@@ -135,7 +135,7 @@ for (const locale of ["en-US", "fi-FI"]) {
             if (mobile) expect(animation).toBe("none");
             else expect(animation).toMatch(/spin/);
             const status = await shell.getByRole("status").boundingBox();
-            const header = await page.locator("header").boundingBox();
+            const header = await page.locator("header:visible").boundingBox();
             expect(Math.abs(status!.y + status!.height / 2 - (header!.y + header!.height + (mobile ? 812 : 900)) / 2)).toBeLessThan(12);
             expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
           };

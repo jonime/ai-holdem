@@ -10,7 +10,7 @@ test("@smoke English URLs stay unprefixed and language changes are explicit", as
   await expect(page.locator('link[hreflang="x-default"]')).toHaveAttribute("href", /^https?:\/\/[^/]+\/?$/);
   await expect(page.locator('form[action="/quick-game"]')).toBeVisible();
 
-  await page.getByRole("link", { name: "About", exact: true }).click();
+  await page.locator("header").getByRole("link", { name: "About", exact: true }).click();
   await expect(page).toHaveURL(/\/about$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "en-US");
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/about$/);

@@ -14,7 +14,7 @@ export function LanguageMenu({
   pathname = "",
 }: {
   readonly locale: Locale;
-  readonly pathname?: "" | "/about";
+  readonly pathname?: "" | "/about" | "/play" | "/developers";
 }) {
   const dialogId = `language-menu-${locale}`;
 

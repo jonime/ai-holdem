@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+import { seatPositions } from "./seat-position";
 import { useAmounts, AmountText } from "./AmountDisplay";
 import { useEffect, useState } from "react";
 import { TurnCountdown } from "./TurnCountdown";
@@ -21,7 +23,6 @@ export function PokerTable({
   shortcuts = true,
   showCurrentHand = true,
   game,
-  seatRows,
   linearSeats,
   human,
   viewerToken,
@@ -87,6 +88,7 @@ export function PokerTable({
   readonly latestActions: Readonly<Record<string, LatestPlayerAction>>;
 }) {
   const { t } = useI18n();
+  const positions = seatPositions(linearSeats, human?.id);
   const { format, spoken, mode } = useAmounts(game.poker.bigBlind);
   const [, tickTimer] = useState(0);
   useEffect(() => {
@@ -170,29 +172,6 @@ export function PokerTable({
         </div>
       </div>
       <div className={styles.felt}>
-        <div
-          className={`${styles.seatRow} ${styles.topRow} ${styles.desktopSeats}`}
-        >
-          {seatRows.top.map((player) => (
-            <Seat
-              key={player.id}
-              player={player}
-              onAboutBot={onAboutBot}
-              isViewer={human !== null && human.id === player.id}
-              showCurrentHand={showCurrentHand}
-              handActive={game.poker.street !== null && game.poker.street !== "complete"}
-              countdown={game.turnTimer?.actorEngineId === player.id ? <TurnCountdown game={game} /> : undefined}
-              active={game.poker.currentActorId === player.id}
-              winner={game.poker.winnerIds.includes(player.id)}
-              winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
-              latestAction={latestActions[player.id] ?? null}
-              dealerSeat={game.poker.dealerSeat}
-              smallBlindSeat={game.poker.smallBlindSeat}
-              bigBlindSeat={game.poker.bigBlindSeat}
-              gameWinner={player.id === gameWinnerId}
-            />
-          ))}
-        </div>
         <div className={styles.centerTable}>
           <div className={styles.pot}>
             {t("table.pot")}{" "}
@@ -209,12 +188,12 @@ export function PokerTable({
             ))}
           </div>
         </div>
-        <div
-          className={`${styles.seatRow} ${styles.bottomRow} ${styles.desktopSeats}`}
-        >
-          {seatRows.bottom.map((player) => (
+        <div className={styles.positionedSeats}>
+          {linearSeats.map(player => {
+            const position = positions.get(player.id)!;
+            return <div key={player.id} className={styles.seatPosition} data-table-seat={player.seat}
+              style={{ "--seat-x": `${position.x}%`, "--seat-y": `${position.y}%`, "--mobile-x": `${position.mobileX}%`, "--mobile-y": `${position.mobileY}%` } as CSSProperties}>
             <Seat
-              key={player.id}
               player={player}
               onAboutBot={onAboutBot}
               isViewer={human !== null && human.id === player.id}
@@ -230,28 +209,8 @@ export function PokerTable({
               bigBlindSeat={game.poker.bigBlindSeat}
               gameWinner={player.id === gameWinnerId}
             />
-          ))}
-        </div>
-        <div className={styles.mobileSeats}>
-          {linearSeats.map((player) => (
-            <Seat
-              key={player.id}
-              player={player}
-              onAboutBot={onAboutBot}
-              isViewer={human !== null && human.id === player.id}
-              showCurrentHand={showCurrentHand}
-              handActive={game.poker.street !== null && game.poker.street !== "complete"}
-              countdown={game.turnTimer?.actorEngineId === player.id ? <TurnCountdown game={game} /> : undefined}
-              active={game.poker.currentActorId === player.id}
-              winner={game.poker.winnerIds.includes(player.id)}
-              winnerAmount={game.poker.winnerAmounts[player.id] ?? null}
-              latestAction={latestActions[player.id] ?? null}
-              dealerSeat={game.poker.dealerSeat}
-              smallBlindSeat={game.poker.smallBlindSeat}
-              bigBlindSeat={game.poker.bigBlindSeat}
-              gameWinner={player.id === gameWinnerId}
-            />
-          ))}
+            </div>;
+          })}
         </div>
       </div>
       <section className={styles.actionTray}>
@@ -272,7 +231,7 @@ export function PokerTable({
             {!gameOver ? <Button variant="outline" disabled={loading || !canStartNextHand} onClick={onBeginNextHand}>
               {t("table.watchNextHand")}
             </Button> : null}
-            {canRevealCards ? <Button variant="amber" disabled={loading} onClick={onRevealCards} shortcut={shortcuts ? "D" : undefined}>
+            {canRevealCards ? <Button variant="outline" disabled={loading} onClick={onRevealCards} shortcut={shortcuts ? "D" : undefined}>
               {t("table.show")}
             </Button> : null}
           </div>
@@ -343,7 +302,8 @@ export function PokerTable({
                     : t("table.check")}</AmountText>
               </Button>
               <Button
-                variant="amber"
+                variant="primary"
+                className={styles.raiseAction}
                 size="action"
                 shortcut={shortcuts && (isFoldEndedHand || sizedAction) ? "D" : undefined}
                 disabled={

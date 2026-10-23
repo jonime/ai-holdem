@@ -3,9 +3,9 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  border: 1px solid #a9c1b7;
-  background: #f8f7f0;
-  box-shadow: 4px 5px 0 rgba(28, 77, 68, 0.12);
+  border: 1px solid var(--surface-muted);
+  background: var(--surface);
+  box-shadow: var(--elevation);
 }
 
 .header {
@@ -15,12 +15,12 @@
   justify-content: space-between;
   gap: 8px;
   padding: 12px 14px;
-  border-bottom: 1px solid #d5dfd7;
+  border-bottom: 1px solid var(--surface-muted);
 }
 
 .header h2 {
   margin: 0;
-  color: #17352d;
+  color: var(--text);
   font-size: 15px;
 }
 
@@ -32,9 +32,9 @@
 }
 
 .modalClose {
-  border: 1px solid #a9c1b7;
-  background: #fff;
-  color: #17352d;
+  border: 1px solid var(--surface-muted);
+  background: var(--surface);
+  color: var(--text);
   line-height: 1;
   cursor: pointer;
 }
@@ -49,7 +49,7 @@
 .status {
   margin: 0;
   padding: 14px;
-  color: #667b75;
+  color: var(--text-muted);
   font-size: 13px;
 }
 
@@ -65,8 +65,8 @@
   position: sticky;
   top: 0;
   padding: 8px 0 4px;
-  background: #f8f7f0;
-  color: #56716b;
+  background: var(--surface);
+  color: var(--text-muted);
   font:
     700 11px/1.2 ui-monospace,
     Menlo,
@@ -85,7 +85,7 @@
 
 .eventList li {
   padding: 4px 0;
-  color: #3e5951;
+  color: var(--text-muted);
   font-size: 13px;
   line-height: 1.35;
 }
@@ -93,8 +93,8 @@
 .eventList .winEvent {
   margin-top: 6px;
   padding-top: 10px;
-  border-top: 1px solid #d5dfd7;
-  color: #147060;
+  border-top: 1px solid var(--surface-muted);
+  color: var(--text-muted);
   font-size: 15px;
   font-weight: 700;
 }
@@ -108,7 +108,7 @@
   align-items: center;
   gap: 8px;
   margin: 0 0 5px;
-  color: #56716b;
+  color: var(--text-muted);
   font: 700 11px/1.2 ui-monospace, Menlo, monospace;
   letter-spacing: 0.9px;
   text-transform: uppercase;
@@ -118,7 +118,7 @@
   content: "";
   flex: 1;
   height: 1px;
-  background: #d5dfd7;
+  background: var(--surface-muted);
 }
 
 .boardCards {
@@ -150,9 +150,9 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border-top: 1px solid #a9c1b7;
-  background: #f8f7f0;
-  box-shadow: 0 -8px 0 rgba(16, 59, 51, 0.28);
+  border-top: 1px solid var(--surface-muted);
+  background: var(--surface);
+  box-shadow: var(--elevation);
 }
 
 .modalDialog .scroll {
@@ -170,3 +170,7 @@
 }
 
 .handHeader .reviewButton { min-height: 26px; padding: 4px 8px; font-size: 11px; letter-spacing: normal; text-transform: none; }
+.panel { border-radius: 12px; border-color: var(--border); box-shadow: none; }
+.eventList li { padding-block: 8px; border-bottom: 1px solid var(--surface-muted); font-variant-numeric: tabular-nums; }
+.modalClose, .handHeader .reviewButton { min-width: 44px; min-height: 44px; }
+@media (max-width: 640px) { .modalDialog { height: 100dvh; max-height: 100dvh; border-radius: 0; } .header { position: sticky; top: 0; background: var(--surface); } }

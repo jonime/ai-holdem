@@ -4,12 +4,12 @@
   "description": "Play Texas Hold'em against AI bots, invite friends, or watch bots play.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#061d17",
-  "theme_color": "#061d17",
+  "background_color": "#0b6b50",
+  "theme_color": "#0b6b50",
   "icons": [
     {
       "src": "/ai-holdem-logo.png",
-      "sizes": "any",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }

@@ -50,6 +50,7 @@ test("Settings focus, scrolling, shortcuts, native controls and mobile layout", 
   await page.keyboard.press("Escape"); await expect(slider).toHaveAttribute("aria-keyshortcuts", /Q E/);
   await slider.focus(); await page.keyboard.press("Shift+ArrowRight"); await expect(amount).toHaveValue("800");
   await page.reload(); await expect(slider).toHaveAttribute("aria-keyshortcuts", /Q E/);
+  await page.setViewportSize({ width: 1280, height: 812 });
   await open(page); await page.mouse.click(1,1); await expect(dialog).not.toBeVisible();
 });
 const languageSuffixes = [
@@ -271,7 +272,7 @@ test("current hand keeps category and turn status separate on desktop and mobile
       expect(box.height).toBe(boxes[0].height);
       expect(box.width).toBe(boxes[0].width);
     }
-    expect(boxes[0].height).toBe(page.viewportSize()!.width <= 560 ? 110 : 170);
+    expect(boxes[0].height).toBe(page.viewportSize()!.width <= 640 ? 112 : 136);
     return boxes;
   }
   async function capture(name: string) {
@@ -310,8 +311,8 @@ test("current hand keeps category and turn status separate on desktop and mobile
   expect(flop!.y - seat!.y).toBeCloseTo(reserved!.y - reservedSeat!.y, 2);
   const status = line.locator("xpath=following-sibling::span[1]");
   await expect(status).toHaveText("Your turn");
-  await expect(status).toHaveCSS("background-color", "rgb(240, 183, 77)");
-  await expect(status).toHaveCSS("color", "rgb(25, 62, 55)");
+  await expect(status).toHaveCSS("background-color", "rgb(131, 224, 187)");
+  await expect(status).toHaveCSS("color", "rgb(16, 39, 30)");
   expect((await status.boundingBox())!.y).toBeGreaterThanOrEqual(flop!.y + flop!.height);
   await expect(status).toHaveCSS("position", "absolute");
   const badge = await status.boundingBox();
@@ -390,7 +391,7 @@ test("current hand keeps category and turn status separate on desktop and mobile
   await page.reload();
   const thinking = page.locator("[data-seat-status]:visible").filter({ hasText: "Thinking" });
   await expect(thinking).toHaveCount(1);
-  await expect(thinking).toHaveCSS("background-color", "rgb(16, 75, 65)");
+  await expect(thinking).toHaveCSS("background-color", "rgb(17, 45, 38)");
   await page.setViewportSize({ width: 1440, height: 1000 });
   await equalSeats(); await capture("border-status-thinking-desktop.png");
   await page.setViewportSize({ width: 375, height: 812 });

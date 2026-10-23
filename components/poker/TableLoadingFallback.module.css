@@ -7,9 +7,9 @@
 .panel {
   width: min(100%, 520px);
   padding: clamp(24px, 6vw, 48px);
-  border: 1px solid #8eaaa0;
-  background: #f8f7f0;
-  box-shadow: 7px 8px 0 rgba(8, 25, 22, 0.18);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--elevation);
   text-align: center;
 }
 .brand {
@@ -30,7 +30,7 @@
   overflow-wrap: anywhere;
 }
 .guidance {
-  color: #526560;
+  color: var(--text-muted);
   line-height: 1.6;
   margin: 18px 0 28px;
 }
@@ -46,7 +46,7 @@
   justify-content: center;
   min-height: 46px;
   padding: 12px 22px;
-  border: 1px solid #8eaaa0;
+  border: 1px solid var(--border);
   font-weight: bold;
   text-decoration: none;
 }
@@ -54,7 +54,7 @@
   border-color: var(--button-primary-shadow);
   background: var(--button-primary-background);
   color: var(--button-primary-color);
-  box-shadow: 3px 3px 0 var(--button-primary-shadow);
+  box-shadow: var(--elevation);
 }
 .primary:hover:enabled, a.primary:hover {
   background: var(--button-primary-background-hover);
@@ -63,8 +63,10 @@
   color: var(--felt-dark);
   background: var(--paper);
 }
-.secondary:hover { background: #dce5dd; }
+.secondary:hover { background: var(--surface); }
 .primary:focus-visible, .secondary:focus-visible {
   outline: 3px solid var(--felt);
   outline-offset: 5px;
 }
+.panel { border-radius: 12px; box-shadow: none; }
+.icon { width: 72px; height: 72px; border-radius: 16px; }

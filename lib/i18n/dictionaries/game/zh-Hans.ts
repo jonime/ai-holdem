@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  appearance: {"cards": "纸牌与金额", "gameplay": "游戏", "title": "外观", "system": "跟随系统", "light": "浅色", "dark": "深色"},
   shareTable: {
     open: "分享",
     title: "分享牌桌",

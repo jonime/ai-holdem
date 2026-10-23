@@ -518,3 +518,22 @@ speculative bluffs and seek value from worse hands. Fold observations alone do n
 justify all-ins or larger bets. These are advisory observations, not known ranges
 or guaranteed improvements. The engine remains authoritative and no extra
 background inference, cross-table tracking or automatic retry is added.
+
+### Appearance and table layout
+
+Appearance follows the device by default. The header and footer icons toggle
+directly between Light and Dark, saving an explicit preference. Choose System in
+Settings to follow the device again; the choice is saved on this device independently of game
+preferences. Changing appearance preserves the current hand, bet draft and replay.
+The public header groups language selection with the appearance icon. Its
+localized accessible label and tooltip identify Appearance and the mode it will
+switch to.
+The ivory and ink themes share emerald actions, visible focus rings and card suit
+symbols. Card colour preferences remain separate.
+
+The live table and hand review use clockwise perimeter seating. Your owned seat
+anchors the bottom of the live table; spectators and replays use physical seat
+order. Below 640px the table becomes portrait. Actions opens as an overlay below
+1100px. The betting dock keeps the same legal actions, total-target input, slider,
+presets and additional-chip amounts. Short screens can scroll. Overlays continue
+to leave the live game and turn timers running.

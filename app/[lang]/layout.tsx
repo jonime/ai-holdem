@@ -1,3 +1,6 @@
+import { AppearanceControl } from "@/components/AppearanceControl";
+import { appearanceLabels } from "@/lib/theme/labels";
+import { THEME_INITIALIZATION } from "@/lib/theme/preference";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -65,10 +68,12 @@ export default async function LocaleLayout({
   const dictionary = await getLandingServerDictionary(lang);
 
   return (
-    <html lang={lang}>
+    <html lang={lang} suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: THEME_INITIALIZATION }} /></head>
       <body className={spaceGrotesk.variable}>
         {children}
         <footer className={styles.footer}>
+          <AppearanceControl compact labels={appearanceLabels[lang]} />
           <a
             href={FEEDBACK_FORM_URL}
             target="_blank"

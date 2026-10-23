@@ -33,7 +33,7 @@ export function GameHeader({ onShareTable, helpRef, onHelp, settingsRef, onSetti
   return (
     <header className={styles.gameHeader}>
       <div className={styles.gameHeaderInner}>
-        <Link href={addLocalePrefix("/", locale)} className={styles.gameHeaderTitle}>{APP_NAME}</Link>
+        <Link href={addLocalePrefix("/", locale)} className={styles.gameHeaderTitle}><span aria-hidden="true">♠ </span>{APP_NAME}</Link>
         <div className={styles.controls}>
         {game ? <Button variant="ghost" size="small" aria-haspopup="dialog" onClick={event => onShareTable(event.currentTarget)}>
           {t("shareTable.open")}

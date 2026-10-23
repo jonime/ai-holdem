@@ -8,7 +8,7 @@ export function useActionsPreference() {
   const interacted = useRef(false);
   useEffect(() => {
     if (interacted.current) return;
-    const mobile = window.matchMedia("(max-width: 900px)").matches;
+    const mobile = window.matchMedia("(max-width: 1099px)").matches;
     let value = mobile;
     try {
       const saved = window.localStorage.getItem(actionsStorageKey);

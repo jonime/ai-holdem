@@ -8,7 +8,14 @@ export const metadata = {
 
 AI Hold'em è un gioco di Texas Hold'em gratuito e open source a cui puoi giocare nel browser. Gioca contro bot IA, invita amici a un tavolo o guarda i bot giocare. I tavoli ospitano da due a sei giocatori e utilizzano fiches virtuali, senza puntate con denaro reale né premi in denaro.
 
-## Bot di poker
+<nav data-document-sections>
+<a href="#about-section-0">Bot di poker</a>
+<a href="#about-section-1">Regole applicate dal motore di poker</a>
+<a href="#about-section-2">Privacy e trasparenza</a>
+<a href="#about-section-3">Approfondimenti</a>
+</nav>
+
+<h2 id="about-section-0">Bot di poker</h2>
 
 ### Equity Rules
 
@@ -52,19 +59,19 @@ Quando assegni un bot LLM, puoi scegliere uno dei tre stili di gioco:
 
 Lo stile guida le decisioni del modello, ma non cambia le carte, le informazioni disponibili o le azioni legali definite dal motore.
 
-## Regole applicate dal motore di poker
+<h2 id="about-section-1">Regole applicate dal motore di poker</h2>
 
 [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) controlla mazzo, turni, azioni legali, puntate, piatti e vincitori. Persone e bot propongono soltanto mosse. Il server convalida e applica ogni proposta tramite l'adapter prima del salvataggio con controllo della versione.
 
 Le impostazioni dei bot e le future personalizzazioni restano dopo questo confine e non possono aggirare le regole.
 
-## Privacy e trasparenza
+<h2 id="about-section-2">Privacy e trasparenza</h2>
 
 I link dei tavoli possono essere condivisi: chiunque conosca l'URL di un tavolo può osservare la partita.
 
 Le carte private attive sono mostrate solo al browser proprietario del posto. Gli spettatori non ricevono prompt o risposte grezze. I bot basati su provider inviano al provider il proprio contesto decisionale visibile; Equity Rules non usa inferenza esterna.
 
-## Approfondimenti
+<h2 id="about-section-3">Approfondimenti</h2>
 
 - [Inizia una partita](/it-IT)
 - [Risorse per sviluppatori](/it-IT/developers)

@@ -1,3 +1,4 @@
+import { PublicHeader } from "@/components/PublicHeader";
 import { CreationForm } from "@/components/creation/CreationForm";
 import type { Metadata } from "next";
 import { Suspense } from "react";
@@ -64,7 +65,7 @@ async function PlayPanel({ params, searchParams }: PageProps<"/[lang]/play">) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   const [d, directory, gameDictionary] = await Promise.all([getPlayDictionary(lang), getJoinGameDictionary(lang), getGameDictionary(lang)]);
-  return <I18nProvider locale={lang} dictionary={gameDictionary}><main className={styles.page}><div className={styles.panel}>
+  return <I18nProvider locale={lang} dictionary={gameDictionary}><main className={styles.page}>{await PublicHeader({ locale: lang, pathname: "/play" })}<div className={styles.panel}>
     <div className={styles.headingRow}><div><h1 id="play-heading" tabIndex={-1}>{d.title}</h1><p>{d.intro}</p></div><div className={styles.headerActions}><Suspense><SettingsContent searchParams={searchParams} /></Suspense><Link href={addLocalePrefix("/", lang)}>{directory.back}</Link></div></div>
     <CreationForm locale={lang} labels={gameDictionary.creation} className={styles.controls} action={addLocalePrefix("/quick-game", lang)} quickPlayLabel={d.quickPlay} createTableLabel={d.createTable}>
       <PlayerName dictionary={directory} />

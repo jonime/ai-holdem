@@ -1044,3 +1044,22 @@ card text uses the same filtered public cards as visual rendering. Help receives
 its localized card dictionary from its server-only MDX module. Occupied seats are
 named groups with readable stack/current-bet/role text; interactive bot controls
 remain separate controls. Descriptive replay content is not a Tab stop.
+
+### Presentation and appearance
+
+Semantic CSS tokens in `app/globals.css` define ivory/ink surfaces, accessible
+foregrounds, actions, status, felt and cards. CSS Modules remain the component
+styling boundary; there is no theme dependency. `lib/theme/preference.ts` owns the
+`ThemePreference` union and the head initialization script. Both locale root
+layouts (through the English wrapper) and the standalone global 404 apply it
+before paint. CSS media fallback follows device appearance without JavaScript.
+Cached pages never read appearance cookies.
+
+`lib/theme/controller.ts` exposes a shared browser store through
+`useSyncExternalStore`. It validates `ai-holdem-theme`, tolerates denied storage,
+synchronizes tabs and applies device changes only in System mode. Theme updates
+change root CSS tokens without remounting the game. Server-owned appearance labels
+are passed into the public control; Settings uses the game dictionary.
+`components/poker/seat-position.ts` sorts physical seats and rotates by stable
+player identity for a presentation-only clockwise layout, shared by live tables,
+lobby previews and replay. It does not change engine order, ownership or actions.
