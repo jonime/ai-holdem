@@ -328,6 +328,9 @@ compatibility; the application sends null for inspection payloads.
 
 ## Presentation and appearance
 
+- Read [docs/design-system.md](docs/design-system.md) before changing UI. Reuse
+  existing tokens and components, verify both themes and responsive states, and
+  update the guide when intentionally changing shared visual conventions.
 - Keep ivory/ink semantic CSS tokens in `app/globals.css` and CSS Modules for
   component styling. Appearance uses the independent `ai-holdem-theme` browser
   preference (`system`, `light`, `dark`), never cookies on cached pages.

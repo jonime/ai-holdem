@@ -1047,6 +1047,9 @@ remain separate controls. Descriptive replay content is not a Tab stop.
 
 ### Presentation and appearance
 
+See the [design system](design-system.md) for visual conventions, component reuse
+and review references. This section describes the underlying implementation.
+
 Semantic CSS tokens in `app/globals.css` define ivory/ink surfaces, accessible
 foregrounds, actions, status, felt and cards. CSS Modules remain the component
 styling boundary; there is no theme dependency. `lib/theme/preference.ts` owns the
