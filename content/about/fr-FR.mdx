@@ -8,7 +8,14 @@ export const metadata = {
 
 AI Hold'em est un jeu de Texas Hold'em gratuit et open source auquel vous pouvez jouer dans votre navigateur. Jouez contre des bots IA, invitez des amis à une table ou regardez les bots jouer. Les tables accueillent deux à six joueurs et utilisent des jetons virtuels, sans mises en argent réel ni gains en espèces.
 
-## Bots de poker
+<nav data-document-sections>
+<a href="#about-section-0">Bots de poker</a>
+<a href="#about-section-1">Règles imposées par le moteur de poker</a>
+<a href="#about-section-2">Confidentialité et transparence</a>
+<a href="#about-section-3">En savoir plus</a>
+</nav>
+
+<h2 id="about-section-0">Bots de poker</h2>
 
 ### Equity Rules
 
@@ -52,19 +59,19 @@ Lorsqu'on attribue un bot LLM, on peut choisir parmi trois styles de jeu :
 
 Le style guide les décisions du modèle, mais ne change ni les cartes, ni les informations disponibles, ni les actions légales définies par le moteur.
 
-## Règles imposées par le moteur de poker
+<h2 id="about-section-1">Règles imposées par le moteur de poker</h2>
 
 [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) fait autorité pour le paquet, les tours, les actions légales, les mises, les pots et les gagnants. Humains et bots ne font que proposer des coups. Le serveur valide et applique chaque proposition via l'adaptateur avant un enregistrement avec contrôle de version.
 
 Les réglages des bots et les futures personnalisations restent après cette frontière et ne peuvent pas contourner les règles.
 
-## Confidentialité et transparence
+<h2 id="about-section-2">Confidentialité et transparence</h2>
 
 Les liens des tables peuvent être partagés : toute personne qui connaît l'URL d'une table peut observer la partie.
 
 Les cartes privées actives ne sont révélées qu'au navigateur propriétaire de la place. Les spectateurs ne reçoivent ni prompts ni réponses brutes. Les bots connectés à un fournisseur lui envoient leur contexte de décision visible ; Equity Rules n'utilise aucune inférence externe.
 
-## En savoir plus
+<h2 id="about-section-3">En savoir plus</h2>
 
 - [Démarrer une partie](/fr-FR)
 - [Ressources pour développeurs](/fr-FR/developers)

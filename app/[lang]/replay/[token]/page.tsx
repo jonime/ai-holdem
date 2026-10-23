@@ -22,7 +22,7 @@ async function Content({ params }: { params: Promise<{ lang: string; token: stri
   return <>
     <header className={headerStyles.gameHeader}>
       <div className={headerStyles.gameHeaderInner}>
-        <Link href={addLocalePrefix("/", lang)} className={headerStyles.gameHeaderTitle}>{APP_NAME}</Link>
+        <Link href={addLocalePrefix("/", lang)} className={headerStyles.gameHeaderTitle}><span aria-hidden="true">♠ </span>{APP_NAME}</Link>
         <h1 className={styles.title}>{dictionary.sharing.title}</h1>
       </div>
     </header>

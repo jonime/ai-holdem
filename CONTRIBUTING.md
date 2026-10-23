@@ -1735,3 +1735,17 @@ not alter CI or benchmark coverage. Run shared benchmark regressions, final `che
 and pinned `db:types:check` as required. Results reuse existing adapter views so
 the heads-up source-hash policy freeze remains unchanged. The isolated browser runner's successful
 build also supplies production-build verification without application `.env` files.
+
+### Club appearance verification
+
+Run focused theme/controller and seat-position tests while editing presentation:
+`nice -n 15 npm test -- lib/theme components/poker/seat-position.test.ts`.
+The production UI suite includes `club-redesign.spec.ts`: light/dark route
+captures, device appearance, persistence, cross-tab updates, pre-hydration theme,
+all 2–6-seat layouts, long names, 1440×900, 1024×768, 390×844, 320×568 and short
+landscape captures, betting visibility, and modal captures. Images are saved under
+`test-results/`. Use the existing production runner and local-only prerequisites;
+never connect visual fixtures to a hosted database. Compare screenshots to the
+approved ivory/ink concept, inspect 200% zoom and reduced motion, and verify focus
+return, card symbols and contrast in both themes. Keep existing gameplay,
+privacy, departure, replay and recovery regression coverage.

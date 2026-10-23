@@ -3,6 +3,7 @@ import "server-only";
 import type { LandingServerDictionary } from "../../types";
 
 const dictionary = {
+  hero: {"title": "Seuraava loistava kätesi.", "promise": "Ilmainen · Ei rekisteröitymistä · Virtuaaliset pelimerkit", "create": "Luo pöytä"},
   feedback: "Anna palautetta",
   feedbackNewTab: "Avautuu uuteen välilehteen",
   startRegion: "Valitse pelitapa",

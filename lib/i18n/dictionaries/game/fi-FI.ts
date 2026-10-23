@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  appearance: {"cards": "Kortit ja summat", "gameplay": "Pelaaminen", "title": "Ulkoasu", "system": "Järjestelmä", "light": "Vaalea", "dark": "Tumma"},
   shareTable: {
     open: "Jaa",
     title: "Jaa pöytä",

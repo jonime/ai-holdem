@@ -18,8 +18,8 @@
   margin: 0 auto 18px;
   padding: 10px 14px;
   border-left: 4px solid var(--coral);
-  background: #fff3e9;
-  color: #77321f;
+  background: var(--surface);
+  color: var(--danger);
 }
 
 .recoveryButton {
@@ -34,7 +34,7 @@
 
 .tableRow {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: minmax(0, 1fr) 300px;
   gap: 20px;
   align-items: stretch;
 }
@@ -58,9 +58,9 @@
   max-height: calc(100dvh - 36px);
   overflow-y: auto;
   padding: 24px;
-  border: 1px solid #8eaaa0;
-  background: #f8f7f0;
-  box-shadow: 7px 8px 0 rgba(8, 25, 22, 0.28);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--elevation);
 }
 
 .joinDialog h2 {
@@ -69,13 +69,13 @@
 
 .joinDialog p {
   margin: 0 0 20px;
-  color: #526560;
+  color: var(--text-muted);
 }
 
 .joinDialog label {
   display: grid;
   gap: 7px;
-  color: #526560;
+  color: var(--text-muted);
   font:
     700 10px/1 ui-monospace,
     Menlo,
@@ -87,9 +87,9 @@
 .joinDialog input {
   height: 42px;
   padding: 8px 10px;
-  border: 1px solid #8eaaa0;
+  border: 1px solid var(--border);
   border-radius: 3px;
-  background: #fffef9;
+  background: var(--surface);
   color: var(--ink);
   font-size: 15px;
 }
@@ -107,7 +107,7 @@
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1099px) {
   .tableRow {
     grid-template-columns: 1fr;
   }
@@ -124,9 +124,9 @@
   flex-direction: column;
   overflow: hidden;
   border-radius: 16px;
-  background: #f8f7f0;
+  background: var(--surface);
   color: var(--ink);
-  box-shadow: 0 18px 60px #0005;
+  box-shadow: var(--elevation);
 }
 .helpHeader {
   display: flex;
@@ -136,7 +136,7 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 16px 20px;
-  border-bottom: 1px solid #173a3426;
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 .helpHeader h2 { margin: 0 auto 0 0; font-size: 20px; overflow-wrap: anywhere; }
@@ -153,6 +153,16 @@
 .helpScroll ul, .helpScroll ol { padding-inline-start: 22px; }
 .helpScroll li { margin-block: 8px; }
 .helpScroll code { white-space: normal; font-size: 0.95em; }
-.helpScroll:focus-visible { outline: 2px solid #36765b; outline-offset: -4px; }
+.helpScroll:focus-visible { outline: 2px solid var(--text-muted); outline-offset: -4px; }
 .helpScroll ol { list-style-type: decimal; }
 .helpScroll ul { list-style-type: disc; }
+
+.pokerApp { padding: 16px clamp(8px, 2vw, 32px) 24px; }
+.gameLayout { max-width: 1440px; }
+.joinDialog { border-radius: 12px; }
+@media (max-width: 640px) { .helpDialog { width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; } .joinDialog { align-self: end; width: 100%; border-radius: 16px 16px 0 0; padding-bottom: max(24px, env(safe-area-inset-bottom)); } }
+.helpScroll ol { list-style: none; padding: 0; }
+.helpScroll ol li { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 16px 0; margin: 0; border-bottom: 1px solid var(--border); }
+.helpScroll ol li strong { flex: 1 1 200px; font-size: 14px; }
+.helpScroll ol [data-card-example] { display: inline-flex; gap: 4px; white-space: nowrap; }
+.helpScroll ol [data-card-example] > span { display: inline-grid; place-items: center; min-width: 30px; min-height: 42px; background: var(--card-surface); border: 1px solid #cbd2ca; border-radius: 4px; font-weight: 700; font-size: 14px; }

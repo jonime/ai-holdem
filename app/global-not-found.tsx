@@ -1,3 +1,6 @@
+import { AppearanceControl } from "@/components/AppearanceControl";
+import { appearanceLabels } from "@/lib/theme/labels";
+import { THEME_INITIALIZATION } from "@/lib/theme/preference";
 import type { Metadata } from "next";
 import Image from "next/image";
 import logo from "@/public/ai-holdem-logo.png";
@@ -12,12 +15,14 @@ export const metadata: Metadata = {
 
 export default function GlobalNotFound() {
   return (
-    <html lang="en-US">
+    <html lang="en-US" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INITIALIZATION }} />
         <title>404 — Page not found | AI Hold’em</title>
       </head>
       <body>
         <main className={styles.page}>
+          <AppearanceControl labels={appearanceLabels["en-US"]} />
           <section className={styles.panel} aria-labelledby="not-found-title">
             <Image
               className={styles.icon}

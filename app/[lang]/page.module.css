@@ -1,190 +1,32 @@
-.home {
-  padding: 28px clamp(18px, 4vw, 64px) 12px;
-}
-
-.emptyState {
-  max-width: 640px;
-  min-height: 430px;
-  margin: 0 auto;
-  padding: 24px;
-  border: 1px solid #9db5aa;
-  background:
-    linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.72),
-      rgba(240, 183, 77, 0.18)
-    ),
-    #f6f5ee;
-  text-align: center;
-  box-shadow: 6px 7px 0 rgba(16, 59, 51, 0.18);
-}
-
-.mark {
-  display: block;
-  width: min(270px, 60vw);
-  height: auto;
-  margin: 0 auto 22px;
-}
-
-.emptyState h1 {
-  margin-bottom: 10px;
-  font-family: var(--font-space-grotesk), var(--font-cjk, sans-serif);
-  font-size: clamp(28px, 5vw, 46px);
-  font-weight: 700;
-}
-
-.intro {
-  max-width: 360px;
-  margin: 0 auto 10px;
-  color: #56716b;
-  font-size: 17px;
-}
-
-.supportingCopy {
-  max-width: 360px;
-  margin: 0 auto 24px;
-  color: #526560;
-  font-size: 14px;
-}
-
-.actions {
-  display: grid;
-  justify-items: center;
-  gap: 12px;
-}
-
-.actions form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  max-width: 100%;
-}
-
-.joinGame {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  margin-top: 14px;
-  padding: 10px 18px;
-  border: 1px solid #507a6d;
-  border-radius: 5px;
-  background: #fffef9;
-  color: #173a34;
-  box-shadow: 2px 2px 0 #b6c8bf;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.joinGame:hover,
-.joinGame:focus-visible {
-  border-color: #285f52;
-  background: #e4eee5;
-  transform: translate(-1px, -1px);
-}
-
-.attribution {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 8px 12px;
-  width: min(100%, 640px);
-  max-width: 640px;
-  margin: 22px auto 0;
-  color: #56716b;
-  text-align: center;
-  font-size: 15px;
-}
-
-.attribution a {
-  color: var(--felt-dark);
-  font-weight: 700;
-}
-
-.attribution a:hover,
-.attribution a:focus-visible {
-  color: var(--coral);
-}
-
-.content {
-  max-width: 640px;
-  margin: 28px auto 0;
-  padding: 24px;
-  border: 1px solid var(--line);
-  background: #f6f5ee;
-  color: #344d45;
-  font-size: 16px;
-  line-height: 1.65;
-  overflow-wrap: anywhere;
-}
-
-.content section + section {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
-}
-
-.content h2,
-.content h3 {
-  color: var(--felt-dark);
-  font-family: var(--font-space-grotesk), var(--font-cjk, sans-serif);
-  line-height: 1.35;
-}
-
-.content h2 {
-  margin: 0 0 14px;
-  font-size: 20px;
-}
-
-.content h3 {
-  margin: 0 0 6px;
-  font-size: 16px;
-}
-
-.content p {
-  margin-bottom: 12px;
-}
-
-.content p:last-child {
-  margin-bottom: 0;
-}
-
-.content a {
-  color: var(--felt-dark);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.content a:hover,
-.content a:focus-visible {
-  color: var(--felt);
-}
-
-.faqItem + .faqItem {
-  margin-top: 18px;
-}
-
-@media (max-width: 560px) {
-  .home {
-    padding: 10px 8px 12px;
-  }
-
-  .emptyState {
-    margin-top: 2vh;
-  }
-
-  .actions,
-  .actions form,
-  .actions form button {
-    width: 100%;
-  }
-
-  .joinGame {
-    width: 100%;
-  }
-
-  .content {
-    padding: 20px;
-  }
-}
+.home { padding: 8px clamp(16px, 4vw, 56px) 24px; max-width: 1440px; margin: auto; }
+.emptyState { position: relative; display: grid; grid-template-columns: 1fr 1.1fr; align-items: center; gap: 32px; min-height: 520px; }
+.heroCopy { padding: 32px 0; }
+.eyebrow { color: var(--accent); font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.heroCopy h1 { font-size: clamp(36px, 4.6vw, 64px); line-height: 1.04; max-width: 660px; margin-bottom: 24px; }
+.intro { color: var(--text); font-size: clamp(18px, 2vw, 22px); max-width: 500px; margin-bottom: 16px; }
+.supportingCopy { color: var(--text-muted); max-width: 460px; font-size: 15px; margin-bottom: 32px; }
+.actions { display: grid; gap: 12px; max-width: 380px; }
+.actions form { display: grid; gap: 12px; }
+.actions button { width: 100%; }
+.joinGame { min-height: 48px; display: grid; place-items: center; border: 1px solid var(--border); border-radius: 8px; color: var(--accent); text-decoration: none; font-weight: 650; }
+.joinGame:hover { background: var(--surface-muted); }
+.illustration { min-width: 0; overflow: hidden; border-radius: 120px 24px 120px 24px; }
+.illustration img { display: block; width: 100%; height: auto; aspect-ratio: 1.15; object-fit: cover; }
+.attribution { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; padding: 24px 0; margin-top: 32px; border-block: 1px solid var(--border); font-size: 14px; }
+.attribution a { color: var(--text-muted); }
+.content { padding: 48px 0; line-height: 1.75; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.content section { min-width: 0; }
+.content section:last-of-type { grid-column: 1 / -1; }
+.content h2 { color: var(--text); font-size: 28px; margin-bottom: 16px; }
+.content h3 { color: var(--text); font-size: 17px; margin-bottom: 8px; }
+.faqItem { padding: 20px 0; border-bottom: 1px solid var(--border); }
+.faqItem p { margin-bottom: 0; max-width: 860px; }
+@media (max-width: 640px) { .emptyState { display: flex; flex-direction: column; align-items: stretch; gap: 16px; min-height: 0; padding-top: 0; } .heroCopy { padding: 0; } .actions { max-width: none; } .illustration { border-radius: 64px 16px; } .illustration img { aspect-ratio: 1.5; } .content { grid-template-columns: 1fr; gap: 32px; padding-top: 32px; } }
+.promise { margin: 16px 0 0; color: var(--text-muted); font-size: 13px; }
+.botCards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 40px; }
+.botCards article { border: 1px solid var(--border); border-radius: 12px; padding: 24px; background: var(--surface); }
+.botCards h2 { font-size: 18px; margin-block: 16px 8px; }
+.botCards p { color: var(--text-muted); font-size: 13px; line-height: 1.65; margin: 0; }
+.botIcon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--surface-muted); color: var(--accent); font-size: 28px; }
+@media (max-width: 1024px) { .botCards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .botCards { grid-template-columns: 1fr; gap: 12px; margin-top: 24px; } .botCards article { padding: 20px; } }

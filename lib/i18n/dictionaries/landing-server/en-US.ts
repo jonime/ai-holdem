@@ -1,6 +1,7 @@
 import "server-only";
 
 const dictionary = {
+  hero: {"title": "Your next great hand.", "promise": "Free to play · No signup · Virtual chips", "create": "Create a table"},
   feedback: "Send feedback",
   feedbackNewTab: "Opens in a new tab",
   startRegion: "Choose how to play",

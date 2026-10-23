@@ -14,7 +14,7 @@ for (const locale of ["en-US", "fi-FI"]) {
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(locale === "en-US" ? "This table is no longer available" : "Tämä pöytä ei ole enää saatavilla");
       const lobby = page.getByRole("link", { name: locale === "en-US" ? "Lobby" : "Aula", exact: true });
       await expect(lobby).toHaveAttribute("href", `${prefix}/play`);
-      await expect(page.getByRole("button")).toHaveCount(0);
+      await expect(page.locator("main").getByRole("button")).toHaveCount(0);
       await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute("content", /noindex/);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.locator("main img").evaluate(image => { if (image instanceof HTMLImageElement) return image.decode(); });
@@ -135,7 +135,7 @@ for (const locale of ["en-US", "fi-FI"]) {
             if (mobile) expect(animation).toBe("none");
             else expect(animation).toMatch(/spin/);
             const status = await shell.getByRole("status").boundingBox();
-            const header = await page.locator("header").boundingBox();
+            const header = await page.locator("header:visible").boundingBox();
             expect(Math.abs(status!.y + status!.height / 2 - (header!.y + header!.height + (mobile ? 812 : 900)) / 2)).toBeLessThan(12);
             expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
           };
@@ -149,7 +149,7 @@ for (const locale of ["en-US", "fi-FI"]) {
             await assertNeutral();
             await expect(page.getByRole("link", { name: "AI Hold'em", exact: true })).toBeVisible();
             expect(browserReadStarted).toBe(false);
-            await expect(page.getByRole("button")).toHaveCount(0);
+            await expect(page.locator("header").getByRole("button")).toHaveCount(0);
             const serverGeometry = await shell.boundingBox();
             await page.screenshot({ path: test.info().outputPath("server-loading.png"), fullPage: true });
             rmSync(marker, { force: true });

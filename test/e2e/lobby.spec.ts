@@ -28,7 +28,7 @@ test("starts six-seat Quick Play and advances the opening bot turns", { tag: ["@
   // Mobile collapses Actions, whose street heading is only visible on desktop.
   if (isMobile) await expect(page.getByText("Preflop", { exact: true }).first()).toBeVisible();
   else await expect(page.getByRole("heading", { name: "Preflop", exact: true })).toBeVisible();
-  const botLabels = page.getByText(/^EQUITY RULES #/);
+  const botLabels = page.getByText(/^Equity Rules #/);
   await expect((isMobile ? botLabels.filter({ visible: true }) : botLabels).first()).toBeVisible();
   await firstBotStep;
   await waitForPlayableHuman(page);
@@ -198,14 +198,14 @@ test("runs the deterministic bot through completion, Actions feed, and another h
   await page.getByLabel("Bot for seat 2").selectOption("equity-rules-v2");
   await page.getByRole("button", { name: "Assign bot" }).first().click();
   await expect(
-    page.getByText("Equity Rules #1", { exact: true }),
+    page.getByRole("article").getByText("Equity Rules #1", { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByText("Ready to play. Select Start hand."),
   ).toBeVisible();
   await page.reload();
   await expect(
-    page.getByText("Equity Rules #1", { exact: true }),
+    page.getByRole("article").getByText("Equity Rules #1", { exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Start hand" }).click();
 

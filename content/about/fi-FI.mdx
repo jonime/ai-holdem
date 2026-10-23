@@ -8,7 +8,14 @@ export const metadata = {
 
 AI Hold'em on ilmainen, avoimen lähdekoodin Texas Hold'em -peli, jota voit pelata selaimessa. Pelaa tekoälybotteja vastaan, kutsu ystäviä pöytään tai seuraa bottien peliä. Pöytiin mahtuu kahdesta kuuteen pelaajaa, ja niissä käytetään virtuaalisia pelimerkkejä ilman oikean rahan panoksia tai rahapalkintoja.
 
-## Pokeribotit
+<nav data-document-sections>
+<a href="#about-section-0">Pokeribotit</a>
+<a href="#about-section-1">Pokerimoottori valvoo sääntöjä</a>
+<a href="#about-section-2">Yksityisyys ja läpinäkyvyys</a>
+<a href="#about-section-3">Lue lisää</a>
+</nav>
+
+<h2 id="about-section-0">Pokeribotit</h2>
 
 ### Equity Rules
 
@@ -52,19 +59,19 @@ LLM-botille voi valita yhden kolmesta pelityylistä sitä määritettäessä:
 
 Pelityyli ohjaa mallin päätöksiä, mutta ei muuta kortteja, käytettävissä olevia tietoja tai pokerimoottorin sallimia toimintoja.
 
-## Pokerimoottori valvoo sääntöjä
+<h2 id="about-section-1">Pokerimoottori valvoo sääntöjä</h2>
 
 [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) määrää korttipakan, vuorot, sallitut toiminnot, panostuksen, potit ja voittajat. Ihmiset ja botit vain ehdottavat toimintoja. Palvelin tarkistaa ja toteuttaa jokaisen ehdotuksen moottorisovittimen kautta ennen versiolla tarkistettua tallennusta.
 
 Bottiasetukset ja tuleva profiilien mukautus ovat tämän rajan alapuolella, joten niillä ei voi ohittaa pokerisääntöjä.
 
-## Yksityisyys ja läpinäkyvyys
+<h2 id="about-section-2">Yksityisyys ja läpinäkyvyys</h2>
 
 Pöytälinkkejä voi jakaa: jokainen pöydän URL-osoitteen tietävä voi seurata peliä.
 
 Aktiiviset taskukortit näytetään vain paikan omistavalle selaimelle. Katsojat eivät saa palveluntarjoajan kehotteita tai raakavastauksia. Palveluntarjoajaan liitetyt botit lähettävät botin näkemän päätöstilanteen palveluntarjoajalle; Equity Rules ei käytä ulkoista päättelyä.
 
-## Lue lisää
+<h2 id="about-section-3">Lue lisää</h2>
 
 - [Aloita peli](/fi-FI)
 - [Kehittäjäresurssit](/fi-FI/developers)

@@ -72,30 +72,24 @@ test("synchronizes targets, validates edits, resets decisions, and fits mobile",
   const callButton = page.getByRole("button", { name: "Call 50", exact: true });
   const colors = () => callButton.evaluate(element => {
     const style = getComputedStyle(element);
-    return { text: style.color, background: style.backgroundImage };
+    return { text: style.color, background: style.backgroundColor };
   });
   const restingColors = await colors();
   await callButton.hover();
   await expect.poll(async () => (await colors()).text).toBe(restingColors.text);
-  // The green surface must remain dark on hover and keyboard focus.
+  // Resting, hover and keyboard-focus states retain AA text contrast.
   for (const focus of [false, true]) {
-    if (focus) {
-      await page.mouse.move(0, 0);
-      await callButton.focus();
-    }
+    if (focus) { await page.mouse.move(0, 0); await callButton.focus(); }
     const currentColors = await colors();
-    expect(currentColors.text).toBe("rgb(255, 254, 245)");
-    expect(currentColors.background).toContain("linear-gradient");
-    const backgrounds = [...currentColors.background.matchAll(/rgb\((\d+), (\d+), (\d+)\)/g)];
-    expect(backgrounds).toHaveLength(2);
-    for (const background of backgrounds) {
-      const linear = background.slice(1).map(value => {
+    const luminance = (color: string) => {
+      const channels = color.match(/[\d.]+/g)!.slice(0, 3).map(value => {
         const channel = Number(value) / 255;
         return channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
       });
-      const luminance = 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
-      expect(1 / (luminance + 0.05)).toBeGreaterThan(4.5);
-    }
+      return .2126 * channels[0] + .7152 * channels[1] + .0722 * channels[2];
+    };
+    const text = luminance(currentColors.text), background = luminance(currentColors.background);
+    expect((Math.max(text, background) + .05) / (Math.min(text, background) + .05)).toBeGreaterThanOrEqual(4.5);
   }
   await input.fill("425");
   await expect(slider).toHaveValue("425");

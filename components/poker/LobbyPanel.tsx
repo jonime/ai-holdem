@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+import { seatPositions } from "./seat-position";
 import { useState } from "react";
 
 import { Button } from "@/components/Button";
@@ -110,6 +112,8 @@ export function LobbyPanel({
     setSettingsDraft((current) => ({ ...current, [key]: value }));
   };
 
+  const previewPositions = seatPositions(game.poker.players, viewerPlayer?.id);
+
   return (
     <section className={styles.lobbyPanel}>
       <header className={styles.lobbyHeading}>
@@ -131,6 +135,18 @@ export function LobbyPanel({
         </div>
       </div>
       {canManage ? <PublicationControls game={game} loading={loading} onRefresh={onRefresh} /> : null}
+      <div className={styles.previewLayout}>
+      <div className={styles.tablePreview} aria-hidden="true">
+        <span className={styles.previewMark}>♠</span>
+        {game.poker.players.map(player => {
+          const position = previewPositions.get(player.id)!;
+          return <div key={player.id} className={styles.previewSeat} data-open={player.status === "open"}
+            style={{ left: `${position.x}%`, top: `${position.y}%` } as CSSProperties}>
+            <span>{player.status === "open" ? "+" : player.controller === "bot" ? "♠" : "●"}</span>
+            <strong>{player.status === "open" ? t("seat.openSeat") : player.name}</strong>
+          </div>;
+        })}
+      </div>
       <div className={styles.lobbySetup}>
         <form
           className={styles.playerNameControl}
@@ -277,6 +293,7 @@ export function LobbyPanel({
             </div>
           </div>
         )}
+      </div>
       </div>
       <div className={styles.lobbySeats}>
         {Array.from({ length: game.poker.seatCount }, (_, seat) => {

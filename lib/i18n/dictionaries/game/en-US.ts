@@ -1,6 +1,7 @@
 import "server-only";
 
 const dictionary = {
+  appearance: {"cards": "Cards and amounts", "gameplay": "Gameplay", "title": "Appearance", "system": "System", "light": "Light", "dark": "Dark"},
   shareTable: {
     open: "Share",
     title: "Share table",

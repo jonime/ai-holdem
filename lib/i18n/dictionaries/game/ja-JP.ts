@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  appearance: {"cards": "カードと金額", "gameplay": "ゲームプレイ", "title": "外観", "system": "システム", "light": "ライト", "dark": "ダーク"},
   shareTable: {
     open: "共有",
     title: "テーブルを共有",

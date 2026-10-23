@@ -2,9 +2,9 @@
   max-width: 1120px;
   margin: 24px auto 0;
   padding: 28px;
-  border: 1px solid #a8c1b4;
-  background: #f8f7f0;
-  box-shadow: 7px 8px 0 rgba(32, 78, 67, 0.16);
+  border: 1px solid var(--surface-muted);
+  background: var(--surface);
+  box-shadow: var(--elevation);
 }
 .lobbyHeading {
   display: flex;
@@ -14,7 +14,7 @@
 }
 .lobbyHeading p {
   margin: 0;
-  color: #526560;
+  color: var(--text-muted);
 }
 .panelKicker,
 .seatLabel,
@@ -22,7 +22,7 @@
 .blindFields legend,
 .blindFields label span,
 .tableSettingsSummary span {
-  color: #526560;
+  color: var(--text-muted);
   font:
     700 10px/1 ui-monospace,
     Menlo,
@@ -42,12 +42,12 @@
   align-items: center;
   margin-top: 20px;
   padding: 14px 16px;
-  border: 1px solid #91afa2;
-  background: #e9f1e8;
+  border: 1px solid var(--border);
+  background: var(--surface);
 }
 .guidanceMessage {
   margin: 0;
-  color: #173a34;
+  color: var(--text);
   font-weight: 700;
 }
 .publication {
@@ -57,11 +57,11 @@
   align-items: end;
   margin-top: 14px;
   padding: 14px 16px;
-  border: 1px solid #b7c9c0;
-  background: #fffef9;
+  border: 1px solid var(--surface-muted);
+  background: var(--surface);
 }
-.publication p { margin: 4px 0 0; color: #526560; font-size: 12px; }
-.publication input { min-height: 38px; padding: 7px 9px; border: 1px solid #8eaaa0; border-radius: 3px; }
+.publication p { margin: 4px 0 0; color: var(--text-muted); font-size: 12px; }
+.publication input { min-height: 38px; padding: 7px 9px; border: 1px solid var(--border); border-radius: 3px; }
 .publicationButton {
   align-self: end;
   height: 40px;
@@ -85,7 +85,7 @@
 }
 .invitation p {
   margin: 3px 0 0;
-  color: #526560;
+  color: var(--text-muted);
   font-size: 12px;
 }
 .lobbySetup {
@@ -94,8 +94,8 @@
   gap: 18px;
   margin: 24px 0;
   padding: 18px 0;
-  border-top: 1px solid #c5d3c9;
-  border-bottom: 1px solid #c5d3c9;
+  border-top: 1px solid var(--surface-muted);
+  border-bottom: 1px solid var(--surface-muted);
 }
 .playerNameField,
 .lobbyField {
@@ -104,7 +104,7 @@
   align-items: stretch;
   gap: 7px;
   margin: 0;
-  color: #526560;
+  color: var(--text-muted);
   font:
     700 12px/1 ui-monospace,
     Menlo,
@@ -128,9 +128,9 @@
   min-width: 0;
   height: 40px;
   padding: 8px 10px;
-  border: 1px solid #8eaaa0;
+  border: 1px solid var(--border);
   border-radius: 3px;
-  background: #fffef9;
+  background: var(--surface);
   color: var(--ink);
   font-size: 15px;
   text-transform: none;
@@ -170,7 +170,7 @@
   display: grid;
   height: 40px;
   place-items: center;
-  color: #71857e;
+  color: var(--border);
 }
 .stackField {
   position: relative;
@@ -180,8 +180,8 @@
   right: 8px;
   bottom: 7px;
   padding: 3px 4px;
-  color: #61766e;
-  background: #fffef9;
+  color: var(--text-muted);
+  background: var(--surface);
   font:
     700 9px/1 ui-monospace,
     Menlo,
@@ -196,7 +196,7 @@
   align-items: center;
   gap: 8px;
   width: fit-content;
-  color: #526560;
+  color: var(--text-muted);
   font-size: 14px;
   white-space: nowrap;
 }
@@ -232,14 +232,14 @@
   min-width: 0;
   gap: 14px;
   padding: 14px 16px;
-  border: 1px solid #b9cbc0;
-  background: #eef2e9;
+  border: 1px solid var(--surface-muted);
+  background: var(--surface);
 }
 .claimed {
-  border-color: #d99c45;
+  border-color: var(--attention);
 }
 .bot {
-  border-color: #4e9680;
+  border-color: var(--text-muted);
 }
 .lobbySeatHeading {
   display: flex;
@@ -249,7 +249,7 @@
   gap: 4px;
 }
 .seatState {
-  color: #6c8178;
+  color: var(--text-muted);
   font:
     700 9px/1 ui-monospace,
     Menlo,
@@ -268,7 +268,7 @@
   font-size: 20px;
 }
 .lobbySeatPerson span {
-  color: #61766e;
+  color: var(--text-muted);
   font-size: 13px;
 }
 .lobbyActions,
@@ -292,10 +292,10 @@
   min-width: 100px;
   flex: 1 1 100px;
   padding: 7px;
-  border: 1px solid #8eaaa0;
+  border: 1px solid var(--border);
   border-radius: 3px;
-  background: #fffef9;
-  color: #173a34;
+  background: var(--surface);
+  color: var(--text);
 }
 .lobbySeat > button {
   margin-left: auto;
@@ -303,13 +303,13 @@
 .lobbyFooter {
   min-height: 42px;
   padding-top: 2px;
-  border-top: 1px solid #c5d3c9;
+  border-top: 1px solid var(--surface-muted);
 }
 .lobbyFooter button {
   margin-left: auto;
 }
 .lobbyFooter span {
-  color: #667b75;
+  color: var(--text-muted);
   font-size: 14px;
 }
 @media (max-width: 760px) {
@@ -367,3 +367,25 @@
     width: 100%;
   }
 }
+.lobbyPanel { border-radius: 12px; border-color: var(--border); box-shadow: none; padding: 24px; margin-top: 8px; }
+.lobbySeat, .guidanceStrip, .publication { border-radius: 12px; border-color: var(--border); }
+.lobbySeat { padding: 16px; }
+.lobbySeatPerson strong { font-size: 16px; }
+.previewLayout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr); align-items: center; gap: 32px; margin-top: 32px; }
+.tablePreview { position: relative; height: 320px; border-radius: 46%; border: 8px solid var(--felt-edge); background: radial-gradient(ellipse, #167459, var(--felt-surface)); margin: 8px 24px; }
+.previewMark { position: absolute; inset: 0; display: grid; place-items: center; font-size: 96px; color: #83e0bb33; }
+.previewSeat { position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; width: 92px; gap: 6px; color: var(--on-felt); text-align: center; font-size: 11px; }
+.previewSeat > span { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--seat-surface); border: 2px solid #83e0bb; font-size: 22px; }
+.previewSeat strong { background: var(--seat-surface); border-radius: 4px; padding: 2px 4px; overflow-wrap: anywhere; max-width: 100%; }
+.previewSeat[data-open="true"] > span { border: 1px dashed #c5e1d1; }
+.lobbyFooter { position: sticky; bottom: 0; z-index: 2; padding: 16px 0 max(16px, env(safe-area-inset-bottom)); background: var(--surface); border-color: var(--border); }
+.lobbyField input, .lobbyField select, .botAssignmentControls select { min-height: 44px; border-radius: 8px; }
+@media (max-width: 760px) { .previewLayout { grid-template-columns: 1fr; gap: 16px; } .tablePreview { margin: 8px 16px; height: 280px; } .lobbySetup { margin: 0; } }
+.lobbySeats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.lobbySeatHeading { flex-basis: 56px; }
+.lobbySeatPerson { flex-basis: 140px; }
+.lobbyActions { flex-basis: 100%; }
+.botAssignmentControls { flex-basis: 180px; }
+.botAssignmentControls select { min-width: 80px; flex-basis: 80px; }
+@media (max-width: 760px) { .lobbySeats { grid-template-columns: 1fr; } }
+.lobbyToggle { min-height: 44px; }

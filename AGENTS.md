@@ -326,6 +326,17 @@ claims, credit departures and reveals remain available. Legacy bot action RPC
 inspection parameters are retained and ignored for rolling deployment
 compatibility; the application sends null for inspection payloads.
 
+## Presentation and appearance
+
+- Keep ivory/ink semantic CSS tokens in `app/globals.css` and CSS Modules for
+  component styling. Appearance uses the independent `ai-holdem-theme` browser
+  preference (`system`, `light`, `dark`), never cookies on cached pages.
+- Preserve the pre-paint script and CSS system fallback in locale roots and the
+  standalone global 404. Theme changes must preserve game/replay state and drafts.
+- Use the presentation-only `seat-position.ts` model for clockwise perimeter
+  seating. Never change authoritative seat identities or engine turn order to
+  achieve a visual position. Keep mobile betting controls usable and scrollable.
+
 ## Code Map
 
 - `docs/`: gameplay, architecture, and deployment reference guides linked from

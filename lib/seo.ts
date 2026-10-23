@@ -39,7 +39,7 @@ export function getPageMetadata({
     url: "/social-preview.png",
     width: 1731,
     height: 909,
-    alt: "AI Hold'em – Play Texas Hold'em against AI bots; invite friends, create tables, or watch bots play",
+    alt: "AI Hold'em modern poker club – Your next great hand; free virtual-chip poker with AI opponents and friends",
   };
   return {
     title,

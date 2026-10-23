@@ -1,10 +1,9 @@
+import { PublicHeader } from "@/components/PublicHeader";
 import { CreationForm } from "@/components/creation/CreationForm";
 import Image from "next/image";
-import logo from "@/public/ai-holdem-logo.png";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { LanguageMenu } from "@/components/LanguageMenu";
 import { APP_NAME } from "@/lib/constants";
 import { addLocalePrefix, hasLocale } from "@/lib/i18n";
 import {
@@ -53,6 +52,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
 
   return (
     <main className={styles.home}>
+      {await PublicHeader({ locale: lang })}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -63,24 +63,28 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
         className={styles.emptyState}
         aria-label={landing.startRegion}
       >
-        <LanguageMenu locale={lang} />
-        <Image
-          className={styles.mark}
-          src={logo}
-          alt={metadata.logoAlt}
-          width={270}
-          height={270}
-          sizes="(max-width: 450px) 60vw, 270px"
-          preload
-          fetchPriority="high"
-        />
-        <h1>{APP_NAME}</h1>
+        <div className={styles.heroCopy}>
+        <p className={styles.eyebrow}>♠ {APP_NAME}</p>
+        <h1>{landing.hero.title}</h1>
         <p className={styles.intro}>{landing.intro}</p>
         <p className={styles.supportingCopy}>{landing.supportingCopy}</p>
         <div className={styles.actions}>
           <CreationForm quickPlayLabel={landing.quickPlay} locale={lang} labels={gameDictionary.creation} action={addLocalePrefix("/quick-game", lang)} />
-          <Link className={styles.joinGame} href={addLocalePrefix("/play", lang)}>{landing.play}</Link>
+          <Link className={styles.joinGame} href={addLocalePrefix("/play", lang)}>{landing.hero.create}</Link>
         </div>
+        <p className={styles.promise}>{landing.hero.promise}</p>
+        </div>
+        <div className={styles.illustration}><Image src="/poker-club.webp" alt="" width={1200} height={800} sizes="(max-width: 640px) 100vw, 55vw" preload /></div>
+      </section>
+      <section className={styles.botCards} aria-label={landing.content.bots.title}>
+        {([
+          ["Equity Rules", "♣", gameDictionary.botInformation.providers.rules],
+          ["TypeSafe Jev", "♠", gameDictionary.botInformation.providers.typesafe],
+          ["Upright Eevo", "♦", gameDictionary.botInformation.providers.eevo],
+          ["LLM", "♥", gameDictionary.botInformation.providers.llm],
+        ] as const).map(([name, icon, description]) => <article key={name}>
+          <span className={styles.botIcon} aria-hidden="true">{icon}</span><h2>{name}</h2><p>{description}</p>
+        </article>)}
       </section>
       <nav
         className={styles.attribution}

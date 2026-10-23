@@ -38,3 +38,9 @@
   .controls { min-width: 0; max-width: 100%; }
   .controls button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 }
+.gameHeader { padding: 12px clamp(8px, 2vw, 32px); border-bottom: 1px solid var(--border); }
+.gameHeaderInner { max-width: 1440px; }
+.gameHeaderTitle { font-size: 19px; }
+.gameHeaderTitle span { font-size: 28px; vertical-align: middle; }
+.controls button { border-color: transparent; }
+@media (max-width: 640px) { .gameHeaderInner { gap: 4px; } .gameHeaderTitle { font-size: 16px; } .controls { gap: 2px; } .controls button { font-size: 11px; padding-inline: 8px; } }

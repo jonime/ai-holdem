@@ -7,7 +7,14 @@ export const metadata = {
 
 AI Hold'em 是一款免费的开源德州扑克游戏，可在浏览器中游玩。你可以与 AI 机器人对战，邀请朋友加入牌桌，或观看机器人对局。牌桌支持两到六名玩家，使用虚拟筹码，不涉及真钱下注或现金奖励。
 
-## 扑克机器人
+<nav data-document-sections>
+<a href="#about-section-0">扑克机器人</a>
+<a href="#about-section-1">扑克引擎执行的规则</a>
+<a href="#about-section-2">隐私与透明度</a>
+<a href="#about-section-3">了解更多</a>
+</nav>
+
+<h2 id="about-section-0">扑克机器人</h2>
 
 ### Equity Rules
 
@@ -51,19 +58,19 @@ LLM 机器人可以指定以下三种风格之一：
 
 游戏风格指导模型决策，不改变牌、可用信息或引擎规定的合法行动。
 
-## 扑克引擎执行的规则
+<h2 id="about-section-1">扑克引擎执行的规则</h2>
 
 [`@hivetech/poker-engine`](https://www.npmjs.com/package/@hivetech/poker-engine) 是牌组、行动顺序、合法行动、下注、底池和赢家的权威来源。真人和机器人只提出行动建议。服务器通过引擎适配器验证并执行每项建议，再进行版本检查并保存。
 
 机器人设置和未来的风格自定义仍受这一边界约束，无法绕过扑克规则。
 
-## 隐私与透明度
+<h2 id="about-section-2">隐私与透明度</h2>
 
 牌桌链接可以分享：任何知道牌桌 URL 的人都可以观看游戏。
 
 游戏进行中的底牌仅向拥有该座位的浏览器显示。观众不会收到发送给服务提供方的提示词或其原始响应。使用外部服务的机器人会将其可见的决策上下文发送给服务提供方；Equity Rules 不进行外部推理。
 
-## 了解更多
+<h2 id="about-section-3">了解更多</h2>
 
 - [开始游戏](/zh-Hans)
 - [开发者资源](/zh-Hans/developers)

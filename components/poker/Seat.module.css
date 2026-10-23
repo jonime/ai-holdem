@@ -256,3 +256,48 @@
 .botName { appearance: none; border: 0; padding: 0; margin: 0; background: transparent; color: inherit; cursor: pointer; text-decoration: underline dotted; text-decoration-color: #eff4e970; text-underline-offset: 3px; }
 .botName:hover { text-decoration-style: solid; text-decoration-color: currentColor; }
 .botName:focus-visible { outline: 2px solid var(--sun); outline-offset: 4px; border-radius: 2px; }
+
+.seat { width: 100%; height: 136px; max-width: none; padding: 20px 8px 8px; background: var(--seat-surface); color: var(--on-felt); border: 1px solid #85a697; border-radius: 12px; font-variant-numeric: tabular-nums; }
+.seatHeading { min-width: 0; }
+.seatLabel { font: 600 12px/1.25 var(--font-body); letter-spacing: 0; text-transform: none; overflow-wrap: anywhere; max-width: 100%; }
+.seat strong { margin: 4px 0 6px; font-size: 18px; line-height: 1.2; }
+.activeSeat { outline-color: #83e0bb; box-shadow: 0 0 0 5px #83e0bb20; }
+.humanSeat { border-color: #83e0bb; }
+.currentHand { color: #c1d4c8; font-size: 10px; }
+.holeCards { margin-bottom: 2px; gap: 4px; }
+.holeCards [data-playing-card] { width: 30px; height: 42px; font-size: 17px; }
+.seatStatus { background: var(--seat-surface); color: var(--on-felt); font-size: 10px; border-color: #85a697; }
+.yourTurnStatus { background: #83e0bb; color: #10271e; border-color: #83e0bb; }
+.openSeat { height: 64px; width: 80%; margin: auto; border-radius: 32px; background: #073b3080; color: #d0e5d8; }
+.openSeat .seatLabel { color: #d0e5d8; }
+.openSeat .currentHand { display: none; }
+.botName { min-height: 24px; }
+@media (max-width: 640px) {
+  .seat { height: 104px; padding: 16px 4px 4px; border-radius: 10px; }
+  .seatLabel { font-size: 10px; line-height: 1.15; }
+  .seatHeading { min-height: 22px; align-items: center; }
+  .seat strong { margin: 2px 0; font-size: 14px; }
+  .holeCards [data-playing-card] { width: 22px; height: 30px; font-size: 13px; }
+  .currentHand { font-size: 8px; line-height: 1.2; }
+  .seatStatus { font-size: 9px; padding: 2px 4px; max-width: 102%; }
+  .roleBadge { top: 2px; right: 3px; min-width: 16px; height: 16px; font-size: 7px; }
+  .openSeat { width: 72px; height: 48px; padding-top: 8px; }
+  .botName { min-height: 22px; }
+  .winnerBadge, .actionBadge { font-size: 8px; padding: 2px 4px; }
+}
+.seatLabel { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.committedBet { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); padding: 2px 8px; background: var(--seat-surface); color: var(--sun); border: 1px solid #85a697; border-radius: 12px; font-size: 10px; white-space: nowrap; }
+.smallBlindBadge { background: #d0e5d8; color: #112d26; }
+.bigBlindBadge { background: var(--sun); color: #232317; }
+.seat strong { margin-bottom: 4px; }
+@media (max-width: 640px) {
+  .seat { height: 112px; padding-top: 14px; }
+  .seat strong { margin: 1px 0; }
+  .openSeat { height: 48px; padding-top: 8px; }
+}
+/* Expand the touch target without moving the compact plaque's content. */
+.botName { display: flex; align-items: center; justify-content: center; min-height: 44px; margin-block: -11px; overflow: visible; }
+.botName > span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+/* Role chips sit outside the plaque, clear of names and wager badges. */
+.roleBadge { top: auto; bottom: 12px; right: -12px; }
+@media (max-width: 640px) { .roleBadge { top: auto; bottom: 12px; right: -8px; } }

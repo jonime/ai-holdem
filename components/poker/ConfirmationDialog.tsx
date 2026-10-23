@@ -29,7 +29,7 @@ export function ConfirmationDialog({ title, explanation, cancelLabel, confirmLab
     </div>
     <div className={styles.actions}>
       <Button ref={cancelRef} disabled={pending} onClick={dismiss}>{cancelLabel}</Button>
-      <Button variant="primary" disabled={pending || blocked} onClick={async () => {
+      <Button variant="primary" className={styles.destructive} disabled={pending || blocked} onClick={async () => {
         if (submitting.current || blocked) return;
         submitting.current = true; setPending(true);
         try { await onConfirm(); }

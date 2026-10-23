@@ -33,8 +33,8 @@ describe("localized landing content", () => {
     const landing = await dictionaries.getLandingServerDictionary(locale);
     const markup = await renderHome(locale);
     expect(markup.match(/<h1\b/g)).toHaveLength(1);
-    expect(markup).toContain("AI Hold&#x27;em</h1>");
-    expect(markup.match(/<h2\b/g)).toHaveLength(3);
+    expect(markup).toContain(`<h1>${escapedText(landing.hero.title)}</h1>`);
+    expect(markup.match(/<h2\b/g)).toHaveLength(7);
     expect(markup.match(/<h3\b/g)).toHaveLength(4);
     for (const [id, section] of Object.entries({ play: landing.content.play, bots: landing.content.bots, faq: landing.content.faq })) {
       expect(markup).toContain(`<section aria-labelledby="${id}-heading"><h2 id="${id}-heading">${escapedText(section.title)}</h2>`);
@@ -82,7 +82,7 @@ describe("homepage", () => {
   it("renders the focused game launcher and compact resource navigation", async () => {
     const html = await renderHome("en-US");
     expect(html.match(/<h1/g)).toHaveLength(1);
-    expect(html.match(/<h2/g)).toHaveLength(3);
+    expect(html.match(/<h2/g)).toHaveLength(7);
     expect(html.match(/<h3/g)).toHaveLength(4);
     expect(html).toContain('href="/about"');
     expect(html).toContain('href="/developers"');

@@ -37,7 +37,7 @@ test("@smoke publishes, refreshes, reports unavailable, preserves a name, and jo
   await expect(guest.getByText(tableTitle, { exact: true })).toBeVisible();
   await guest.getByRole("listitem").filter({ hasText: tableTitle }).getByRole("button", { name: /^Join:/ }).click();
   await expect(guest).toHaveURL(/\/game\/[0-9a-f-]+$/);
-  await expect(guest.getByText("Directory Guest", { exact: true })).toBeVisible();
+  await expect(guest.getByRole("article").getByText("Directory Guest", { exact: true })).toBeVisible();
 
   await guestContext.close();
 });
