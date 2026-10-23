@@ -108,10 +108,14 @@ Markdown-only benchmark changes do not trigger it. Full benchmarks remain opt-in
 Run `npm run build` for changes affecting Next.js
 routing, rendering, environment handling, or deployment behavior.
 
-Pull requests and pushes to `main` retain the fast check/build job with non-secret
+Pull requests retain the fast check/build job with non-secret
 placeholder values; unit tests must not depend on live Supabase or TypeSafe.
-An independent 30-minute integration job uses Docker, pinned Supabase CLI 2.120.0,
-and the installed Playwright Chromium and WebKit with system dependencies.
+An independent 30-minute integration job uses Ubuntu 24.04, Docker, pinned
+Supabase CLI 2.120.0, and the installed Playwright Chromium and WebKit with system dependencies.
+Before setup, the CI-only `scripts/e2e/ci-apt.mjs` configures Ubuntu HTTPS archives
+and apt HTTP/HTTPS connection/data inactivity timeouts of 30 seconds with two
+download retries on the disposable GitHub runner. Preserve package signing keys,
+suites and third-party sources; never run this reconfiguration on local machines.
 Browser/system dependency installation and Supabase setup overlap through
 `scripts/e2e/ci-setup.mjs`; both must exit successfully before checks, and setup
 failures wait for both tasks to exit before unconditional teardown. Supabase registry

@@ -261,12 +261,27 @@ checks and cleanup still complete.
 ## Production browser integration
 
 CI runs an independent integration job alongside the unchanged
-lint/typecheck/unit-test/build job on pull requests and pushes to `main`. It has a
-30-minute limit and preserves cancellation of superseded commits. It uses Node
+lint/typecheck/unit-test/build job on pull requests. It has a
+30-minute limit and preserves cancellation of superseded commits. It uses Ubuntu
+**24.04** (pinned rather than `ubuntu-latest`), Node
 from `.nvmrc`, `npm ci`, Supabase CLI **2.120.0**, and the installed Playwright
 version's Chromium and WebKit (`npx playwright install --with-deps chromium webkit` on Ubuntu;
 `npx playwright install chromium webkit` on macOS).
 Docker and a healthy local Supabase stack including Realtime are prerequisites.
+Before concurrent setup, `scripts/e2e/ci-apt.mjs` runs with sudo on the disposable
+GitHub runner. It replaces Ubuntu's Azure/mirror-list archive endpoints with
+`https://archive.ubuntu.com/ubuntu/` and uses HTTPS for the Ubuntu security archive,
+preserving suites, components and signing keys. It leaves third-party sources
+unchanged and fails on an unexpected Ubuntu source layout. A late apt configuration
+file sets HTTP/HTTPS connection/data inactivity timeouts to 30 seconds and permits
+two retries per failed download. These apply to Playwright's sudo-invoked apt
+commands; they are not whole-install deadlines or browser-test retries. Local
+machines are not reconfigured. The existing setup deadlines remain unchanged.
+This targets the slow Ubuntu package downloads observed in
+[this failed setup](https://github.com/jonime/ai-holdem/actions/runs/39999381499),
+where Supabase was healthy while browser system dependencies were still downloading
+at the 13-minute step timeout. Confirm installation duration and full test results
+in a new GitHub Actions run; local helper tests do not establish mirror performance.
 CI's `scripts/e2e/ci-setup.mjs` installs browsers/system dependencies alongside
 Supabase startup and migration application. Both tasks must finish successfully
 before schema or test checks begin; failures wait for both children to exit before
