@@ -310,7 +310,10 @@ and `test:e2e:ui` selects `@ui-regression`, both Chromium-only by default.
 and `webkit-mobile` (iPhone 13), using the installed Playwright device profiles.
 WebKit projects only collect compatibility-tagged tests. `test:e2e:ci` explicitly
 selects Chromium smoke/UI coverage and both focused WebKit projects, building
-once and running one Playwright invocation with one combined HTML report. The UI
+once and running one Playwright invocation with one combined HTML report. The
+runner allows 15 minutes for browsers; the application server allows 16 minutes
+so Playwright can finish and shut it down. The workflow retains its 18-minute
+build/browser step limit and 30-minute integration-job limit. The UI
 suite includes tests in `dialogs.spec.ts`, `betting-controls.spec.ts`,
 `hand-results-actions.spec.ts`, `request-recovery.spec.ts`, `table-loading.spec.ts`,
 and `turn-notifications.spec.ts`, preserving

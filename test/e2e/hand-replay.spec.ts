@@ -182,10 +182,11 @@ test("replay loading and retry stay isolated while a live timed turn arrives; la
     }
     live = await f.read(); expect(live.poker.currentActorId).toBe(f.ownerId);
     await refresh(page);
-    await expect(dialog(page).locator("[data-replay-turn-warning]")).toBeVisible();
+    const turnWarning = dialog(page).locator("[data-replay-turn-warning]");
+    await expect(turnWarning).toBeVisible();
     await expect(dialog(page).locator("[data-hand-announcement]")).toContainText("Your turn.");
-    await expect(dialog(page).locator("[data-turn-countdown]")).toBeVisible();
-    await expect(dialog(page).getByRole("timer")).toHaveAttribute("aria-live", "off");
+    await expect(turnWarning.locator("[data-turn-countdown]")).toBeVisible();
+    await expect(turnWarning.getByRole("timer")).toHaveAttribute("aria-live", "off");
     await expect(dialog(page).locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame",selected!);
     await dialog(page).getByRole("button", { name: "Close", exact: true }).click();
     await expect(page.getByRole("button", { name: "Fold", exact: true })).toBeEnabled();

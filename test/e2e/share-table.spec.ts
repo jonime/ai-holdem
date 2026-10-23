@@ -35,16 +35,18 @@ test("table sharing has two entry points, clean links, clipboard feedback and fo
     await expect(dialog(page)).toContainText("Invite visitors to choose an available seat");
     await expect(dialog(page)).toContainText("Your private cards stay hidden.");
     const originalBox = await copy.boundingBox();
+    expect(originalBox).not.toBeNull();
     await page.keyboard.press("Enter");
     const copied = dialog(page).getByRole("button", { name: "Copied", exact: true });
     await expect(copied).toBeVisible();
     const copiedBox = await copied.boundingBox();
-    expect(copiedBox?.width).toBe(originalBox?.width);
-    expect(copiedBox?.height).toBe(originalBox?.height);
+    // DOM rectangles can differ by floating-point noise without a layout shift.
+    expect(copiedBox?.width).toBeCloseTo(originalBox!.width, 2);
+    expect(copiedBox?.height).toBeCloseTo(originalBox!.height, 2);
     await expect(copy).toBeVisible({ timeout: 4000 });
     const restoredBox = await copy.boundingBox();
-    expect(restoredBox?.width).toBe(originalBox?.width);
-    expect(restoredBox?.height).toBe(originalBox?.height);
+    expect(restoredBox?.width).toBeCloseTo(originalBox!.width, 2);
+    expect(restoredBox?.height).toBeCloseTo(originalBox!.height, 2);
     expect(await page.evaluate(() => Reflect.get(window, "copiedTableUrl"))).toBe(`${new URL(page.url()).origin}/game/${f.id}`);
     await page.keyboard.press("Escape");
     await expect(dialog(page)).toHaveCount(0); await expect(opener).toBeFocused();

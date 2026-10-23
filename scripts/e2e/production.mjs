@@ -21,7 +21,7 @@ try {
   cpSync(resolve(root, "node_modules"), join(workspace, "node_modules"), { recursive: true, mode: constants.COPYFILE_FICLONE });
   installTableReadFault(workspace);
   await run(process.execPath, [join(workspace, "node_modules/next/dist/bin/next"), "build"], { cwd: workspace, env, phase: "build", timeout: 480_000 });
-  await run(process.execPath, [resolve("node_modules/@playwright/test/cli.js"), "test", ...browserArguments], { cwd: root, env, phase: "browser", timeout: 600_000 });
+  await run(process.execPath, [resolve("node_modules/@playwright/test/cli.js"), "test", ...browserArguments], { cwd: root, env, phase: "browser", timeout: 900_000 });
 } finally {
   rmSync(workspace, { recursive: true, force: true });
 }

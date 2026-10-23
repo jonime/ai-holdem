@@ -284,6 +284,7 @@ test("current hand keeps category and turn status separate on desktop and mobile
   await expect(line).toHaveCount(1);
   await expect(line).toHaveAttribute("aria-hidden", "true");
   const reserved = await line.boundingBox();
+  const reservedSeat = await line.locator("xpath=ancestor::section[1]").boundingBox();
   const initialViewport = page.viewportSize()!;
   await page.setViewportSize({ width: 375, height: 812 });
   const mobileReserved = await line.boundingBox();
@@ -302,15 +303,17 @@ test("current hand keeps category and turn status separate on desktop and mobile
   await expect(line).toHaveText("Pair");
   await expect(line).toHaveAttribute("aria-label", "Current hand: Pair");
   const flop = await line.boundingBox();
+  const seat = await line.locator("xpath=ancestor::section[1]").boundingBox();
   expect(flop?.height).toBe(reserved?.height);
-  expect(flop?.y).toBe(reserved?.y);
+  // Mobile WebKit can adjust page scroll after viewport changes. Check the
+  // reserved position within the seat rather than its viewport coordinate.
+  expect(flop!.y - seat!.y).toBeCloseTo(reserved!.y - reservedSeat!.y, 2);
   const status = line.locator("xpath=following-sibling::span[1]");
   await expect(status).toHaveText("Your turn");
   await expect(status).toHaveCSS("background-color", "rgb(240, 183, 77)");
   await expect(status).toHaveCSS("color", "rgb(25, 62, 55)");
   expect((await status.boundingBox())!.y).toBeGreaterThanOrEqual(flop!.y + flop!.height);
   await expect(status).toHaveCSS("position", "absolute");
-  const seat = await line.locator("xpath=ancestor::section[1]").boundingBox();
   const badge = await status.boundingBox();
   // Absolute bottom anchors to the inner edge of the one-pixel seat border.
   expect(Math.abs(badge!.y + badge!.height / 2 - (seat!.y + seat!.height - 1))).toBeLessThanOrEqual(0.5);

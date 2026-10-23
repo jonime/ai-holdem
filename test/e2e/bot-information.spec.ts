@@ -26,6 +26,11 @@ const names = (page: Page) => page.getByRole("button", { name: "About Same bot",
 
 test("bot information: desktop and touch layout, keyboard, focus, live metadata and no opening requests", { tag: ["@ui-regression", "@compatibility"] }, async ({ page, isMobile }) => {
   const f = await fixture(page);
+  await expect(names(page).first()).toBeVisible();
+  // Separate opening the dialog from scheduled polling/Realtime refreshes.
+  // Resume the clock below before exercising live metadata updates.
+  await page.clock.install();
+  await page.clock.pauseAt(new Date(Date.now() + 1000));
   for (const width of [1280, 375]) {
     await page.setViewportSize({ width, height: 812 });
     const opener = names(page).first();
@@ -68,6 +73,7 @@ test("bot information: desktop and touch layout, keyboard, focus, live metadata 
     await expect(dialog(page)).toHaveCount(0);
     await expect(opener).toBeFocused();
   }
+  await page.clock.resume();
   // Same display name, different immutable participant: update only the selected first bot.
   await names(page).first().click();
   const firstId = f.bots[0].id;
@@ -146,7 +152,10 @@ test("bot information keeps bot advancement running and shares one overlay with 
   await f.refresh();
   await expect.poll(() => steps).toBe(1);
   await expect(dialog(page)).toBeVisible();
-  await expect(page.getByText("9,876", { exact: true }).first()).toBeAttached();
+  await expect(page.getByRole("group", { name: "Same bot", exact: true, includeHidden: true })
+    .filter({ visible: true })
+    .filter({ has: page.getByText(String(actor.seat + 1), { exact: true }) })
+    .locator("strong")).toHaveText("Stack: 9,876");
   await page.setViewportSize({ width: 320, height: 260 });
   const scroll = dialog(page).locator('[class*="content"]');
   expect(await scroll.evaluate(n => n.scrollHeight > n.clientHeight)).toBe(true);
@@ -154,7 +163,7 @@ test("bot information keeps bot advancement running and shares one overlay with 
   await expect(dialog(page).getByRole("button", { name: "Close", exact: true })).toBeInViewport();
   await page.setViewportSize({ width: 320, height: 390 });
   await page.keyboard.press("Escape");
-  for (const name of ["Help", "Settings", "Expand actions panel"]) {
+  for (const name of ["Help", "Settings", /Expand actions panel$/]) {
     await page.getByRole("button", { name, exact: true }).click();
     await expect(page.getByRole("dialog")).toHaveCount(1);
     await page.keyboard.press("Escape");

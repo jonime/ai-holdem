@@ -346,12 +346,15 @@ test("localized Help fits desktop and narrow screens for waiting players and spe
     const opener = page.getByRole("button", { name: label, exact: true });
     for (const width of [320, 375, 430, 1280]) {
       await page.setViewportSize({ width, height: 812 });
+      // Resizing can preserve a scroll offset from the previous narrow layout.
+      await page.evaluate(() => window.scrollTo(0, 0));
       await expect(opener).toBeInViewport();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
       await opener.click();
       const dialog = page.getByRole("dialog", { name: title, exact: true });
       await expect(dialog).toBeVisible();
-      await expect(dialog.getByRole("heading", { level: 2 })).toHaveCount(6);
+      // The dialog title plus all seven Help sections, including Share table and Stats.
+      await expect(dialog.getByRole("heading", { level: 2 })).toHaveCount(8);
       if ((locale === "" || locale === "de-DE") && (width === 320 || width === 1280)) {
         await page.screenshot({ path: test.info().outputPath(`help-${locale || "en-US"}-${width}.png`) });
       }
