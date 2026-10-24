@@ -1102,9 +1102,9 @@ Play loads one URL-selected collection in a keyed Suspense boundary, replacing t
 previous simultaneous personal/public sections. Test missing/invalid/repeated tab
 values, English query forwarding, localized normal links, Back/Forward, narrow-screen
 keyboard use and disabled prefetch. Empty personal and share collections are explicit.
-Settings remains a separate header button; preserve focus restoration, language/tab
+CollectionShell keeps headings outside the data Suspense boundary; all three lists start directly below the heading without an ownership notice. Both Play route pages use `instant = false` to resolve URL selection before the first shell flush; keep database reads inside the inner boundary and verify delayed initial responses on Chromium and WebKit. CollectionSkeleton reserves three 96px rows (128px below 640px), with 12px gaps; empty/error states retain that minimum without clipping. CollectionRefresh is the shared 44px control for public/shared lists. Verify delayed initial reads, stable heading/list offsets, retained rows/empty states on refresh, screen-reader status, reduced motion, both themes, 200% zoom and 320px/long translations. Help and Settings live in the public header on Play and the landing page. Share stays on individual table pages, including waiting tables. Preserve focus restoration, language/tab
 navigation, all existing in-game checks and preferences applied to future games.
-No game hooks run on Play and the landing page stays unchanged.
+No game hooks run on Play or in landing Help/Settings. Keep landing rendering cached, with no cookies; server-render guide content and translations into the isolated header controls. The landing hero’s localized Play link keeps its `/play` destination; Quick Play and Create table remain separate actions.
 
 Apply `20261101000000_add_owner_share_management.sql`, regenerate with pinned CLI
 2.120.0, then run `db:types:check`, `check`, `build`, `test:sql:shares` and

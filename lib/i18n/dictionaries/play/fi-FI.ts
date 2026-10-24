@@ -5,7 +5,6 @@ const dictionary = {
   sharedHands: "Jaetut kädet",
   emptyPersonal: "Ei vielä pöytiä. Valitse yllä Pikapeli tai Luo pöytä, tai selaa avoimia julkisia pöytiä.",
   emptyShares: "Ei aktiivisia jaettuja käsiä. Jaa päättynyt käsi sen uusinnasta.",
-  shareOwnership: "Luettelo on sidottu tämän selaimen anonyymiin evästeeseen. Toinen selain tai evästeen poistaminen estää pääsyn luetteloon.",
   viewShare: "Katso",
   shareHand: "Käsi {hand} · {id}",
   shareCreated: "Luotu {date}",

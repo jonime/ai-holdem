@@ -7,3 +7,8 @@
 .preferences { display: flex; align-items: center; gap: 8px; }
 @media (max-width: 640px) { .header { flex-wrap: wrap; gap: 8px 16px; margin-bottom: 24px; padding-top: 8px; } .brand { font-size: 18px; } .header nav { order: 3; width: 100%; gap: 24px; } .preferences { margin-left: auto; } }
 @media (max-width: 380px) { .preferences { gap: 4px; } .preferences > div > button { min-width: 0; max-width: 96px; padding-inline: 8px; font-size: 12px; } }
+
+@media (max-width: 640px) {
+  .header nav { order: 0; width: auto; gap: 16px; margin-left: auto; }
+  .preferences { width: 100%; margin-left: 0; justify-content: flex-end; flex-wrap: wrap; }
+}

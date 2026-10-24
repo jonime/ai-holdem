@@ -4,7 +4,7 @@ test("@smoke Play navigation, empty state, custom creation, return and identity 
   await page.goto("/");
   await expect(page.getByRole("button", { name: "Quick Play vs AI" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Create custom table" })).toHaveCount(0);
-  await page.getByRole("link", { name: "Play", exact: true }).click();
+  await page.getByRole("link", { name: "Play", exact: true }).last().click();
   await expect(page).toHaveURL(/\/play$/);
   await expect(page.getByRole("heading", { name: "Open public tables" })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Your tables" })).toBeVisible();
@@ -39,14 +39,14 @@ test("@smoke Play public refresh failures recover without refreshing personal ta
   await expect(page.getByRole("button", { name: "Refresh all tables" })).toHaveCount(0);
   // Local runs preserve tables, so establish the empty-directory branch explicitly.
   await page.route("**/api/games/public*", route => route.fulfill({ json: { games: [], nextCursor: null } }));
-  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await page.getByRole("button", { name: "Refresh: Open public tables", exact: true }).click();
   await expect(page.getByText("No public tables are available right now.")).toBeVisible();
   await page.route("**/api/games/public*", route => route.fulfill({ status: 500, json: { error: "Failed" } }));
-  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await page.getByRole("button", { name: "Refresh: Open public tables", exact: true }).click();
   await expect(page.getByText("Public tables could not be loaded.")).toBeVisible();
   await expect(page.getByText("No public tables are available right now.")).toHaveCount(0);
   await page.route("**/api/games/public*", route => route.fulfill({ json: { games: [], nextCursor: null } }));
-  await page.getByRole("button", { name: "Try again", exact: true }).click();
+  await page.getByRole("button", { name: "Refresh: Open public tables", exact: true }).click();
   await expect(page.getByText("No public tables are available right now.")).toBeVisible();
   expect(personalRequests).toBe(0);
 });
@@ -59,7 +59,7 @@ test("@smoke Play directory pagination, join conflict, redirects, mobile and key
   const entry = { gameId: "11111111-1111-4111-8111-111111111111", title: "Pagination table", version: 1, occupiedSeats: 1, totalSeats: 6, humanCount: 1, botCount: 0, smallBlind: 10, bigBlind: 20, startingStack: 1000, publishedAt: "2026-10-06T12:00:00Z" };
   let calls = 0;
   await page.route("**/api/games/public*", route => route.fulfill({ json: ++calls === 1 ? { games: [], nextCursor: "next" } : { games: [entry], nextCursor: null } }));
-  await page.getByRole("button", { name: "Refresh", exact: true }).click();
+  await page.getByRole("button", { name: "Refresh: Open public tables", exact: true }).click();
   await page.getByRole("button", { name: "Load more", exact: true }).click();
   await expect(page.getByRole("button", { name: "Join: Pagination table" })).toBeVisible();
   await page.route("**/api/games/*/join", route => route.fulfill({ status: 409, json: { error: "Conflict", code: "GAME_CONFLICT" } }));
@@ -72,10 +72,10 @@ test("@smoke Play directory pagination, join conflict, redirects, mobile and key
   for (const name of ["Your tables", "Open public tables", "Shared hands"]) {
     await page.keyboard.press("Tab"); await expect(page.getByRole("navigation").getByRole("link", { name, exact: true })).toBeFocused();
   }
-  await page.keyboard.press("Tab"); await expect(page.getByRole("button", { name: "Refresh", exact: true })).toBeFocused();
+  await page.keyboard.press("Tab"); await expect(page.getByRole("button", { name: "Refresh: Open public tables", exact: true })).toBeFocused();
   await expect(page.locator("h1")).toHaveText("Play");
   await expect(page.getByText("Choose a public table with an active host.")).toHaveCount(0);
-  const refresh = page.getByRole("button", { name: "Refresh", exact: true });
+  const refresh = page.getByRole("button", { name: "Refresh: Open public tables", exact: true });
   const centered = await refresh.evaluate(button => {
     const rect = button.getBoundingClientRect();
     const icon = button.querySelector("svg")!.getBoundingClientRect();
@@ -188,8 +188,9 @@ for (const locale of ["", "/fi-FI"]) {
     try {
       await nativeContext.addCookies(await page.context().cookies());
       const native = await nativeContext.newPage(); await native.goto(`${locale}/play`);
-      // PPR streams the personal section in a hidden segment before its reveal script runs.
-      const time = native.locator('section[aria-labelledby="my-tables-heading"] time').first();
+      // The data streams into a hidden segment outside the persistent shell.
+      // Inspect its server-rendered timestamp without requiring the reveal script.
+      const time = native.locator("time").first();
       await expect(time).toContainText("UTC");
       expect(await time.textContent()).toBe(await time.getAttribute("aria-label"));
     } finally { await nativeContext.close(); }

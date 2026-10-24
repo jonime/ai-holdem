@@ -7,7 +7,6 @@ const dictionary = {
   sharedHands: "已分享的牌局",
   emptyPersonal: "还没有牌桌。请使用上方的快速游戏或创建牌桌，或浏览公开牌桌。",
   emptyShares: "没有有效的分享。可在已结束牌局的回放中分享。",
-  shareOwnership: "此列表与本浏览器的匿名 Cookie 关联。换用其他浏览器或清除 Cookie 后将无法访问此列表。",
   viewShare: "查看",
   shareHand: "第 {hand} 手 · {id}",
   shareCreated: "创建于 {date}",

@@ -11,10 +11,9 @@ import type {
 } from "@/lib/i18n/types";
 
 /**
- * Route-scoped provider for the game route and Play Settings/share controls, which
- * serves the combined lobby/table/feed/cards/errors dictionary to
- * its client components. The landing page deliberately has no provider and
- * receives narrow string props instead.
+ * Route-scoped provider for gameplay and Play, plus the isolated Help/Settings
+ * controls in the cached landing header. Public page content and dictionaries
+ * stay server-rendered; no game session hooks run in the public controls.
  */
 
 function lookup(dictionary: GameDictionary, key: GameTranslationKey): string {

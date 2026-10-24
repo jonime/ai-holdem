@@ -917,15 +917,21 @@ are updated, no source game is fetched for fallback, and card visibility and sou
 identifier exclusions stay intact. Absent historical metadata in BB mode produces
 labelled chips and a brief replay notice. No migration or endpoint is needed.
 
-## In-game Help content
+## Help content
 
 Each supported locale has a complete Markdown-authored document in `content/help/`
 with an exported localized `title`. The explicit locale map in `lib/help/server.ts`
 is server-only and reuses the installed MDX configuration. The shared game Server
 Component loads only the selected locale and passes rendered content and its title
 into `PokerApp` through a React-node slot; unprefixed English routes use the same
-component with `en-US`. Client modules never import help documents or fetch them
-at runtime. Only Help and Close help interface labels live in game dictionaries.
+component with `en-US`. Landing and Play also load the selected guide server-side into the isolated
+`PublicPageTools` header subtree. `PublicPageControls` reuses Settings and the
+shared `HelpModal`, with browser-local preferences, one active dialog and focus
+restoration. The landing page remains cached; the controls alone use a local
+I18nProvider/Suspense boundary for URL navigation. They read no cookies and start
+no game-session, bot, timer or polling hooks. About remains server-only and uses
+its header brand link for home navigation. Client modules never import help
+documents or fetch them at runtime. Only Help and Close help interface labels live in game dictionaries.
 Localized Help imports the server-only `InlineCardExample` for text-sized ranked
 hands, the royal flush and suit legend. Suit-marked spans share
 `SuitColour.module.css` with visible `PlayingCard` faces and inherit suit variables
@@ -1046,6 +1052,8 @@ named groups with readable stack/current-bet/role text; interactive bot controls
 remain separate controls. Descriptive replay content is not a Tab stop.
 
 ### Presentation and appearance
+
+Play collections use internal presentation components in `app/[lang]/play/Collection.tsx`: a server-rendered shell outside the selected data boundary, decorative three-row skeletons, and a shared refresh control positioned at the heading. Request ownership remains in each existing client collection; list notices stay inside the reserved list region. These interfaces do not change HTTP or persistence contracts. Play resolves its URL-selected shell before the first flush (`instant = false` on both locale and English route pages), then streams only the data-dependent content. This avoids hiding headings behind an outer streamed replacement on WebKit; only URL selection and server-owned translations block that first shell, never collection reads.
 
 See the [design system](design-system.md) for visual conventions, component reuse
 and review references. This section describes the underlying implementation.

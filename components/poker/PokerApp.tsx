@@ -10,7 +10,7 @@ import { headerDepartureSeat } from "./header-navigation";
 import { HandReplayModal } from "./HandReplayModal";
 import { ShareTableModal } from "./ShareTableModal";
 import { Modal } from "./Modal";
-import { ModalTurnProvider, ModalTurnWarning } from "./ModalTurnWarning";
+import { ModalTurnProvider } from "./ModalTurnWarning";
 import { turnRemainingMs } from "./turn-clock";
 import Link from "next/link";
 
@@ -23,6 +23,7 @@ import { useHandAnnouncements } from "./useHandAnnouncements";
 import { useTurnNotifications } from "./useTurnNotifications";
 import { TableLoadingIndicator } from "./TableLoadingShell";
 import loadingStyles from "./TableLoadingShell.module.css";
+import { HelpModal } from "./HelpModal";
 import { GameHeader } from "./GameHeader";
 import { addLocalePrefix } from "@/lib/i18n";
 
@@ -80,7 +81,6 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const [departureAttempted, setDepartureAttempted] = useState(false);
   const [departureFailed, setDepartureFailed] = useState(false);
   const settingsOpenerRef = useRef<HTMLButtonElement>(null);
-  const helpCloseRef = useRef<HTMLButtonElement>(null);
   const helpOpenerRef = useRef<HTMLButtonElement>(null);
   const tableRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
@@ -567,26 +567,8 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
         onClose={closeOverlay} restoreFocus={openerRef} fallbackFocus={settingsOpenerRef} />
     ) : null}
     {overlay.kind === "help" ? (
-      <Modal open title={helpTitle} onDismiss={closeOverlay}
-        initialFocus={helpCloseRef} restoreFocus={openerRef} fallbackFocus={helpOpenerRef}
-        className={styles.helpDialog}>
-        <div className={styles.helpHeader}>
-          <h2>{helpTitle}</h2>
-          <ModalTurnWarning />
-          <Button ref={helpCloseRef} size="small" onClick={closeOverlay}>
-            {t("gameHeader.closeHelp")}
-          </Button>
-        </div>
-        <div className={styles.helpScroll} tabIndex={0} onClick={event => {
-          if (!(event.target instanceof Element)) return;
-          const href = event.target.closest("a")?.getAttribute("href");
-          if (!href || !/^#help-section-\d+$/.test(href)) return;
-          const heading = event.currentTarget.querySelector(href);
-          if (!heading) return;
-          event.preventDefault();
-          heading.scrollIntoView({ block: "start" });
-        }}>{helpContent}</div>
-      </Modal>
+      <HelpModal title={helpTitle} content={helpContent} closeLabel={t("gameHeader.closeHelp")} onClose={closeOverlay}
+        restoreFocus={openerRef} fallbackFocus={helpOpenerRef} />
     ) : null}
     </div>
     </ModalTurnProvider>

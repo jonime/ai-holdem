@@ -1,3 +1,4 @@
+import { PublicPageTools } from "@/components/PublicPageTools";
 import { PublicHeader } from "@/components/PublicHeader";
 import { CreationForm } from "@/components/creation/CreationForm";
 import Image from "next/image";
@@ -52,7 +53,7 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
 
   return (
     <main className={styles.home}>
-      {await PublicHeader({ locale: lang })}
+      {await PublicHeader({ locale: lang, actions: await PublicPageTools({ locale: lang, destination: "/" }) })}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

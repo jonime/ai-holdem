@@ -16,5 +16,5 @@ it("preserves public/shared URLs and localization", () => {
 it("forwards the original search promise through the English wrapper", () => {
   const searchParams = Promise.resolve({ tab: "shared" });
   const result = EnglishPlayPage({ params: Promise.resolve({}), searchParams });
-  expect(result.props.children.props.searchParams).toBe(searchParams);
+  expect(result.props.searchParams).toBe(searchParams);
 });

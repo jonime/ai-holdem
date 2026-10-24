@@ -283,8 +283,9 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
 	`NEXT_PUBLIC_` prefix or import server modules into client components.
 - Translations are server-owned. Every dictionary module is `server-only`;
 	Server Components load them through `lib/i18n/server`, and client components
-	receive the game route's `I18nProvider`. The cached landing route uses only
-	server-rendered locale links and plain anonymous-game POST forms. Quick Play
+	receive the game route's `I18nProvider`. The cached landing route retains server-rendered locale links and anonymous-game
+  POST forms, plus an isolated Help/Settings client subtree with server-rendered
+  guide content. Never read cookies or run game-session hooks in that subtree. Quick Play
 	must atomically create an already-playing private six-seat game with five bots
 	selected from the available catalog; external inference disabled means rules
 	bots only. Rules and TypeSafe bots use medium difficulty, while LLM bots use
@@ -296,8 +297,9 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
   redirect to the unprefixed equivalent, preserving paths, queries and methods.
   Use `addLocalePrefix` for public URLs; English canonical URLs and `x-default`
   are unprefixed. Preserve page caching and `Vary: Accept` content negotiation.
-- In-game Help is optional server-only MDX in `content/help/`, loaded by the explicit
-  locale map in `lib/help/server.ts` and passed as rendered content into `PokerApp`.
+- Help is server-only MDX in `content/help/`, loaded by the explicit locale map in
+  `lib/help/server.ts` and passed as rendered content into gameplay and the isolated
+  landing/Play header controls. Reuse `HelpModal` for both.
   Keep all locales complete and update relevant documents when controls or gameplay
   terminology change. Only interface labels belong in game dictionaries. Help shares
   the single overlay state and never pauses bots, timers, refreshes or notifications.
@@ -506,7 +508,8 @@ explicit retry, rules replay, and localized HTML/typed JSON creation denials.
 and Shared hands (`?tab=shared`) links with prefetch disabled. Missing/invalid/repeated
 values select Your tables. Render only the selected collection in a keyed Suspense
 boundary; English forwards search params. Keep creation/name controls above tabs and
-Settings as a separate header button using the shared preference store/modal, a
+Help and Settings in the public header (also on the cached landing page), using
+server-rendered Help and the shared preference store/modal, a
 navigation destination preserving the tab, and no game hooks or in-game note.
 Apply `20261101000000_add_owner_share_management.sql` before owner share management.
 Owner list RPCs filter cookie ownership and active database-time expiry, return only

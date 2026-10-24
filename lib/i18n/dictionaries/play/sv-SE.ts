@@ -5,7 +5,6 @@ const dictionary = {
   sharedHands: "Delade händer",
   emptyPersonal: "Inga bord ännu. Använd Snabbspel eller Skapa bord ovan, eller bläddra bland offentliga bord.",
   emptyShares: "Inga aktiva delade händer. Dela en avslutad hand från dess repris.",
-  shareOwnership: "Listan tillhör den här webbläsarens anonyma cookie. En annan webbläsare eller en raderad cookie ger inte åtkomst.",
   viewShare: "Visa",
   shareHand: "Hand {hand} · {id}",
   shareCreated: "Skapad {date}",

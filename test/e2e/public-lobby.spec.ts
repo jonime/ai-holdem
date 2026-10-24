@@ -33,7 +33,7 @@ test("@smoke publishes, refreshes, reports unavailable, preserves a name, and jo
 
   await page.getByRole("button", { name: "Make public" }).click();
   await expect(page.getByText("Public listing", { exact: true })).toBeVisible();
-  await guest.getByRole("button", { name: "Refresh", exact: true }).click();
+  await guest.getByRole("button", { name: "Refresh: Open public tables", exact: true }).click();
   await expect(guest.getByText(tableTitle, { exact: true })).toBeVisible();
   await guest.getByRole("listitem").filter({ hasText: tableTitle }).getByRole("button", { name: /^Join:/ }).click();
   await expect(guest).toHaveURL(/\/game\/[0-9a-f-]+$/);

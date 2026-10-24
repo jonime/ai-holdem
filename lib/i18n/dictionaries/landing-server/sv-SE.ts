@@ -3,7 +3,7 @@ import "server-only";
 import type { LandingServerDictionary } from "../../types";
 
 const dictionary = {
-  hero: {"title": "Din nästa stora hand.", "promise": "Gratis · Ingen registrering · Virtuella marker", "create": "Skapa bord"},
+  hero: {"title": "Din nästa stora hand.", "promise": "Gratis · Ingen registrering · Virtuella marker", "create": "Spela"},
   feedback: "Skicka feedback",
   feedbackNewTab: "Öppnas i en ny flik",
   startRegion: "Välj hur du vill spela",

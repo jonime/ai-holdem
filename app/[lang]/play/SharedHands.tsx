@@ -10,6 +10,7 @@ import { useI18n } from "@/components/poker/I18nProvider";
 import { ConfirmationDialog } from "@/components/poker/ConfirmationDialog";
 import { useShareClipboard } from "@/components/poker/useShareClipboard";
 import { exactUpdate } from "./personal-summary";
+import { CollectionRefresh } from "./Collection";
 import styles from "./page.module.css";
 
 export function SharedHands({ locale, dictionary: d, initialPage, initialError, initialNow }: {
@@ -28,9 +29,10 @@ export function SharedHands({ locale, dictionary: d, initialPage, initialError, 
   const lock = useRef(false);
   const lifecycle = useRef<AbortController | null>(null);
   const opener = useRef<HTMLElement | null>(null);
-  const fallback = useRef<HTMLHeadingElement>(null);
+  const fallback = useRef<HTMLElement | null>(null);
   useEffect(() => {
     const controller = new AbortController(); lifecycle.current = controller;
+    fallback.current = document.getElementById("shared-hands-heading");
     return () => controller.abort();
   }, []);
   // Wake only at the next expiry, rather than running a countdown or polling.
@@ -88,26 +90,25 @@ export function SharedHands({ locale, dictionary: d, initialPage, initialError, 
     } finally { if (!signal.aborted) { lock.current = false; setBusy(false); } }
   }
   const rows = page.shares.filter(row => Date.parse(row.expiresAt) > now);
-  return <section className={styles.section} aria-labelledby="shared-hands-heading" aria-busy={busy}>
-    <h2 ref={fallback} tabIndex={-1} id="shared-hands-heading">{d.sharedHands}</h2>
-    <p>{d.shareOwnership}</p>
-    <button className={styles.retryButton} disabled={busy} onClick={() => void load()}>{d.refreshList}</button>
-    {busy && !selection ? <p role="status">{d.refreshing}</p> : null}
-    {error ? <p role="alert" className={styles.warning}>{d.sharedError}</p> : null}
-    {error ? <GameErrorDetails report={listDiagnostics} /> : null}
-    {feedback && !selection ? <p role="status">{feedback}</p> : null}
-    {!rows.length && !error ? <p className={styles.empty}>{d.emptyShares}</p> : null}
-    <ul className={styles.list}>{rows.map(row => <ShareRow key={row.token} row={row} locale={locale} dictionary={d}
-      disabled={busy || blocked} onAvailable={() => handleAvailable(row)} onRevoke={element => { opener.current = element; setSelection(row); setFeedback(null); setDiagnostics([]); }} />)}</ul>
-    {page.nextCursor ? <button className={styles.loadMore} disabled={busy || blocked} onClick={() => void load(true)}>{d.loadMore}</button> : null}
-    {selection ? <ConfirmationDialog title={`${t("sharing.revoke")} · ${selection.token.slice(0, 8)}`}
-      explanation={t("sharing.revokeNotice")} cancelLabel={d.cancel} confirmLabel={t("sharing.confirmRevoke")}
-      pendingLabel={t("sharing.pending")} feedback={feedback} blocked={busy || blocked || Date.parse(selection.expiresAt) <= now}
-      onConfirm={handleRevoke} onClose={() => { if (!lock.current) { setSelection(null); setDiagnostics([]); } }} restoreFocus={opener} fallbackFocus={fallback}>
-      {feedback ? <GameErrorDetails report={diagnostics} /> : null}
-      {blocked ? <button className={styles.retryButton} disabled={busy} onClick={() => void load()}>{d.refreshList}</button> : null}
-    </ConfirmationDialog> : null}
-  </section>;
+  return <>
+    {busy && !selection ? <span className={styles.srOnly} role="status">{d.refreshing}</span> : null}
+    <div aria-busy={busy}>
+      <CollectionRefresh label={`${d.refreshList}: ${d.sharedHands}`} busy={busy && !selection} disabled={busy} onClick={() => void load()} />
+      {error ? <p role="alert" className={styles.warning}>{d.sharedError}</p> : null}
+      {error ? <GameErrorDetails report={listDiagnostics} /> : null}
+      {feedback && !selection ? <p role="status">{feedback}</p> : null}
+      {!rows.length && !error ? <p className={styles.empty}>{d.emptyShares}</p> : null}
+      <ul className={styles.list}>{rows.map(row => <ShareRow key={row.token} row={row} locale={locale} dictionary={d}
+        disabled={busy || blocked} onAvailable={() => handleAvailable(row)} onRevoke={element => { opener.current = element; setSelection(row); setFeedback(null); setDiagnostics([]); }} />)}</ul>
+      {page.nextCursor ? <button className={styles.loadMore} disabled={busy || blocked} onClick={() => void load(true)}>{d.loadMore}</button> : null}
+      {selection ? <ConfirmationDialog title={`${t("sharing.revoke")} · ${selection.token.slice(0, 8)}`}
+        explanation={t("sharing.revokeNotice")} cancelLabel={d.cancel} confirmLabel={t("sharing.confirmRevoke")}
+        pendingLabel={t("sharing.pending")} feedback={feedback} blocked={busy || blocked || Date.parse(selection.expiresAt) <= now}
+        onConfirm={handleRevoke} onClose={() => { if (!lock.current) { setSelection(null); setDiagnostics([]); } }} restoreFocus={opener} fallbackFocus={fallback}>
+        {feedback ? <GameErrorDetails report={diagnostics} /> : null}
+        {blocked ? <button className={styles.retryButton} disabled={busy} onClick={() => void load()}>{d.refreshList}</button> : null}
+      </ConfirmationDialog> : null}
+  </div></>;
 }
 function ShareRow({ row, locale, dictionary: d, disabled, onAvailable, onRevoke }: {
   row: OwnedShare; locale: Locale; dictionary: PlayDictionary; disabled: boolean; onAvailable: () => boolean; onRevoke: (element: HTMLElement) => void;

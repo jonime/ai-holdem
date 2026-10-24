@@ -5,7 +5,6 @@ const dictionary = {
   sharedHands: "Shared hands",
   emptyPersonal: "No tables yet. Use Quick Play or Create table above, or browse open public tables.",
   emptyShares: "No active shared hands. Share a completed hand from its replay.",
-  shareOwnership: "This list belongs to this browser’s anonymous cookie. Another browser or a cleared cookie cannot access it.",
   viewShare: "View",
   shareHand: "Hand {hand} · {id}",
   shareCreated: "Created {date}",

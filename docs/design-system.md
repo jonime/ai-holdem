@@ -75,6 +75,7 @@ or semantics rather than color alone.
 
 ## Layout and content patterns
 
+- **Public headers:** Landing and Play place Help and Settings after language and appearance controls, using the same small ghost buttons as gameplay. Let controls wrap on narrow screens; the brand is the home link. Share stays scoped to table pages.
 - **Public pages:** use the spade wordmark, shared navigation, restrained
   illustration and generous editorial spacing. The landing page owns the large
   photographic illustration; gameplay remains CSS/SVG/card graphics. Use the
@@ -108,6 +109,8 @@ sharing/privacy disclosures, recovery guidance, or the distinction between
 watching and claiming a seat. Use the established notice components and
 diagnostic controls rather than replacing actionable errors with transient toast
 messages.
+
+Play collection cards share a subtle border, 12px corners, 16px padding and 12px gaps. Minimum row heights are 96px, or 128px below 640px; list regions reserve three rows even when empty or failed. Headings remain outside data loading boundaries. Secondary row actions sit beside details on desktop and below them on phones. Refresh controls occupy a stable 44px heading position; loading announcements are visually hidden and motion respects reduced-motion preferences.
 
 ## Appearance and interaction invariants
 

@@ -3,7 +3,7 @@ import "server-only";
 import type { LandingServerDictionary } from "../../types";
 
 const dictionary = {
-  hero: {"title": "Votre prochaine belle main.", "promise": "Gratuit · Sans inscription · Jetons virtuels", "create": "Créer une table"},
+  hero: {"title": "Votre prochaine belle main.", "promise": "Gratuit · Sans inscription · Jetons virtuels", "create": "Jouer"},
   feedback: "Envoyer un avis",
   feedbackNewTab: "S’ouvre dans un nouvel onglet",
   startRegion: "Choisir comment jouer",

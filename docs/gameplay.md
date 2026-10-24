@@ -341,9 +341,9 @@ text, then becomes relative on mount, summary changes, or return to the visible 
 future clock skew shows “Updated just now”. No timer refreshes these labels.
 Play has three bookmarkable link tabs: **Your tables** (`/play`), **Open public tables**
 (`/play?tab=public`) and **Shared hands** (`/play?tab=shared`), with localized prefixes.
-Only the selected collection loads. Invalid or repeated tab parameters select Your tables.
+The landing hero’s **Play** link opens this page; Quick Play and Create table retain their separate actions. Collection headings stay visible during loading. All three tabs place their lists directly below the heading without a separate ownership notice. Three placeholder cards reserve the list area initially; manual refresh keeps existing content visible. Public tables and Shared hands have matching refresh icons; Your tables offers retry only when needed. Only the selected collection loads. Invalid or repeated tab parameters select Your tables.
 An empty personal list directs you to the creation buttons or public tab. Each collection reports its own failures
-and offers retry; the refresh icon beside **Open public tables** refreshes public availability. There is no
+and offers retry; the refresh icons beside **Open public tables** and **Shared hands** refresh their collections. There is no
 automatic refresh on Play. Public joining retains optional player names and pagination.
 Quick Play still starts a separate private six-seat game in one click.
 
@@ -371,10 +371,14 @@ remains anonymous, even if this browser has a remembered name.
 Select a personal row to return, or a public row to join. Rows support keyboard
 activation; the refresh icon has a localized accessible label.
 
-**Settings** is a separate header button. Sound, shortcuts, current-hand labels and card
-colours use the same browser preferences as games; they also configure future games.
-Language changes preserve the selected tab. The player name and creation buttons stay
-above the tabs. The landing page is unchanged.
+**Help** and **Settings** sit in the public header on Play and the landing page,
+using the table’s button style. Help opens the same guide. Sound, shortcuts,
+current-hand labels and card colours use the same browser preferences as games
+and configure future games. Language changes preserve the selected Play tab.
+The player name and creation buttons stay above the tabs. Share remains on
+individual tables, including the waiting room. The header brand returns home,
+replacing the separate Play Back and About home links. The landing hero links
+here with the localized **Play** label.
 
 **Shared hands** lists this browser owner's active, unexpired links, 20 at a time,
 newest first. Hand number, short link ID, creation date and expiry distinguish rows.

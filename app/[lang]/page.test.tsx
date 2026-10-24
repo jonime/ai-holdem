@@ -8,7 +8,8 @@ import Home from "./page";
 vi.mock("next/image", () => ({
   default: () => <span>AI Hold&apos;em logo</span>,
 }));
-vi.mock("next/navigation", () => ({ notFound: vi.fn() }));
+vi.mock("next/navigation", () => ({ notFound: vi.fn(), usePathname: () => "/", useSearchParams: () => new URLSearchParams() }));
+vi.mock("@/lib/help/server", () => ({ getHelpDocument: async () => ({ title: "Game help", default: () => <p>Help content</p> }) }));
 
 afterEach(() => vi.restoreAllMocks());
 

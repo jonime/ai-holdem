@@ -136,7 +136,7 @@ test("@ui-regression creation deadline cleans pending state and fences a late re
   });
   await page.goto("/");
   const quickPlay = page.getByRole("button", { name: "Quick Play vs AI" });
-  const play = page.getByRole("link", { name: "Play", exact: true });
+  const play = page.getByRole("link", { name: "Play", exact: true }).last();
   const submitBounds = await quickPlay.boundingBox();
   const playBounds = await play.boundingBox();
   await quickPlay.click();

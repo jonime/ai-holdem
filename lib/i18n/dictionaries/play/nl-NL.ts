@@ -5,7 +5,6 @@ const dictionary = {
   sharedHands: "Gedeelde handen",
   emptyPersonal: "Nog geen tafels. Gebruik hierboven Snel spelen of Tafel maken, of bekijk openbare tafels.",
   emptyShares: "Geen actieve gedeelde handen. Deel een voltooide hand vanuit de herhaling.",
-  shareOwnership: "Deze lijst hoort bij de anonieme cookie van deze browser. Een andere browser of het wissen van de cookie geeft geen toegang.",
   viewShare: "Bekijken",
   shareHand: "Hand {hand} · {id}",
   shareCreated: "Aangemaakt {date}",

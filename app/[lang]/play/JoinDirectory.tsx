@@ -10,14 +10,16 @@ import { GameErrorDetails } from "@/components/CopyErrorDetails";
 import { captureDiagnostic, recoveryDiagnostics, type DiagnosticReport } from "@/lib/http/diagnostics";
 import { api, HttpError } from "@/lib/http/api";
 import { usePlayerName } from "./PlayerName";
-import { FiChevronRight, FiRefreshCw } from "react-icons/fi";
+import { FiChevronRight } from "react-icons/fi";
+import { CollectionRefresh } from "./Collection";
 import styles from "./page.module.css";
 
 function text(dictionary: JoinGameDictionary, key: keyof JoinGameDictionary, values?: Record<string, string | number>) {
   return dictionary[key].replace(/\{(\w+)\}/g, (_, name: string) => String(values?.[name] ?? `{${name}}`));
 }
 
-export function JoinDirectory({ locale, dictionary, initialGames, initialCursor, initialError }: {
+export function JoinDirectory({ locale, dictionary, initialGames, initialCursor, initialError, collectionTitle }: {
+  readonly collectionTitle?: string;
   readonly locale: Locale;
   readonly dictionary: JoinGameDictionary;
   readonly initialGames: readonly PublicGameDirectoryEntry[];
@@ -98,37 +100,35 @@ export function JoinDirectory({ locale, dictionary, initialGames, initialCursor,
   };
 
   return (
-    <div>
-      <button className={styles.iconButton} type="button" onClick={() => void refresh()} disabled={refreshing || loadingMore || joiningId !== null}
-        aria-label={refreshing ? dictionary.refreshing : warning ? dictionary.retry : dictionary.refresh}
-        title={warning ? dictionary.retry : dictionary.refresh}>
-        <FiRefreshCw aria-hidden="true" className={refreshing ? styles.spinning : undefined} />
-      </button>
-      {(refreshing || loadingMore) && <p role="status">{dictionary.refreshing}</p>}
-      {message && <p className={warning ? styles.warning : styles.notice} role="status">{message}</p>}
-      {message ? <GameErrorDetails report={diagnostics} /> : null}
-      {games.length === 0 ? (
-        !warning && <div className={styles.empty}><p>{dictionary.empty}</p></div>
-      ) : (
-        <ul className={styles.list}>{games.map(game => {
-          const title = game.title ?? text(dictionary, "fallbackTitle", { id: game.gameId.slice(0, 8) });
-          return <li key={game.gameId}>
-            <button className={styles.tableRow} type="button" onClick={() => void join(game)} disabled={joiningId !== null || refreshing || loadingMore}
-              aria-label={`${joiningId === game.gameId ? dictionary.joining : dictionary.join}: ${title}`} aria-busy={joiningId === game.gameId}>
-              <span className={styles.rowTitle}>{title}</span>
-              <span className={styles.facts}>
-                <span>{text(dictionary, "seats", { occupied: game.occupiedSeats, total: game.totalSeats })}</span>
-                <span>{text(dictionary, "people", { humans: game.humanCount, bots: game.botCount })}</span>
-                <span>{text(dictionary, "blinds", { small: game.smallBlind, big: game.bigBlind })}</span>
-                <span>{text(dictionary, "stack", { stack: game.startingStack })}</span>
-                <span>{text(dictionary, "turnTimer", { duration: game.humanTurnSeconds == null ? dictionary.timerOff : text(dictionary, "timerDuration", { seconds: game.humanTurnSeconds }) })}</span>
-              </span>
-              {joiningId === game.gameId ? <span className={styles.rowArrow}>{dictionary.joining}</span> : <FiChevronRight className={styles.rowArrow} aria-hidden="true" />}
-            </button>
-          </li>;
-        })}</ul>
-      )}
-      {cursor && <button className={styles.loadMore} type="button" disabled={loadingMore || refreshing || joiningId !== null} onClick={() => void loadMore()}>{loadingMore ? dictionary.loadingMore : dictionary.loadMore}</button>}
-    </div>
+    <>
+      {(refreshing || loadingMore) && <span className={styles.srOnly} role="status">{dictionary.refreshing}</span>}
+      <div aria-busy={refreshing || loadingMore}>
+        <CollectionRefresh label={`${dictionary.refresh}: ${collectionTitle ?? dictionary.title}`} busy={refreshing || loadingMore}
+          disabled={refreshing || loadingMore || joiningId !== null} onClick={() => void refresh()} />
+        {message && <p className={warning ? styles.warning : styles.notice} role="status">{message}</p>}
+        {message ? <GameErrorDetails report={diagnostics} /> : null}
+        {games.length === 0 ? (
+          !warning && <div className={styles.empty}><p>{dictionary.empty}</p></div>
+        ) : (
+          <ul className={styles.list}>{games.map(game => {
+            const title = game.title ?? text(dictionary, "fallbackTitle", { id: game.gameId.slice(0, 8) });
+            return <li key={game.gameId}>
+              <button className={styles.tableRow} type="button" onClick={() => void join(game)} disabled={joiningId !== null || refreshing || loadingMore}
+                aria-label={`${joiningId === game.gameId ? dictionary.joining : dictionary.join}: ${title}`} aria-busy={joiningId === game.gameId}>
+                <span className={styles.rowTitle}>{title}</span>
+                <span className={styles.facts}>
+                  <span>{text(dictionary, "seats", { occupied: game.occupiedSeats, total: game.totalSeats })}</span>
+                  <span>{text(dictionary, "people", { humans: game.humanCount, bots: game.botCount })}</span>
+                  <span>{text(dictionary, "blinds", { small: game.smallBlind, big: game.bigBlind })}</span>
+                  <span>{text(dictionary, "stack", { stack: game.startingStack })}</span>
+                  <span>{text(dictionary, "turnTimer", { duration: game.humanTurnSeconds == null ? dictionary.timerOff : text(dictionary, "timerDuration", { seconds: game.humanTurnSeconds }) })}</span>
+                </span>
+                {joiningId === game.gameId ? <span className={styles.rowArrow}>{dictionary.joining}</span> : <FiChevronRight className={styles.rowArrow} aria-hidden="true" />}
+              </button>
+            </li>;
+          })}</ul>
+        )}
+        {cursor && <button className={styles.loadMore} type="button" disabled={loadingMore || refreshing || joiningId !== null} onClick={() => void loadMore()}>{loadingMore ? dictionary.loadingMore : dictionary.loadMore}</button>}
+    </div></>
   );
 }

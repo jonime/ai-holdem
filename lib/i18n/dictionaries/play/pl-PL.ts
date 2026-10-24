@@ -5,7 +5,6 @@ const dictionary = {
   sharedHands: "Udostępnione rozdania",
   emptyPersonal: "Nie ma jeszcze stołów. Użyj Szybkiej gry lub Utwórz stół powyżej albo przeglądaj stoły publiczne.",
   emptyShares: "Brak aktywnych udostępnionych rozdań. Udostępnij ukończone rozdanie z jego powtórki.",
-  shareOwnership: "Ta lista jest powiązana z anonimowym plikiem cookie tej przeglądarki. Inna przeglądarka lub usunięcie pliku cookie uniemożliwia dostęp.",
   viewShare: "Zobacz",
   shareHand: "Rozdanie {hand} · {id}",
   shareCreated: "Utworzono {date}",

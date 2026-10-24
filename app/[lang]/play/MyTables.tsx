@@ -91,44 +91,44 @@ export function MyTables({ locale, dictionary: d, initialGames, initialError }: 
       } else { setRemovalError(d.removalFailed); setDiagnostics(captureDiagnostic(failure)); }
     } finally { if (current()) { pending.current = false; setBusy(false); } }
   }
-  return <section aria-labelledby="my-tables-heading" aria-busy={busy && !selection} className={styles.section}>
-    <h2 id="my-tables-heading">{d.yourTables}</h2>
-    {!games.length && !error && <p className={styles.empty}>{d.emptyPersonal} <Link prefetch={false} href={addLocalePrefix("/play?tab=public", locale)}>{d.publicTables}</Link></p>}
+  return <>
+    {busy && !selection && <span className={styles.srOnly} role="status">{d.refreshing}</span>}
+    <div aria-busy={busy && !selection}>
+      {!games.length && !error && <p className={styles.empty}>{d.emptyPersonal} <Link prefetch={false} href={addLocalePrefix("/play?tab=public", locale)}>{d.publicTables}</Link></p>}
 
-    {busy && !selection && <p role="status">{d.refreshing}</p>}
-    {error && !selection && <div><p className={styles.warning} role="alert">{d.personalError}</p><GameErrorDetails report={listDiagnostics} />
-      <button className={styles.retryButton} type="button" disabled={busy} onClick={() => void refresh()}>{d.retry}</button></div>}
-    <ul className={styles.list}>{games.map(game => {
-      const personalRemoval = game.removal === "remove_from_list" || game.removal === "deletion_blocked";
-      const label = personalRemoval ? d.removeFromList : game.removal === "leave_and_remove" ? d.leaveAndRemove : d.deleteTable;
-      const title = personalTitle(game, d);
-      const discriminator = game.title === null ? ` · ${game.gameId.slice(0, 8)}` : "";
-      const exact = d.updated.replace("{time}", exactUpdate(game.updatedAt, locale));
-      return <li key={game.gameId} className={styles.personalItem}>
-        <Link className={`${styles.tableRow} ${styles.personalRow}`} href={addLocalePrefix(`/game/${game.gameId}`, locale)} aria-label={`${d.returnToTable}: ${title}${discriminator}`}>
-          <h3 className={styles.rowTitle}>{title}{game.title === null && <span className={styles.shortId}>{discriminator}</span>}</h3>
-          <div className={styles.facts}><span>{d.statuses[game.status]}</span>
-            <span>{d.seats.replace("{occupied}", String(game.occupiedSeats)).replace("{total}", String(game.totalSeats))}</span></div>
-          <div className={`${styles.facts} ${styles.personalMetadata}`}>
-            <span>{composition(game, locale, d)}</span>
-            <time dateTime={game.updatedAt} title={exact} aria-label={exact}>{now === null ? exact : relativeUpdate(game.updatedAt, now, locale, d)}</time>
-          </div>
-        </Link>
-          <button type="button" className={styles.removalButton} disabled={busy}
-            title={label} aria-label={`${label}: ${title}${discriminator}`}
-            onClick={event => {
-              opener.current = event.currentTarget; if (!blocked) setRemovalError(null); setOperationChanged(false);
-              setSelection({ gameId: game.gameId, operation: operation(game), title: `${title}${discriminator}` });
-            }}>{game.removal === "delete" ? <FiTrash2 aria-hidden="true" /> : <FiLogOut aria-hidden="true" />}</button>
-      </li>;
-    })}</ul>
-    {selection ? <ConfirmationDialog title={selection.operation === "delete" ? d.deleteTable : selection.operation === "remove_from_list" ? d.removeFromList : d.leaveAndRemove}
-      explanation={(selection.operation === "delete" ? d.confirmDelete : selection.operation === "remove_from_list" ? d.confirmRemove : d.confirmLeave).replace("{title}", selection.title)}
-      cancelLabel={d.cancel} confirmLabel={selection.operation === "delete" ? d.deleteTable : selection.operation === "remove_from_list" ? d.removeFromList : d.leaveAndRemove}
-      pendingLabel={d.removing} feedback={changed ? d.removalOperationChanged : removalError}
-      blocked={busy || blocked || changed || !selected} onConfirm={remove} onClose={() => { if (!pending.current) { setSelection(null); setDiagnostics([]); } }} restoreFocus={opener} fallbackFocus={fallback}>
-      {removalError && !changed ? <GameErrorDetails report={diagnostics} /> : null}
-      {blocked ? <button className={styles.retryButton} disabled={busy} onClick={() => void refresh()}>{d.refreshList}</button> : null}
-    </ConfirmationDialog> : null}
-  </section>;
+      {error && !selection && <div><p className={styles.warning} role="alert">{d.personalError}</p><GameErrorDetails report={listDiagnostics} />
+        <button className={styles.retryButton} type="button" disabled={busy} onClick={() => void refresh()}>{d.retry}</button></div>}
+      <ul className={styles.list}>{games.map(game => {
+        const personalRemoval = game.removal === "remove_from_list" || game.removal === "deletion_blocked";
+        const label = personalRemoval ? d.removeFromList : game.removal === "leave_and_remove" ? d.leaveAndRemove : d.deleteTable;
+        const title = personalTitle(game, d);
+        const discriminator = game.title === null ? ` · ${game.gameId.slice(0, 8)}` : "";
+        const exact = d.updated.replace("{time}", exactUpdate(game.updatedAt, locale));
+        return <li key={game.gameId} className={styles.personalItem}>
+          <Link className={`${styles.tableRow} ${styles.personalRow}`} href={addLocalePrefix(`/game/${game.gameId}`, locale)} aria-label={`${d.returnToTable}: ${title}${discriminator}`}>
+            <h3 className={styles.rowTitle}>{title}{game.title === null && <span className={styles.shortId}>{discriminator}</span>}</h3>
+            <div className={styles.facts}><span>{d.statuses[game.status]}</span>
+              <span>{d.seats.replace("{occupied}", String(game.occupiedSeats)).replace("{total}", String(game.totalSeats))}</span></div>
+            <div className={`${styles.facts} ${styles.personalMetadata}`}>
+              <span>{composition(game, locale, d)}</span>
+              <time dateTime={game.updatedAt} title={exact} aria-label={exact}>{now === null ? exact : relativeUpdate(game.updatedAt, now, locale, d)}</time>
+            </div>
+          </Link>
+            <button type="button" className={styles.removalButton} disabled={busy}
+              title={label} aria-label={`${label}: ${title}${discriminator}`}
+              onClick={event => {
+                opener.current = event.currentTarget; if (!blocked) setRemovalError(null); setOperationChanged(false);
+                setSelection({ gameId: game.gameId, operation: operation(game), title: `${title}${discriminator}` });
+              }}>{game.removal === "delete" ? <FiTrash2 aria-hidden="true" /> : <FiLogOut aria-hidden="true" />}</button>
+        </li>;
+      })}</ul>
+      {selection ? <ConfirmationDialog title={selection.operation === "delete" ? d.deleteTable : selection.operation === "remove_from_list" ? d.removeFromList : d.leaveAndRemove}
+        explanation={(selection.operation === "delete" ? d.confirmDelete : selection.operation === "remove_from_list" ? d.confirmRemove : d.confirmLeave).replace("{title}", selection.title)}
+        cancelLabel={d.cancel} confirmLabel={selection.operation === "delete" ? d.deleteTable : selection.operation === "remove_from_list" ? d.removeFromList : d.leaveAndRemove}
+        pendingLabel={d.removing} feedback={changed ? d.removalOperationChanged : removalError}
+        blocked={busy || blocked || changed || !selected} onConfirm={remove} onClose={() => { if (!pending.current) { setSelection(null); setDiagnostics([]); } }} restoreFocus={opener} fallbackFocus={fallback}>
+        {removalError && !changed ? <GameErrorDetails report={diagnostics} /> : null}
+        {blocked ? <button className={styles.retryButton} disabled={busy} onClick={() => void refresh()}>{d.refreshList}</button> : null}
+      </ConfirmationDialog> : null}
+  </div></>;
 }

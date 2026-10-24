@@ -7,7 +7,6 @@ const dictionary = {
   sharedHands: "共有したハンド",
   emptyPersonal: "テーブルはまだありません。上のクイックプレイやテーブル作成を使うか、公開テーブルをご覧ください。",
   emptyShares: "有効な共有ハンドはありません。終了したハンドのリプレイから共有できます。",
-  shareOwnership: "この一覧は、このブラウザーの匿名 Cookie に紐づいています。別のブラウザーや Cookie の削除後はアクセスできません。",
   viewShare: "見る",
   shareHand: "ハンド {hand} · {id}",
   shareCreated: "作成日時 {date}",

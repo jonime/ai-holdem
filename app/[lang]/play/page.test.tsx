@@ -53,15 +53,28 @@ it("keeps every locale's Play keys and placeholders aligned", async () => {
 it.each(["personal", "public", "shared"] as const)("constructs only the selected %s collection and disables tab prefetch", async tab => {
   const { Collections, SharedContent } = await import("./page");
   const tree = await Collections({ lang: "en-US", d: await getPlayDictionary("en-US"), directory: await getJoinGameDictionary("en-US"), searchParams: Promise.resolve(tab === "personal" ? {} : { tab }) });
-  const [nav, boundary] = tree.props.children;
+  const [nav, shell] = tree.props.children;
+  const boundary = shell.props.children;
   const links = nav.props.children;
   expect(links).toHaveLength(3);
   expect(links.every((link: { props: { prefetch: boolean } }) => link.props.prefetch === false)).toBe(true);
   expect(links.filter((link: { props: { "aria-current"?: string } }) => link.props["aria-current"] === "page")).toHaveLength(1);
-  expect(boundary.key).toBe(`en-US:${tab}`);
-  expect(boundary.props.fallback.props.hideLabel).toBe(true);
+  expect(shell.key).toBe(`en-US:${tab}`);
+  expect(shell.props.description).toBeUndefined();
   expect(boundary.props.fallback.props.label).toBe((await getJoinGameDictionary("en-US")).loadingMore);
   const content = boundary.props.children;
-  expect(tab === "public" ? content.props.children[1].type : content.type).toBe(tab === "personal" ? PersonalContent : tab === "shared" ? SharedContent : DirectoryContent);
+  expect(content.type).toBe(tab === "personal" ? PersonalContent : tab === "shared" ? SharedContent : DirectoryContent);
   expect(mine).not.toHaveBeenCalled(); expect(directory).not.toHaveBeenCalled();
+});
+
+it("keeps the shared heading outside decorative initial skeletons", async () => {
+  const { CollectionShell, CollectionSkeleton } = await import("./Collection");
+  const d = await getPlayDictionary("en-US");
+  const html = renderToStaticMarkup(<CollectionShell id="shared-hands-heading" title={d.sharedHands} hasAction>
+    <CollectionSkeleton label="Loading…" refreshLabel={`${d.refreshList}: ${d.sharedHands}`} />
+  </CollectionShell>);
+  expect(html.indexOf('<h2')).toBeLessThan(html.indexOf('aria-busy="true"'));
+  expect(html.indexOf('role="status"')).toBeLessThan(html.indexOf('aria-busy="true"'));
+  expect(html).toContain('aria-hidden="true"');
+  expect(html).toContain('title="Refresh list: Shared hands" disabled=""');
 });

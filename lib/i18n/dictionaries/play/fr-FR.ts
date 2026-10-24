@@ -5,7 +5,6 @@ const dictionary = {
   sharedHands: "Mains partagées",
   emptyPersonal: "Aucune table pour le moment. Utilisez Partie rapide ou Créer une table ci-dessus, ou parcourez les tables publiques.",
   emptyShares: "Aucune main partagée active. Partagez une main terminée depuis sa rediffusion.",
-  shareOwnership: "Cette liste est liée au cookie anonyme de ce navigateur. Un autre navigateur ou la suppression du cookie empêche d’y accéder.",
   viewShare: "Voir",
   shareHand: "Main {hand} · {id}",
   shareCreated: "Créé le {date}",

@@ -47,6 +47,7 @@ describe("About page", () => {
 
     expect(html).toContain(`<h1>${title}</h1>`);
     expect(html).toContain("<h2>");
+    expect(html).not.toContain("About page navigation");
     expect(html).toContain(link);
     expect(html).toContain(`href="${addLocalePrefix("/", locale)}"`);
     expect(html).toContain('href="/about"');
