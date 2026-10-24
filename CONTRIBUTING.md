@@ -439,6 +439,13 @@ Supabase status, database dumps, or production data. Browser artifacts may
 contain disposable test identities. Open reports with `npx playwright show-report`
 and traces with `npx playwright show-trace path/to/trace.zip`.
 
+When diagnosing browser failures, inspect the trace before changing waits. After a
+full game navigation, wait for the fixture's rendered game state before clicking
+header controls: loading the game adds Share and can reflow the mobile header.
+Match visible status labels exactly so accessibility announcements containing the
+same words do not make locators ambiguous. Keep the single interaction and its
+result assertion; do not mask failures with repeated clicks or retries.
+
 To validate CI failure handling, temporarily add a failing assertion to a tagged
 test on a test branch, verify that the integration job fails and its artifact
 contains the HTML report, screenshot, trace, and sanitized logs, then remove the
