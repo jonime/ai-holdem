@@ -39,7 +39,7 @@ describe("public SEO metadata", () => {
     const metadata = getPageMetadata({ locale: "fi-FI", title: "Tietoa", description: "Kuvaus", pathname: "/about" });
     expect(metadata.alternates?.canonical).toBe("https://poker.example/fi-FI/about");
     expect(metadata.alternates?.languages).toEqual(getLanguageAlternates("/about"));
-    expect(metadata.openGraph).toMatchObject({ title: "Tietoa | AI Hold'em", description: "Kuvaus", url: "https://poker.example/fi-FI/about", locale: "fi_FI", images: [{ url: "/social-preview.png", width: 1731, height: 909 }] });
+    expect(metadata.openGraph).toMatchObject({ title: "Tietoa | AI Hold'em", description: "Kuvaus", url: "https://poker.example/fi-FI/about", locale: "fi_FI", images: [{ url: "/social-preview.png?v=2", width: 1200, height: 630 }] });
     expect(metadata.twitter).toMatchObject({ card: "summary_large_image", description: "Kuvaus" });
   });
 

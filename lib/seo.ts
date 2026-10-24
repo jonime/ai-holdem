@@ -36,10 +36,10 @@ export function getPageMetadata({
     ? title
     : `${title} | AI Hold'em`;
   const image = {
-    url: "/social-preview.png",
-    width: 1731,
-    height: 909,
-    alt: "AI Hold'em modern poker club – Your next great hand; free virtual-chip poker with AI opponents and friends",
+    url: "/social-preview.png?v=2",
+    width: 1200,
+    height: 630,
+    alt: "AI Hold'em ivory spade and wordmark on an emerald background",
   };
   return {
     title,

@@ -245,9 +245,14 @@ pointing to the old deployment domain. These values are resolved at build time
 for static pages, so rebuild after changing the domain. Submit `/sitemap.xml`
 in Google Search Console after deploying.
 
-Open Graph and Twitter cards use the supplied 1731 × 909 `public/social-preview.png`.
-The image is committed and needs no runtime service. When replacing it, update
-its dimensions and alt text in `lib/seo.ts` to match the new asset.
+Open Graph and Twitter cards use the committed 1200 × 630 `public/social-preview.png`.
+The centered spade and wordmark fit inside the central square so compact thumbnail
+crops retain the brand. The editable source is `public/social-preview.svg`; regenerate
+the PNG with `node -e 'require("sharp")("public/social-preview.svg").png().toFile("public/social-preview.png")'`
+(run with `nice -n 15` locally). No runtime image service is needed. When replacing
+it, update its dimensions and alt text in `lib/seo.ts` and increment the image URL's
+version query. Deploy and share a fresh link to verify the actual Slack unfurl;
+existing messages may retain a cached preview.
 
 
 ## Human-departure rollout

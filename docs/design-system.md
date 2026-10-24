@@ -130,6 +130,12 @@ disabled states, status badges and focus rings.
 
 ## Visual references and review
 
+Social sharing uses the existing ivory spade and wordmark on emerald, centered
+within the middle 630 × 630 area of a 1200 × 630 image. Keep essential artwork
+inside that square and omit small promotional copy so compact thumbnail crops
+remain readable. See [social image maintenance](deployment.md#search-and-social-previews)
+for the editable source and asset update steps.
+
 Use the implemented pages and deterministic captures from
 [`club-redesign.spec.ts`](../test/e2e/club-redesign.spec.ts) as references. The
 suite writes screenshots to `test-results/`; these are review artifacts, not

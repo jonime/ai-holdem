@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0b6b50"/>
+  <!-- Keep the mark and wordmark inside the central square for thumbnail crops. -->
+  <path transform="translate(408 12) scale(.75)" d="M256 91c-31 53-137 101-137 178 0 67 91 81 119 28-4 55-22 89-45 115h126c-23-26-41-60-45-115 28 53 119 39 119-28 0-77-106-125-137-178Z" fill="#f6f5f0"/>
+  <text x="600" y="463" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700" letter-spacing="-2" fill="#f6f5f0">AI Hold’em</text>
+</svg>
