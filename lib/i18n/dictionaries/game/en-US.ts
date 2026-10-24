@@ -62,7 +62,6 @@ const dictionary = {
     allInDeparture: "Departure during a hand is irreversible. All-in players keep their eligibility for the pot.",
 
     help: "Help",
-    closeHelp: "Close help",
     retryDeparture: "Retry departure",
     lobby: "Lobby",
     leaveTable: "Leave table",

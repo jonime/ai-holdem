@@ -7,6 +7,7 @@ for (const path of ["/", "/play?tab=shared"]) {
     const help = header.getByRole("button", { name: "Help", exact: true });
     const settings = header.getByRole("button", { name: "Settings", exact: true });
     await expect(help).toBeEnabled(); await expect(settings).toBeEnabled();
+    await expect(header.getByRole("button").last()).toHaveAccessibleName(/^Appearance:/);
     await expect(header.getByRole("button", { name: "Share", exact: true })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Back", exact: true })).toHaveCount(0);
     await settings.click();
@@ -16,6 +17,7 @@ for (const path of ["/", "/play?tab=shared"]) {
     await page.keyboard.press("Escape"); await expect(settings).toBeFocused();
     await help.click();
     const guide = page.getByRole("dialog", { name: "Game help", exact: true });
+    await expect(guide.getByRole("button", { name: "Close", exact: true })).toBeFocused();
     await expect(guide.getByRole("heading", { name: "Hand rankings", exact: true })).toBeAttached();
     await guide.locator('nav a[href="#help-section-1"]').click();
     await expect(guide.getByRole("heading", { name: "Hand rankings", exact: true })).toBeVisible();

@@ -64,7 +64,6 @@ const dictionary = {
     allInDeparture: "Un départ pendant une main est irréversible. Les joueurs à tapis conservent leurs droits au pot.",
 
     help: "Aide",
-    closeHelp: "Fermer l’aide",
     retryDeparture: "Réessayer le départ",
     lobby: "Lobby",
     leaveTable: "Quitter la table",

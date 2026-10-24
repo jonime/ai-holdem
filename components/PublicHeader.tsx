@@ -12,6 +12,6 @@ export async function PublicHeader({ locale, pathname = "", actions }: { actions
   return <header className={styles.header}>
     <Link className={styles.brand} href={addLocalePrefix("/", locale)}><span aria-hidden="true">♠</span> AI Hold’em</Link>
     <nav aria-label={labels.resources}><Link href={addLocalePrefix("/play", locale)}>{labels.play}</Link><Link href={addLocalePrefix("/about", locale)}>{labels.about}</Link></nav>
-    <div className={styles.preferences}><LanguageMenu locale={locale} pathname={pathname} /><AppearanceControl compact labels={appearanceLabels[locale]} />{actions}</div>
+    <div className={styles.preferences}><LanguageMenu locale={locale} pathname={pathname} />{actions}<AppearanceControl compact labels={appearanceLabels[locale]} /></div>
   </header>;
 }

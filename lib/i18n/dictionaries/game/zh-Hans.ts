@@ -73,7 +73,6 @@ const dictionary = {
     allInDeparture: "一手牌进行期间离桌不可撤销。全押玩家保留赢取底池的资格。",
 
     "help": "帮助",
-    "closeHelp": "关闭帮助",
     "retryDeparture": "重试离开",
     "lobby": "大厅",
     "leaveTable": "离开牌桌",

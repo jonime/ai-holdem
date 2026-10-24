@@ -37,7 +37,7 @@ export function PublicPageControls({ destination, helpTitle, helpContent }: { de
       notice={notice ? t("turnNotification.audioUnavailable") : null} languageBlocked={false} destination={destination}
       showContinues={false} onNavigate={() => setOpenFor(null)} onClose={() => setOpenFor(null)} restoreFocus={opener} fallbackFocus={opener} /> : null}
     {openFor?.navigation === navigationKey && openFor.kind === "help" ? <HelpModal title={helpTitle} content={helpContent}
-      closeLabel={t("gameHeader.closeHelp")} onClose={() => setOpenFor(null)} restoreFocus={helpOpener} fallbackFocus={helpOpener}
+      closeLabel={t("settings.close")} onClose={() => setOpenFor(null)} restoreFocus={helpOpener} fallbackFocus={helpOpener}
       showTurnWarning={false} cardColours={settings.preferences.cardColours} /> : null}
   </div>;
 }

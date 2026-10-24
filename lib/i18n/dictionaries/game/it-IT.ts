@@ -64,7 +64,6 @@ const dictionary = {
     allInDeparture: "L’uscita durante una mano è irreversibile. I giocatori all-in conservano il diritto al piatto.",
 
     help: "Aiuto",
-    closeHelp: "Chiudi aiuto",
     retryDeparture: "Riprova a uscire",
     lobby: "Lobby",
     leaveTable: "Lascia il tavolo",

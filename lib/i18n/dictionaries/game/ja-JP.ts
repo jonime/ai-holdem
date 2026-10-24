@@ -73,7 +73,6 @@ const dictionary = {
     allInDeparture: "ハンド中の退席は取り消せません。オールインのプレイヤーはポットを獲得する権利を保持します。",
 
     "help": "ヘルプ",
-    "closeHelp": "ヘルプを閉じる",
     "retryDeparture": "退出を再試行",
     "lobby": "ロビー",
     "leaveTable": "テーブルを離れる",

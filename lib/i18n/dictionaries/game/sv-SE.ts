@@ -64,7 +64,6 @@ const dictionary = {
     allInDeparture: "Utträde under en hand kan inte ångras. All-in-spelare behåller sin rätt till potten.",
 
     help: "Hjälp",
-    closeHelp: "Stäng hjälpen",
     retryDeparture: "Försök lämna igen",
     lobby: "Lobby",
     leaveTable: "Lämna bordet",

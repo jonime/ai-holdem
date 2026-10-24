@@ -64,7 +64,6 @@ const dictionary = {
     allInDeparture: "Kesken jaon tehty poistuminen on peruuttamaton. All-in-pelaajat säilyttävät oikeutensa pottiin.",
 
     help: "Ohje",
-    closeHelp: "Sulje ohje",
     retryDeparture: "Yritä poistumista uudelleen",
     lobby: "Aula",
     leaveTable: "Poistu pöydästä",

@@ -64,7 +64,6 @@ const dictionary = {
     allInDeparture: "Wyjście w trakcie rozdania jest nieodwracalne. Gracze all-in zachowują prawo do puli.",
 
     help: "Pomoc",
-    closeHelp: "Zamknij pomoc",
     retryDeparture: "Ponów opuszczenie stołu",
     lobby: "Lobby",
     leaveTable: "Opuść stół",

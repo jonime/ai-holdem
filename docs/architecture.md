@@ -931,7 +931,7 @@ restoration. The landing page remains cached; the controls alone use a local
 I18nProvider/Suspense boundary for URL navigation. They read no cookies and start
 no game-session, bot, timer or polling hooks. About remains server-only and uses
 its header brand link for home navigation. Client modules never import help
-documents or fetch them at runtime. Only Help and Close help interface labels live in game dictionaries.
+documents or fetch them at runtime. Help uses the game dictionary’s Help label and the same localized Close label as Settings.
 Localized Help imports the server-only `InlineCardExample` for text-sized ranked
 hands, the royal flush and suit legend. Suit-marked spans share
 `SuitColour.module.css` with visible `PlayingCard` faces and inherit suit variables

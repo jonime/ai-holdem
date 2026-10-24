@@ -64,7 +64,6 @@ const dictionary = {
     allInDeparture: "Das Verlassen während einer Hand ist unwiderruflich. All-in-Spieler behalten ihren Anspruch auf den Pot.",
 
     help: "Hilfe",
-    closeHelp: "Hilfe schließen",
     retryDeparture: "Erneut verlassen",
     lobby: "Lobby",
     leaveTable: "Tisch verlassen",

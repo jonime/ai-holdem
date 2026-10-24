@@ -75,7 +75,7 @@ or semantics rather than color alone.
 
 ## Layout and content patterns
 
-- **Public headers:** Landing and Play place Help and Settings after language and appearance controls, using the same small ghost buttons as gameplay. Let controls wrap on narrow screens; the brand is the home link. Share stays scoped to table pages.
+- **Public headers:** Landing and Play order controls as language, Help, Settings, then appearance, using the same small ghost buttons as gameplay. Let controls wrap on narrow screens; the brand is the home link. Share stays scoped to table pages.
 - **Public pages:** use the spade wordmark, shared navigation, restrained
   illustration and generous editorial spacing. The landing page owns the large
   photographic illustration; gameplay remains CSS/SVG/card graphics. Use the
@@ -98,7 +98,7 @@ or semantics rather than color alone.
 - **Dialogs:** reuse native dialog focus, dismissal and scroll locking. Match
   the relevant dialog’s header, content scrolling and action area; there is no
   universal new sheet component to substitute. Keep Close and live-turn warnings
-  reachable. Opening Help, Settings, results or replay never pauses the live game.
+  reachable. Use the localized “Close” label for dialog dismissal; keep action-specific labels for confirmation and recovery. Opening Help, Settings, results or replay never pauses the live game.
 - **Results and replay:** use existing data and visibility rules. Keep street
   navigation, playback controls, highlights and unavailable-history notices
   recognizable. Do not add decorative statistics or change disclosure text to

@@ -567,7 +567,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
         onClose={closeOverlay} restoreFocus={openerRef} fallbackFocus={settingsOpenerRef} />
     ) : null}
     {overlay.kind === "help" ? (
-      <HelpModal title={helpTitle} content={helpContent} closeLabel={t("gameHeader.closeHelp")} onClose={closeOverlay}
+      <HelpModal title={helpTitle} content={helpContent} closeLabel={t("settings.close")} onClose={closeOverlay}
         restoreFocus={openerRef} fallbackFocus={helpOpenerRef} />
     ) : null}
     </div>

@@ -234,7 +234,7 @@ const helpDialog = (page: Page) => page.getByRole("dialog", { name: "Game help",
 async function openHelp(page: Page) {
   await page.getByRole("button", { name: "Help", exact: true }).click();
   await expect(helpDialog(page)).toBeVisible();
-  await expect(helpDialog(page).getByRole("button", { name: "Close help", exact: true })).toBeFocused();
+  await expect(helpDialog(page).getByRole("button", { name: "Close", exact: true })).toBeFocused();
 }
 
 test("Help contains focus, preserves reading through updates, and blocks gameplay shortcuts", { tag: "@ui-regression" }, async ({ page }) => {
@@ -250,7 +250,7 @@ test("Help contains focus, preserves reading through updates, and blocks gamepla
   await scroll.evaluate(n => { n.scrollTop = 300; });
   const reading = await scroll.evaluate(n => n.scrollTop);
   expect(reading).toBeGreaterThan(0);
-  await expect(dialog.getByRole("button", { name: "Close help" })).toBeInViewport();
+  await expect(dialog.getByRole("button", { name: "Close" })).toBeInViewport();
   await dialog.getByRole("heading", { name: "Game help" }).click();
   for (const key of ["a", "s", "d", "q", "e", "ArrowLeft", "ArrowRight", "Shift+E", "Enter", "Space"]) await page.keyboard.press(key);
   await expect(page.locator("#bet-target")).toHaveValue("200");
@@ -270,7 +270,7 @@ test("Help contains focus, preserves reading through updates, and blocks gamepla
   await expect(page.locator("#bet-target")).toHaveValue("300");
   await openHelp(page);
   await expect.poll(() => scroll.evaluate(n => n.scrollTop)).toBe(0);
-  await dialog.getByRole("button", { name: "Close help" }).click();
+  await dialog.getByRole("button", { name: "Close" }).click();
   await expect(page.getByRole("button", { name: "Help", exact: true })).toBeFocused();
   await openHelp(page);
   await page.setViewportSize({ width: 1280, height: 812 });

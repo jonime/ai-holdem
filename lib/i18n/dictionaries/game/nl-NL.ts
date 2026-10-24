@@ -64,7 +64,6 @@ const dictionary = {
     allInDeparture: "Vertrek tijdens een hand is onomkeerbaar. All-in-spelers behouden hun recht op de pot.",
 
     help: "Help",
-    closeHelp: "Help sluiten",
     retryDeparture: "Vertrek opnieuw proberen",
     lobby: "Lobby",
     leaveTable: "Tafel verlaten",
