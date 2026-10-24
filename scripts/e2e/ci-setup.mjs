@@ -1,14 +1,13 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { run } from "./process.mjs";
+import { installCIBrowsers } from "./ci-browser-install.mjs";
 
 /** Independent setup tasks overlap, but both must exit before checks or teardown. */
-export async function setupCI(runCommand = run, env = process.env) {
+export async function setupCI(runCommand = run, env = process.env, platform = process.platform) {
   if (env.CI !== "true") throw new Error("Integration setup is CI-only.");
   const results = await Promise.allSettled([
-    runCommand(process.execPath, [resolve("node_modules/@playwright/test/cli.js"), "install", "--with-deps", "chromium", "webkit"], {
-      env, phase: "browser-install", timeout: 480_000,
-    }),
+    installCIBrowsers(env, runCommand, platform),
     runCommand(process.execPath, [resolve("scripts/e2e/supabase.mjs")], {
       env, phase: "supabase-setup", timeout: 720_000,
     }),

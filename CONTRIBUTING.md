@@ -412,6 +412,16 @@ building so filters, sharding, alternative configs, or last-failed selection
 cannot silently omit any required project or suite. Empty selections fail in all four commands;
 `--pass-with-no-tests` is forbidden.
 
+The CI browser installer runs as the runner user in a uniquely named systemd
+service. Its control group contains sudo/apt descendants across session changes;
+root-managed termination enforces an eight-minute runtime limit and escalates
+from TERM to KILL after ten seconds. Cancellation awaits service shutdown before
+setup settles. This requires systemd and passwordless sudo on Ubuntu GitHub
+runners and fails if containment is unavailable. A CI fixture verifies timeout
+and cancellation with a root-owned detached descendant before actual setup.
+Local commands do not use systemd. Generic process-group cancellation also
+escalates ten seconds after the cancellation request, independently of its original deadline.
+
 The CI setup script starts the full stack with health checks enabled and resets
 only its disposable local database to apply committed migrations. Neither SQL
 suite nor any production browser command resets ordinary local databases; SQL fixtures keep their

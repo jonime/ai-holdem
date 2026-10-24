@@ -116,6 +116,16 @@ Before setup, the CI-only `scripts/e2e/ci-apt.mjs` configures Ubuntu HTTPS archi
 and apt HTTP/HTTPS connection/data inactivity timeouts of 30 seconds with two
 download retries on the disposable GitHub runner. Preserve package signing keys,
 suites and third-party sources; never run this reconfiguration on local machines.
+The CI browser installer runs as the runner user in a uniquely named systemd
+service. Its control group contains sudo/apt descendants across session changes;
+root-managed termination enforces an eight-minute runtime limit and escalates
+from TERM to KILL after ten seconds. Cancellation awaits service shutdown before
+setup settles. This requires systemd and passwordless sudo on Ubuntu GitHub
+runners and fails if containment is unavailable. A CI fixture verifies timeout
+and cancellation with a root-owned detached descendant before actual setup.
+Local commands do not use systemd. Generic process-group cancellation also
+escalates ten seconds after the cancellation request, independently of its original deadline.
+
 Browser/system dependency installation and Supabase setup overlap through
 `scripts/e2e/ci-setup.mjs`; both must exit successfully before checks, and setup
 failures wait for both tasks to exit before unconditional teardown. Supabase registry
