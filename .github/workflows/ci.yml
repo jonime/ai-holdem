@@ -75,6 +75,10 @@ jobs:
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
 
+      - name: Verify privileged setup process cleanup
+        timeout-minutes: 2
+        run: node scripts/e2e/ci-process-verification.mjs
+
       - name: Configure reliable Ubuntu package downloads
         timeout-minutes: 1
         run: sudo --preserve-env=CI,GITHUB_ACTIONS "$(command -v node)" scripts/e2e/ci-apt.mjs

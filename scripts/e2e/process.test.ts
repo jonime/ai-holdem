@@ -40,3 +40,28 @@ it("propagates a failed child and retains its useful diagnostic", async () => {
   })).rejects.toThrow("exit 1");
   expect(readFileSync(join(directory, "failure.log"), "utf8")).toContain("test failure");
 });
+
+it("kills TERM-resistant descendants at the timeout", async () => {
+  const started = Date.now();
+  await expect(run(process.execPath, ["-e", `
+    const { spawn } = require('node:child_process');
+    spawn(process.execPath, ['-e', 'process.on("SIGTERM", () => {}); setInterval(() => {}, 1000)'], { stdio: 'inherit' });
+    process.on('SIGTERM', () => {});
+    setInterval(() => {}, 1000);
+  `], { phase: "timeout", timeout: 300, killAfter: 100 })).rejects.toThrow("timeout");
+  expect(Date.now() - started).toBeLessThan(3000);
+});
+
+it("escalates cancellation immediately rather than waiting for the original deadline", async () => {
+  const task = run(process.execPath, ["-e", `
+    process.on('SIGTERM', () => {});
+    console.log('ready');
+    setInterval(() => {}, 1000);
+  `], { phase: "cancel", timeout: 60_000, killAfter: 100 });
+  const outcome = expect(task).rejects.toThrow("cancel failed");
+  await vi.waitFor(() => expect(readFileSync(join(directory, "cancel.log"), "utf8")).toContain("ready"));
+  const started = Date.now();
+  process.emit("SIGTERM");
+  await outcome;
+  expect(Date.now() - started).toBeLessThan(3000);
+});

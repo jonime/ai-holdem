@@ -12,9 +12,10 @@ it("starts both setup tasks before either finishes, retaining install coverage a
   const browsers = deferred();
   const supabase = deferred();
   const run = vi.fn().mockReturnValueOnce(browsers.promise).mockReturnValueOnce(supabase.promise);
-  const setup = setupCI(run, { CI: "true", NODE_ENV: "test" });
+  const setup = setupCI(run, { CI: "true", GITHUB_ACTIONS: "true", NODE_ENV: "test" }, "linux");
   expect(run).toHaveBeenCalledTimes(2);
-  expect(run.mock.calls[0][1]).toEqual([expect.stringContaining("@playwright/test/cli.js"), "install", "--with-deps", "chromium", "webkit"]);
+  expect(run.mock.calls[0][0]).toBe("sudo");
+  expect(run.mock.calls[0][1]).toEqual(expect.arrayContaining([expect.stringContaining("@playwright/test/cli.js"), "install", "--with-deps", "chromium", "webkit", "--property=KillMode=control-group", "--property=RuntimeMaxSec=480"]));
   expect(run.mock.calls[0][2]).toMatchObject({ phase: "browser-install", timeout: 480_000 });
   expect(run.mock.calls[1][1]).toEqual([expect.stringContaining("scripts/e2e/supabase.mjs")]);
   expect(run.mock.calls[1][2]).toMatchObject({ phase: "supabase-setup", timeout: 720_000 });
@@ -26,7 +27,7 @@ it("starts both setup tasks before either finishes, retaining install coverage a
 it.each([0, 1])("waits for the other child before reporting failure of task %i", async failed => {
   const children = [deferred(), deferred()];
   const run = vi.fn().mockReturnValueOnce(children[0].promise).mockReturnValueOnce(children[1].promise);
-  const setup = setupCI(run, { CI: "true", NODE_ENV: "test" });
+  const setup = setupCI(run, { CI: "true", GITHUB_ACTIONS: "true", NODE_ENV: "test" }, "linux");
   let settled = false;
   const outcome = setup.then(() => { settled = true; }, error => { settled = true; return error; });
   const failure = new Error("setup task failed");
