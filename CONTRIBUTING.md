@@ -304,20 +304,28 @@ migrations, then run these commands in order:
 
 ```sh
 npm run db:types:check
-npm run test:sql:game-reads
-npm run test:sql:replay
-npm run test:sql:results
-npm run test:sql:creation
-npm run test:sql:my-games
-npm run test:sql:removal
-npm run test:sql:bot-context
-npm run test:sql:seats
-npm run test:sql:departures
-npm run test:sql:turn-timers
-npm run test:sql:bot-claims
-npm run test:sql:usage
+npm run test:sql
+npm run test:integration:bot-pipeline
 npm run test:e2e:ci
 ```
+
+`test:sql` runs all thirteen existing SQL suites sequentially in the same order as
+CI: game reads, replay, personal results, replay shares, creation attempts,
+personal tables, removal, bot context, seats, departures, turn timers, bot claims,
+and usage. The runner in `scripts/sql-verification.mjs` retains each former
+workflow step's two- or three-minute deadline and stops on the first failure or
+timeout. CI presents each suite in its own log group; sanitized output is retained
+in `integration-logs/sql-<suite>.log` and uploaded with the existing diagnostics.
+For a failure, expand the named group or inspect its log, then rerun the individual
+`npm run test:sql:<suite>` command against the running migrated local stack.
+When adding a SQL suite, register its order and deadline in the runner; the focused
+coverage test requires every individual `test:sql:*` script to be included.
+This consolidates workflow maintenance without reducing coverage or materially
+speeding up execution. The same integration job retains its 30-minute limit,
+fresh healthy stack, unconditional teardown and separate bot/browser steps.
+The aggregate command never starts, migrates or resets Supabase and loads no
+application environment files; each existing suite retains its local-only checks
+and fixture cleanup. Individual SQL commands remain available for focused checks.
 
 All four production commands share one runner. `test:e2e:smoke` selects `@smoke`
 and `test:e2e:ui` selects `@ui-regression`, both Chromium-only by default.

@@ -90,57 +90,8 @@ jobs:
       - name: Check generated database types against migrated schema
         run: npm run db:types:check
 
-      - name: Verify SQL game reads
-        timeout-minutes: 3
-        run: npm run test:sql:game-reads
-
-      - name: Verify SQL hand replay
-        timeout-minutes: 2
-        run: npm run test:sql:replay
-
-      - name: Verify SQL personal results
-        timeout-minutes: 2
-        run: npm run test:sql:results
-
-      - name: Verify SQL replay shares
-        timeout-minutes: 2
-        run: npm run test:sql:shares
-
-      - name: Verify SQL creation attempts
-        timeout-minutes: 3
-        run: npm run test:sql:creation
-
-      - name: Verify SQL personal tables
-        timeout-minutes: 3
-        run: npm run test:sql:my-games
-
-      - name: Verify SQL table removal
-        timeout-minutes: 3
-        run: npm run test:sql:removal
-
-      - name: Verify SQL bot context
-        timeout-minutes: 3
-        run: npm run test:sql:bot-context
-
-      - name: Verify SQL seat mutations
-        timeout-minutes: 3
-        run: npm run test:sql:seats
-
-      - name: Verify SQL human departures
-        timeout-minutes: 3
-        run: npm run test:sql:departures
-
-      - name: Verify SQL human turn timers
-        timeout-minutes: 2
-        run: npm run test:sql:turn-timers
-
-      - name: Verify SQL bot claims
-        timeout-minutes: 3
-        run: npm run test:sql:bot-claims
-
-      - name: Verify SQL usage admission
-        timeout-minutes: 3
-        run: npm run test:sql:usage
+      - name: Verify SQL suites sequentially
+        run: npm run test:sql
 
       - name: Verify external bot application pipeline
         timeout-minutes: 3
