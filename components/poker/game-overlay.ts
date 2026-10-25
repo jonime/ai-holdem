@@ -1,3 +1,5 @@
+import type { FoldDecision } from "./fold-confirmation";
+
 /** Navigation only: DOM return targets and feature work belong outside this module. */
 export type GameOverlay =
   | { readonly kind: "none" }
@@ -8,6 +10,7 @@ export type GameOverlay =
   | { readonly kind: "shareTable" }
   | { readonly kind: "settings" }
   | { readonly kind: "leave" }
+  | { readonly kind: "foldConfirmation"; readonly decision: FoldDecision }
   | { readonly kind: "botInformation"; readonly botId: string }
   | { readonly kind: "handReplay"; readonly handNumber: number; readonly origin: "actions" | "results" | "table" };
 

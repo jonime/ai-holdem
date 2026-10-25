@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  foldConfirmation: {"title": "¿Pasar en su lugar?", "explanation": "Puedes pasar sin añadir fichas. ¿Retirarte de todos modos?", "foldAnyway": "Retirarme de todos modos"},
   appearance: {"cards": "Cartas e importes", "gameplay": "Juego", "title": "Apariencia", "system": "Sistema", "light": "Claro", "dark": "Oscuro"},
   shareTable: {
     open: "Compartir",

@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  foldConfirmation: {"title": "Sökötä sittenkin?", "explanation": "Voit sököttää lisäämättä merkkejä. Luovutatko silti?", "foldAnyway": "Luovuta silti"},
   appearance: {"cards": "Kortit ja summat", "gameplay": "Pelaaminen", "title": "Ulkoasu", "system": "Järjestelmä", "light": "Vaalea", "dark": "Tumma"},
   shareTable: {
     open: "Jaa",

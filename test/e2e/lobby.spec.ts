@@ -214,6 +214,9 @@ test("runs the deterministic bot through completion, Actions feed, and another h
   const fold = page.getByRole("button", { name: "Fold" });
   await expect(fold).toBeEnabled({ timeout: 10_000 });
   await fold.click();
+  if (await page.getByRole("dialog", { name: "Check instead?" }).count()) {
+    await page.getByRole("button", { name: "Fold anyway", exact: true }).click();
+  }
   await expect(page.getByText("COMPLETE")).toBeVisible({ timeout: 15_000 });
   const actions = page.getByRole("complementary", { name: "Actions" });
   await expect(actions).toBeVisible();

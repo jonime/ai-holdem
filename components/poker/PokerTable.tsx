@@ -79,6 +79,7 @@ export function PokerTable({
   readonly onSubmitAction: (
     action: LegalAction,
     amountOverride?: number | null,
+    opener?: HTMLElement,
   ) => void;
   readonly onBeginNextHand: () => void;
   readonly onRevealCards: () => void;
@@ -126,15 +127,15 @@ export function PokerTable({
     const call = legalAction("call");
     return potPresetTarget(sizedAction, game.poker.pot, committedStreet, call?.type === "call" ? call.amount : 0, fraction);
   };
-  const submitFixedAction = (type: LegalAction["type"]) => {
+  const submitFixedAction = (type: LegalAction["type"], opener: HTMLElement) => {
     const action = legalAction(type);
     if (!action) return;
     if (action.type === "bet" || action.type === "raise") {
       if (selectedAmount === null) return;
-      onSubmitAction(action, selectedAmount);
+      onSubmitAction(action, selectedAmount, opener);
       return;
     }
-    onSubmitAction(action);
+    onSubmitAction(action, undefined, opener);
   };
 
   return (
@@ -268,7 +269,7 @@ export function PokerTable({
                 size="action"
                 shortcut={shortcuts && legalAction("fold") ? "A" : undefined}
                 disabled={!canAct || loading || !legalAction("fold")}
-                onClick={() => submitFixedAction("fold")}
+                onClick={event => submitFixedAction("fold", event.currentTarget)}
               >
                 {t("table.fold")}
               </Button>
@@ -283,11 +284,11 @@ export function PokerTable({
                     ? !canStartNextHand
                     : !canAct || !checkCallAction)
                 }
-                onClick={() => {
+                onClick={event => {
                   if (game.poker.street === "complete") {
                     onBeginNextHand();
                   } else if (checkCallAction) {
-                    submitFixedAction(checkCallAction.type);
+                    submitFixedAction(checkCallAction.type, event.currentTarget);
                   }
                 }}
               >
@@ -312,11 +313,11 @@ export function PokerTable({
                     ? !canRevealCards
                     : !canAct || !sizedAction || selectedAmount === null)
                 }
-                onClick={() => {
+                onClick={event => {
                   if (isFoldEndedHand) {
                     onRevealCards();
                   } else if (sizedAction) {
-                    submitFixedAction(sizedAction.type);
+                    submitFixedAction(sizedAction.type, event.currentTarget);
                   }
                 }}
               >

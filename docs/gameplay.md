@@ -541,3 +541,20 @@ order. Below 640px the table becomes portrait. Actions opens as an overlay below
 1100px. The betting dock keeps the same legal actions, total-target input, slider,
 presets and additional-chip amounts. Short screens can scroll. Overlays continue
 to leave the live game and turn timers running.
+
+## Folding when checking is free
+
+When authoritative legal actions include both Check and Fold, the Fold button and
+A shortcut open **Check instead?**. **Check** is focused initially and checks
+without adding chips; **Fold anyway** folds. Escape, Close and backdrop dismissal
+cancel without acting. Folding when Check is unavailable remains immediate.
+This safeguard is always enabled and does not intercept timeout or departure actions.
+
+The dialog shows the existing turn countdown. Timers, bots and authoritative
+refreshes continue; gameplay shortcuts are suppressed. The decision is bound to
+the game, hand, version and actor. A changed decision, expired turn, lost ownership
+or blocked recovery closes it without acting; a refresh of the same decision
+keeps it open. Both choices revalidate and share a submission lock, then close
+into the normal pending, conflict and unknown-outcome recovery flow. Failed
+actions are never replayed automatically. Dismissal restores the invoking control
+when available, otherwise the table receives focus.

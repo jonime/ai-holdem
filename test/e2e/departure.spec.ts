@@ -117,6 +117,7 @@ test("@smoke remaining browsers fold a departed human and finish after that brow
     await advance;
     await expect(third.getByRole("button", { name: "Fold", exact: true })).toBeEnabled();
     await third.getByRole("button", { name: "Fold", exact: true }).click();
+    await third.getByRole("dialog", { name: "Check instead?" }).getByRole("button", { name: "Fold anyway", exact: true }).click();
     await expect.poll(async () => (await read(page, gameId)).status).toBe("complete");
     const game = await read(page, gameId);
     const departed = game.poker.players.find(player => player.seat === 1)!;

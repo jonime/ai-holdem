@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  foldConfirmation: {"title": "Może zaczekać?", "explanation": "Możesz zaczekać bez dokładania żetonów. Mimo to spasować?", "foldAnyway": "Spasuj mimo to"},
   appearance: {"cards": "Karty i kwoty", "gameplay": "Gra", "title": "Wygląd", "system": "System", "light": "Jasny", "dark": "Ciemny"},
   shareTable: {
     open: "Udostępnij",

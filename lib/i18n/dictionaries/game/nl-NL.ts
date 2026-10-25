@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  foldConfirmation: {"title": "Liever checken?", "explanation": "Je kunt checken zonder chips toe te voegen. Toch folden?", "foldAnyway": "Toch folden"},
   appearance: {"cards": "Kaarten en bedragen", "gameplay": "Spel", "title": "Weergave", "system": "Systeem", "light": "Licht", "dark": "Donker"},
   shareTable: {
     open: "Delen",

@@ -5,6 +5,9 @@ import { useGameOverlay } from "./useGameOverlay";
 import { connectionFeedback } from "./connection-notice";
 import { useCreation } from "@/components/creation/useCreation";
 import { CreationFeedback } from "@/components/creation/CreationFeedback";
+import { FoldConfirmationDialog } from "./FoldConfirmationDialog";
+import { foldDecision, sameFoldDecision } from "./fold-confirmation";
+import type { LegalAction } from "./types";
 import { ConfirmationDialog } from "./ConfirmationDialog";
 import { headerDepartureSeat } from "./header-navigation";
 import { HandReplayModal } from "./HandReplayModal";
@@ -27,7 +30,7 @@ import { HelpModal } from "./HelpModal";
 import { GameHeader } from "./GameHeader";
 import { addLocalePrefix } from "@/lib/i18n";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 import {
   ActionFeedModal,
@@ -196,13 +199,44 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const isSpectator = viewerPlayer === null && !ownedSeat && Boolean(game);
   const {
     overlay, isOverlayOpen, openerRef, actionsPosition, close: closeOverlay,
-    openActions, openResults, openJoin, openHelp, openShareTable, openSettings, openLeave,
+    openFoldConfirmation, openActions, openResults, openJoin, openHelp, openShareTable, openSettings, openLeave,
     openBotInformation: openBot, openReplay: reviewHand, backToActions, backToResults,
   } = useGameOverlay(gameId, {
     isSpectator,
     botInformationAvailable: !unavailable && game?.status !== "waiting",
     botIds: (game?.poker.players ?? []).filter(player => player.controller === "bot" && player.status !== "open").map(player => player.id),
   });
+  const actionsBlocked = loading || requestBusy || recoveryBlocked || unavailable || !online ||
+    creatingQuickPlay || languageNavigating || game?.id !== gameId;
+  const handleActionIntent = useCallback((action: LegalAction, amountOverride: number | null = selectedAmount, opener?: HTMLElement) => {
+    if (!game || actionsBlocked || quickPlayCreationPending.current || !isHumanTurn ||
+      (turnRemainingMs(game) ?? 1) <= 0 || isOverlayOpen) return;
+    const current = game.poker.legalActions.find(candidate => candidate.type === action.type);
+    if (!current || ((current.type === "bet" || current.type === "raise") && amountOverride === null)) return;
+    const decision = foldDecision(game, getClientPlayerToken(), actionsBlocked);
+    if (current.type === "fold" && game.poker.legalActions.some(candidate => candidate.type === "check")) {
+      if (!decision) return;
+      const returnTarget = opener ?? (document.activeElement instanceof HTMLElement && document.activeElement !== document.body
+        ? document.activeElement : tableRef.current);
+      if (!returnTarget) return;
+      openFoldConfirmation(decision, returnTarget);
+      return;
+    }
+    void submitAction(current, amountOverride);
+  }, [game, actionsBlocked, isHumanTurn, isOverlayOpen, selectedAmount, openFoldConfirmation, submitAction]);
+
+  // Authoritative replacements with the same decision remain valid. Deadline expiry
+  // also closes the dialog when no response arrives, without pausing the live game.
+  useEffect(() => {
+    if (overlay.kind !== "foldConfirmation") return;
+    const reconcile = () => {
+      if (!sameFoldDecision(overlay.decision, foldDecision(game, getClientPlayerToken(), actionsBlocked))) closeOverlay();
+    };
+    reconcile();
+    const timer = setInterval(reconcile, 100);
+    return () => clearInterval(timer);
+  }, [overlay, game, actionsBlocked, closeOverlay]);
+
   const informationPlayer = overlay.kind === "botInformation" ? selectedBot(game?.poker.players ?? [], overlay.botId) : null;
   const departureFeedback = overlay.kind === "leave" && departureAttempted;
   const canRevealCards =
@@ -283,7 +317,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
 
       if (action) {
         event.preventDefault();
-        void submitAction(
+        handleActionIntent(
           action,
           action.type === "call" ? action.amount : null,
         );
@@ -292,7 +326,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
 
       if (key === "d" && sizedAction && selectedAmount !== null) {
         event.preventDefault();
-        void submitAction(
+        handleActionIntent(
           sizedAction,
           selectedAmount,
         );
@@ -330,7 +364,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     isHumanTurn,
     loading,
     sizedAction,
-    submitAction,
+    handleActionIntent,
     revealCards,
     viewerPlayer,
   ]);
@@ -433,11 +467,7 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
               onStandUp={() => {
                 if (ownedSeat && !quickPlayCreationPending.current) void releaseSeat(ownedSeat.seat);
               }}
-              onSubmitAction={(action, amountOverride = selectedAmount) => {
-                if (quickPlayCreationPending.current) return;
-                if ((action.type === "bet" || action.type === "raise") && amountOverride === null) return;
-                void submitAction(action, amountOverride);
-              }}
+              onSubmitAction={handleActionIntent}
               onBeginNextHand={() => { if (!quickPlayCreationPending.current) void beginNextHand(); }}
               onRevealCards={() => { if (!quickPlayCreationPending.current) void revealCards(); }}
               feedCollapsed={feedCollapsed}
@@ -536,6 +566,15 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
       <BotInformationModal player={informationPlayer} onClose={closeOverlay}
         restoreFocus={openerRef} fallbackFocus={helpOpenerRef} />
     ) : null}
+    {overlay.kind === "foldConfirmation" ? <FoldConfirmationDialog
+      onClose={closeOverlay} restoreFocus={openerRef} fallbackFocus={tableRef}
+      onAction={type => {
+        const valid = sameFoldDecision(overlay.decision,
+          foldDecision(game, getClientPlayerToken(), actionsBlocked || quickPlayCreationPending.current));
+        const action = valid ? game?.poker.legalActions.find(candidate => candidate.type === type) : undefined;
+        closeOverlay();
+        if (action) void submitAction(action);
+      }} /> : null}
     {overlay.kind === "leave" ? <ConfirmationDialog
       title={t("gameHeader.leaveTable")}
       explanation={!departureSeat ? t(departureRegistered ? "gameHeader.departureRegistered" : "gameHeader.departureUnavailable") :
