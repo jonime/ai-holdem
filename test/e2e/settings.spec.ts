@@ -75,6 +75,9 @@ for (const { name, suffix } of languageSuffixes) {
       }
     });
     await page.goto(`/game/${f.id}${suffix}`);
+    // Loading the game adds Share to the header and can move Settings during a
+    // mobile click. Wait for this navigation's fixture state before interacting.
+    await expect(page.getByRole("button", { name: "Check", exact: true })).toBeEnabled();
     // Compare the browser's serialized suffix, including normal percent encoding.
     const initial = new URL(page.url());
     const assertDestination = async (pathname: string) => {

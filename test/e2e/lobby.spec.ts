@@ -217,7 +217,7 @@ test("runs the deterministic bot through completion, Actions feed, and another h
   if (await page.getByRole("dialog", { name: "Check instead?" }).count()) {
     await page.getByRole("button", { name: "Fold anyway", exact: true }).click();
   }
-  await expect(page.getByText("COMPLETE")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText("Complete", { exact: true })).toBeVisible({ timeout: 15_000 });
   const actions = page.getByRole("complementary", { name: "Actions" });
   await expect(actions).toBeVisible();
   await expect(actions.getByRole("listitem").filter({ hasText: "Equity Rules" }).first()).toBeVisible();

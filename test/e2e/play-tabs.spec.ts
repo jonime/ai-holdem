@@ -270,11 +270,12 @@ test("Play collection appearance, long content and localized landing link", { ta
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.screenshot({ path: testInfo.outputPath(`play-${theme}-${width}.png`), fullPage: true });
     }
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await page.evaluate(() => { document.documentElement.style.zoom = "2"; });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`play-${theme}-200-percent.png`), fullPage: true });
+    await page.evaluate(() => { document.documentElement.style.zoom = ""; });
   }
-  await page.setViewportSize({ width: 1024, height: 900 });
-  await page.evaluate(() => { document.documentElement.style.zoom = "2"; });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.screenshot({ path: testInfo.outputPath("play-200-percent.png"), fullPage: true });
   for (const [prefix, label] of [["", "Play"], ["/fi-FI", "Pelaa"], ["/de-DE", "Spielen"]]) {
     await page.goto(prefix || "/");
     const hero = page.getByRole("link", { name: label, exact: true }).last();
