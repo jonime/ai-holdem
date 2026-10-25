@@ -133,8 +133,13 @@ images are pulled normally during startup; do not cache Docker image archives,
 containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
-disposable database, then runs `db:types:check` before `test:sql:game-reads`, `test:sql:replay`, `test:sql:results`, `test:sql:shares`, `test:sql:creation`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
-`test:sql:departures`, `test:sql:turn-timers`, `test:sql:bot-claims`, `test:sql:usage`, `test:integration:bot-pipeline`, and `test:e2e:ci` in order.
+disposable database, then runs `db:types:check` before `test:sql`. The sequential
+SQL runner (`scripts/sql-verification.mjs`) preserves per-suite two/three-minute
+deadlines, stops on the first failure, and groups output with sanitized
+`integration-logs/sql-<suite>.log` diagnostics. Its suite order is `test:sql:game-reads`, `test:sql:replay`, `test:sql:results`, `test:sql:shares`, `test:sql:creation`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
+`test:sql:departures`, `test:sql:turn-timers`, `test:sql:bot-claims`, and `test:sql:usage`.
+`test:integration:bot-pipeline` and `test:e2e:ci` follow SQL verification in order.
+Keep individual SQL commands available for focused local checks.
 The bot-pipeline suite requires an already-running migrated local stack, injects
 only deterministic `BotRegistry` decisions, and retains real creation, context,
 authorization, claims, allowances, legality and persistence. Its isolated Vitest
