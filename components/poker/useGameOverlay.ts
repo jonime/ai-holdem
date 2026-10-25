@@ -1,5 +1,6 @@
 "use client";
 
+import type { FoldDecision } from "./fold-confirmation";
 import { useLayoutEffect, useRef, useState } from "react";
 import { canReturnToResults, canReturnToActions, initialOverlayNavigation, transitionOverlay, type GameOverlay, type OverlayEligibility } from "./game-overlay";
 
@@ -44,6 +45,7 @@ export function useGameOverlay(gameId: string | undefined, eligibility: OverlayE
     openShareTable: (opener: HTMLElement) => open({ kind: "shareTable" }, opener),
     openHelp: (opener: HTMLElement) => open({ kind: "help" }, opener),
     openSettings: (opener: HTMLElement) => open({ kind: "settings" }, opener),
+    openFoldConfirmation: (decision: FoldDecision, opener: HTMLElement) => open({ kind: "foldConfirmation", decision }, opener),
     openLeave: (opener: HTMLElement) => open({ kind: "leave" }, opener),
     openBotInformation: (botId: string, opener: HTMLButtonElement) => open({ kind: "botInformation", botId }, opener),
   };

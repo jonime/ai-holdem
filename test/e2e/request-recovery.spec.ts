@@ -50,6 +50,9 @@ test("committed action with lost response shows authoritative progress without r
     (await r.json()).game.version > originalVersion);
   // Fold is legal for the real persisted human turn as well as the controlled view.
   await page.getByRole("button", { name: "Fold", exact: true }).click();
+  if (await page.getByRole("dialog", { name: "Check instead?" }).count()) {
+    await page.getByRole("button", { name: "Fold anyway", exact: true }).click();
+  }
   const authoritative = (await (await reconciled).json()).game;
   expect(authoritative.version).toBeGreaterThan(originalVersion);
   expect(authoritative.poker.players.find((p: { controller: string }) => p.controller === "human").folded).toBe(true);

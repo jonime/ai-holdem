@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  foldConfirmation: {"title": "Checka i stället?", "explanation": "Du kan checka utan att lägga till marker. Lägga dig ändå?", "foldAnyway": "Lägg dig ändå"},
   appearance: {"cards": "Kort och belopp", "gameplay": "Spel", "title": "Utseende", "system": "System", "light": "Ljust", "dark": "Mörkt"},
   shareTable: {
     open: "Dela",

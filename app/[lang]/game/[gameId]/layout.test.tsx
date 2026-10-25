@@ -71,6 +71,7 @@ const gameTopLevelKeys = [
   "creation",
   "errors",
   "feed",
+  "foldConfirmation",
   "gameHeader",
   "lobby",
   "replay",

@@ -3,6 +3,7 @@ import "server-only";
 import type { GameDictionary } from "../../types";
 
 const dictionary = {
+  foldConfirmation: {"title": "改为过牌？", "explanation": "你可以过牌，无需加注筹码。仍要弃牌吗？", "foldAnyway": "仍然弃牌"},
   appearance: {"cards": "纸牌与金额", "gameplay": "游戏", "title": "外观", "system": "跟随系统", "light": "浅色", "dark": "深色"},
   shareTable: {
     open: "分享",

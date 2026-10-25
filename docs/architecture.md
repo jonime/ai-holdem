@@ -964,8 +964,23 @@ with pending dismissal guarded by `ConfirmationDialog`.
 | Join no longer spectator / refresh | Close |
 | Bot information missing, unavailable or waiting / refresh | Close |
 | Leave / eligibility change | Keep explanatory or recovery state |
+| Fold confirmation / changed decision, expiry, lost ownership or blocked mutation | Close without acting |
 | Any / game ID change | None; discard return context |
 | Any / stale Close or Back | No change |
+
+Voluntary table and keyboard actions pass through one `PokerApp` action-intent
+handler. When authoritative Fold and Check actions are both legal, it opens the
+typed `foldConfirmation` overlay with game ID, hand, version and actor ID.
+`fold-confirmation.ts` validates that decision against current ownership, live
+seat assignment, turn eligibility, legal actions, deadline and mutation blocking.
+The shell reconciles authoritative changes immediately and checks elapsed deadlines
+while open; same-decision refreshes remain valid. The dedicated small
+`FoldConfirmationDialog` focuses Check and shares one synchronous lock across
+Check and Fold anyway. Each choice revalidates, resolves the current legal action,
+closes, and calls the existing session mutation flow directly. Cancellation never
+submits. Session pending, conflict and unknown-outcome recovery semantics remain
+unchanged, as do timeout/departure folds and the destructive `ConfirmationDialog`.
+The existing modal turn warning/countdown remains visible; nothing pauses the game.
 
 All dialogs retain the shared native `Modal` lifecycle. Only `Modal` handles focus
 trapping, initial focus, scroll locking and restoration, including replacement and

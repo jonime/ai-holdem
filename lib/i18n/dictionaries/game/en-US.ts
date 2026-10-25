@@ -1,6 +1,7 @@
 import "server-only";
 
 const dictionary = {
+  foldConfirmation: {"title": "Check instead?", "explanation": "You can check without adding chips. Fold anyway?", "foldAnyway": "Fold anyway"},
   appearance: {"cards": "Cards and amounts", "gameplay": "Gameplay", "title": "Appearance", "system": "System", "light": "Light", "dark": "Dark"},
   shareTable: {
     open: "Share",

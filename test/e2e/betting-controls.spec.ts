@@ -10,6 +10,9 @@ async function submit(page: Page, type: string, amount?: number, keyboard = fals
   } else {
     await page.getByRole("button", { name: new RegExp(`^${type}`) }).click();
   }
+  if (type === "Fold" && await page.getByRole("dialog", { name: "Check instead?" }).count()) {
+    await page.getByRole("button", { name: "Fold anyway", exact: true }).click();
+  }
   const result = await response;
   expect(result.ok()).toBe(true);
   expect(result.request().postDataJSON().action).toEqual({ type: type.toLowerCase(), ...(amount === undefined ? {} : { amount }) });
