@@ -445,6 +445,10 @@ header controls: loading the game adds Share and can reflow the mobile header.
 Match visible status labels exactly so accessibility announcements containing the
 same words do not make locators ambiguous. Keep the single interaction and its
 result assertion; do not mask failures with repeated clicks or retries.
+Collection refresh buttons include the collection title in their accessible name
+(for example, `Refresh: Open public tables`); use that exact name in recovery tests.
+Keep the Play 200% zoom overflow assertion and captures in both themes: public
+header groups must wrap even when zoom leaves the desktop media query active.
 
 To validate CI failure handling, temporarily add a failing assertion to a tagged
 test on a test branch, verify that the integration job fails and its artifact

@@ -75,7 +75,7 @@ or semantics rather than color alone.
 
 ## Layout and content patterns
 
-- **Public headers:** Landing and Play order controls as language, Help, Settings, then appearance, using the same small ghost buttons as gameplay. Let controls wrap on narrow screens; the brand is the home link. Share stays scoped to table pages.
+- **Public headers:** Landing and Play order controls as language, Help, Settings, then appearance, using the same small ghost buttons as gameplay. Let header groups wrap whenever their content needs more room, including at enlarged zoom above the mobile breakpoint; the brand is the home link. Share stays scoped to table pages.
 - **Public pages:** use the spade wordmark, shared navigation, restrained
   illustration and generous editorial spacing. The landing page owns the large
   photographic illustration; gameplay remains CSS/SVG/card graphics. Use the

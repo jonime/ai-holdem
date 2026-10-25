@@ -221,7 +221,7 @@ test("network failure has no server reference and offers selectable clipboard fa
   await page.evaluate(() => {
     Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async () => { throw Error("denied"); } } });
   });
-  await page.getByRole("button", { name: /^Refresh$|Try again/ }).click();
+  await page.getByRole("button", { name: "Refresh: Open public tables", exact: true }).click();
   await page.getByRole("button", { name: "Copy error details" }).click();
   const fallback = page.getByRole("textbox", { name: "Select and copy these error details:" });
   await expect(fallback).toBeVisible();
