@@ -7,14 +7,12 @@ import { useCreation } from "@/components/creation/useCreation";
 import { CreationFeedback } from "@/components/creation/CreationFeedback";
 import { FoldConfirmationDialog } from "./FoldConfirmationDialog";
 import { foldDecision, sameFoldDecision } from "./fold-confirmation";
-import type { LegalAction } from "./types";
 import { ConfirmationDialog } from "./ConfirmationDialog";
 import { headerDepartureSeat } from "./header-navigation";
 import { HandReplayModal } from "./HandReplayModal";
 import { ShareTableModal } from "./ShareTableModal";
 import { Modal } from "./Modal";
 import { ModalTurnProvider } from "./ModalTurnWarning";
-import { turnRemainingMs } from "./turn-clock";
 import Link from "next/link";
 
 import { hasAutomaticTurn } from "./bot-advancement";
@@ -30,7 +28,7 @@ import { HelpModal } from "./HelpModal";
 import { GameHeader } from "./GameHeader";
 import { addLocalePrefix } from "@/lib/i18n";
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 
 import {
   ActionFeedModal,
@@ -52,7 +50,7 @@ import {
   canAdvanceBots,
 } from "@/components/poker/view-model";
 
-import { adjustTarget, decisionScope, validatedTarget } from "@/components/poker/bet-sizing";
+import { usePlayerControls } from "./usePlayerControls";
 
 import { usePlayerName } from "@/lib/browser/player-name";
 import { PersonalResultsModal } from "./PersonalResultsModal";
@@ -80,7 +78,6 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   const preferredName = usePlayerName();
   const [playerName, setPlayerName] = useState("");
   const [playerNameEdited, setPlayerNameEdited] = useState(false);
-  const [amountDraft, setAmountDraft] = useState({ scope: "", value: "" });
   const [departureAttempted, setDepartureAttempted] = useState(false);
   const [departureFailed, setDepartureFailed] = useState(false);
   const settingsOpenerRef = useRef<HTMLButtonElement>(null);
@@ -170,35 +167,11 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     viewerPlayer?.controller === "human" && !playerNameEdited
       ? viewerPlayer.name
       : playerNameEdited ? playerName : preferredName;
-  const sizedAction = game?.poker.legalActions.find(
-    (
-      action,
-    ): action is Extract<
-      (typeof game)["poker"]["legalActions"][number],
-      { type: "bet" | "raise" }
-    > => action.type === "bet" || action.type === "raise",
-  );
-  const amountScope = decisionScope(game?.id, game?.version, viewerPlayer?.id);
-  const defaultAmount = String(sizedAction?.minAmount ?? "");
-  // Adjust during render so a changed authoritative context cannot expose an old draft.
-  if (amountDraft.scope !== amountScope) {
-    setAmountDraft({ scope: amountScope, value: defaultAmount });
-  }
-  const amount = amountDraft.scope === amountScope ? amountDraft.value : defaultAmount;
-  const selectedAmount = validatedTarget(amount, sizedAction);
-  const setAmount = (value: string) => {
-    setAmountDraft({ scope: amountScope, value });
-  };
-  const isHumanTurn =
-    viewerPlayer !== null &&
-    viewerPlayer.controller === "human" &&
-    viewerPlayer.status === "claimed" && !viewerPlayer.leaving &&
-    game?.poker.currentActorId === viewerPlayer.id;
   const ownedSeat = (game?.poker.seats ?? game?.poker.players ?? []).find(seat =>
     seat.controller === "human" && seat.status === "claimed" && viewerToken !== null && seat.playerToken === viewerToken);
   const isSpectator = viewerPlayer === null && !ownedSeat && Boolean(game);
   const {
-    overlay, isOverlayOpen, openerRef, actionsPosition, close: closeOverlay,
+    overlay, openerRef, actionsPosition, close: closeOverlay,
     openFoldConfirmation, openActions, openResults, openJoin, openHelp, openShareTable, openSettings, openLeave,
     openBotInformation: openBot, openReplay: reviewHand, backToActions, backToResults,
   } = useGameOverlay(gameId, {
@@ -208,43 +181,14 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
   });
   const actionsBlocked = loading || requestBusy || recoveryBlocked || unavailable || !online ||
     creatingQuickPlay || languageNavigating || game?.id !== gameId;
-  const handleActionIntent = useCallback((action: LegalAction, amountOverride: number | null = selectedAmount, opener?: HTMLElement) => {
-    if (!game || actionsBlocked || quickPlayCreationPending.current || !isHumanTurn ||
-      (turnRemainingMs(game) ?? 1) <= 0 || isOverlayOpen) return;
-    const current = game.poker.legalActions.find(candidate => candidate.type === action.type);
-    if (!current || ((current.type === "bet" || current.type === "raise") && amountOverride === null)) return;
-    const decision = foldDecision(game, getClientPlayerToken(), actionsBlocked);
-    if (current.type === "fold" && game.poker.legalActions.some(candidate => candidate.type === "check")) {
-      if (!decision) return;
-      const returnTarget = opener ?? (document.activeElement instanceof HTMLElement && document.activeElement !== document.body
-        ? document.activeElement : tableRef.current);
-      if (!returnTarget) return;
-      openFoldConfirmation(decision, returnTarget);
-      return;
-    }
-    void submitAction(current, amountOverride);
-  }, [game, actionsBlocked, isHumanTurn, isOverlayOpen, selectedAmount, openFoldConfirmation, submitAction]);
-
-  // Authoritative replacements with the same decision remain valid. Deadline expiry
-  // also closes the dialog when no response arrives, without pausing the live game.
-  useEffect(() => {
-    if (overlay.kind !== "foldConfirmation") return;
-    const reconcile = () => {
-      if (!sameFoldDecision(overlay.decision, foldDecision(game, getClientPlayerToken(), actionsBlocked))) closeOverlay();
-    };
-    reconcile();
-    const timer = setInterval(reconcile, 100);
-    return () => clearInterval(timer);
-  }, [overlay, game, actionsBlocked, closeOverlay]);
+  const { amount, sizedAction, setAmount, handleActionIntent, isHumanTurn } = usePlayerControls({
+    game, viewerToken, readViewerToken: getClientPlayerToken, actionsBlocked, loading,
+    creatingQuickPlay, quickPlayCreationPending, shortcuts, overlay, canStartNextHand,
+    tableRef, openFoldConfirmation, closeOverlay, submitAction, beginNextHand, revealCards,
+  });
 
   const informationPlayer = overlay.kind === "botInformation" ? selectedBot(game?.poker.players ?? [], overlay.botId) : null;
   const departureFeedback = overlay.kind === "leave" && departureAttempted;
-  const canRevealCards =
-    game?.poker.street === "complete" &&
-    game.poker.completionReason === "fold" &&
-    human?.playerToken === viewerToken &&
-    human.holeCards !== null &&
-    !human.cardsRevealed;
   const seatRows = arrangeSeats(
     game?.poker.players ?? [],
     viewerPlayer?.id ?? null,
@@ -259,115 +203,6 @@ export default function PokerApp({ gameId, helpContent, helpTitle }: {
     game?.poker.handNumber ?? 0,
     game?.poker.street ?? null,
   );
-
-  useEffect(() => {
-    if (!shortcuts) return;
-    function handleShortcut(event: KeyboardEvent) {
-      if (isOverlayOpen) return;
-      const completedHand = game?.poker.street === "complete";
-
-      if (
-        !game ||
-        (!completedHand && (turnRemainingMs(game) ?? 1) <= 0) ||
-        (!isHumanTurn && !canStartNextHand && !(completedHand && canRevealCards)) ||
-        loading || creatingQuickPlay || quickPlayCreationPending.current ||
-        event.defaultPrevented ||
-        event.repeat ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.altKey
-      ) {
-        return;
-      }
-
-      const target = event.target;
-      if (
-        target instanceof HTMLElement &&
-        ((target instanceof HTMLInputElement && target.type !== "range") ||
-          ["TEXTAREA", "SELECT"].includes(target.tagName) ||
-          target.isContentEditable)
-      ) {
-        return;
-      }
-
-      const key = event.key.toLowerCase();
-      if (target instanceof HTMLElement && target.closest("button, a") &&
-        ["enter", " "].includes(key)) return;
-      if (canStartNextHand && ["s", "enter", " "].includes(key)) {
-        event.preventDefault();
-        void beginNextHand();
-        return;
-      }
-
-      if (completedHand) {
-        if (key === "d" && canRevealCards) {
-          event.preventDefault();
-          void revealCards();
-        }
-        return;
-      }
-
-      const actionByKey = {
-        a: game.poker.legalActions.find((action) => action.type === "fold"),
-        s: game.poker.legalActions.find(
-          (action) => action.type === "check" || action.type === "call",
-        ),
-      };
-      const action = key === "a" || key === "s" ? actionByKey[key] : null;
-
-      if (action) {
-        event.preventDefault();
-        handleActionIntent(
-          action,
-          action.type === "call" ? action.amount : null,
-        );
-        return;
-      }
-
-      if (key === "d" && sizedAction && selectedAmount !== null) {
-        event.preventDefault();
-        handleActionIntent(
-          sizedAction,
-          selectedAmount,
-        );
-        return;
-      }
-
-      if (
-        (key === "q" ||
-          key === "e" ||
-          key === "arrowleft" ||
-          key === "arrowright") &&
-        sizedAction
-      ) {
-        event.preventDefault();
-        const direction = key === "q" || key === "arrowleft" ? -1 : 1;
-        setAmountDraft({
-          scope: amountScope,
-          value: String(adjustTarget(sizedAction, selectedAmount, game.poker.bigBlind, direction, event.shiftKey)),
-        });
-      }
-    }
-
-    window.addEventListener("keydown", handleShortcut);
-    return () => window.removeEventListener("keydown", handleShortcut);
-  }, [
-    shortcuts,
-    isOverlayOpen,
-    selectedAmount,
-    amountScope,
-    game,
-    beginNextHand,
-    canRevealCards,
-    canStartNextHand,
-    creatingQuickPlay,
-    isHumanTurn,
-    loading,
-    sizedAction,
-    handleActionIntent,
-    revealCards,
-    viewerPlayer,
-  ]);
 
   return (
     <AmountDisplayProvider value={{ mode: settings.preferences.amountDisplay, bigBlind: game?.poker.bigBlind }}>

@@ -383,6 +383,10 @@ compatibility; the application sends null for inspection payloads.
 	exports its own title and description metadata and follows the same heading
 	structure.
 - `components/poker/`: client game, lobby, and spectator experience.
+  `usePlayerControls.ts` owns local betting drafts, click/keyboard action intents,
+  shortcut listeners and fold-confirmation reconciliation; `PokerApp` retains
+  modal rendering and confirmed-action submission, while `useGameOverlay` owns
+  overlay navigation. The controls hook never fetches or owns session mutations.
   `bot-lifecycle.ts` owns pure bot state transitions; `useBotLifecycle.ts` owns
   advancement, waits, provider pauses, usage countdowns, retries and generation
   guards. `useGameSession.ts` retains authoritative state/reconciliation, response

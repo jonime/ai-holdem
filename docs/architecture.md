@@ -944,7 +944,8 @@ card (`#fffdf6`) and Help (`#f8f7f0`) backgrounds.
 `game-overlay.ts` defines the discriminated `GameOverlay` union and pure navigation
 transitions; `useGameOverlay` owns the active navigation instance, game-scoped opener
 reference and Actions scroll position. `PokerApp` calls named open, close, replay and
-Back operations and uses the derived `isOverlayOpen` flag for gameplay shortcuts.
+Back operations and passes the current overlay to `usePlayerControls` for gameplay
+shortcut blocking.
 Dialog rendering and feature work stay in existing components: no mutations, replay
 requests, departure recovery, betting state or bot loops belong in the controller.
 Each close/Back callback captures its navigation instance; the transition rejects
@@ -968,12 +969,26 @@ with pending dismissal guarded by `ConfirmationDialog`.
 | Any / game ID change | None; discard return context |
 | Any / stale Close or Back | No change |
 
-Voluntary table and keyboard actions pass through one `PokerApp` action-intent
+`usePlayerControls` owns the betting draft, validated target, shared click/keyboard
+action-intent handler, keyboard listener and fold-confirmation reconciliation interval.
+It receives explicit authoritative game/identity, blocking, preference and overlay
+inputs plus existing callbacks, rather than a session object. Draft scope remains
+game ID, version and viewer ID; render-time reconciliation prevents stale values
+from appearing before effects when that scope changes. Authoritative actor changes
+advance the version. The hook returns the draft, validated target, sized legal
+action, setter, intent handler and the human-turn flag needed by rendering.
+It performs no HTTP requests itself: `useGameSession` retains HTTP,
+concurrency, bot lifecycle integration and unknown-outcome recovery. Overlay
+navigation stays in `useGameOverlay`, and `PokerApp` retains modal rendering and
+confirmed-action validation/submission. Existing guard differences are recorded in
+[the extraction characterization notes](../plans/player-controls-characterization.md).
+
+Voluntary table and keyboard actions pass through the shared hook action-intent
 handler. When authoritative Fold and Check actions are both legal, it opens the
 typed `foldConfirmation` overlay with game ID, hand, version and actor ID.
 `fold-confirmation.ts` validates that decision against current ownership, live
 seat assignment, turn eligibility, legal actions, deadline and mutation blocking.
-The shell reconciles authoritative changes immediately and checks elapsed deadlines
+The hook reconciles authoritative changes immediately and checks elapsed deadlines
 while open; same-decision refreshes remain valid. The dedicated small
 `FoldConfirmationDialog` focuses Check and shares one synchronous lock across
 Check and Fold anyway. Each choice revalidates, resolves the current legal action,
