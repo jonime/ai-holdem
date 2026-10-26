@@ -7,6 +7,9 @@ Any change that weakens validation, privacy boundaries, migration safety, or ver
 
 - Use Node.js 24 or newer.
 - Install dependencies using `npm ci`, not a fresh lockfile drift.
+- Keep ESLint on 9.x until the React, JSX accessibility, and import plugins bundled
+  with `eslint-config-next` declare ESLint 10 peer support. Do not bypass peer
+  dependency checks with `--force` or `--legacy-peer-deps`.
 - Copy `.env.example` to `.env` and fill in the required values before local testing.
 - Keep Supabase migrations in order, and never edit an already-applied migration.
 
