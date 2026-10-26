@@ -340,12 +340,15 @@ and on demand. During rollout it also remains a temporary PR gate until passing
 manual regression and hosted production smoke evidence is recorded.
 
 Production smoke uses the successful Vercel production repository dispatch,
-validates approved project/revision/URL against deployment metadata, and tests
+validates the Vercel GitHub bot event, approved project/revision/URL and production
+success state, and tests
 that deployed revision with Chromium against its hosted app and Supabase. It uses
 ordinary anonymous endpoints and private tables, with no hosted database keys or
 provider bypass. It does not build, start a local stack, publish tables or roll
-back a failed release. Configure the read-only Vercel metadata secret and optional
-team variable, then follow the evidence gate in
+back a failed release. No Vercel API token, team variable or custom webhook is
+required. Manual dispatch selects a completed original Vercel-triggered run ID
+and reuses its validated seven-day target artifact through GitHub's automatic
+token; arbitrary URL/SHA inputs are not accepted. Follow the evidence gate in
 [Production release smoke and rollout](../CONTRIBUTING.md#production-release-smoke-and-rollout).
 That section documents manual inputs, concurrency, credential-free diagnostics,
 fixture cleanup, rate-limit costs, accepted detection gaps and timing comparison.

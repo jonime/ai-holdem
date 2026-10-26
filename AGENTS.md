@@ -837,9 +837,16 @@ regressions for the shared adapter, and a bounded production build.
 ## Hosted production smoke
 
 Use only `test:e2e:deployment` and `playwright.deployment.config.ts` for hosted
-release checks. Vercel success dispatches and manual inputs must validate project
-prj_N0tyAlXJcQPz1zO15o2Hbno9RV86, production READY metadata, exact immutable
-URL, repository and deployed commit before checkout. Chromium only, one worker,
+release checks. Accept success dispatches only from GitHub's vercel[bot] sender/actor;
+validate project prj_N0tyAlXJcQPz1zO15o2Hbno9RV86, production success state,
+deployment ID, exact immutable URL, repository and full deployed commit before
+checkout. Trust the authenticated event without Vercel API credentials. Save only
+allowlisted validated target fields in a seven-day, attempt-specific artifact.
+Manual dispatch takes an original automatic run ID; verify completed same-repo/main
+Vercel-bot workflow provenance using GitHub's automatic actions:read token, download
+the matching artifact and revalidate/bind its run ID, attempt and target. Reject
+missing/expired/untrusted records; no arbitrary manual URL/SHA inputs. Never pass
+the GitHub token to browser execution. Chromium only, one worker,
 zero retries, ten-minute workflow, serialized runs. No builds/local servers/stack
 startup, hosted database credentials, allowance resets, public fixtures or paid
 bots. Track only tables created by the run; release guest seats and delete via

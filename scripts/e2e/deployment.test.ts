@@ -1,48 +1,94 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdtempSync, mkdirSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { describe, expect, it, vi } from "vitest";
-import { deploymentURL, validateDeployment, resolveDeployment } from "./deployment-target.mjs";
+import { deploymentURL, validateDeployment, resolveDeployment, resolveSourceRun } from "./deployment-target.mjs";
 import { cleanupTables } from "./smoke-cleanup.mjs";
 
 const sha = "a".repeat(40);
 const url = "https://ai-holdem-123.vercel.app";
 const projectId = "prj_N0tyAlXJcQPz1zO15o2Hbno9RV86";
-const deployment = { projectId, target: "production", readyState: "READY", url: new URL(url).hostname,
-  meta: { githubCommitSha: sha, githubCommitOrg: "jonime", githubCommitRepo: "ai-holdem" } };
-const approved = { projectId, url, repository: "jonime/ai-holdem", sha };
+const repository = "jonime/ai-holdem";
+const actor = { login: "vercel[bot]", type: "Bot" };
 const env = { GITHUB_EVENT_NAME: "repository_dispatch", PRODUCTION_VERCEL_PROJECT_ID: projectId,
-  VERCEL_READ_TOKEN: "test-only", GITHUB_REPOSITORY: approved.repository };
-const event = { action: "vercel.deployment.success", client_payload: { environment: "production", project: { id: projectId }, state: { type: "success" }, url, git: { sha } } };
+  GITHUB_REPOSITORY: repository, GITHUB_ACTOR: actor.login, GITHUB_RUN_ID: "123", GITHUB_RUN_ATTEMPT: "1" };
+const payload = { environment: "production", project: { id: projectId }, state: { type: "success" },
+  id: "dpl_example123", url, git: { sha } };
+const event = { action: "vercel.deployment.success", repository: { full_name: repository }, sender: actor, client_payload: payload };
+const record = { schemaVersion: 1, repository, projectId, environment: "production", state: "success",
+  deploymentId: payload.id, url, sha, sourceRunId: "123", sourceRunAttempt: "1" };
+const manual = { inputs: { run_id: "123" } };
+const manualEnv = { ...env, GITHUB_EVENT_NAME: "workflow_dispatch", GITHUB_TOKEN: "automatic-github-token",
+  SOURCE_RUN_ID: "123", SOURCE_RUN_ATTEMPT: "1" };
+const sourceRun = { id: 123, run_attempt: 1, repository: { full_name: repository }, actor,
+  event: "repository_dispatch", path: ".github/workflows/production-smoke.yml", head_branch: "main", status: "completed", conclusion: "failure" };
 
-describe("deployment approval", () => {
-  it("validates authoritative metadata and manual/event revision", async () => {
-    expect(validateDeployment(deployment, approved)).toEqual({ url, sha });
-    const request = vi.fn().mockResolvedValue({ ok: true, json: async () => deployment });
-    await expect(resolveDeployment(event, env, request)).resolves.toEqual({ url, sha });
-    await expect(resolveDeployment({ inputs: { url, sha } }, { ...env, GITHUB_EVENT_NAME: "workflow_dispatch" }, request)).resolves.toEqual({ url, sha });
-    expect(request.mock.calls[0][0].origin).toBe("https://api.vercel.com");
+describe("tokenless deployment approval", () => {
+  it("accepts Vercel's authenticated production event without any network request or Vercel token", () => {
+    const network = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("must not call Vercel"));
+    try {
+      expect(resolveDeployment(event, env)).toEqual(record);
+      expect(network).not.toHaveBeenCalled();
+    } finally { network.mockRestore(); }
   });
   it.each([
-    { target: null }, { target: "preview" }, { projectId: "other" }, { readyState: "ERROR" },
-    { url: "other.vercel.app" }, { meta: { ...deployment.meta, githubCommitSha: "b".repeat(40) } },
-    { meta: { ...deployment.meta, githubCommitRepo: "other" } }, { meta: {} },
-  ])("rejects invalid metadata %j", change => {
-    expect(() => validateDeployment({ ...deployment, ...change }, approved)).toThrow();
+    { environment: "preview" }, { project: { id: "other" } }, { state: { type: "error" } },
+    { git: { sha: "short" } }, { git: { sha: sha + "\n" } }, { id: "" }, { url: "https://example.com" },
+  ])("rejects invalid deployment fields %j", change => {
+    expect(() => resolveDeployment({ ...event, client_payload: { ...payload, ...change } }, env)).toThrow();
+  });
+  it("rejects spoofed, missing, unrelated-repository and unexpected dispatch sources", () => {
+    for (const change of [{ sender: { login: "attacker", type: "User" } }, { sender: { login: "vercel[bot]", type: "User" } },
+      { sender: undefined }, { repository: { full_name: "other/repo" } }, { action: "vercel.deployment.ready" }]) {
+      expect(() => resolveDeployment({ ...event, ...change }, env)).toThrow();
+    }
+    expect(() => resolveDeployment(event, { ...env, GITHUB_ACTOR: "attacker" })).toThrow();
+    expect(() => resolveDeployment(event, { ...env, GITHUB_EVENT_NAME: "pull_request" })).toThrow();
+    expect(() => resolveDeployment(event, { ...env, GITHUB_RUN_ID: "" })).toThrow();
+    expect(() => resolveDeployment(event, { ...env, PRODUCTION_VERCEL_PROJECT_ID: "" })).toThrow();
   });
   it.each(["http://x.vercel.app", "https://example.com", "https://evil.vercel.app.example.org", "https://x.vercel.app/path", "https://x.vercel.app?token=x", "https://user:pass@x.vercel.app", "https://x.vercel.app:444", "https://x.vercel.app#fragment"])("rejects unsafe URL %s", value => {
     expect(() => deploymentURL(value)).toThrow();
   });
-  it("rejects preview/unrelated events before network access and rejects missing/manual mismatched revisions", async () => {
-    const request = vi.fn();
-    for (const change of [{ environment: "preview" }, { project: { id: "other" } }, { git: {} }, { state: { type: "error" } }]) {
-      await expect(resolveDeployment({ ...event, client_payload: { ...event.client_payload, ...change } }, env, request)).rejects.toThrow();
+  it("stores only allowlisted deployment fields, excluding arbitrary payload data", () => {
+    expect(validateDeployment({ ...record, credentials: "never persist" }, { projectId, repository })).toEqual(record);
+  });
+  it("revalidates the previously approved target and binds it to source run/attempt", () => {
+    expect(resolveDeployment(manual, manualEnv, record)).toEqual(record);
+    for (const change of [{ repository: "other/repo" }, { projectId: "other" }, { environment: "preview" },
+      { schemaVersion: 2 }, { sha: "short" }, { sourceRunId: "456" }, { sourceRunAttempt: "2" }]) {
+      expect(() => resolveDeployment(manual, manualEnv, { ...record, ...change })).toThrow();
     }
-    expect(request).not.toHaveBeenCalled();
-    await expect(resolveDeployment({ inputs: { url } }, { ...env, GITHUB_EVENT_NAME: "workflow_dispatch" }, request)).rejects.toThrow();
-    request.mockResolvedValue({ ok: true, json: async () => deployment });
-    await expect(resolveDeployment({ inputs: { url, sha: "b".repeat(40) } }, { ...env, GITHUB_EVENT_NAME: "workflow_dispatch" }, request)).rejects.toThrow();
-    request.mockResolvedValue({ ok: false, status: 403 });
-    await expect(resolveDeployment(event, env, request)).rejects.toThrow("403");
+    expect(() => resolveDeployment(manual, manualEnv)).toThrow();
+    expect(() => resolveDeployment({ inputs: { url, sha } }, manualEnv, record)).toThrow();
+    expect(() => resolveDeployment(manual, { ...manualEnv, SOURCE_RUN_ID: "456" }, record)).toThrow();
+    expect(() => resolveDeployment(manual, { ...manualEnv, SOURCE_RUN_ATTEMPT: "" }, record)).toThrow();
+  });
+  it("checks manual artifact provenance using only GitHub's automatic token, even for a failed smoke", async () => {
+    const network = vi.fn().mockResolvedValue({ ok: true, json: async () => sourceRun });
+    await expect(resolveSourceRun(manual, manualEnv, network)).resolves.toEqual({ id: "123", attempt: "1" });
+    expect(network).toHaveBeenCalledOnce();
+    expect(network.mock.calls[0][0]).toBe(`https://api.github.com/repos/${repository}/actions/runs/123`);
+    expect(network.mock.calls[0][1].redirect).toBe("error");
+  });
+  it.each([
+    { id: 456 }, { repository: { full_name: "other/repo" } }, { actor: { login: "attacker", type: "User" } },
+    { actor: { login: "vercel[bot]", type: "User" } }, { event: "workflow_dispatch" }, { event: "pull_request" },
+    { path: ".github/workflows/other.yml" }, { head_branch: "feature" }, { status: "in_progress" }, { run_attempt: 0 },
+  ])("rejects an untrusted manual source run %j", async change => {
+    const network = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ ...sourceRun, ...change }) });
+    await expect(resolveSourceRun(manual, manualEnv, network)).rejects.toThrow();
+  });
+  it("fails closed for unavailable/expired sources and malformed IDs", async () => {
+    const network = vi.fn().mockResolvedValue({ ok: false, status: 404 });
+    await expect(resolveSourceRun(manual, manualEnv, network)).rejects.toThrow("404");
+    network.mockClear();
+    for (const run_id of ["", "0", "123/../../other", "123?token=x", "-1", "123\n"]) {
+      await expect(resolveSourceRun({ inputs: { run_id } }, manualEnv, network)).rejects.toThrow();
+    }
+    await expect(resolveSourceRun(manual, { ...manualEnv, GITHUB_TOKEN: "" }, network)).rejects.toThrow();
+    expect(network).not.toHaveBeenCalled();
   });
 });
 
@@ -123,4 +169,43 @@ it("reconciles explicit cleanup version conflicts without retrying unknown outco
   blocked.post.mockResolvedValue({ ok: () => false, status: () => 409, json: async () => ({ code: "TABLE_DELETION_BLOCKED" }) });
   expect(await cleanupTables([{ id: "created-here", owner: blocked, guests: [] }])).toHaveLength(1);
   expect(blocked.post).toHaveBeenCalledTimes(1);
+});
+
+it("uses validated-event artifacts for manual dispatch without Vercel secrets or arbitrary targets", () => {
+  const workflow = readFileSync(".github/workflows/production-smoke.yml", "utf8");
+  expect(workflow).not.toMatch(/VERCEL_READ_TOKEN|PRODUCTION_VERCEL_TEAM_ID|secrets\./);
+  expect(workflow).toContain("github.event.sender.login == 'vercel[bot]'");
+  expect(workflow).toContain("actions: read");
+  expect(workflow).toContain("node validation/scripts/e2e/validate-deployment.mjs source");
+  expect(workflow).toContain("run-id: ${{ steps.source.outputs.run_id }}");
+  expect(workflow).toContain("production-smoke-target-${{ steps.source.outputs.attempt }}");
+  expect(workflow).toContain("retention-days: 7");
+  const inputs = workflow.slice(workflow.indexOf("  workflow_dispatch:"), workflow.indexOf("permissions:"));
+  expect(inputs).toContain("run_id:"); expect(inputs).not.toMatch(/url:|sha:/);
+});
+
+it("persists an allowlisted target and replays it through the real manual validation entrypoint", () => {
+  const directory = mkdtempSync(join(tmpdir(), "smoke-target-"));
+  const script = resolve("scripts/e2e/validate-deployment.mjs");
+  const paths = { GITHUB_EVENT_PATH: join(directory, "event.json"), GITHUB_OUTPUT: join(directory, "output"), GITHUB_STEP_SUMMARY: join(directory, "summary") };
+  try {
+    writeFileSync(paths.GITHUB_EVENT_PATH, JSON.stringify({ ...event, client_payload: { ...payload, privateKey: "never-persist" } }));
+    const automatic = spawnSync(process.execPath, [script], { cwd: directory, encoding: "utf8", env: { ...process.env, ...env, ...paths, GITHUB_TOKEN: "" }, timeout: 5000 });
+    expect(automatic.status, automatic.stderr).toBe(0);
+    const saved = readFileSync(join(directory, "validated-production-target/target.json"), "utf8");
+    expect(JSON.parse(saved)).toEqual(record); expect(saved).not.toContain("never-persist");
+    mkdirSync(join(directory, "production-smoke-target"));
+    const targetFile = join(directory, "production-smoke-target/target.json");
+    writeFileSync(targetFile, saved);
+    writeFileSync(paths.GITHUB_EVENT_PATH, JSON.stringify(manual));
+    const replay = () => spawnSync(process.execPath, [script], { cwd: directory, encoding: "utf8", env: { ...process.env, ...manualEnv, ...paths }, timeout: 5000 });
+    const result = replay(); expect(result.status, result.stderr).toBe(0);
+    expect(readFileSync(paths.GITHUB_STEP_SUMMARY, "utf8")).toContain("Validated source run: 123 (attempt 1)");
+    const previousOutput = readFileSync(paths.GITHUB_OUTPUT, "utf8");
+    writeFileSync(targetFile, JSON.stringify({ ...record, sourceRunAttempt: "2" }));
+    expect(replay().status).not.toBe(0);
+    expect(readFileSync(paths.GITHUB_OUTPUT, "utf8")).toBe(previousOutput);
+    rmSync(targetFile);
+    expect(replay().status).not.toBe(0);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
 });
