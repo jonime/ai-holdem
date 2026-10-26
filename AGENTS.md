@@ -110,8 +110,14 @@ routing, rendering, environment handling, or deployment behavior.
 
 Pull requests retain the fast check/build job with non-secret
 placeholder values; unit tests must not depend on live Supabase or TypeSafe.
-An independent 30-minute integration job uses Ubuntu 24.04, Docker, pinned
-Supabase CLI 2.120.0, and the installed Playwright Chromium and WebKit with system dependencies.
+An independent 30-minute SQL/bot-pipeline integration job uses Ubuntu 24.04, Docker and pinned
+Supabase CLI 2.120.0. It starts/migrates Supabase directly without browser setup.
+The nightly/manual Browser regression workflow runs current main at 03:00 UTC,
+retaining the complete test:e2e:ci Chromium/WebKit selection and isolated build/stack.
+A temporary reusable PR browser gate stays enabled unless
+PR_BROWSER_ROLLOUT_COMPLETE=true, which requires passing manual regression and
+production smoke run evidence first. The following browser setup rules apply to
+that browser workflow and rollout gate, not the SQL-only PR job.
 Before setup, the CI-only `scripts/e2e/ci-apt.mjs` configures Ubuntu HTTPS archives
 and apt HTTP/HTTPS connection/data inactivity timeouts of 30 seconds with two
 download retries on the disposable GitHub runner. Preserve package signing keys,
@@ -133,12 +139,13 @@ images are pulled normally during startup; do not cache Docker image archives,
 containers, volumes, or database state. Archive restore/load overhead exceeded
 the avoided pull time in measured CI runs. Every run starts a
 healthy full local stack (including Realtime), applies every migration to its
-disposable database, then runs `db:types:check` before `test:sql`. The sequential
+disposable database. The PR SQL job then runs `db:types:check` before `test:sql`. The sequential
 SQL runner (`scripts/sql-verification.mjs`) preserves per-suite two/three-minute
 deadlines, stops on the first failure, and groups output with sanitized
 `integration-logs/sql-<suite>.log` diagnostics. Its suite order is `test:sql:game-reads`, `test:sql:replay`, `test:sql:results`, `test:sql:shares`, `test:sql:creation`, `test:sql:my-games`, `test:sql:removal`, `test:sql:bot-context`, `test:sql:seats`,
 `test:sql:departures`, `test:sql:turn-timers`, `test:sql:bot-claims`, and `test:sql:usage`.
-`test:integration:bot-pipeline` and `test:e2e:ci` follow SQL verification in order.
+`test:integration:bot-pipeline` follows SQL verification. The complete
+`test:e2e:ci` runs separately in the browser workflow.
 Keep individual SQL commands available for focused local checks.
 The bot-pipeline suite requires an already-running migrated local stack, injects
 only deterministic `BotRegistry` decisions, and retains real creation, context,
@@ -154,7 +161,7 @@ health checks. Preserve workflow cancellation for superseded commits.
 Local production browser verification requires an already-running migrated local Supabase and
 Chromium and WebKit (`npx playwright install chromium webkit`). The shared production runner exposes
 `test:e2e:smoke` (`@smoke`), `test:e2e:ui` (`@ui-regression`), `test:e2e:webkit` (`@compatibility` on desktop/mobile WebKit), and `test:e2e:ci`
-(Chromium smoke/UI plus both focused WebKit projects). CI builds once and runs one Playwright invocation/report. The UI suite
+(Chromium smoke/UI plus both focused WebKit projects). The nightly/manual browser workflow builds once and runs one Playwright invocation/report. The UI suite
 contains dialog, betting-controls, hand-results/Actions, request-recovery, table-loading fallback, and turn-notification tests. Local
 smoke/UI commands retain file filters and explicit grep overrides; the combined
 command accepts only `--list` and rejects selection overrides. Empty selections
@@ -513,8 +520,7 @@ All creation endpoints share owner/IP counters; external TypeSafe/LLM attempts
 charge the durable table host and game only after context validation and claim
 verification. Rules turns bypass inference allowances. Denials preserve tables
 and require explicit retry; rules-only Quick Play creates a separate private game.
-Run `npm run test:sql:usage` against migrated local Supabase; CI includes it before
-production browser smoke. The smoke suite also covers fair-use countdowns,
+Run `npm run test:sql:usage` against migrated local Supabase; PR CI includes the SQL suite. The nightly local production smoke suite also covers fair-use countdowns,
 explicit retry, rules replay, and localized HTML/typed JSON creation denials.
 
 ## Play discovery
@@ -822,3 +828,19 @@ refresh explicitly, preserve focus, live warnings and shortcut suppression. Appl
 `20261102000000_add_personal_results.sql` before code; regenerate pinned database
 types and run `test:sql:results`, results production UI, `check`, benchmark
 regressions for the shared adapter, and a bounded production build.
+
+
+## Hosted production smoke
+
+Use only `test:e2e:deployment` and `playwright.deployment.config.ts` for hosted
+release checks. Vercel success dispatches and manual inputs must validate project
+prj_N0tyAlXJcQPz1zO15o2Hbno9RV86, production READY metadata, exact immutable
+URL, repository and deployed commit before checkout. Chromium only, one worker,
+zero retries, ten-minute workflow, serialized runs. No builds/local servers/stack
+startup, hosted database credentials, allowance resets, public fixtures or paid
+bots. Track only tables created by the run; release guest seats and delete via
+ownership-checked application endpoints. Keep original failures when cleanup
+fails. Upload only sanitized action/screenshot traces and screenshots for seven
+days; no storage-state files or raw network traces. Failed smoke is a release
+failure without automatic rollback. See CONTRIBUTING.md for configuration,
+rollout evidence and timing comparison. Local CI hosted-URL restrictions remain.

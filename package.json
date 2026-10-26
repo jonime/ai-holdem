@@ -83,7 +83,8 @@
     "benchmark:river-lookahead": "node benchmarks/river-lookahead/run.mjs",
     "test:sql:shares": "node scripts/local-replay-shares.mjs",
     "benchmark:river-candidate": "node benchmarks/river-candidate/run.mjs",
-    "benchmark:llm-quarter-pot": "node benchmarks/llm-quarter-pot/reproduce.mjs"
+    "benchmark:llm-quarter-pot": "node benchmarks/llm-quarter-pot/reproduce.mjs",
+    "test:e2e:deployment": "node scripts/e2e/deployment.mjs"
   },
   "dependencies": {
     "@hivetech/poker-engine": "1.0.1",
