@@ -53,7 +53,8 @@ npm run test:benchmarks -- benchmarks/scenarios/scenarios.test.ts
 ```
 
 Run them when changing benchmarks or their shared dependencies. CI keeps the
-application check/build and SQL/browser integration jobs on every PR. A separate
+application check/build and SQL/bot-pipeline integration jobs on every PR. Browser
+regression remains a temporary PR rollout gate until the evidence below passes. A separate
 Benchmark regression tests workflow runs for benchmark code/evidence, `lib/`,
 Vitest configuration, dependencies, TypeScript configuration, Node version or its
 own workflow changes; benchmark Markdown alone does not trigger it. It also
@@ -243,7 +244,7 @@ and repeat cleanup. The random hashing secret isolates IP allowance records from
 other runs. The command never resets or migrates the database. Hard process kills
 can prevent teardown; do not interrupt a running suite if cleanup is required.
 
-CI runs this command after SQL checks and before browser tests against the same
+PR CI runs this command after SQL checks against the same
 migrated disposable stack. Browser inference remains disabled, and unconditional
 Supabase teardown is retained. The dedicated Vitest configuration is excluded
 from ordinary unit tests and bot benchmarks. A failing production invariant must
@@ -260,13 +261,22 @@ checks and cleanup still complete.
 
 ## Production browser integration
 
-CI runs an independent integration job alongside the unchanged
-lint/typecheck/unit-test/build job on pull requests. It has a
-30-minute limit and preserves cancellation of superseded commits. It uses Ubuntu
-**24.04** (pinned rather than `ubuntu-latest`), Node
-from `.nvmrc`, `npm ci`, Supabase CLI **2.120.0**, and the installed Playwright
-version's Chromium and WebKit (`npx playwright install --with-deps chromium webkit` on Ubuntu;
-`npx playwright install chromium webkit` on macOS).
+PR CI runs lint, strict TypeScript, application unit tests and a production build,
+plus an independent SQL/bot-pipeline job with a fresh migrated Supabase,
+`db:types:check`, every SQL suite and bot-pipeline integration. That job installs
+no browsers and runs no browser-specific privileged process checks. Benchmark
+regression triggers are unchanged.
+
+`.github/workflows/browser-regression.yml` runs the complete existing
+`npm run test:e2e:ci` selection daily at **03:00 UTC** and through manual dispatch,
+against current `main`. It is also reusable by the temporary PR browser gate,
+which checks out the PR head revision. Nightly/manual runs retain the isolated
+production build, full local Supabase including Realtime, Chromium smoke/UI plus
+both WebKit compatibility projects, one worker, zero retries, 30-minute job
+limit, seven-day diagnostics, unconditional cleanup and cancellation of superseded
+runs. The workflow uses Ubuntu **24.04**, Node from `.nvmrc`, `npm ci`, Supabase
+CLI **2.120.0**, and the installed Playwright version's Chromium and WebKit.
+
 Docker and a healthy local Supabase stack including Realtime are prerequisites.
 Before concurrent setup, `scripts/e2e/ci-apt.mjs` runs with sudo on the disposable
 GitHub runner. It replaces Ubuntu's Azure/mirror-list archive endpoints with
@@ -284,7 +294,7 @@ at the 13-minute step timeout. Confirm installation duration and full test resul
 in a new GitHub Actions run; local helper tests do not establish mirror performance.
 CI's `scripts/e2e/ci-setup.mjs` installs browsers/system dependencies alongside
 Supabase startup and migration application. Both tasks must finish successfully
-before schema or test checks begin; failures wait for both children to exit before
+before browser tests begin; failures wait for both children to exit before
 the workflow's unconditional Supabase teardown. Each task retains its deadline
 and sanitized logs in `integration-logs/`.
 Setup follows the official [Supabase CI guide](https://supabase.com/docs/guides/deployment/ci/testing)
@@ -296,7 +306,8 @@ a 1.66 GiB archive and 96 seconds loading it, while avoiding only about 47 secon
 of startup work. See the [cached run](https://github.com/jonime/ai-holdem/actions/runs/37427550384)
 and [earlier uncached run](https://github.com/jonime/ai-holdem/actions/runs/37422679102).
 The npm download cache remains enabled. Every run starts a fresh disposable
-stack, applies all migrations, checks health, and runs `db:types:check` before SQL tests; containers, volumes, and
+stack, applies all migrations and checks health. The PR SQL job additionally runs
+`db:types:check` before SQL tests; containers, volumes, and
 database state are never cached.
 
 For local production verification, start Supabase and apply all committed
@@ -322,7 +333,7 @@ When adding a SQL suite, register its order and deadline in the runner; the focu
 coverage test requires every individual `test:sql:*` script to be included.
 This consolidates workflow maintenance without reducing coverage or materially
 speeding up execution. The same integration job retains its 30-minute limit,
-fresh healthy stack, unconditional teardown and separate bot/browser steps.
+fresh healthy stack, unconditional teardown and a separate bot-pipeline step.
 The aggregate command never starts, migrates or resets Supabase and loads no
 application environment files; each existing suite retains its local-only checks
 and fixture cleanup. Individual SQL commands remain available for focused checks.
@@ -342,7 +353,7 @@ suite includes tests in `dialogs.spec.ts`, `betting-controls.spec.ts`,
 and `turn-notifications.spec.ts`, preserving
 desktop/mobile, focus/keyboard, betting validation, hand results, Actions feed,
 and stalled-request recovery coverage. CI runs the combined
-command after all SQL checks. Production UI setup seeds only its own waiting
+command in the nightly/manual browser workflow (and temporary PR rollout gate). Production UI setup seeds only its own waiting
 local tables through the service-role creation RPC, gives each host a fresh
 browser identity, and deletes those fixtures after each test. Starting hands,
 joining, betting, revealing, and next-hand mutations still use the application.
@@ -351,13 +362,14 @@ creation/fair-use smoke tests continue through the real creation routes with
 all protections enabled. Development/explicit preview UI setup keeps using
 normal creation routes.
 
-Every browser case uses `test/e2e/fixtures.ts`. In isolated local production
+Every local regression browser case uses `test/e2e/fixtures.ts`. In isolated local production
 runs, its automatic fixture clears only the runner's HMAC-scoped creation IP
 bucket before and after each case, including failures. Owner counters and all
 within-case limits remain active, so the creation-denial smoke still exercises
 real admission. This requires one worker and the runner's fresh hash secret;
 it never clears other usage rows or runs against development/preview servers.
-Use the shared fixture's `test` export for new browser cases. Realtime observers
+Use the shared fixture's `test` export for new local regression browser cases.
+Hosted smoke uses the separate `test/deployment/fixtures.ts` without allowance resets. Realtime observers
 share `realtime-observer.ts`, which decodes both JSON and SDK binary broadcasts
 from the browser's actual socket.
 
@@ -1043,8 +1055,7 @@ All creation endpoints share owner/IP counters; external TypeSafe/Eevo/LLM attem
 charge the durable table host and game only after context validation and claim
 verification. Rules turns bypass inference allowances. Denials preserve tables
 and require explicit retry; rules-only Quick Play creates a separate private game.
-Run `npm run test:sql:usage` against migrated local Supabase; CI includes it before
-production browser smoke. The smoke suite also covers fair-use countdowns,
+Run `npm run test:sql:usage` against migrated local Supabase; PR CI includes the SQL suite. The nightly local production smoke suite also covers fair-use countdowns,
 explicit retry, rules replay, and localized HTML/typed JSON creation denials.
 
 ## Client bot lifecycle
@@ -1108,7 +1119,7 @@ With the migrated local stack running, `npm run test:sql:my-games` checks seated
 owners, unseated hosts, host/seat deduplication, released seats, unrelated visitors,
 completed/error games, assignment counts, stable ordering, five-item limits and
 restricted SQL roles, departing/eliminated claimed assignments and exclusion-before-limit behavior. Fixtures roll back; the runner never reads application `.env`
-or resets the database. CI runs it before production browser smoke.
+or resets the database. PR CI runs it in the SQL verification job.
 
 `npm run test:e2e:smoke -- test/e2e/play.spec.ts test/e2e/public-lobby.spec.ts`
 checks the production Play experience against local Supabase with isolated browser
@@ -1228,7 +1239,7 @@ Run `npm run test:sql:turn-timers` against the migrated local stack. Its rollbac
 fixtures cover deadline preservation, early/expired/stale requests, driver roles,
 legacy fences, completion and seats. Committed disposable fixtures use independent
 connections for timeout/timeout and manual/timeout races and clean up in finally.
-CI runs this before browser smoke. Timer browser fixtures are created directly in
+PR CI runs this in the SQL verification job. Timer browser fixtures are created directly in
 the local database and cleaned up in finally, preserving shared admission counters.
 `turn-timers.spec.ts` checks two-browser expiry,
 reloads, repeated hands, legal checks, same-actor new-street IDs, retained seats,
@@ -1460,7 +1471,7 @@ each project-qualified Settings test directory under `test-results/`.
 Run `npm run test:sql:creation` with migrated local Supabase. Isolated fixtures
 check concurrent identical attempts, single owner/IP charge, differing intent,
 rollback, denial, independent owners, deletion tombstones and restricted roles.
-CI runs it before usage and production browser checks. Run `npm run test:e2e:ci`
+PR CI runs it before usage checks. Run `npm run test:e2e:ci`
 for repeated clicks, committed lost responses, explicit retry, reload recovery,
 first-visit identity, unavailable storage/cookies, identity changes and subsequent
 intentional creation. Preserve Play names in initial configuration/hand history
@@ -1797,3 +1808,82 @@ never connect visual fixtures to a hosted database. Compare screenshots to the
 implemented ivory/ink design and the design guide, inspect 200% zoom and reduced motion, and verify focus
 return, card symbols and contrast in both themes. Keep existing gameplay,
 privacy, departure, replay and recovery regression coverage.
+
+## Production release smoke and rollout
+
+The separate `npm run test:e2e:deployment` command uses
+`playwright.deployment.config.ts` and only `test/deployment/`. It never builds,
+starts an app server, Docker or Supabase, loads application environment files, or
+uses database/provider credentials. Local production commands still reject hosted
+`E2E_BASE_URL` in CI; do not route deployed testing through those commands.
+
+The production release workflow listens to Vercel's documented
+[`vercel.deployment.success` repository dispatch](https://vercel.com/docs/git/vercel-for-github#repository-dispatch-events).
+Preview and unrelated-project dispatches are skipped. The approved project is
+`prj_N0tyAlXJcQPz1zO15o2Hbno9RV86`. Configure GitHub Secret `VERCEL_READ_TOKEN`
+with deployment-metadata read access and, if required, repository variable
+`PRODUCTION_VERCEL_TEAM_ID`. No hosted Supabase secrets belong in this workflow.
+Vercel Git integration must emit repository dispatch events; the workflow must
+exist on the default branch for automatic delivery. A manual dispatch requires
+an immutable `https://...vercel.app` deployment URL and its full 40-character SHA.
+Both triggers use the same metadata validator and approved project.
+
+Before test installation, trusted validation code queries Vercel's deployment
+metadata, requiring READY, production, exact project, repository, deployment URL
+and event/manual SHA agreement. It records the URL and revision in the run summary,
+then checks out that deployed revision. The deployed revision must include the
+smoke command/tests. No arbitrary aliases, URLs with credentials, or preview
+targets are accepted. The Vercel token is scoped to validation only and is never
+passed to browser execution.
+
+Chromium alone runs three journeys with one worker, zero retries and a ten-minute
+workflow limit: private-table joining/ownership/spectator rejection; explicitly
+selected Equity Rules hand completion/results/Actions/next hand; and real
+two-browser game/seat Realtime plus blocked-WebSocket polling. The subscribed
+observer's timers are paused so polling cannot satisfy Realtime assertions.
+Quick Play, broader UI and WebKit remain in the complete nightly selection.
+
+The suite creates three private tables through normal anonymous application
+endpoints, using ordinary creation allowances. It never publishes tables, selects
+paid bots or bypasses limits. A per-test in-memory ledger contains only creation
+responses from that test. Teardown stops browser activity, releases owned guest
+seats and deletes ledger tables with the original owner through version-checked
+application endpoints, then verifies 404. Explicit GAME_CONFLICT responses allow
+at most three attempts with fresh reads, accommodating an already-running bot step
+committing after navigation. Unknown outcomes are reported without replay.
+It attempts all cleanup even after a
+failure. Cleanup failures are reported separately and fail otherwise-passing tests;
+they do not replace the original failure. Hard workflow cancellation or process
+loss can prevent teardown; reported IDs identify only this run's fixtures for
+owner-assisted follow-up. No database sweep or persistent browser identity is used.
+
+Production runs share one concurrency group with `cancel-in-progress: false` so
+active runs finish cleanup before another begins. GitHub may replace a pending
+run when more releases arrive; active fixture runs never overlap. A failed smoke
+workflow is a release failure requiring investigation, with no automatic rollback.
+Failure screenshots, action/screenshot-only traces, concise outcome/revision summaries
+and allowlisted cleanup summaries are uploaded for seven days.
+The export removes HTTP/network, bodies, DOM snapshots, source files, storage
+state and arbitrary trace parameters; raw traces, reports, environment dumps and
+browser storage-state files are never uploaded. This limits trace diagnostics in
+exchange for excluding credentials.
+
+Rollout checklist (required before shortening PR browser coverage):
+
+1. Merge the workflows with `PR_BROWSER_ROLLOUT_COMPLETE` unset; the temporary PR
+   browser gate remains enabled by default.
+2. Pass a full manual **Browser regression** run against current `main` and a
+   **Production release smoke** run against an approved production deployment.
+   Record both run URLs and tested SHAs in the rollout PR/release evidence.
+3. Only after both pass, set repository variable `PR_BROWSER_ROLLOUT_COMPLETE=true`.
+   Subsequent PRs retain check/build, database types, all SQL and bot-pipeline
+   verification while skipping browser setup/execution. Unset it to restore the gate.
+4. Compare several subsequent PR wall times and integration step durations with
+   the supplied baseline (SQL 24s, browser tests 9m 15s). Attach the baseline run
+   URL and observed median/range; roughly 3–5 minutes is a measured target, not a
+   guarantee. No timing claim is made before rollout.
+
+Accepted detection gaps: production regressions may reach users before smoke
+finishes; broader UI and WebKit regressions may first appear nightly. Private
+smoke fixtures consume normal limits. Sharding remains deferred unless nightly
+runtime becomes inconvenient.

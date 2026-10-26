@@ -330,3 +330,22 @@ validated context, after claim/context checks. Eevo retains `eevo-1`, its own en
 bots retain their existing policies. `npm run check`, offline `test:bots`, context benchmarks and
 `npm run build` verify the release; no schema-specific SQL check is needed for
 this change. Production-sized behavioral strength still requires later evidence.
+
+## Release verification and browser rollout
+
+PR checks retain lint, strict TypeScript, unit tests, build, generated database
+verification, every SQL suite and bot-pipeline integration. Complete Chromium
+and WebKit production browser coverage runs at 03:00 UTC daily on current `main`
+and on demand. During rollout it also remains a temporary PR gate until passing
+manual regression and hosted production smoke evidence is recorded.
+
+Production smoke uses the successful Vercel production repository dispatch,
+validates approved project/revision/URL against deployment metadata, and tests
+that deployed revision with Chromium against its hosted app and Supabase. It uses
+ordinary anonymous endpoints and private tables, with no hosted database keys or
+provider bypass. It does not build, start a local stack, publish tables or roll
+back a failed release. Configure the read-only Vercel metadata secret and optional
+team variable, then follow the evidence gate in
+[Production release smoke and rollout](../CONTRIBUTING.md#production-release-smoke-and-rollout).
+That section documents manual inputs, concurrency, credential-free diagnostics,
+fixture cleanup, rate-limit costs, accepted detection gaps and timing comparison.

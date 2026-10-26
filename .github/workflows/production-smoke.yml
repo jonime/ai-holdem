@@ -1,0 +1,97 @@
+name: Production release smoke
+
+on:
+  repository_dispatch:
+    types: [vercel.deployment.success]
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Immutable production deployment URL (https://...vercel.app)
+        required: true
+        type: string
+      sha:
+        description: Full deployed commit SHA
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-smoke-ai-holdem
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.client_payload.environment == 'production' &&
+       github.event.client_payload.project.id == 'prj_N0tyAlXJcQPz1zO15o2Hbno9RV86')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out trusted validation code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: validation
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: validation/.nvmrc
+
+      - name: Validate production deployment
+        id: target
+        run: node validation/scripts/e2e/validate-deployment.mjs
+        env:
+          PRODUCTION_VERCEL_PROJECT_ID: prj_N0tyAlXJcQPz1zO15o2Hbno9RV86
+          PRODUCTION_VERCEL_TEAM_ID: ${{ vars.PRODUCTION_VERCEL_TEAM_ID }}
+          VERCEL_READ_TOKEN: ${{ secrets.VERCEL_READ_TOKEN }}
+
+      - name: Check out deployed revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.target.outputs.sha }}
+          path: deployed
+          persist-credentials: false
+
+      - name: Install locked test dependencies
+        working-directory: deployed
+        run: npm ci
+
+      - name: Install Chromium
+        working-directory: deployed
+        run: npx playwright install --with-deps chromium
+
+      - name: Run production journeys
+        working-directory: deployed
+        run: npm run test:e2e:deployment
+        env:
+          PRODUCTION_SMOKE_URL: ${{ steps.target.outputs.url }}
+          PRODUCTION_SMOKE_SHA: ${{ steps.target.outputs.sha }}
+
+      - name: Prepare credential-free failure diagnostics
+        if: always()
+        run: python3 validation/scripts/e2e/smoke-diagnostics.py deployed/test-results/production-smoke smoke-diagnostics
+
+      - name: Record release outcome
+        if: always()
+        env:
+          RESULT: ${{ job.status }}
+          DEPLOYED_SHA: ${{ steps.target.outputs.sha }}
+          DEPLOYED_URL: ${{ steps.target.outputs.url }}
+        run: |
+          mkdir -p smoke-diagnostics
+          printf 'Production smoke: %s\nRevision: %s\nTarget: %s\nFailure requires release investigation; no automatic rollback runs.\n' "$RESULT" "$DEPLOYED_SHA" "$DEPLOYED_URL" > smoke-diagnostics/summary.txt
+          cat smoke-diagnostics/summary.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-smoke-failure
+          path: smoke-diagnostics/
+          retention-days: 7
+          if-no-files-found: ignore

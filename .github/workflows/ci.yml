@@ -43,7 +43,7 @@ jobs:
         run: npm run build
 
   integration:
-    name: Local SQL and production browser verification
+    name: Local SQL and bot-pipeline verification
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -75,17 +75,9 @@ jobs:
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
 
-      - name: Verify privileged setup process cleanup
-        timeout-minutes: 2
-        run: node scripts/e2e/ci-process-verification.mjs
-
-      - name: Configure reliable Ubuntu package downloads
-        timeout-minutes: 1
-        run: sudo --preserve-env=CI,GITHUB_ACTIONS "$(command -v node)" scripts/e2e/ci-apt.mjs
-
-      - name: Install browsers and start migrated Supabase concurrently
+      - name: Start fresh migrated Supabase
         timeout-minutes: 13
-        run: node scripts/e2e/ci-setup.mjs
+        run: node scripts/e2e/supabase.mjs
 
       - name: Check generated database types against migrated schema
         run: npm run db:types:check
@@ -96,10 +88,6 @@ jobs:
       - name: Verify external bot application pipeline
         timeout-minutes: 3
         run: npm run test:integration:bot-pipeline
-
-      - name: Build and test the production application
-        timeout-minutes: 18
-        run: npm run test:e2e:ci
 
       - name: Stop disposable Supabase
         if: always()
@@ -117,3 +105,11 @@ jobs:
             integration-logs/
           retention-days: 7
           if-no-files-found: ignore
+
+  browser-rollout:
+    name: Browser regression rollout gate
+    # Disable only after recording passing manual regression + production smoke runs.
+    if: vars.PR_BROWSER_ROLLOUT_COMPLETE != 'true'
+    uses: ./.github/workflows/browser-regression.yml
+    with:
+      revision: ${{ github.event.pull_request.head.sha }}

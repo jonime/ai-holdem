@@ -1,0 +1,88 @@
+name: Browser regression
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      revision:
+        type: string
+        required: false
+        default: main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-regression-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regression:
+    name: Complete production browser regression
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      CI: "true"
+      SUPABASE_CLI_VERSION: "2.120.0"
+      EXTERNAL_INFERENCE_ENABLED: "false"
+      TYPESAFE_API_KEY: ""
+      EEVO_API_KEY: ""
+      EEVO_QUICK_PLAY_ENABLED: "false"
+      LLM_API_ENDPOINT: ""
+      LLM_API_KEY: ""
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.revision || 'main' }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        timeout-minutes: 3
+        run: npm ci
+
+      - name: Set up pinned Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Verify privileged setup process cleanup
+        timeout-minutes: 2
+        run: node scripts/e2e/ci-process-verification.mjs
+
+      - name: Configure reliable Ubuntu package downloads
+        timeout-minutes: 1
+        run: sudo --preserve-env=CI,GITHUB_ACTIONS "$(command -v node)" scripts/e2e/ci-apt.mjs
+
+      - name: Install browsers and start migrated Supabase concurrently
+        timeout-minutes: 13
+        run: node scripts/e2e/ci-setup.mjs
+
+      - name: Build and test the production application
+        timeout-minutes: 18
+        run: npm run test:e2e:ci
+
+      - name: Stop disposable Supabase
+        if: always()
+        timeout-minutes: 2
+        run: node scripts/e2e/supabase.mjs stop
+
+      - name: Upload integration diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-regression-diagnostics
+          path: |
+            playwright-report/
+            test-results/
+            integration-logs/
+          retention-days: 7
+          if-no-files-found: ignore
