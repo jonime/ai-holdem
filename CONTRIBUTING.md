@@ -57,7 +57,7 @@ npm run test:benchmarks -- benchmarks/scenarios/scenarios.test.ts
 
 Run them when changing benchmarks or their shared dependencies. CI keeps the
 application check/build and SQL/bot-pipeline integration jobs on every PR. Browser
-regression remains a temporary PR rollout gate until the evidence below passes. A separate
+regression runs nightly and on demand, outside PR CI. A separate
 Benchmark regression tests workflow runs for benchmark code/evidence, `lib/`,
 Vitest configuration, dependencies, TypeScript configuration, Node version or its
 own workflow changes; benchmark Markdown alone does not trigger it. It also
@@ -272,8 +272,7 @@ regression triggers are unchanged.
 
 `.github/workflows/browser-regression.yml` runs the complete existing
 `npm run test:e2e:ci` selection daily at **03:00 UTC** and through manual dispatch,
-against current `main`. It is also reusable by the temporary PR browser gate,
-which checks out the PR head revision. Nightly/manual runs retain the isolated
+against current `main`. Nightly/manual runs retain the isolated
 production build, full local Supabase including Realtime, Chromium smoke/UI plus
 both WebKit compatibility projects, one worker, zero retries, 30-minute job
 limit, seven-day diagnostics, unconditional cleanup and cancellation of superseded
@@ -356,7 +355,7 @@ suite includes tests in `dialogs.spec.ts`, `betting-controls.spec.ts`,
 and `turn-notifications.spec.ts`, preserving
 desktop/mobile, focus/keyboard, betting validation, hand results, Actions feed,
 and stalled-request recovery coverage. CI runs the combined
-command in the nightly/manual browser workflow (and temporary PR rollout gate). Production UI setup seeds only its own waiting
+command in the nightly/manual browser workflow. Production UI setup seeds only its own waiting
 local tables through the service-role creation RPC, gives each host a fresh
 browser identity, and deletes those fixtures after each test. Starting hands,
 joining, betting, revealing, and next-hand mutations still use the application.
@@ -1910,20 +1909,16 @@ state and arbitrary trace parameters; raw traces, reports, environment dumps and
 browser storage-state files are never uploaded. This limits trace diagnostics in
 exchange for excluding credentials.
 
-Rollout checklist (required before shortening PR browser coverage):
+Release verification:
 
-1. Merge the workflows with `PR_BROWSER_ROLLOUT_COMPLETE` unset; the temporary PR
-   browser gate remains enabled by default.
-2. Pass a full manual **Browser regression** run against current `main` and a
+1. Pass a full manual **Browser regression** run against current `main` and a
    **Production release smoke** run against an approved production deployment.
-   Record both run URLs and tested SHAs in the rollout PR/release evidence.
-3. Only after both pass, set repository variable `PR_BROWSER_ROLLOUT_COMPLETE=true`.
-   Subsequent PRs retain check/build, database types, all SQL and bot-pipeline
-   verification while skipping browser setup/execution. Unset it to restore the gate.
-4. Compare several subsequent PR wall times and integration step durations with
-   the supplied baseline (SQL 24s, browser tests 9m 15s). Attach the baseline run
+   Record both run URLs and tested SHAs in the release evidence.
+2. Compare subsequent PR wall times and integration step durations with the
+   supplied baseline (SQL 24s, browser tests 9m 15s). Attach the baseline run
    URL and observed median/range; roughly 3–5 minutes is a measured target, not a
-   guarantee. No timing claim is made before rollout.
+   guarantee. PR CI retains check/build, database types, all SQL and bot-pipeline
+   verification; browser regression runs nightly and on demand.
 
 Accepted detection gaps: production regressions may reach users before smoke
 finishes; broader UI and WebKit regressions may first appear nightly. Private

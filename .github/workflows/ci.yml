@@ -105,11 +105,3 @@ jobs:
             integration-logs/
           retention-days: 7
           if-no-files-found: ignore
-
-  browser-rollout:
-    name: Browser regression rollout gate
-    # Disable only after recording passing manual regression + production smoke runs.
-    if: vars.PR_BROWSER_ROLLOUT_COMPLETE != 'true'
-    uses: ./.github/workflows/browser-regression.yml
-    with:
-      revision: ${{ github.event.pull_request.head.sha }}

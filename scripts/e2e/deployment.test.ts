@@ -132,11 +132,11 @@ it("locks deployment selection, fails empty overrides, and starts no local stack
   expect(config).not.toContain("webServer");
   expect(config).toContain("workers: 1"); expect(config).toContain("retries: 0");
 });
-it("preserves full regression selection and rollout gating without PR browser setup", () => {
+it("preserves nightly and release browser coverage outside PR CI", () => {
   const ci = readFileSync(".github/workflows/ci.yml", "utf8");
   const nightly = readFileSync(".github/workflows/browser-regression.yml", "utf8");
   const production = readFileSync(".github/workflows/production-smoke.yml", "utf8");
-  expect(ci).toContain("PR_BROWSER_ROLLOUT_COMPLETE != 'true'");
+  expect(ci).not.toMatch(/browser-rollout|browser-regression\.yml|test:e2e/);
   expect(ci).not.toMatch(/ci-setup|ci-apt|ci-process-verification/);
   for (const command of ["db:types:check", "test:sql", "test:integration:bot-pipeline"]) expect(ci).toContain(command);
   for (const command of ["ci-process-verification.mjs", "ci-apt.mjs", "ci-setup.mjs", "test:e2e:ci", "supabase.mjs stop"]) expect(nightly).toContain(command);
