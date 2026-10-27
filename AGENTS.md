@@ -114,10 +114,8 @@ An independent 30-minute SQL/bot-pipeline integration job uses Ubuntu 24.04, Doc
 Supabase CLI 2.120.0. It starts/migrates Supabase directly without browser setup.
 The nightly/manual Browser regression workflow runs current main at 03:00 UTC,
 retaining the complete test:e2e:ci Chromium/WebKit selection and isolated build/stack.
-A temporary reusable PR browser gate stays enabled unless
-PR_BROWSER_ROLLOUT_COMPLETE=true, which requires passing manual regression and
-production smoke run evidence first. The following browser setup rules apply to
-that browser workflow and rollout gate, not the SQL-only PR job.
+PR CI does not run browser regression. The following browser setup rules apply to
+the nightly/manual browser workflow, not the SQL-only PR job.
 Before setup, the CI-only `scripts/e2e/ci-apt.mjs` configures Ubuntu HTTPS archives
 and apt HTTP/HTTPS connection/data inactivity timeouts of 30 seconds with two
 download retries on the disposable GitHub runner. Preserve package signing keys,

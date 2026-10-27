@@ -336,8 +336,8 @@ this change. Production-sized behavioral strength still requires later evidence.
 PR checks retain lint, strict TypeScript, unit tests, build, generated database
 verification, every SQL suite and bot-pipeline integration. Complete Chromium
 and WebKit production browser coverage runs at 03:00 UTC daily on current `main`
-and on demand. During rollout it also remains a temporary PR gate until passing
-manual regression and hosted production smoke evidence is recorded.
+and on demand, outside PR CI. Record passing manual regression and hosted
+production smoke evidence for release verification.
 
 Production smoke uses the successful Vercel production repository dispatch,
 validates the Vercel GitHub bot event, approved project/revision/URL and production
@@ -348,7 +348,7 @@ provider bypass. It does not build, start a local stack, publish tables or roll
 back a failed release. No Vercel API token, team variable or custom webhook is
 required. Manual dispatch selects a completed original Vercel-triggered run ID
 and reuses its validated seven-day target artifact through GitHub's automatic
-token; arbitrary URL/SHA inputs are not accepted. Follow the evidence gate in
+token; arbitrary URL/SHA inputs are not accepted. Follow the release verification guidance in
 [Production release smoke and rollout](../CONTRIBUTING.md#production-release-smoke-and-rollout).
 That section documents manual inputs, concurrency, credential-free diagnostics,
 fixture cleanup, rate-limit costs, accepted detection gaps and timing comparison.
