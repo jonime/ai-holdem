@@ -24,6 +24,17 @@ describe("fixed public release verification", () => {
     await expect(verifyRevision(sha, { ...config, timeout: 60_000, now: () => time, sleep: async ms => { time += ms; } })).resolves.toBe(sha);
     expect(time).toBe(2000);
   });
+  it("gives a boundary request five seconds even when the clock advances before fetch", async () => {
+    const deadline = vi.spyOn(AbortSignal, "timeout");
+    try {
+      const config = options();
+      await expect(verifyRevision(sha, {
+        ...config, now: vi.fn().mockReturnValueOnce(100).mockReturnValue(102),
+      })).resolves.toBe(sha);
+      expect(deadline).toHaveBeenCalledWith(5000);
+      expect(config.request).toHaveBeenCalledOnce();
+    } finally { deadline.mockRestore(); }
+  });
   it.each([response(other), response("local/unknown"), response(""), { status: 200, json: async () => { throw new Error("body must not leak"); } },
     { status: 403 }, { status: 500 }])("rejects mismatch, unknown, invalid JSON and access errors", async result => {
     const config = options(vi.fn().mockResolvedValue(result));

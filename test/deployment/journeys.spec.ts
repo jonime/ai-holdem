@@ -32,9 +32,10 @@ test("explicit Equity Rules completes a hand with results, Actions, and next han
   expect((await read(page.request, table.id)).poker.players.find(player => player.controller === "bot")?.bot?.id).toBe("equity-rules-v2");
   await page.getByRole("button", { name: "Start hand", exact: true }).click();
   const action = page.getByRole("button", { name: /^(Call|Check)/ });
-  await expect(action).toBeEnabled();
+  await expect(action).toBeEnabled({ timeout: 30_000 });
   await action.click();
-  await expect(page.getByRole("button", { name: "Fold", exact: true })).toBeEnabled();
+  // Production includes cold starts and real bot computation between human turns.
+  await expect(page.getByRole("button", { name: "Fold", exact: true })).toBeEnabled({ timeout: 30_000 });
   await page.getByRole("button", { name: "Fold", exact: true }).click();
   const confirmation = page.getByRole("button", { name: "Fold anyway", exact: true });
   if (await confirmation.count()) await confirmation.click();
