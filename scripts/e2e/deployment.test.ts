@@ -150,7 +150,7 @@ it("preserves full regression selection and rollout gating without PR browser se
 it("collects exactly the three deployed journeys without starting a server", () => {
   const result = spawnSync(process.execPath, ["scripts/e2e/deployment.mjs", "--list"], {
     encoding: "utf8",
-    env: { ...process.env, PRODUCTION_SMOKE_URL: url, PRODUCTION_SMOKE_SHA: sha },
+    env: { ...process.env, PRODUCTION_SMOKE_URL: "https://www.aiholdem.gg", PRODUCTION_SMOKE_SHA: sha },
   });
   expect(result.status, result.stderr).toBe(0);
   expect(result.stdout).toContain("Total: 3 tests in 1 file");
@@ -207,5 +207,54 @@ it("persists an allowlisted target and replays it through the real manual valida
     expect(readFileSync(paths.GITHUB_OUTPUT, "utf8")).toBe(previousOutput);
     rmSync(targetFile);
     expect(replay().status).not.toBe(0);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+it("runs preflight before installation and executes trusted guards with the fixed public origin", () => {
+  const workflow = readFileSync(".github/workflows/production-smoke.yml", "utf8");
+  expect(workflow.indexOf("smoke-release.mjs preflight")).toBeLessThan(workflow.indexOf("run: npm ci"));
+  expect(workflow).toContain("run: node ../validation/scripts/e2e/deployment.mjs");
+  expect(workflow).toContain("PRODUCTION_SMOKE_URL: https://www.aiholdem.gg");
+  expect(workflow).not.toContain("PRODUCTION_SMOKE_URL: ${{ steps.target.outputs.url }}");
+  const runner = readFileSync("scripts/e2e/deployment.mjs", "utf8");
+  for (const path of ["test/deployment/fixtures.ts", "test/deployment/journeys.spec.ts", "scripts/e2e/production-revision.mjs"]) expect(runner).toContain(path);
+  expect(readFileSync("playwright.deployment.config.ts", "utf8")).toContain("maxFailures: 1");
+  const fixture = readFileSync("test/deployment/fixtures.ts", "utf8");
+  expect(fixture).toContain("browser.newContext({ baseURL: publicOrigin(info.project.use.baseURL) })");
+  expect(fixture).not.toMatch(/storageState:|cookies:|extraHTTPHeaders:/);
+  expect(fixture).toContain("table.guests.push(context.request)");
+  expect(fixture).toContain("owner: page.request");
+});
+
+it("never reports passing release evidence after a revision change, and distinguishes cleanup failures", () => {
+  const directory = mkdtempSync(join(tmpdir(), "smoke-report-"));
+  const script = resolve("scripts/e2e/smoke-release.mjs");
+  try {
+    for (let index = 0; index < 3; index++) {
+      const path = join(directory, "smoke-diagnostics", String(index));
+      mkdirSync(path, { recursive: true });
+      writeFileSync(join(path, "journey-summary.txt"), "Journey: passed\nCleanup: passed\n");
+    }
+    const log = join(directory, "revision.jsonl");
+    writeFileSync(log, JSON.stringify({ expected: sha, observed: sha, category: "verified" }) + "\n");
+    const report = () => {
+      const result = spawnSync(process.execPath, [script, "report"], { cwd: directory, encoding: "utf8", env: {
+        ...process.env, GITHUB_STEP_SUMMARY: "", PRODUCTION_SMOKE_SHA: sha, PRODUCTION_SMOKE_DEPLOYMENT_URL: url,
+        PRODUCTION_SMOKE_REVISION_LOG: log, SMOKE_OUTCOME: "success", PREFLIGHT_OUTCOME: "success",
+      } });
+      expect(result.status, result.stderr).toBe(0);
+      return readFileSync(join(directory, "smoke-diagnostics/summary.txt"), "utf8");
+    };
+    expect(report()).toContain("passed (three journeys; owned tables removed)");
+    writeFileSync(log, JSON.stringify({ expected: sha, observed: "b".repeat(40), category: "revision mismatch" }) + "\n");
+    const summary = report();
+    expect(summary).toContain("release not verified: production revision mismatch");
+    expect(summary).not.toContain("Production smoke: passed");
+    expect(summary).toContain("Cleanup: all three owned tables removed");
+    expect(summary).toContain(`Original deployment URL: ${url}`);
+    expect(summary).toContain("Public test origin: https://www.aiholdem.gg");
+    writeFileSync(join(directory, "smoke-diagnostics/0/journey-summary.txt"), "Journey: failed\nCleanup: failed\n");
+    expect(report()).toContain("Cleanup: failed; see cleanup-summary.txt");
+    expect(report()).toContain("Journey failures: yes");
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });

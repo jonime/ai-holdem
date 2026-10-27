@@ -1834,8 +1834,23 @@ approved project, production environment, successful deployment state, deploymen
 ID, an immutable HTTPS `*.vercel.app` origin and a full 40-character commit SHA.
 The authenticated Vercel event is the deployment authority; there is no independent
 Vercel API lookup. It records the URL/revision/source run in the summary and checks
-out that deployed revision, which must include the smoke command/tests. No
-arbitrary aliases, URLs with credentials or preview targets are accepted.
+out that deployed revision for its locked dependencies. The immutable URL remains
+release metadata and may remain protected. Browser journeys always use the fixed
+public origin `https://www.aiholdem.gg`; arbitrary target URLs are rejected.
+The trusted validation checkout supplies the runner, config, journeys, fixtures and
+revision guards, so older deployed test code cannot bypass verification.
+
+Before dependency/browser installation, trusted preflight polls public `GET
+/api/build` for up to 60 seconds. It requires HTTP 200, valid JSON and the expected
+40-character commit SHA. This public endpoint returns only the existing build
+identifier with `Cache-Control: no-store`, without database access. Missing,
+unknown or mismatched revisions stop before table creation with **release not
+verified: production revision mismatch**, recording expected/observed commits.
+HTTP/network failures are distinguished as access failures. Revision checks run
+before and after each journey; a mismatch stops further journeys while owned
+fixture cleanup still runs. These boundary checks detect changes but do not pin
+public traffic to an immutable release. No bypass secret or protection change is
+needed.
 
 After automatic validation and before browser tests, the workflow stores only
 allowlisted deployment fields in a seven-day `production-smoke-target-<attempt>`
@@ -1856,8 +1871,9 @@ can a source still in progress. Missing or expired artifacts fail closed. Only
 runs created by this tokenless workflow version are eligible; the previous
 API-token version did not save a target record. If a record expires, use a new
 production deployment or rerun its original Vercel-triggered workflow to validate
-and save a fresh record. Manual runs reuse the original immutable deployment;
-they do not silently switch to whatever deployment is current now.
+and save a fresh record. Manual retries certify the original revision only while it remains live on the
+public production domain. Historical deployments cannot be certified through this
+moving alias.
 
 Chromium alone runs three journeys with one worker, zero retries and a ten-minute
 workflow limit: private-table joining/ownership/spectator rejection; explicitly
@@ -1875,7 +1891,10 @@ application endpoints, then verifies 404. Explicit GAME_CONFLICT responses allow
 at most three attempts with fresh reads, accommodating an already-running bot step
 committing after navigation. Unknown outcomes are reported without replay.
 It attempts all cleanup even after a
-failure. Cleanup failures are reported separately and fail otherwise-passing tests;
+failure. Owner and guest contexts use the same public origin with independent anonymous
+cookies; cleanup reuses those exact contexts. The summary distinguishes access,
+revision, journey and cleanup failures and records both the public origin and
+original immutable deployment URL. Cleanup failures are reported separately and fail otherwise-passing tests;
 they do not replace the original failure. Hard workflow cancellation or process
 loss can prevent teardown; reported IDs identify only this run's fixtures for
 owner-assisted follow-up. No database sweep or persistent browser identity is used.

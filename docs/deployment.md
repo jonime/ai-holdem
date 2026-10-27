@@ -342,7 +342,18 @@ manual regression and hosted production smoke evidence is recorded.
 Production smoke uses the successful Vercel production repository dispatch,
 validates the Vercel GitHub bot event, approved project/revision/URL and production
 success state, and tests
-that deployed revision with Chromium against its hosted app and Supabase. It uses
+the fixed public origin `https://www.aiholdem.gg` with Chromium. The immutable
+Vercel URL remains release metadata and can stay protected. Trusted validation
+code polls public `/api/build` for up to 60 seconds before installing dependencies
+or Chromium, requiring HTTP 200, valid JSON and the expected commit. The endpoint
+returns only `{ build }` from the existing build identifier with `Cache-Control:
+no-store` and no database access. Missing, unknown or mismatched revisions fail
+with “release not verified: production revision mismatch” before table creation.
+Trusted revision checks before and after every journey stop further journeys if
+production changes, while cleanup still runs. Checks detect boundary changes;
+they do not pin public traffic. Manual retries can verify only the original
+revision while it is live on the public domain, never a historical deployment.
+No bypass secret, new secret or Vercel protection change is required. It uses
 ordinary anonymous endpoints and private tables, with no hosted database keys or
 provider bypass. It does not build, start a local stack, publish tables or roll
 back a failed release. No Vercel API token, team variable or custom webhook is

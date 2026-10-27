@@ -13,6 +13,12 @@ for path in source.rglob("*"):
         target = output / path.relative_to(source)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(path, target)
+    elif path.is_file() and path.name == "journey-summary.txt":
+        lines = [line for line in path.read_text().splitlines()
+                 if re.fullmatch(r"(?:Journey|Cleanup): (?:passed|failed)", line)]
+        target = output / path.relative_to(source)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("\n".join(lines))
     elif path.is_file() and path.name == "cleanup-summary.txt":
         lines = [line for line in path.read_text().splitlines()
                  if re.fullmatch(r"(?:Guest release|Deletion) failed for run table [0-9a-f-]{36}|Browser context cleanup failed", line)]
