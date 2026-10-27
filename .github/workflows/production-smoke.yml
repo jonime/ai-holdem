@@ -5,17 +5,14 @@ on:
     types: [vercel.deployment.success]
   workflow_dispatch:
     inputs:
-      url:
-        description: Immutable production deployment URL (https://...vercel.app)
-        required: true
-        type: string
-      sha:
-        description: Full deployed commit SHA
+      run_id:
+        description: Completed Vercel-triggered Production release smoke run ID (within seven days)
         required: true
         type: string
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: production-smoke-ai-holdem
@@ -25,7 +22,9 @@ jobs:
   smoke:
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      (github.event.client_payload.environment == 'production' &&
+      (github.event.sender.login == 'vercel[bot]' &&
+       github.event.sender.type == 'Bot' &&
+       github.event.client_payload.environment == 'production' &&
        github.event.client_payload.project.id == 'prj_N0tyAlXJcQPz1zO15o2Hbno9RV86')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -42,13 +41,38 @@ jobs:
         with:
           node-version-file: validation/.nvmrc
 
+      - name: Verify manual source run provenance
+        if: github.event_name == 'workflow_dispatch'
+        id: source
+        run: node validation/scripts/e2e/validate-deployment.mjs source
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Download previously validated production target
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/download-artifact@v4
+        with:
+          name: production-smoke-target-${{ steps.source.outputs.attempt }}
+          path: production-smoke-target
+          run-id: ${{ steps.source.outputs.run_id }}
+          github-token: ${{ github.token }}
+
       - name: Validate production deployment
         id: target
         run: node validation/scripts/e2e/validate-deployment.mjs
         env:
           PRODUCTION_VERCEL_PROJECT_ID: prj_N0tyAlXJcQPz1zO15o2Hbno9RV86
-          PRODUCTION_VERCEL_TEAM_ID: ${{ vars.PRODUCTION_VERCEL_TEAM_ID }}
-          VERCEL_READ_TOKEN: ${{ secrets.VERCEL_READ_TOKEN }}
+          SOURCE_RUN_ID: ${{ steps.source.outputs.run_id }}
+          SOURCE_RUN_ATTEMPT: ${{ steps.source.outputs.attempt }}
+
+      - name: Save validated target for manual retries
+        if: github.event_name == 'repository_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-smoke-target-${{ github.run_attempt }}
+          path: validated-production-target/target.json
+          retention-days: 7
+          if-no-files-found: error
 
       - name: Check out deployed revision
         uses: actions/checkout@v4

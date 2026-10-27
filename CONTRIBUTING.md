@@ -1823,21 +1823,41 @@ uses database/provider credentials. Local production commands still reject hoste
 The production release workflow listens to Vercel's documented
 [`vercel.deployment.success` repository dispatch](https://vercel.com/docs/git/vercel-for-github#repository-dispatch-events).
 Preview and unrelated-project dispatches are skipped. The approved project is
-`prj_N0tyAlXJcQPz1zO15o2Hbno9RV86`. Configure GitHub Secret `VERCEL_READ_TOKEN`
-with deployment-metadata read access and, if required, repository variable
-`PRODUCTION_VERCEL_TEAM_ID`. No hosted Supabase secrets belong in this workflow.
-Vercel Git integration must emit repository dispatch events; the workflow must
-exist on the default branch for automatic delivery. A manual dispatch requires
-an immutable `https://...vercel.app` deployment URL and its full 40-character SHA.
-Both triggers use the same metadata validator and approved project.
+`prj_N0tyAlXJcQPz1zO15o2Hbno9RV86`. No Vercel API token, team variable or custom
+webhook endpoint is needed. Vercel's GitHub integration must emit repository
+dispatch events, and the workflow must exist on the default branch for automatic
+delivery. No hosted Supabase secrets belong in this workflow.
 
-Before test installation, trusted validation code queries Vercel's deployment
-metadata, requiring READY, production, exact project, repository, deployment URL
-and event/manual SHA agreement. It records the URL and revision in the run summary,
-then checks out that deployed revision. The deployed revision must include the
-smoke command/tests. No arbitrary aliases, URLs with credentials, or preview
-targets are accepted. The Vercel token is scoped to validation only and is never
-passed to browser execution.
+Before test installation, trusted validation code requires GitHub's event sender
+and actor to be the `vercel[bot]` integration, the current repository, the exact
+approved project, production environment, successful deployment state, deployment
+ID, an immutable HTTPS `*.vercel.app` origin and a full 40-character commit SHA.
+The authenticated Vercel event is the deployment authority; there is no independent
+Vercel API lookup. It records the URL/revision/source run in the summary and checks
+out that deployed revision, which must include the smoke command/tests. No
+arbitrary aliases, URLs with credentials or preview targets are accepted.
+
+After automatic validation and before browser tests, the workflow stores only
+allowlisted deployment fields in a seven-day `production-smoke-target-<attempt>`
+artifact. A **manual dispatch takes the original automatic run ID** (`run_id`),
+not a URL or SHA. Find it in the original **Production release smoke** run URL
+(`.../actions/runs/<run_id>`). The workflow uses GitHub's automatic `github.token`
+with `actions: read` to verify that the source is a completed, Vercel-triggered
+run of this workflow on `main` in this repository. It then downloads that run's
+latest-attempt target artifact, revalidates all target fields and binds the record
+to the checked run ID and attempt before checking out its deployed revision.
+The GitHub token is provided only to provenance verification and artifact download,
+never to browser execution. No personal token or new GitHub Secret is required.
+
+A failed smoke can be retried manually if target validation and artifact upload
+completed; failure of browser tests does not invalidate the deployment record.
+Preview/unrelated/skipped/manual/other-workflow runs cannot supply a target, nor
+can a source still in progress. Missing or expired artifacts fail closed. Only
+runs created by this tokenless workflow version are eligible; the previous
+API-token version did not save a target record. If a record expires, use a new
+production deployment or rerun its original Vercel-triggered workflow to validate
+and save a fresh record. Manual runs reuse the original immutable deployment;
+they do not silently switch to whatever deployment is current now.
 
 Chromium alone runs three journeys with one worker, zero retries and a ten-minute
 workflow limit: private-table joining/ownership/spectator rejection; explicitly
