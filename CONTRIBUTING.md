@@ -1847,7 +1847,8 @@ unknown or mismatched revisions stop before table creation with **release not
 verified: production revision mismatch**, recording expected/observed commits.
 HTTP/network failures are distinguished as access failures. Revision checks run
 before and after each journey; a mismatch stops further journeys while owned
-fixture cleanup still runs. These boundary checks detect changes but do not pin
+fixture cleanup still runs. Each boundary check allows one request up to five
+seconds, without polling or retries. These boundary checks detect changes but do not pin
 public traffic to an immutable release. No bypass secret or protection change is
 needed.
 
@@ -1879,6 +1880,8 @@ workflow limit: private-table joining/ownership/spectator rejection; explicitly
 selected Equity Rules hand completion/results/Actions/next hand; and real
 two-browser game/seat Realtime plus blocked-WebSocket polling. The subscribed
 observer's timers are paused so polling cannot satisfy Realtime assertions.
+The Equity Rules journey allows up to 30 seconds for human controls to become
+enabled across real bot turns, including production cold starts and computation.
 Quick Play, broader UI and WebKit remain in the complete nightly selection.
 
 The suite creates three private tables through normal anonymous application

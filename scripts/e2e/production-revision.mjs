@@ -18,7 +18,10 @@ export async function verifyRevision(expected, { request = fetch, timeout = 0, n
     category = "revision mismatch";
     try {
       const response = await request(`${PUBLIC_ORIGIN}/api/build`, {
-        redirect: "error", cache: "no-store", signal: AbortSignal.timeout(Math.max(1, Math.min(5000, deadline - now() || 5000))),
+        // A zero polling window still permits one full request. Clock advancement
+        // between creating the deadline and fetching must not reduce it to 1 ms.
+        redirect: "error", cache: "no-store", signal: AbortSignal.timeout(
+          timeout > 0 ? Math.max(1, Math.min(5000, deadline - now())) : 5000),
       });
       if (response.status !== 200) category = "access failure";
       else {
