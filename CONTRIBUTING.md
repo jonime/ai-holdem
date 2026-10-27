@@ -1924,3 +1924,18 @@ Accepted detection gaps: production regressions may reach users before smoke
 finishes; broader UI and WebKit regressions may first appear nightly. Private
 smoke fixtures consume normal limits. Sharding remains deferred unless nightly
 runtime becomes inconvenient.
+
+## Shared title verification
+
+Local Next builds use two static-generation workers; CI retains its configured
+default. Use `nice -n 15` and keep heavy commands sequential. Title provider tests
+are mocked; do not run paid model evaluations without explicit authorization.
+After applying `20261103000000_add_shared_hand_titles.sql` and
+`20261104000000_preserve_legacy_share_responses.sql`, regenerate and check
+types with CLI 2.120.0. Run focused title/provider/HTTP tests, `test:sql:shares`,
+then the title editing cases in `shared-replay.spec.ts` through the isolated
+production runner. Cover revision conflicts, manual clears racing generation,
+revocation, duplicate insertion eligibility and roles. Browser coverage checks
+public text, preserved replay position/drafts, focus restoration, light/dark and
+mobile. Finish with one `check`, benchmark regressions for shared library changes,
+and a bounded build. See deployment guidance for initially disabled generation.

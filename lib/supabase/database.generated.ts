@@ -225,14 +225,14 @@ isOneToOne: false
                   ]
                 },"replay_shares": {
                   Row: {
-                    "created_at": string,"creator_token": string,"expires_at": string,"game_id": string,"hand_id": string,"link_token": string,"revoked_at": string | null,"snapshot": NonNullable<Json>
+                    "created_at": string,"creator_token": string,"expires_at": string,"game_id": string,"hand_id": string,"link_token": string,"revoked_at": string | null,"snapshot": NonNullable<Json>,"title": string | null,"title_attempted": boolean,"title_revision": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"creator_token": string,"expires_at"?: string,"game_id": string,"hand_id": string,"link_token": string,"revoked_at"?: string | null,"snapshot": NonNullable<Json>
+                    "created_at"?: string,"creator_token": string,"expires_at"?: string,"game_id": string,"hand_id": string,"link_token": string,"revoked_at"?: string | null,"snapshot": NonNullable<Json>,"title"?: string | null,"title_attempted"?: boolean,"title_revision"?: number
                   }
                   Update: {
-                    "created_at"?: string,"creator_token"?: string,"expires_at"?: string,"game_id"?: string,"hand_id"?: string,"link_token"?: string,"revoked_at"?: string | null,"snapshot"?: NonNullable<Json>
+                    "created_at"?: string,"creator_token"?: string,"expires_at"?: string,"game_id"?: string,"hand_id"?: string,"link_token"?: string,"revoked_at"?: string | null,"snapshot"?: NonNullable<Json>,"title"?: string | null,"title_attempted"?: boolean,"title_revision"?: number
                   }
                   Relationships: [
                     {
@@ -495,6 +495,9 @@ isOneToOne: false
         isOneToOne: false
         isSetofReturn: true
       } },
+"commit_replay_share_title":
+{ Args: { "p_link_token": string,"p_title": string }; Returns: boolean
+                           },
 "commit_with_turn_timer":
 { Args: { "p_arguments": Json,"p_decision_id"?: string,"p_driver_token"?: string,"p_operation": string,"p_transition": Json }; Returns: Json
                            },
@@ -529,6 +532,9 @@ isOneToOne: false
                            },
 "depart_game_seat_if_version":
 { Args: { "p_expected_version": number,"p_fold"?: Json,"p_game_id": string,"p_player_token": string,"p_seat": number }; Returns: Json
+                           },
+"edit_replay_share_title":
+{ Args: { "p_creator_token": string,"p_link_token": string,"p_revision": number,"p_title": string }; Returns: Json
                            },
 "get_bot_hand_context":
 { Args: { "p_game_id": string,"p_hand_number": number }; Returns: Json
@@ -577,10 +583,19 @@ isOneToOne: false
 "list_replay_shares":
 { Args: { "p_before_created_at"?: string,"p_before_token"?: string,"p_creator_token": string }; Returns: Json
                            },
+"list_replay_shares_with_title":
+{ Args: { "p_before_created_at"?: string,"p_before_token"?: string,"p_creator_token": string }; Returns: Json
+                           },
 "manage_replay_share":
 { Args: { "p_creator_token": string,"p_game_id": string,"p_hand_number": number,"p_history": Json,"p_ip_allowance": number,"p_ip_hash": string,"p_link_token": string,"p_operation": string,"p_owner_allowance": number,"p_owner_hash": string,"p_snapshot": Json,"p_window_ms": number }; Returns: Json
                            },
+"manage_replay_share_with_title":
+{ Args: { "p_creator_token": string,"p_game_id": string,"p_hand_number": number,"p_history": Json,"p_ip_allowance": number,"p_ip_hash": string,"p_link_token": string,"p_operation": string,"p_owner_allowance": number,"p_owner_hash": string,"p_snapshot": Json,"p_window_ms": number }; Returns: Json
+                           },
 "read_replay_share":
+{ Args: { "p_link_token": string }; Returns: Json
+                           },
+"read_replay_share_with_title":
 { Args: { "p_link_token": string }; Returns: Json
                            },
 "release_bot_step_claim":

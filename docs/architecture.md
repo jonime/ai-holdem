@@ -769,12 +769,12 @@ Other locales retain their prefixes; browser language never redirects pages.
 Play is `noindex, follow`
 and excluded from the sitemap. No polling or Realtime runs on Play.
 
-Owner share management uses service-role-only `list_replay_shares` and
+Owner share management uses service-role-only `list_replay_shares_with_title` and
 `revoke_owned_replay_share`. The list filters creator cookie, revoked state and
 exclusive database-time expiry before returning 20 rows ordered by
 `created_at DESC, link_token DESC`, with one lookahead. Cursor timestamps preserve
 Postgres microseconds as strings. The partial owner/ordering index supports the scan.
-Strict HTTP contracts expose only token, hand number, creation and expiry timestamps;
+Strict HTTP contracts expose token, hand number, creation/expiry timestamps and nullable title with title revision;
 no snapshots, source game IDs or ownership tokens enter list DTOs. GET
 `/api/replays/owned` and DELETE `/api/replays/owned/[token]` are private/no-store,
 no-referrer, cookie-owned; mutations enforce same origin. Failures log only existing
@@ -782,6 +782,31 @@ allowlisted `replay_share` diagnostics. Exact revocation locates the owner token
 then locks game, hand and exact share in the same order as creation/deletion. Missing,
 foreign, expired or retired targets are harmless. It cannot touch a replacement link.
 Share allowances, snapshots, 30-day expiry and deletion cascades are unchanged.
+
+Shared title metadata lives outside the immutable schema-version-1 snapshot.
+`manage_replay_share_with_title` returns an internal insertion-only `generationEligible`
+flag; the creation transaction consumes the one attempt, including when inference
+is disabled or interrupted. Duplicate requests never receive eligibility. The
+service constructs a bounded field allowlist from that request's frozen snapshot:
+seats, visible cards, boards, betting and awards, without participant names or source
+identifiers. Oversized summaries are declined. `SHARED_HAND_TITLE_MODEL` selects
+the separate server-only model, using LLM endpoint/key and the external inference
+gate. A title-only transport enforces eight seconds across headers/body (the gameplay
+transport remains a frozen benchmark dependency),
+with a 256-token output cap, structured `{ title }`, no retries or fallback.
+Malformed, multiline, empty and overlong output is discarded silently. No gameplay
+prompts, bot claims, context preparation or allowances are involved.
+`commit_replay_share_title` conditionally writes only an active exact link at
+revision zero. Manual edits (including clearing) increment the revision and defeat
+in-flight generation. PATCH `/api/replays/owned/[token]` validates expected title
+revision and the anonymous cookie owner, rejects retired/expired targets and returns
+409 on conflict. Owner DTOs include title/revision; public replay DTOs add nullable
+title outside the snapshot. Title-aware list/read/management RPCs use `_with_title`
+names; the original functions retain their exact legacy response shapes for
+rolling deployment. Read/list endpoints never generate. React renders text
+without HTML interpretation. Editor overlays preserve the mounted replay and its
+position, and require refreshed editing after a revision conflict.
+
 Client requests have 15-second deadlines and cancellation on unmount. A synchronous
 lock prevents duplicates. Unknown outcomes reconcile once by reading the list, never
 replaying DELETE; failed recovery blocks management until a successful explicit

@@ -219,6 +219,14 @@ const dictionary = {
     },
   },
   sharing: {
+    editTitle: "Edytuj tytuł",
+    titleLabel: "Tytuł",
+    saveTitle: "Zapisz",
+    titleVisibility: "Ten tytuł jest widoczny dla każdego, kto ma link.",
+    titleConflict: "Tytuł zmieniono gdzie indziej. Odśwież i edytuj ponownie.",
+    titleError: "Nie udało się zapisać tytułu. Wersja robocza została zachowana.",
+    refreshTitle: "Odśwież tytuł",
+
     dialogTitle: "Udostępnij powtórkę - Rozdanie {hand}",
     visibilityIntro: "Widoczne od początku:",
     visibleCards: "Twoje karty (także spasowane) i karty wszystkich botów.",

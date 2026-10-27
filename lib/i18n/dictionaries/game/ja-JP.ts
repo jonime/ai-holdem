@@ -235,6 +235,14 @@ const dictionary = {
     }
   },
   sharing: {
+    editTitle: "タイトルを編集",
+    titleLabel: "タイトル",
+    saveTitle: "保存",
+    titleVisibility: "このタイトルはリンクを知っている全員に表示されます。",
+    titleConflict: "タイトルが別の場所で変更されました。更新してから再編集してください。",
+    titleError: "タイトルを保存できませんでした。下書きは保持されています。",
+    refreshTitle: "タイトルを更新",
+
     dialogTitle: "リプレイを共有 - ハンド {hand}",
     visibilityIntro: "最初から表示：",
     visibleCards: "自分のカード（フォールド分を含む）と全ボットのカード。",

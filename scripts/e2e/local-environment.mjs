@@ -31,7 +31,7 @@ export function localEnvironment() {
     NEXT_PUBLIC_SUPABASE_URL: url.origin,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: status.ANON_KEY,
     SUPABASE_SECRET_KEY: status.SERVICE_ROLE_KEY,
-    TYPESAFE_API_KEY: "", EEVO_API_KEY: "", EEVO_QUICK_PLAY_ENABLED: "false", LLM_API_ENDPOINT: "", LLM_API_KEY: "",
+    TYPESAFE_API_KEY: "", EEVO_API_KEY: "", EEVO_QUICK_PLAY_ENABLED: "false", SHARED_HAND_TITLE_MODEL: "", LLM_API_ENDPOINT: "", LLM_API_KEY: "",
     LLM_BOT_MODELS: JSON.stringify([{ id: "llm-test-model", label: "LLM Test Model", modelId: "test/model" }]),
     EXTERNAL_INFERENCE_ENABLED: "false", NEXT_TELEMETRY_DISABLED: "1",
   };

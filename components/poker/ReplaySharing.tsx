@@ -1,4 +1,5 @@
 "use client";
+import { ShareTitleEditor } from "./ShareTitleEditor";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { GameErrorDetails } from "@/components/CopyErrorDetails";
 import { captureDiagnostic, recoveryDiagnostics, type DiagnosticReport } from "@/lib/http/diagnostics";
@@ -63,7 +64,7 @@ export function ReplaySharing({ gameId, handNumber, open, onAvailabilityChange, 
     const epoch = diagnosticEpoch.current;
     try {
       if (operation === "create") {
-        const result = await api.shares.create({ gameId, handNumber }, { signal });
+        const result = await api.shares.create({ gameId, handNumber, locale }, { signal });
         if (!signal.aborted) setShare(result.share);
       } else {
         await api.shares.revoke({ gameId, handNumber }, { signal });
@@ -101,6 +102,8 @@ export function ReplaySharing({ gameId, handNumber, open, onAvailabilityChange, 
       </> : <>
 
     {share && confirm !== "revoke" ? <>
+      {share.title ? <h3>{share.title}</h3> : null}
+      <ShareTitleEditor share={share} onSaved={setShare} onRefresh={() => { setStatus("loading"); setAttempt(a => a + 1); }} />
       <div className={styles.actions}><Button disabled={pending || copyPending} onClick={() => void clipboard.copy(url)}>{t("sharing.copy")}</Button>
       <Button disabled={pending} onClick={() => setConfirm("revoke")}>{t("sharing.revoke")}</Button></div>
       <p className={styles.meta}>{t("sharing.expires", { date: new Date(share.expiresAt).toLocaleString(locale) })}</p>

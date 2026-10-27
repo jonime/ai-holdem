@@ -217,6 +217,14 @@ const dictionary = {
     },
   },
   sharing: {
+    editTitle: "Edit title",
+    titleLabel: "Title",
+    saveTitle: "Save",
+    titleVisibility: "This title is visible to anyone with the link.",
+    titleConflict: "The title changed elsewhere. Refresh, then edit again.",
+    titleError: "Unable to save the title. Your draft is preserved.",
+    refreshTitle: "Refresh title",
+
     dialogTitle: "Share replay - Hand {hand}",
     visibilityIntro: "Visible from the first frame:",
     visibleCards: "Your cards (even folded) and all bots’ cards.",

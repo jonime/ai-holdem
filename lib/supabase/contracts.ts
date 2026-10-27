@@ -15,6 +15,7 @@ type NullableKeys<N extends RpcName> = N extends ActionName
   : N extends "assign_bot_to_seat_if_version" ? "p_ai_difficulty" | "p_bot_model_id" | "p_bot_profile_id"
   : N extends "claim_game_seat_if_version" | "join_public_game_if_version" ? "p_name"
   : N extends "list_public_games" ? "p_player_token" | "p_cursor_game_id" | "p_cursor_published_at"
+  : N extends "edit_replay_share_title" ? "p_title"
   : N extends "set_game_publication_if_version" ? "p_title"
   : N extends "commit_with_turn_timer" ? "p_decision_id" | "p_driver_token" : never;
 type SqlArgs<N extends RpcName> = {

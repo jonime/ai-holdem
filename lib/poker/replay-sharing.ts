@@ -2,11 +2,14 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { reconstructHandReplay } from "./hand-replay";
-import { shareManagementSchema, sharedReplaySchema, type ReplayData } from "@/lib/http/share-contracts";
+import { shareManagementSchema, publicSharedReplaySchema, sharedReplaySchema, type ReplayData } from "@/lib/http/share-contracts";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { toJson } from "@/lib/supabase/contracts";
 import { hashUsageIdentity, creationIP, localCreationIdentity } from "@/lib/usage/identity";
 import { usagePolicy } from "@/lib/usage/policy";
+
+import { generateSharedHandTitle } from "./shared-hand-title";
+import { DEFAULT_LOCALE, type Locale } from "@/lib/i18n";
 
 export class ShareOutcome extends Error {
   constructor(readonly code: "SHARE_FORBIDDEN" | "SHARE_UNAVAILABLE" | "SHARE_CONFLICT" | "SHARE_CREATION_LIMIT", readonly retryAfterMs?: number) { super(code); }
@@ -25,13 +28,13 @@ export function projectSharedReplay(source: ReturnType<typeof reconstructHandRep
   return sharedReplaySchema.parse({ schemaVersion: 1, replay });
 }
 const outcomeSchema = z.object({ outcome: z.enum(["forbidden", "conflict", "denied"]), retryAfterMs: z.number().int().positive().max(3_600_000).optional() });
-export async function manageReplayShare(request: Request, gameId: string, handNumber: number, token: string | null, operation: "read" | "create" | "revoke") {
+export async function manageReplayShare(request: Request, gameId: string, handNumber: number, token: string | null, operation: "read" | "create" | "revoke", locale: Locale = DEFAULT_LOCALE) {
   if (!token) throw new ShareOutcome("SHARE_FORBIDDEN");
   const client = createSupabaseServerClient();
   const read = await client.rpc("get_hand_replay", { p_game_id: gameId, p_hand_number: handNumber });
   if (read.error) throw new Error("Replay read failed");
   const snapshot = projectSharedReplay(reconstructHandReplay(read.data, gameId, handNumber), token);
-  const result = await client.rpc("manage_replay_share", {
+  const result = await client.rpc("manage_replay_share_with_title", {
     p_game_id: gameId, p_hand_number: handNumber, p_creator_token: token, p_operation: operation,
     p_link_token: operation === "create" ? randomBytes(32).toString("hex") : "",
     p_snapshot: toJson(snapshot), p_history: toJson(read.data),
@@ -43,11 +46,22 @@ export async function manageReplayShare(request: Request, gameId: string, handNu
   if (result.error) throw new Error("Share management failed");
   const outcome = outcomeSchema.safeParse(result.data);
   if (outcome.success) throw new ShareOutcome(outcome.data.outcome === "forbidden" ? "SHARE_FORBIDDEN" : outcome.data.outcome === "conflict" ? "SHARE_CONFLICT" : "SHARE_CREATION_LIMIT", outcome.data.retryAfterMs);
-  return shareManagementSchema.parse(result.data);
+  const envelope = z.object({ share: shareManagementSchema.shape.share, generationEligible: z.boolean().optional() }).parse(result.data);
+  if (operation === "create" && envelope.generationEligible && envelope.share) {
+    // Only the insert request receives eligibility, and only its frozen snapshot is used.
+    const title = await generateSharedHandTitle(snapshot, locale);
+    if (title) {
+      try {
+        const saved = await client.rpc("commit_replay_share_title", { p_link_token: envelope.share.token, p_title: title });
+        if (!saved.error && saved.data === true) envelope.share = { ...envelope.share, title, titleRevision: 1 };
+      } catch { /* Sharing has already succeeded. */ }
+    }
+  }
+  return shareManagementSchema.parse({ share: envelope.share });
 }
 export async function readSharedReplay(token: string) {
-  const { data, error } = await createSupabaseServerClient().rpc("read_replay_share", { p_link_token: token });
+  const { data, error } = await createSupabaseServerClient().rpc("read_replay_share_with_title", { p_link_token: token });
   if (error) throw new Error("Shared replay read failed");
   if (data === null) throw new ShareOutcome("SHARE_UNAVAILABLE");
-  return sharedReplaySchema.parse(data);
+  return publicSharedReplaySchema.parse(data);
 }

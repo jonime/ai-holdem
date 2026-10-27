@@ -381,7 +381,18 @@ replacing the separate Play Back and About home links. The landing hero links
 here with the localized **Play** label.
 
 **Shared hands** lists this browser owner's active, unexpired links, 20 at a time,
-newest first. Hand number, short link ID, creation date and expiry distinguish rows.
+newest first. A title, when present, is the main label; the hand number remains
+secondary context. Otherwise the existing hand/link label appears. Titles also
+head the standalone replay. **Edit title** is available here and in the in-game
+share dialog. Save an empty title to clear it. Titles are plain text, at most 80
+characters, and visible to anyone with the link. Failed saves preserve drafts;
+if another tab changed the title, explicitly refresh and edit again.
+
+Optional AI titles use only the frozen shared replay, in the creator's selected
+interface language. They are attempted once when a new link is created. Failure
+leaves the ordinary fallback label; visits and refreshes never generate titles.
+Later language changes do not translate the stored title. Manual titles work
+when generation is disabled. Hand number, short link ID, creation date and expiry distinguish rows.
 Use **View** to open a standalone replay in a new tab without a referrer, **Copy link**
 (with a selectable URL when clipboard access fails), or confirm **Revoke link** for
 that exact link. Revoking an old link never revokes a replacement for the same hand.

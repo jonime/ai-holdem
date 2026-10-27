@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { replayParamsSchema } from "@/lib/http/replay-contracts";
-import { shareManagementSchema, revokeShareSchema } from "@/lib/http/share-contracts";
+import { shareManagementSchema, revokeShareSchema, createReplayShareSchema } from "@/lib/http/share-contracts";
 import { getPlayerTokenFromRequest } from "@/lib/identity/player-token";
 import { manageReplayShare, ShareOutcome } from "@/lib/poker/replay-sharing";
 import { UsageUnavailableError } from "@/lib/usage/errors";
@@ -14,8 +14,10 @@ async function manage(request: Request, context: Context, operation: "read" | "c
   }
   const path = replayParamsSchema.safeParse(await context.params);
   if (!path.success) return NextResponse.json({ error: "Invalid parameters" }, { status: 400, headers });
+  const body = operation === "create" ? createReplayShareSchema.safeParse(await request.text().then(text => text ? JSON.parse(text) : {}).catch(() => null)) : null;
+  if (body && !body.success) return NextResponse.json({ error: "Invalid locale" }, { status: 400, headers });
   try {
-    const result = await manageReplayShare(request, path.data.gameId, path.data.handNumber, getPlayerTokenFromRequest(request), operation);
+    const result = await manageReplayShare(request, path.data.gameId, path.data.handNumber, getPlayerTokenFromRequest(request), operation, body?.success ? body.data.locale : undefined);
     return NextResponse.json(operation === "revoke" ? revokeShareSchema.parse({ revoked: true }) : shareManagementSchema.parse(result), { headers });
   } catch (error) {
     if (error instanceof UsageUnavailableError) return NextResponse.json({ error: "Share creation temporarily unavailable", code: "USAGE_UNAVAILABLE" }, { status: 503, headers });

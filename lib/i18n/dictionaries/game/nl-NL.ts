@@ -218,6 +218,14 @@ const dictionary = {
     },
   },
   sharing: {
+    editTitle: "Titel bewerken",
+    titleLabel: "Titel",
+    saveTitle: "Opslaan",
+    titleVisibility: "Deze titel is zichtbaar voor iedereen met de link.",
+    titleConflict: "De titel is ergens anders gewijzigd. Vernieuw en bewerk opnieuw.",
+    titleError: "De titel kon niet worden opgeslagen. Je concept blijft bewaard.",
+    refreshTitle: "Titel vernieuwen",
+
     dialogTitle: "Replay delen - Hand {hand}",
     visibilityIntro: "Zichtbaar vanaf het begin:",
     visibleCards: "Je kaarten (ook gefold) en alle botkaarten.",

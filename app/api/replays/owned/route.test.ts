@@ -1,9 +1,10 @@
 import { beforeEach, expect, it, vi } from "vitest";
-const { list, revoke, log } = vi.hoisted(() => ({ list: vi.fn(), revoke: vi.fn(), log: vi.fn() }));
-vi.mock("@/lib/poker/owned-shares", () => ({ listOwnedShares: list, revokeOwnedShare: revoke }));
+const { list, revoke, edit, log } = vi.hoisted(() => ({ list: vi.fn(), revoke: vi.fn(), edit: vi.fn(), log: vi.fn() }));
+vi.mock("@/lib/poker/owned-shares", () => ({ listOwnedShares: list, revokeOwnedShare: revoke, editOwnedShareTitle: edit }));
 vi.mock("@/lib/logging/application-failure", () => ({ logApplicationFailure: log, classifyApplicationFailure: () => "unexpected" }));
 import { GET } from "./route";
-import { DELETE } from "./[token]/route";
+import { ShareOutcome } from "@/lib/poker/replay-sharing";
+import { DELETE, PATCH } from "./[token]/route";
 const token = "a".repeat(64);
 const context = { params: Promise.resolve({ token }) };
 beforeEach(() => { vi.clearAllMocks(); list.mockResolvedValue({ shares: [], nextCursor: null }); revoke.mockResolvedValue({ revoked: true }); });
@@ -32,4 +33,23 @@ it("rejects cross-origin deletes before data access and revokes the exact path t
   expect(revoke).toHaveBeenCalledWith("owner", token);
   expect(response.headers.get("cache-control")).toBe("private, no-store");
   expect(await response.json()).toEqual({ revoked: true });
+});
+
+it("validates exact-token title PATCH and cookie ownership before edits", async () => {
+  const request = (body: unknown, origin = "https://holdem.test") => new Request("https://holdem.test/api/replays/owned/"+token, { method: "PATCH", headers: { origin, cookie: "ai-holdem-player-id=owner" }, body: JSON.stringify(body) });
+  expect((await PATCH(request({ title: "Title", titleRevision: 0 }, "https://foreign.test"), context)).status).toBe(403);
+  for (const body of [{ title: "x" }, { title: "x\ny", titleRevision: 0 }, { title: "x", titleRevision: -1 }, { title: "x", titleRevision: 0, owner: "attacker" }]) {
+    expect((await PATCH(request(body), context)).status).toBe(400);
+  }
+  expect(edit).not.toHaveBeenCalled();
+  const result = { token, title: null, titleRevision: 3, expiresAt: "2099-01-01T00:00:00Z" };
+  edit.mockResolvedValueOnce(result);
+  const response = await PATCH(request({ title: null, titleRevision: 2 }), context);
+  expect(await response.json()).toEqual(result);
+  expect(edit).toHaveBeenCalledWith("owner", token, { title: null, titleRevision: 2 });
+  expect(response.headers.get("cache-control")).toBe("private, no-store");
+  edit.mockRejectedValueOnce(new ShareOutcome("SHARE_CONFLICT"));
+  expect((await PATCH(request({ title: "Old", titleRevision: 2 }), context)).status).toBe(409);
+  edit.mockRejectedValueOnce(new ShareOutcome("SHARE_FORBIDDEN"));
+  expect((await PATCH(request({ title: "Old", titleRevision: 2 }), context)).status).toBe(403);
 });

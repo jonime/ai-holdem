@@ -9,3 +9,9 @@
 .url { display: block; margin-bottom: 16px; }
 .url input { display: block; width: 100%; padding: 8px; margin-top: 6px; border: 1px solid var(--line); border-radius: 6px; }
 .layer::backdrop { background: rgba(8, 25, 22, 0.4); }
+
+.titleForm { padding: 24px; color: var(--text); background: var(--surface); }
+.titleForm input { min-height: 44px; color: var(--text); background: var(--surface-muted); border-color: var(--border); }
+.titleForm h2 { margin-bottom: 12px; overflow-wrap: anywhere; }
+
+.replayTitle { font-size: 20px; overflow-wrap: anywhere; margin-bottom: 16px; }

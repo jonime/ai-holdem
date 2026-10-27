@@ -218,6 +218,14 @@ const dictionary = {
     },
   },
   sharing: {
+    editTitle: "Titel bearbeiten",
+    titleLabel: "Titel",
+    saveTitle: "Speichern",
+    titleVisibility: "Dieser Titel ist für alle mit dem Link sichtbar.",
+    titleConflict: "Der Titel wurde anderswo geändert. Aktualisiere ihn und bearbeite ihn erneut.",
+    titleError: "Der Titel konnte nicht gespeichert werden. Dein Entwurf bleibt erhalten.",
+    refreshTitle: "Titel aktualisieren",
+
     dialogTitle: "Wiederholung teilen - Hand {hand}",
     visibilityIntro: "Von Anfang an sichtbar:",
     visibleCards: "Deine Karten (auch abgelegte) und alle Bot-Karten.",
