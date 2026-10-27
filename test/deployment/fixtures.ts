@@ -3,6 +3,8 @@ import { test as base, expect, type BrowserContext, type APIRequestContext } fro
 import type { Game } from "../../components/poker/types";
 import { cleanupTables } from "../../scripts/e2e/smoke-cleanup.mjs";
 
+import { guardedJourney, publicOrigin } from "../../scripts/e2e/production-revision.mjs";
+
 export { expect } from "@playwright/test";
 export async function read(request: APIRequestContext, id: string): Promise<Game> {
   const response = await request.get(`/api/games/${id}`);
@@ -14,7 +16,7 @@ export const test = base.extend<{ table: { id: string; guest: () => Promise<Brow
   table: async ({ page, browser }, runTest, info) => {
     const tables: { id: string; owner: APIRequestContext; guests: APIRequestContext[] }[] = [];
     const contexts: BrowserContext[] = [];
-    try {
+    await guardedJourney(process.env.PRODUCTION_SMOKE_SHA, async () => {
       const response = await page.request.post("/api/games", { data: { seatCount: 2, humanTurnSeconds: null, hostName: "Release smoke" } });
       expect(response.status()).toBe(201);
       const { gameId: id } = await response.json();
@@ -22,12 +24,12 @@ export const test = base.extend<{ table: { id: string; guest: () => Promise<Brow
       const table = { id, owner: page.request, guests: [] as APIRequestContext[] };
       tables.push(table);
       await runTest({ id, guest: async () => {
-        const context = await browser.newContext({ baseURL: info.project.use.baseURL });
+        const context = await browser.newContext({ baseURL: publicOrigin(info.project.use.baseURL) });
         contexts.push(context);
         table.guests.push(context.request);
         return context;
       } });
-    } finally {
+    }, async () => {
       // Capture the failing UI before stopping browser activity for cleanup.
       let screenshot = 0;
       for (const context of [page.context(), ...contexts]) {
@@ -42,6 +44,8 @@ export const test = base.extend<{ table: { id: string; guest: () => Promise<Brow
       for (const context of contexts) {
         try { await context.close(); } catch { failures.push("Browser context cleanup failed"); }
       }
+      writeFileSync(info.outputPath("journey-summary.txt"),
+        `Journey: ${info.status === info.expectedStatus ? "passed" : "failed"}\nCleanup: ${failures.length ? "failed" : "passed"}\n`);
       if (failures.length) {
         const message = failures.join("\n");
         console.error(message);
@@ -49,6 +53,6 @@ export const test = base.extend<{ table: { id: string; guest: () => Promise<Brow
         await info.attach("cleanup-failures", { body: message, contentType: "text/plain" });
         if (info.status === info.expectedStatus) throw new Error(message);
       }
-    }
+    });
   },
 });

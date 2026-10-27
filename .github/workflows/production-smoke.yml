@@ -28,6 +28,8 @@ jobs:
        github.event.client_payload.project.id == 'prj_N0tyAlXJcQPz1zO15o2Hbno9RV86')
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    env:
+      PRODUCTION_SMOKE_REVISION_LOG: ${{ github.workspace }}/production-smoke-revisions.jsonl
     steps:
       - name: Check out trusted validation code
         uses: actions/checkout@v4
@@ -74,6 +76,12 @@ jobs:
           retention-days: 7
           if-no-files-found: error
 
+      - name: Verify public production revision before installation
+        id: preflight
+        run: node validation/scripts/e2e/smoke-release.mjs preflight
+        env:
+          PRODUCTION_SMOKE_SHA: ${{ steps.target.outputs.sha }}
+
       - name: Check out deployed revision
         uses: actions/checkout@v4
         with:
@@ -90,10 +98,11 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run production journeys
+        id: journeys
         working-directory: deployed
-        run: npm run test:e2e:deployment
+        run: node ../validation/scripts/e2e/deployment.mjs
         env:
-          PRODUCTION_SMOKE_URL: ${{ steps.target.outputs.url }}
+          PRODUCTION_SMOKE_URL: https://www.aiholdem.gg
           PRODUCTION_SMOKE_SHA: ${{ steps.target.outputs.sha }}
 
       - name: Prepare credential-free failure diagnostics
@@ -103,13 +112,11 @@ jobs:
       - name: Record release outcome
         if: always()
         env:
-          RESULT: ${{ job.status }}
-          DEPLOYED_SHA: ${{ steps.target.outputs.sha }}
-          DEPLOYED_URL: ${{ steps.target.outputs.url }}
-        run: |
-          mkdir -p smoke-diagnostics
-          printf 'Production smoke: %s\nRevision: %s\nTarget: %s\nFailure requires release investigation; no automatic rollback runs.\n' "$RESULT" "$DEPLOYED_SHA" "$DEPLOYED_URL" > smoke-diagnostics/summary.txt
-          cat smoke-diagnostics/summary.txt >> "$GITHUB_STEP_SUMMARY"
+          PRODUCTION_SMOKE_SHA: ${{ steps.target.outputs.sha }}
+          PRODUCTION_SMOKE_DEPLOYMENT_URL: ${{ steps.target.outputs.url }}
+          PREFLIGHT_OUTCOME: ${{ steps.preflight.outcome }}
+          SMOKE_OUTCOME: ${{ steps.journeys.outcome }}
+        run: node validation/scripts/e2e/smoke-release.mjs report
 
       - name: Upload failure diagnostics
         if: failure()
