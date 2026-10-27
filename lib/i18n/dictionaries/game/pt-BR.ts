@@ -218,6 +218,14 @@ const dictionary = {
     },
   },
   sharing: {
+    editTitle: "Editar título",
+    titleLabel: "Título",
+    saveTitle: "Salvar",
+    titleVisibility: "Este título fica visível para qualquer pessoa com o link.",
+    titleConflict: "O título foi alterado em outro lugar. Atualize e edite novamente.",
+    titleError: "Não foi possível salvar o título. Seu rascunho foi preservado.",
+    refreshTitle: "Atualizar título",
+
     dialogTitle: "Compartilhar replay - Mão {hand}",
     visibilityIntro: "Visível desde o início:",
     visibleCards: "Suas cartas (mesmo descartadas) e as de todos os bots.",

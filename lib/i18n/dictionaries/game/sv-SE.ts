@@ -218,6 +218,14 @@ const dictionary = {
     },
   },
   sharing: {
+    editTitle: "Redigera titel",
+    titleLabel: "Titel",
+    saveTitle: "Spara",
+    titleVisibility: "Den här titeln är synlig för alla som har länken.",
+    titleConflict: "Titeln ändrades på annat håll. Uppdatera och redigera igen.",
+    titleError: "Titeln kunde inte sparas. Ditt utkast finns kvar.",
+    refreshTitle: "Uppdatera titel",
+
     dialogTitle: "Dela repris - Hand {hand}",
     visibilityIntro: "Synligt från början:",
     visibleCards: "Dina kort (även lagda) och alla bottars kort.",

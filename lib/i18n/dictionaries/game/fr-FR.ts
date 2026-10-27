@@ -218,6 +218,14 @@ const dictionary = {
     },
   },
   sharing: {
+    editTitle: "Modifier le titre",
+    titleLabel: "Titre",
+    saveTitle: "Enregistrer",
+    titleVisibility: "Ce titre est visible par toute personne disposant du lien.",
+    titleConflict: "Le titre a été modifié ailleurs. Actualisez puis modifiez à nouveau.",
+    titleError: "Impossible d’enregistrer le titre. Votre brouillon est conservé.",
+    refreshTitle: "Actualiser le titre",
+
     dialogTitle: "Partager le replay - Main {hand}",
     visibilityIntro: "Visible dès le début :",
     visibleCards: "Vos cartes (même couchées) et celles de tous les bots.",

@@ -1,4 +1,5 @@
 "use client";
+import { ShareTitleEditor } from "@/components/poker/ShareTitleEditor";
 import { useEffect, useRef, useState } from "react";
 import { GameErrorDetails } from "@/components/CopyErrorDetails";
 import { captureDiagnostic, recoveryDiagnostics, type DiagnosticReport } from "@/lib/http/diagnostics";
@@ -99,7 +100,7 @@ export function SharedHands({ locale, dictionary: d, initialPage, initialError, 
       {feedback && !selection ? <p role="status">{feedback}</p> : null}
       {!rows.length && !error ? <p className={styles.empty}>{d.emptyShares}</p> : null}
       <ul className={styles.list}>{rows.map(row => <ShareRow key={row.token} row={row} locale={locale} dictionary={d}
-        disabled={busy || blocked} onAvailable={() => handleAvailable(row)} onRevoke={element => { opener.current = element; setSelection(row); setFeedback(null); setDiagnostics([]); }} />)}</ul>
+        onSaved={updated => setPage(previous => ({ ...previous, shares: previous.shares.map(item => item.token === updated.token ? { ...item, ...updated } : item) }))} onRefresh={() => void load()} disabled={busy || blocked} onAvailable={() => handleAvailable(row)} onRevoke={element => { opener.current = element; setSelection(row); setFeedback(null); setDiagnostics([]); }} />)}</ul>
       {page.nextCursor ? <button className={styles.loadMore} disabled={busy || blocked} onClick={() => void load(true)}>{d.loadMore}</button> : null}
       {selection ? <ConfirmationDialog title={`${t("sharing.revoke")} · ${selection.token.slice(0, 8)}`}
         explanation={t("sharing.revokeNotice")} cancelLabel={d.cancel} confirmLabel={t("sharing.confirmRevoke")}
@@ -110,20 +111,22 @@ export function SharedHands({ locale, dictionary: d, initialPage, initialError, 
       </ConfirmationDialog> : null}
   </div></>;
 }
-function ShareRow({ row, locale, dictionary: d, disabled, onAvailable, onRevoke }: {
-  row: OwnedShare; locale: Locale; dictionary: PlayDictionary; disabled: boolean; onAvailable: () => boolean; onRevoke: (element: HTMLElement) => void;
+function ShareRow({ row, locale, dictionary: d, disabled, onAvailable, onRevoke, onSaved, onRefresh }: {
+  onSaved: (share: OwnedShare) => void; onRefresh: () => void; row: OwnedShare; locale: Locale; dictionary: PlayDictionary; disabled: boolean; onAvailable: () => boolean; onRevoke: (element: HTMLElement) => void;
 }) {
   const { t } = useI18n();
   const clipboard = useShareClipboard();
   const path = addLocalePrefix(`/replay/${row.token}`, locale);
   const title = d.shareHand.replace("{hand}", String(row.handNumber)).replace("{id}", row.token.slice(0, 8));
   return <li className={styles.shareItem}>
-    <h3 className={styles.rowTitle}>{title}</h3>
+    <h3 className={styles.rowTitle}>{row.title ?? title}</h3>
+    {row.title ? <p>{title}</p> : null}
     <div className={styles.facts}>
       <time dateTime={row.createdAt}>{d.shareCreated.replace("{date}", exactUpdate(row.createdAt, locale))}</time>
       <time dateTime={row.expiresAt}>{t("sharing.expires", { date: exactUpdate(row.expiresAt, locale) })}</time>
     </div>
     <div className={styles.shareActions}>
+      {!disabled ? <ShareTitleEditor share={row} onSaved={updated => onSaved({ ...row, ...updated })} onRefresh={onRefresh} /> : null}
       <a className={styles.retryButton} href={path} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-label={`${d.viewShare}: ${title} (${d.newTab})`}
         onClick={event => { if (!onAvailable()) event.preventDefault(); }}>{d.viewShare}</a>
       <button className={styles.retryButton} disabled={disabled || clipboard.pending} onClick={() => { if (onAvailable()) void clipboard.copy(new URL(path, window.location.origin).href); }}>{t("sharing.copy")}</button>

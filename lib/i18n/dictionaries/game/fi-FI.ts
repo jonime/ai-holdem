@@ -218,6 +218,14 @@ const dictionary = {
     },
   },
   sharing: {
+    editTitle: "Muokkaa otsikkoa",
+    titleLabel: "Otsikko",
+    saveTitle: "Tallenna",
+    titleVisibility: "Tämä otsikko näkyy kaikille linkin saaneille.",
+    titleConflict: "Otsikkoa muutettiin muualla. Päivitä ja muokkaa uudelleen.",
+    titleError: "Otsikon tallennus epäonnistui. Luonnoksesi säilyy.",
+    refreshTitle: "Päivitä otsikko",
+
     dialogTitle: "Jaa uusinta - Jako {hand}",
     visibilityIntro: "Näkyvissä alusta asti:",
     visibleCards: "Omat korttisi (myös kipatut) ja kaikkien bottien kortit.",

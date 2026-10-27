@@ -1,7 +1,7 @@
 import { scanAccessibility } from "./accessibility";
 import { expect, test, type Page } from "./fixtures";
 import { completed } from "./replay-fixtures";
-import { sharedReplaySchema } from "../../lib/http/share-contracts";
+import { publicSharedReplaySchema } from "../../lib/http/share-contracts";
 async function review(page: Page) {
   await page.getByRole("complementary", { name: "Actions" }).getByRole("button", { name: "Review", exact: true }).last().click();
   await page.getByRole("button", { name: "Share hand", exact: true }).click();
@@ -65,7 +65,7 @@ test("shares fixed snapshots, copies with fallback, plays without live activity 
     const path = `/replay/${token}`;
     const snapshotResponse = await page.request.get(`/api/replays/${token}`);
     expect(snapshotResponse.headers()["cache-control"]).toBe("private, no-store");
-    const snapshot = sharedReplaySchema.parse(await snapshotResponse.json());
+    const snapshot = publicSharedReplaySchema.parse(await snapshotResponse.json());
     expect(snapshot.replay.frames.every(frame => frame.players.filter(p => p.cards !== null).length === 1)).toBe(true);
     const before = await f.read();
     await page.evaluate(() => Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: async (text: string) => { (window as Window & { copied?: string }).copied = text; } } }));
@@ -87,7 +87,7 @@ test("shares fixed snapshots, copies with fallback, plays without live activity 
     expect(body).not.toMatch(/engineState|playerToken|stateBefore/);
     expect(body).toContain("noindex, nofollow");
     const pageHeader = visitor.getByRole("banner");
-    await expect(pageHeader.getByRole("heading", { name: "Shared replay", exact: true })).toHaveCSS("font-size", "20px");
+    await expect(visitor.getByRole("heading", { name: "Shared replay", exact: true })).toHaveCSS("font-size", "20px");
     await expect(pageHeader.getByRole("link", { name: "AI Hold'em", exact: true })).toHaveAttribute("href", "/");
     await expect(visitor.getByRole("main").getByRole("link", { name: "Home", exact: true })).toHaveCount(0);
     await expect(visitor.locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame", "0");
@@ -129,7 +129,7 @@ test("shares fixed snapshots, copies with fallback, plays without live activity 
     expect((await visitor.request.delete(`/api/games/${f.id}/hands/1/share`, { headers: { origin: new URL(page.url()).origin } })).status()).toBe(403);
     expect((await page.request.post(`/api/games/${f.id}/hands/1/share`, { headers: { origin: "https://other.test" } })).status()).toBe(403);
     await visitor.goto(`/fi-FI${path}`);
-    await expect(visitor.getByRole("banner").getByRole("heading", { name: "Jaettu uusinta" })).toBeVisible();
+    await expect(visitor.getByRole("heading", { name: "Jaettu uusinta" })).toBeVisible();
     await expect(visitor.getByRole("banner").getByRole("link")).toHaveAttribute("href", "/fi-FI");
     await expect(visitor.locator("[data-replay-frame]")).toHaveAttribute("data-replay-frame", "0");
     await visitor.goto(`/en-US${path}`); await expect(visitor).toHaveURL(new RegExp(`${path}$`));
@@ -197,3 +197,70 @@ test("dismissed sharing diagnostics cannot return from a late failed recovery", 
     await expect(sharing.getByRole("button", { name: "Copy error details" })).toHaveCount(0);
   } finally { release?.(); await f.guestContext.close(); }
 });
+
+for (const theme of ["light", "dark"]) {
+  test(`edits public titles in ${theme}, preserves drafts and replay position`, { tag: "@ui-regression" }, async ({ page, browser }) => {
+    const f = await completed(browser, page);
+    try {
+      await page.evaluate(value => localStorage.setItem("ai-holdem-theme", value), theme);
+      await page.reload();
+      await review(page); await create(page);
+      const sharing = page.getByRole("dialog", { name: "Share replay - Hand 1", exact: true });
+      const before = await page.locator("[data-replay-frame]").getAttribute("data-replay-frame");
+      await sharing.getByRole("button", { name: "Edit title", exact: true }).click();
+      const editor = page.getByRole("dialog", { name: "Edit title", exact: true });
+      const input = editor.getByRole("textbox", { name: "Title", exact: true });
+      await expect(input).toBeFocused();
+      await expect(editor.getByText("This title is visible to anyone with the link.")).toBeVisible();
+      await expect(input).toHaveAttribute("maxlength", "80");
+      const title = '<script>alert("title")</script> wins';
+      await input.fill(title);
+      await page.route("**/api/replays/owned/*", async route => {
+        if (route.request().method() === "PATCH") await route.fulfill({ status: 503, json: { error: "Unavailable" } }); else await route.continue();
+      });
+      await editor.getByRole("button", { name: "Save", exact: true }).click();
+      await expect(editor.getByRole("alert")).toContainText("Your draft is preserved");
+      await expect(input).toHaveValue(title);
+      await page.unroute("**/api/replays/owned/*");
+      await page.setViewportSize({ width: 320, height: 568 });
+      expect(await editor.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
+      await page.screenshot({ path: test.info().outputPath(`title-editor-${theme}-mobile.png`) });
+      await editor.getByRole("button", { name: "Save", exact: true }).click();
+      await expect(editor).not.toBeVisible();
+      await expect(sharing.getByRole("button", { name: "Edit title", exact: true })).toBeFocused();
+      await expect(sharing.getByRole("heading", { name: title, exact: true })).toBeVisible();
+      expect(await page.locator("[data-replay-frame]").getAttribute("data-replay-frame")).toBe(before);
+      const management = await (await page.request.get(`/api/games/${f.id}/hands/1/share`)).json();
+      const token = management.share.token;
+      const origin = new URL(page.url()).origin;
+      const visitor = await browser.newContext();
+      try {
+        const publicPage = await visitor.newPage();
+        await publicPage.goto(`/replay/${token}`);
+        await expect(publicPage.getByRole("heading", { name: title, exact: true })).toBeVisible();
+        expect((await publicPage.request.patch(`/api/replays/owned/${token}`, { headers: { origin }, data: { title: "Intruder", titleRevision: 1 } })).status()).toBe(403);
+      } finally { await visitor.close(); }
+      await page.goto("/play?tab=shared");
+      const row = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: title, exact: true }) });
+      await expect(row).toBeVisible();
+      await row.getByRole("button", { name: "Edit title", exact: true }).click();
+      const listEditor = page.getByRole("dialog", { name: "Edit title", exact: true });
+      await listEditor.getByRole("textbox", { name: "Title", exact: true }).fill("My stale draft");
+      const changed = await page.request.patch(`/api/replays/owned/${token}`, { headers: { origin }, data: { title: "Changed elsewhere", titleRevision: 1 } });
+      expect(changed.ok()).toBe(true);
+      await listEditor.getByRole("button", { name: "Save", exact: true }).click();
+      await expect(listEditor.getByRole("alert")).toContainText("changed elsewhere");
+      await expect(listEditor.getByRole("textbox", { name: "Title", exact: true })).toHaveValue("My stale draft");
+      await expect(listEditor.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
+      await listEditor.getByRole("button", { name: "Refresh title", exact: true }).click();
+      const freshRow = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: "Changed elsewhere", exact: true }) });
+      await freshRow.getByRole("button", { name: "Edit title", exact: true }).click();
+      await listEditor.getByRole("textbox", { name: "Title", exact: true }).fill("");
+      await listEditor.getByRole("button", { name: "Save", exact: true }).click();
+      await expect(listEditor).not.toBeVisible();
+      expect((await (await page.request.get(`/api/replays/${token}`)).json()).title).toBeNull();
+      await page.goto(`/replay/${token}`);
+      await expect(page.getByRole("heading", { name: "Shared replay", exact: true })).toBeVisible();
+    } finally { await f.guestContext.close(); }
+  });
+}

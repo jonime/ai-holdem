@@ -13,7 +13,7 @@ it("passes precise timestamp cursors and owner to the list RPC and validates ret
   rpc.mockResolvedValue({ data: { shares: [], nextCursor: null }, error: null });
   const query = { beforeCreatedAt: "2026-01-01T00:00:00.123456Z", beforeToken: token };
   await listOwnedShares("owner", query);
-  expect(rpc).toHaveBeenCalledWith("list_replay_shares", { p_creator_token: "owner", p_before_created_at: query.beforeCreatedAt, p_before_token: token });
+  expect(rpc).toHaveBeenCalledWith("list_replay_shares_with_title", { p_creator_token: "owner", p_before_created_at: query.beforeCreatedAt, p_before_token: token });
   rpc.mockResolvedValue({ data: { shares: [{ snapshot: {} }], nextCursor: null }, error: null });
   await expect(listOwnedShares("owner")).rejects.toThrow();
 });
@@ -23,4 +23,12 @@ it("revokes exactly one token and keeps database failures visible", async () => 
   expect(rpc).toHaveBeenCalledWith("revoke_owned_replay_share", { p_creator_token: "owner", p_link_token: token });
   rpc.mockResolvedValue({ data: null, error: { message: "private" } });
   await expect(revokeOwnedShare("owner", token)).rejects.toThrow("Share revocation failed");
+});
+it("requires the cookie owner and propagates title conflicts without overwriting", async () => {
+  const { editOwnedShareTitle } = await import("./owned-shares");
+  await expect(editOwnedShareTitle(null, token, { title: null, titleRevision: 0 })).rejects.toThrow("SHARE_FORBIDDEN");
+  expect(rpc).not.toHaveBeenCalled();
+  rpc.mockResolvedValueOnce({ data: { outcome: "conflict" }, error: null });
+  await expect(editOwnedShareTitle("owner", token, { title: "My title", titleRevision: 2 })).rejects.toThrow("SHARE_CONFLICT");
+  expect(rpc).toHaveBeenCalledWith("edit_replay_share_title", { p_creator_token: "owner", p_link_token: token, p_title: "My title", p_revision: 2 });
 });

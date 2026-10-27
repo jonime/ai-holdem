@@ -258,13 +258,14 @@ it("requests replay lazily with a validated path, deadline and private read poli
 
 it("names share management methods, validates tokens and keeps reads uncached", async () => {
   const token = "a".repeat(64);
-  const share = { token, expiresAt: "2026-11-17T12:00:00Z" };
+  const share = { title: null, titleRevision: 0, token, expiresAt: "2026-11-17T12:00:00Z" };
   const params = { gameId: "11111111-1111-4111-8111-111111111111", handNumber: 1 };
   const fetch = mockResponse({ share });
   expect(await api.shares.active(params)).toEqual({ share });
   expect(fetch).toHaveBeenLastCalledWith(`/api/games/${params.gameId}/hands/1/share`, expect.objectContaining({ method: "GET", cache: "no-store", credentials: "same-origin" }));
   vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ share })));
-  expect(await api.shares.create(params)).toEqual({ share });
+  expect(await api.shares.create({ ...params, locale: "fi-FI" })).toEqual({ share });
+  expect(JSON.parse(vi.mocked(fetch).mock.calls.at(-1)![1]!.body as string)).toEqual({ locale: "fi-FI" });
   expect(fetch).toHaveBeenLastCalledWith(`/api/games/${params.gameId}/hands/1/share`, expect.objectContaining({ method: "POST", signal: expect.any(AbortSignal) }));
   vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify({ revoked: true })));
   expect(await api.shares.revoke(params)).toEqual({ revoked: true });
@@ -299,4 +300,12 @@ it("requests cookie-owned results with a private deadline and validates the summ
     mockResponse({ results: invalid });
     await expect(api.games.results({ gameId })).rejects.toThrow("Invalid response payload");
   }
+});
+it("validates and names the exact-token title PATCH", async () => {
+  const token = "a".repeat(64);
+  const share = { token, title: "Public title", titleRevision: 3, expiresAt: "2099-01-01T00:00:00Z" };
+  const fetch = mockResponse(share);
+  expect(await api.shares.editTitle(token, { title: "Public title", titleRevision: 2 })).toEqual(share);
+  expect(fetch).toHaveBeenLastCalledWith(`/api/replays/owned/${token}`, expect.objectContaining({ method: "PATCH", body: JSON.stringify({ title: "Public title", titleRevision: 2 }) }));
+  await expect(api.shares.editTitle(token, { title: "a\nb", titleRevision: 2 })).rejects.toThrow();
 });

@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
     imageSizes: [32, 48, 64, 96, 128, 256, 384, 540],
   },
   experimental: {
+    cpus: process.env.CI ? undefined : 2,
     globalNotFound: true,
     cssChunking: "graph",
   },

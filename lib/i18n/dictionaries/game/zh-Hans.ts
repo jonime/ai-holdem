@@ -235,6 +235,14 @@ const dictionary = {
     }
   },
   sharing: {
+    editTitle: "编辑标题",
+    titleLabel: "标题",
+    saveTitle: "保存",
+    titleVisibility: "任何拥有链接的人都可以看到此标题。",
+    titleConflict: "标题已在其他地方更改。请刷新后重新编辑。",
+    titleError: "无法保存标题。草稿已保留。",
+    refreshTitle: "刷新标题",
+
     dialogTitle: "分享回放 - 牌局 {hand}",
     visibilityIntro: "从第一帧起可见：",
     visibleCards: "你的底牌（包括弃牌）和所有机器人的底牌。",

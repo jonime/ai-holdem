@@ -22,7 +22,7 @@ describe("share HTTP boundary", () => {
     const response = await GET(new Request("https://holdem.test/api/share", { headers: { cookie: "ai-holdem-player-id=owner" } }), context);
     expect(response.headers.get("cache-control")).toBe("private, no-store");
     expect(Object.keys(await response.json())).toEqual(["share"]);
-    expect(manage.mock.calls[0].slice(1)).toEqual([gameId, 1, "owner", "read"]);
+    expect(manage.mock.calls[0].slice(1)).toEqual([gameId, 1, "owner", "read", undefined]);
   });
   it("makes unknown, malformed, expired and revoked links indistinguishable", async () => {
     read.mockRejectedValue(new ShareOutcome("SHARE_UNAVAILABLE"));
@@ -33,4 +33,13 @@ describe("share HTTP boundary", () => {
       expect(response.headers.get("referrer-policy")).toBe("no-referrer");
     }
   });
+});
+it("accepts the creator locale and rejects unsupported or malformed locales", async () => {
+  manage.mockResolvedValue({ share: null });
+  for (const locale of ["fi-FI", "invalid"]) {
+    const response = await POST(new Request("https://holdem.test/api/share", { method: "POST", headers: { origin: "https://holdem.test" }, body: JSON.stringify({ locale }) }), context);
+    expect(response.status).toBe(locale === "fi-FI" ? 200 : 400);
+  }
+  expect(manage).toHaveBeenCalledTimes(1);
+  expect(manage.mock.calls[0].at(-1)).toBe("fi-FI");
 });

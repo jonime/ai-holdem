@@ -1,4 +1,6 @@
-import { shareListSchema, shareListQuerySchema, type ShareListQuery, shareTokenSchema, sharedReplaySchema, shareManagementSchema, revokeShareSchema } from "./share-contracts";
+import { publicSharedReplaySchema, activeShareSchema, editShareTitleSchema, createReplayShareSchema } from "./share-contracts";
+import type { Locale } from "@/lib/i18n";
+import { shareListSchema, shareListQuerySchema, type ShareListQuery, shareTokenSchema, shareManagementSchema, revokeShareSchema } from "./share-contracts";
 import { resultsParamsSchema, resultsResponseSchema } from "./results-contracts";
 import { replayParamsSchema, replayResponseSchema } from "./replay-contracts";
 import { TransportError, withDeadline } from "./deadline";
@@ -116,13 +118,16 @@ function queryString(values: Record<string, string | number | undefined>) {
   return query.size ? `?${query}` : "";
 }
 
-function shareManagement(params: { gameId: string; handNumber: number }, method: "GET" | "POST" | "DELETE", options: Options) {
+function shareManagement(params: { gameId: string; handNumber: number }, method: "GET" | "POST" | "DELETE", options: Options, locale?: Locale) {
   const { gameId, handNumber } = replayParamsSchema.parse(params);
   return withDeadline(signal => send(`${gameUrl({ gameId })}/hands/${handNumber}/share`, shareManagementSchema,
-    { method, cache: "no-store", signal }), 15_000, options.signal);
+    { method, cache: "no-store", signal, ...(method === "POST" ? { headers: { "Content-Type": "application/json" }, body: JSON.stringify(createReplayShareSchema.parse({ locale })) } : {}) }), 15_000, options.signal);
 }
 export const api = instrumentApi({
   shares: {
+    editTitle(token: string, body: z.infer<typeof editShareTitleSchema>, options: Options = {}) {
+      return withDeadline(signal => send(`/api/replays/owned/${shareTokenSchema.parse(token)}`, activeShareSchema, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(editShareTitleSchema.parse(body)), signal }), 15_000, options.signal);
+    },
     list(query: ShareListQuery = {}, options: Options = {}) {
       return withDeadline(signal => send(`/api/replays/owned${queryString(shareListQuerySchema.parse(query))}`, shareListSchema, { cache: "no-store", signal }), 15_000, options.signal);
     },
@@ -130,13 +135,13 @@ export const api = instrumentApi({
       return withDeadline(signal => send(`/api/replays/owned/${shareTokenSchema.parse(token)}`, revokeShareSchema, { method: "DELETE", cache: "no-store", signal }), 15_000, options.signal);
     },
     active(params: { gameId: string; handNumber: number }, options: Options = {}) { return shareManagement(params, "GET", options); },
-    create(params: { gameId: string; handNumber: number }, options: Options = {}) { return shareManagement(params, "POST", options); },
+    create(params: { gameId: string; handNumber: number; locale?: Locale }, options: Options = {}) { const { locale, ...path } = params; return shareManagement(path, "POST", options, locale); },
     revoke(params: { gameId: string; handNumber: number }, options: Options = {}) {
       const { gameId, handNumber } = replayParamsSchema.parse(params);
       return withDeadline(signal => send(`${gameUrl({ gameId })}/hands/${handNumber}/share`, revokeShareSchema, { method: "DELETE", cache: "no-store", signal }), 15_000, options.signal);
     },
     read(token: string, options: Options = {}) {
-      return withDeadline(signal => send(`/api/replays/${shareTokenSchema.parse(token)}`, sharedReplaySchema, { cache: "no-store", signal }), 15_000, options.signal);
+      return withDeadline(signal => send(`/api/replays/${shareTokenSchema.parse(token)}`, publicSharedReplaySchema, { cache: "no-store", signal }), 15_000, options.signal);
     },
   },
   bots: {

@@ -363,3 +363,18 @@ token; arbitrary URL/SHA inputs are not accepted. Follow the release verificatio
 [Production release smoke and rollout](../CONTRIBUTING.md#production-release-smoke-and-rollout).
 That section documents manual inputs, concurrency, credential-free diagnostics,
 fixture cleanup, rate-limit costs, accepted detection gaps and timing comparison.
+
+## Optional shared hand titles
+
+Apply `20261103000000_add_shared_hand_titles.sql` and
+`20261104000000_preserve_legacy_share_responses.sql` before application deployment;
+legacy frozen snapshots stay valid. Regenerate/check database types with CLI
+2.120.0 against the migrated local stack. Initially leave server-only
+`SHARED_HAND_TITLE_MODEL` unset. Manual editing works independently. After verifying
+`openai/gpt-5-nano` availability and structured output through the configured
+`LLM_API_ENDPOINT` provider, set `SHARED_HAND_TITLE_MODEL=openai/gpt-5-nano` using
+existing `LLM_API_KEY` credentials. Paid verification requires explicit authorization.
+`EXTERNAL_INFERENCE_ENABLED=false` disables generation too. No backfill, visit-time
+inference, retries or background jobs exist. Previously shared links do not acquire
+titles when the setting changes. Allow the share request time for the eight-second
+provider deadline plus persistence; generation failures preserve successful sharing.

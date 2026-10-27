@@ -343,6 +343,17 @@ integration job does not replace the Vercel two-browser lifecycle smoke test.
 - Anonymous player tokens support this game's seat ownership; they are not
 	production authentication. Knowing a game URL intentionally permits viewing.
 
+## Shared replay titles
+
+Apply `20261103000000_add_shared_hand_titles.sql` and
+`20261104000000_preserve_legacy_share_responses.sql` before title code. Title metadata
+is outside immutable snapshots. Only the inserting request may attempt generation;
+public reads never infer. Keep `SHARED_HAND_TITLE_MODEL` unset initially, respect
+external inference disabling, and use the eight-second deadline without retries.
+Manual titles require exact-token cookie ownership and expected title revision.
+Generated writes must lose to manual edits, revocation and expiry. Local Next
+static-generation workers are capped at two; CI defaults remain unchanged.
+
 ## Debug history removal
 
 Apply `20261018000000_remove_debug_history.sql` before deploying the debug-history
